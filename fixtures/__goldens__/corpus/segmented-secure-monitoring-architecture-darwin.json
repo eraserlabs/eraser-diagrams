@@ -1,0 +1,745 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "id": "prod",
+      "x": 15,
+      "y": 15,
+      "width": 560,
+      "height": 900,
+      "color": "red",
+      "tag": "Group",
+      "title": {
+        "hAlign": "left",
+        "text": "Production Zone (Isolated Networks)"
+      }
+    },
+    {
+      "id": "zabbix-a",
+      "x": 195,
+      "y": 175,
+      "width": 50,
+      "height": 50,
+      "icon": "server",
+      "tag": "Icon",
+      "texts": [
+        {
+          "text": "Zabbix Server A"
+        }
+      ],
+      "containerId": "prod"
+    },
+    {
+      "id": "zabbix-b",
+      "x": 195,
+      "y": 415,
+      "width": 50,
+      "height": 50,
+      "icon": "server",
+      "tag": "Icon",
+      "texts": [
+        {
+          "text": "Zabbix Server B"
+        }
+      ],
+      "containerId": "prod"
+    },
+    {
+      "id": "zabbix-c",
+      "x": 195,
+      "y": 695,
+      "width": 50,
+      "height": 50,
+      "icon": "server",
+      "tag": "Icon",
+      "texts": [
+        {
+          "text": "Zabbix Server C"
+        }
+      ],
+      "containerId": "prod"
+    },
+    {
+      "id": "mon",
+      "x": 615,
+      "y": 15,
+      "width": 600,
+      "height": 900,
+      "color": "green",
+      "tag": "Group",
+      "title": {
+        "hAlign": "left",
+        "text": "Monitoring Layer (Secure Zone)"
+      }
+    },
+    {
+      "id": "collector",
+      "x": 715,
+      "y": 175,
+      "width": 50,
+      "height": 50,
+      "icon": "download-cloud",
+      "tag": "Icon",
+      "texts": [
+        {
+          "text": "Data Collector"
+        },
+        {
+          "text": "Service",
+          "color": "gray",
+          "fontSize": 10
+        }
+      ],
+      "containerId": "mon"
+    },
+    {
+      "id": "postgres",
+      "x": 715,
+      "y": 435,
+      "width": 50,
+      "height": 50,
+      "icon": "postgres",
+      "tag": "Icon",
+      "texts": [
+        {
+          "text": "PostgreSQL"
+        },
+        {
+          "text": "Timescale",
+          "color": "gray",
+          "fontSize": 10
+        }
+      ],
+      "containerId": "mon"
+    },
+    {
+      "id": "alert",
+      "x": 715,
+      "y": 715,
+      "width": 50,
+      "height": 50,
+      "icon": "bell",
+      "tag": "Icon",
+      "texts": [
+        {
+          "text": "Alert Manager"
+        }
+      ],
+      "containerId": "mon"
+    },
+    {
+      "id": "kafka",
+      "x": 965,
+      "y": 175,
+      "width": 50,
+      "height": 50,
+      "icon": "kafka",
+      "tag": "Icon",
+      "texts": [
+        {
+          "text": "Kafka"
+        },
+        {
+          "text": "(optional)",
+          "color": "gray",
+          "fontSize": 10
+        }
+      ],
+      "containerId": "mon"
+    },
+    {
+      "id": "grafana",
+      "x": 965,
+      "y": 435,
+      "width": 50,
+      "height": 50,
+      "icon": "grafana",
+      "tag": "Icon",
+      "texts": [
+        {
+          "text": "Grafana"
+        }
+      ],
+      "containerId": "mon"
+    },
+    {
+      "id": "dmz",
+      "x": 1255,
+      "y": 15,
+      "width": 300,
+      "height": 400,
+      "color": "yellow",
+      "tag": "Group",
+      "title": {
+        "hAlign": "left",
+        "text": "DMZ"
+      }
+    },
+    {
+      "id": "nginx",
+      "x": 1365,
+      "y": 175,
+      "width": 50,
+      "height": 50,
+      "icon": "network",
+      "tag": "Icon",
+      "texts": [
+        {
+          "text": "Nginx"
+        },
+        {
+          "text": "Reverse Proxy",
+          "color": "gray",
+          "fontSize": 10
+        }
+      ],
+      "containerId": "dmz"
+    },
+    {
+      "id": "users",
+      "x": 1365,
+      "y": 555,
+      "width": 50,
+      "height": 50,
+      "icon": "user",
+      "tag": "Icon",
+      "texts": [
+        {
+          "text": "Users"
+        }
+      ]
+    },
+    {
+      "id": "nova",
+      "x": 1365,
+      "y": 755,
+      "width": 50,
+      "height": 50,
+      "icon": "shield-check",
+      "tag": "Icon",
+      "texts": [
+        {
+          "text": "NOVA ITSM"
+        }
+      ]
+    },
+    {
+      "id": "legend",
+      "x": 15,
+      "y": 975,
+      "width": 1540,
+      "height": 140,
+      "tag": "Group",
+      "title": {
+        "hAlign": "left",
+        "text": "Legend"
+      }
+    },
+    {
+      "id": "legend-secure",
+      "x": 55,
+      "y": 1035,
+      "width": 200,
+      "height": 40,
+      "shape": "rectangle",
+      "bgColor": "#fee2e2",
+      "borderColor": "#dc2626",
+      "tag": "Shape",
+      "texts": [
+        {
+          "text": "Secure API (VPN/SSH)"
+        }
+      ],
+      "containerId": "legend"
+    },
+    {
+      "id": "legend-db",
+      "x": 295,
+      "y": 1035,
+      "width": 200,
+      "height": 40,
+      "shape": "rectangle",
+      "bgColor": "#dbeafe",
+      "borderColor": "#2563eb",
+      "tag": "Shape",
+      "texts": [
+        {
+          "text": "Database I/O"
+        }
+      ],
+      "containerId": "legend"
+    },
+    {
+      "id": "legend-https",
+      "x": 535,
+      "y": 1035,
+      "width": 200,
+      "height": 40,
+      "shape": "rectangle",
+      "bgColor": "#dcfce7",
+      "borderColor": "#16a34a",
+      "tag": "Shape",
+      "texts": [
+        {
+          "text": "User HTTPS Traffic"
+        }
+      ],
+      "containerId": "legend"
+    },
+    {
+      "id": "legend-alert",
+      "x": 775,
+      "y": 1035,
+      "width": 200,
+      "height": 40,
+      "shape": "rectangle",
+      "bgColor": "#ffedd5",
+      "borderColor": "#ea580c",
+      "tag": "Shape",
+      "texts": [
+        {
+          "text": "Alert Flow"
+        }
+      ],
+      "containerId": "legend"
+    },
+    {
+      "id": "legend-async",
+      "x": 1015,
+      "y": 1035,
+      "width": 200,
+      "height": 40,
+      "shape": "rectangle",
+      "bgColor": "#f3f4f6",
+      "borderColor": "#6b7280",
+      "tag": "Shape",
+      "texts": [
+        {
+          "text": "Optional / Async"
+        }
+      ],
+      "containerId": "legend"
+    }
+  ],
+  "connections": [
+    {
+      "id": "r-a-coll",
+      "from": "zabbix-a",
+      "to": "collector",
+      "x": 245,
+      "y": 192,
+      "label": "API / SSH",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#dc2626",
+      "labelPlacement": {
+        "x": 202,
+        "y": -22,
+        "width": 66,
+        "height": 17
+      },
+      "lineWidth": 1,
+      "tag": "Relationship",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 24,
+          "y": 0
+        },
+        {
+          "x": 24,
+          "y": -13.8
+        },
+        {
+          "x": 446,
+          "y": -13.8
+        },
+        {
+          "x": 446,
+          "y": 0
+        },
+        {
+          "x": 470,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "r-b-coll",
+      "from": "zabbix-b",
+      "to": "collector",
+      "x": 245,
+      "y": 440,
+      "label": "API / VPN",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#dc2626",
+      "labelPlacement": {
+        "x": 202,
+        "y": -245,
+        "width": 67,
+        "height": 17
+      },
+      "lineWidth": 1,
+      "tag": "Relationship",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 161,
+          "y": 0
+        },
+        {
+          "x": 161,
+          "y": -237
+        },
+        {
+          "x": 285,
+          "y": -237
+        },
+        {
+          "x": 285,
+          "y": -240
+        },
+        {
+          "x": 470,
+          "y": -240
+        }
+      ]
+    },
+    {
+      "id": "r-c-coll",
+      "from": "zabbix-c",
+      "to": "collector",
+      "x": 245,
+      "y": 720,
+      "label": "API / VPN",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#dc2626",
+      "labelPlacement": {
+        "x": 202,
+        "y": -501,
+        "width": 67,
+        "height": 17
+      },
+      "lineWidth": 1,
+      "tag": "Relationship",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 169,
+          "y": 0
+        },
+        {
+          "x": 169,
+          "y": -492.2
+        },
+        {
+          "x": 285,
+          "y": -492.2
+        },
+        {
+          "x": 285,
+          "y": -503
+        },
+        {
+          "x": 470,
+          "y": -503
+        }
+      ]
+    },
+    {
+      "id": "r-coll-pg",
+      "from": "collector",
+      "to": "postgres",
+      "x": 740,
+      "y": 264,
+      "label": "write",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#2563eb",
+      "labelPlacement": {
+        "x": -18,
+        "y": 77,
+        "width": 36,
+        "height": 17
+      },
+      "lineWidth": 1,
+      "tag": "Relationship",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 171
+        }
+      ]
+    },
+    {
+      "id": "r-pg-alert",
+      "from": "postgres",
+      "to": "alert",
+      "x": 740,
+      "y": 524,
+      "label": "triggers",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#ea580c",
+      "labelPlacement": {
+        "x": -27,
+        "y": 87,
+        "width": 54,
+        "height": 17
+      },
+      "lineWidth": 1,
+      "tag": "Relationship",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 191
+        }
+      ]
+    },
+    {
+      "id": "r-coll-kafka",
+      "from": "collector",
+      "to": "kafka",
+      "x": 765,
+      "y": 194,
+      "label": "publish",
+      "endArrowhead": "arrow",
+      "lineStyle": "dashed",
+      "color": "#6b7280",
+      "labelPlacement": {
+        "x": 75,
+        "y": -8,
+        "width": 51,
+        "height": 17
+      },
+      "lineWidth": 1,
+      "tag": "Relationship",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 200,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "r-kafka-pg",
+      "from": "kafka",
+      "to": "postgres",
+      "x": 965,
+      "y": 210,
+      "label": "consume",
+      "endArrowhead": "arrow",
+      "lineStyle": "dashed",
+      "color": "#6b7280",
+      "labelPlacement": {
+        "x": -132,
+        "y": 112,
+        "width": 63,
+        "height": 17
+      },
+      "lineWidth": 1,
+      "tag": "Relationship",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -100,
+          "y": 0
+        },
+        {
+          "x": -100,
+          "y": 241
+        },
+        {
+          "x": -200,
+          "y": 241
+        }
+      ]
+    },
+    {
+      "id": "r-grafana-pg",
+      "from": "grafana",
+      "to": "postgres",
+      "x": 965,
+      "y": 466,
+      "label": "read-only",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#2563eb",
+      "labelPlacement": {
+        "x": -133,
+        "y": -8,
+        "width": 67,
+        "height": 17
+      },
+      "lineWidth": 1,
+      "tag": "Relationship",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -200,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "r-grafana-nginx",
+      "from": "grafana",
+      "to": "nginx",
+      "x": 1015,
+      "y": 460,
+      "label": "proxy",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#16a34a",
+      "labelPlacement": {
+        "x": 123,
+        "y": -8,
+        "width": 40,
+        "height": 17
+      },
+      "lineWidth": 1,
+      "tag": "Relationship",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 295,
+          "y": 0
+        },
+        {
+          "x": 295,
+          "y": -260
+        },
+        {
+          "x": 350,
+          "y": -260
+        }
+      ]
+    },
+    {
+      "id": "r-nginx-users",
+      "from": "nginx",
+      "to": "users",
+      "x": 1390,
+      "y": 264,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#16a34a",
+      "lineWidth": 1,
+      "tag": "Relationship",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 291
+        }
+      ]
+    },
+    {
+      "id": "r-alert-nova",
+      "from": "alert",
+      "to": "nova",
+      "x": 765,
+      "y": 740,
+      "label": "REST API",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#ea580c",
+      "labelPlacement": {
+        "x": 361,
+        "y": 32,
+        "width": 64,
+        "height": 17
+      },
+      "lineWidth": 1,
+      "tag": "Relationship",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 40
+        },
+        {
+          "x": 600,
+          "y": 40
+        }
+      ]
+    },
+    {
+      "id": "r-users-nova",
+      "from": "users",
+      "to": "nova",
+      "x": 1390,
+      "y": 629,
+      "label": "HTTPS",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#16a34a",
+      "labelPlacement": {
+        "x": -25,
+        "y": 55,
+        "width": 49,
+        "height": 17
+      },
+      "lineWidth": 1,
+      "tag": "Relationship",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 126
+        }
+      ]
+    }
+  ],
+  "scene": {
+    "x": -1,
+    "y": -1,
+    "width": 1572,
+    "height": 1132
+  }
+}

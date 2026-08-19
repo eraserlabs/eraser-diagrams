@@ -1,0 +1,7 @@
+{
+  "entities": [
+    { "id": "rect0", "x": 0, "y": 0, "width": 100, "height": 100 },
+    { "id": "rect200", "x": 0, "y": 200, "width": 100, "height": 100 }
+  ],
+  "connections": []
+}

@@ -1,0 +1,391 @@
+{
+  "title": "Three Wide Columns",
+  "elements": [
+    {
+      "tag": "Group",
+      "id": "g_ext",
+      "title": {
+        "text": "Variables Externas (Contexto e Intervención)",
+        "icon": "settings",
+        "fontSize": 16,
+        "color": "#334155",
+        "width": "full",
+        "bgColor": "#cbd5e1",
+        "border": true
+      },
+      "x": 15,
+      "y": 15,
+      "width": 360,
+      "height": 620,
+      "bgColor": "#f1f5f9",
+      "borderColor": "#64748b",
+      "borderWidth": 0.75,
+      "styleMode": "plain",
+      "color": "#334155"
+    },
+    {
+      "tag": "Shape",
+      "id": "problema",
+      "containerId": "g_ext",
+      "shape": "rectangle",
+      "x": 35,
+      "y": 95,
+      "width": 320,
+      "height": 160,
+      "bgColor": "#e2e8f0",
+      "borderColor": "#64748b",
+      "borderWidth": 0.75,
+      "styleMode": "plain",
+      "vAlign": "top",
+      "icon": "alert-triangle",
+      "texts": [
+        {
+          "text": "Problema",
+          "fontSize": 16,
+          "color": "#0f172a",
+          "hAlign": "left"
+        },
+        {
+          "text": "Brecha digital y baja alfabetización tecnológica del usuario adulto mayor frente al antiguo sistema de ficha de préstamo física.",
+          "fontSize": 12,
+          "color": "#334155",
+          "hAlign": "left"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "ux",
+      "containerId": "g_ext",
+      "shape": "rectangle",
+      "x": 35,
+      "y": 265,
+      "width": 320,
+      "height": 160,
+      "bgColor": "#e2e8f0",
+      "borderColor": "#64748b",
+      "borderWidth": 0.75,
+      "styleMode": "plain",
+      "vAlign": "top",
+      "icon": "smartphone",
+      "texts": [
+        {
+          "text": "Solución UX",
+          "fontSize": 16,
+          "color": "#0f172a",
+          "hAlign": "left"
+        },
+        {
+          "text": "Interfaz móvil (formulario web) extremadamente limpia, con validación de datos en tiempo real (carné, catálogos).",
+          "fontSize": 12,
+          "color": "#334155",
+          "hAlign": "left"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "cambio",
+      "containerId": "g_ext",
+      "shape": "rectangle",
+      "x": 35,
+      "y": 435,
+      "width": 320,
+      "height": 160,
+      "bgColor": "#e2e8f0",
+      "borderColor": "#64748b",
+      "borderWidth": 0.75,
+      "styleMode": "plain",
+      "vAlign": "top",
+      "icon": "book-open",
+      "texts": [
+        {
+          "text": "Gestión del Cambio",
+          "fontSize": 16,
+          "color": "#0f172a",
+          "hAlign": "left"
+        },
+        {
+          "text": "Guía de Inducción física y digital en lenguaje sencillo, sin tecnicismos, para acompañar al usuario.",
+          "fontSize": 12,
+          "color": "#334155",
+          "hAlign": "left"
+        }
+      ]
+    },
+    {
+      "tag": "Group",
+      "id": "g_cog",
+      "title": {
+        "text": "Creencias Cognitivas (Constructos TAM)",
+        "icon": "brain",
+        "fontSize": 16,
+        "color": "#1e40af",
+        "width": "full",
+        "bgColor": "#bfdbfe",
+        "border": true
+      },
+      "x": 425,
+      "y": 15,
+      "width": 640,
+      "height": 620,
+      "bgColor": "#eff6ff",
+      "borderColor": "#2563eb",
+      "borderWidth": 0.75,
+      "styleMode": "plain",
+      "color": "#1e40af"
+    },
+    {
+      "tag": "Shape",
+      "id": "peou",
+      "containerId": "g_cog",
+      "shape": "rectangle",
+      "x": 445,
+      "y": 205,
+      "width": 290,
+      "height": 250,
+      "bgColor": "#dbeafe",
+      "borderColor": "#2563eb",
+      "borderWidth": 0.75,
+      "styleMode": "plain",
+      "vAlign": "top",
+      "icon": "mouse-pointer-click",
+      "texts": [
+        {
+          "text": "Facilidad de Uso Percibida",
+          "fontSize": 16,
+          "color": "#0f172a",
+          "hAlign": "left"
+        },
+        {
+          "text": "El usuario interactúa con un sistema intuitivo de 4 pasos. Generar y escanear el QR desde su celular requiere un esfuerzo mental nulo. Ya no se frustra con lectores de fichas antiguos.",
+          "fontSize": 12,
+          "color": "#1e3a5f",
+          "hAlign": "left"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "pu",
+      "containerId": "g_cog",
+      "shape": "rectangle",
+      "x": 755,
+      "y": 205,
+      "width": 290,
+      "height": 250,
+      "bgColor": "#dbeafe",
+      "borderColor": "#2563eb",
+      "borderWidth": 0.75,
+      "styleMode": "plain",
+      "vAlign": "top",
+      "icon": "trending-up",
+      "texts": [
+        {
+          "text": "Utilidad Percibida",
+          "fontSize": 16,
+          "color": "#0f172a",
+          "hAlign": "left"
+        },
+        {
+          "text": "Beneficio directo: evita la fila en el mostrador, elimina errores por dictado verbal de datos y reduce el tiempo de espera de 15 minutos a solo 1 minuto.",
+          "fontSize": 12,
+          "color": "#1e3a5f",
+          "hAlign": "left"
+        }
+      ]
+    },
+    {
+      "tag": "Group",
+      "id": "g_uso",
+      "title": {
+        "text": "Aceptación, Actitud y Uso (Impacto Operativo)",
+        "icon": "check-circle",
+        "fontSize": 16,
+        "color": "#047857",
+        "width": "full",
+        "bgColor": "#a7f3d0",
+        "border": true
+      },
+      "x": 1115,
+      "y": 15,
+      "width": 970,
+      "height": 620,
+      "bgColor": "#ecfdf5",
+      "borderColor": "#059669",
+      "borderWidth": 0.75,
+      "styleMode": "plain",
+      "color": "#047857"
+    },
+    {
+      "tag": "Shape",
+      "id": "actitud",
+      "containerId": "g_uso",
+      "shape": "rectangle",
+      "x": 1135,
+      "y": 205,
+      "width": 290,
+      "height": 250,
+      "bgColor": "#d1fae5",
+      "borderColor": "#059669",
+      "borderWidth": 0.75,
+      "styleMode": "plain",
+      "vAlign": "top",
+      "icon": "smile",
+      "texts": [
+        {
+          "text": "Actitud hacia el Uso",
+          "fontSize": 16,
+          "color": "#064e3b",
+          "hAlign": "left"
+        },
+        {
+          "text": "El usuario pierde el miedo a la tecnología. Su rechazo inicial se transforma en confianza gracias a la predictibilidad del sistema.",
+          "fontSize": 12,
+          "color": "#065f46",
+          "hAlign": "left"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "intencion",
+      "containerId": "g_uso",
+      "shape": "rectangle",
+      "x": 1445,
+      "y": 205,
+      "width": 290,
+      "height": 250,
+      "bgColor": "#d1fae5",
+      "borderColor": "#059669",
+      "borderWidth": 0.75,
+      "styleMode": "plain",
+      "vAlign": "top",
+      "icon": "clipboard-check",
+      "texts": [
+        {
+          "text": "Intención de Comportamiento",
+          "fontSize": 16,
+          "color": "#064e3b",
+          "hAlign": "left"
+        },
+        {
+          "text": "El usuario decide voluntariamente completar su formulario web en casa o en la oficina, antes de emprender su visita hacia la biblioteca.",
+          "fontSize": 12,
+          "color": "#065f46",
+          "hAlign": "left"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "usoreal",
+      "containerId": "g_uso",
+      "shape": "rectangle",
+      "x": 1755,
+      "y": 205,
+      "width": 300,
+      "height": 250,
+      "bgColor": "#bbf7d0",
+      "borderColor": "#059669",
+      "borderWidth": 0.75,
+      "styleMode": "plain",
+      "vAlign": "top",
+      "icon": "qr-code",
+      "texts": [
+        {
+          "text": "Uso Real (Co-producción)",
+          "fontSize": 16,
+          "color": "#064e3b",
+          "hAlign": "left"
+        },
+        {
+          "text": "El usuario muestra su QR en el mostrador, el lector del quiosco lo escanea en 5 segundos y retira su libro exitosamente, asumiendo su rol como co-productor activo del servicio bibliotecario.",
+          "fontSize": 12,
+          "color": "#065f46",
+          "hAlign": "left"
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r1",
+      "from": "problema",
+      "fromPort": "right",
+      "to": "peou",
+      "toPort": "left",
+      "color": "#64748b",
+      "endArrowhead": "arrow"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r2",
+      "from": "ux",
+      "fromPort": "right",
+      "to": "peou",
+      "toPort": "left",
+      "color": "#64748b",
+      "endArrowhead": "arrow"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r3",
+      "from": "cambio",
+      "fromPort": "right",
+      "to": "peou",
+      "toPort": "left",
+      "color": "#64748b",
+      "endArrowhead": "arrow"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r4",
+      "from": "peou",
+      "fromPort": "right",
+      "to": "pu",
+      "toPort": "left",
+      "color": "#2563eb",
+      "endArrowhead": "arrow"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r5",
+      "from": "peou",
+      "fromPort": "right",
+      "to": "actitud",
+      "toPort": "left",
+      "color": "#2563eb",
+      "endArrowhead": "arrow"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r6",
+      "from": "pu",
+      "fromPort": "right",
+      "to": "actitud",
+      "toPort": "left",
+      "color": "#2563eb",
+      "endArrowhead": "arrow"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r7",
+      "from": "actitud",
+      "fromPort": "right",
+      "to": "intencion",
+      "toPort": "left",
+      "color": "#059669",
+      "endArrowhead": "arrow"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r8",
+      "from": "intencion",
+      "fromPort": "right",
+      "to": "usoreal",
+      "toPort": "left",
+      "color": "#059669",
+      "endArrowhead": "arrow"
+    }
+  ]
+}

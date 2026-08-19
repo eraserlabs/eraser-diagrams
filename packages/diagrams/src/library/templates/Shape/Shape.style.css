@@ -1,0 +1,376 @@
+/* CSS-geometry kinds (rectangle/oval/circle/ellipse) paint the inner box with border-radius;
+   polygon kinds + cylinder paint an inline 0–100 SVG layer (sharp corners — per-vertex arc
+   rounding is an accepted divergence). Default: transparent fill, near-black hairline,
+   hard 4px/4px #E8E8E8 shadow. */
+/* Text sizing (see CUSTOMIZATION.md): sizes are pixels only. Each slot names its own --er-base;
+   an authored `fontSize` arrives as gated data-font-px + --er-font-px and replaces it. */
+.er-shape {
+  /* One authored `color` reaches CSS as --er-color; every surface below it is a relative-color
+     lightness step over that value (keep hue + saturation, force lightness). Defaults are real
+     declarations, not var() fallbacks — an absent binding substitutes empty, which voids a
+     declaration rather than triggering a fallback, so each identity rule is gated on its own
+     attribute instead. */
+  --er-fill: transparent;
+  --er-stroke: #242424;
+  /* Near-white tint a mounted Badge inherits as its background. */
+  --er-tint: #ffffff;
+  /* Embedded-icon default (20px) and preset buckets; the compound grows the glyph with the
+     element's authored text size. Unitless px so base.style.css can divide by the resolved box
+     for the stroke-width formula. */
+  --er-icon-base-num: 20;
+  --er-glyph-num: var(--er-icon-base-num);
+  --er-icon-size: calc(var(--er-glyph-num) * 1px);
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
+  color: #242424;
+}
+/* Identity: pastel body at 85% lightness, the identity colour itself as the hairline. */
+.er-shape[data-color]:not([data-color='']) {
+  --er-fill: hsl(from var(--er-color) h s 85%);
+  --er-stroke: var(--er-color);
+  --er-tint: hsl(from var(--er-color) h s 98%);
+}
+/* Authored paint outranks the identity formulas. Every rule in this cascade is written
+   `[attr]:not([attr=''])` and, in watercolor, with the mode qualifier as well, so within a mode
+   they all carry the same specificity and source order alone decides — the redundant-looking
+   `:not()` on the value-matching rules below is what keeps that true. */
+.er-shape[data-bg]:not([data-bg='']) {
+  --er-fill: var(--er-bg);
+  --er-tint: hsl(from var(--er-bg) h s 98%);
+}
+.er-shape[data-bg='transparent']:not([data-bg='']),
+.er-shape[data-bg='none']:not([data-bg='']) {
+  --er-tint: #ffffff;
+}
+.er-shape[data-border-color]:not([data-border-color='']) {
+  --er-stroke: var(--er-border);
+}
+/* Watercolor body fill: the authored paint fades to FILL_FADE 0.65. Pigments the texture
+   cannot serve (white, non-hex) get no wash decoration — the faded fill alone is the look. */
+.er-shape[data-style='watercolor'] {
+  /* Published for nested mounts (Badge): inherited across the mount boundary the same way
+     --er-tint is, so hosted chrome fades with the host's watercolor ink. */
+  --er-wc-ink-alpha: var(--er-wc-border-alpha, 45%);
+}
+.er-shape[data-style='watercolor'][data-color]:not([data-color='']) {
+  --er-fill: hsl(from var(--er-color) h s 85% / 0.65);
+}
+.er-shape[data-style='watercolor'][data-bg]:not([data-bg='']) {
+  --er-fill: rgb(from var(--er-bg) r g b / 0.65);
+}
+.er-shape[data-style='watercolor'][data-bg='#ffffff' i]:not([data-bg='']),
+.er-shape[data-style='watercolor'][data-bg='white' i]:not([data-bg='']) {
+  --er-fill: var(--er-bg);
+}
+/* An explicitly unpainted body stays unpainted: relative-color syntax reads `transparent` as
+   black at zero alpha, so re-alpha-ing it would hand back an opaque near-black. */
+.er-shape[data-style='watercolor'][data-bg='transparent']:not([data-bg='']),
+.er-shape[data-style='watercolor'][data-bg='none']:not([data-bg='']) {
+  --er-fill: transparent;
+}
+/* Texture stain: the body IS the recolored scan master, so the paint underneath goes away. */
+.er-shape[data-style='watercolor'][data-washtex-css]:not([data-washtex-css='']),
+.er-shape[data-style='watercolor'][data-washtex-geo]:not(
+    [data-washtex-geo='']
+  ) {
+  --er-fill: transparent;
+}
+.er-shape[data-icon-size='sm'] {
+  --er-icon-base-num: 16;
+}
+.er-shape[data-icon-size='md'] {
+  --er-icon-base-num: 20;
+}
+.er-shape[data-icon-size='lg'] {
+  --er-icon-base-num: 28;
+}
+.er-shape[data-icon-size='xl'] {
+  --er-icon-base-num: 40;
+}
+/* Explicit px keeps the icon compound: the glyph grows by the same ratio the primary slot does. */
+.er-shape[data-font-px]:not([data-font-px='']) {
+  --er-glyph-num: calc(var(--er-icon-base-num) * var(--er-font-num) / 15);
+}
+.er-shape__geo {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.er-shape__path,
+.er-shape__cap {
+  display: none;
+  fill: var(--er-fill);
+  stroke: var(--er-stroke);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.er-shape__cap {
+  fill: transparent;
+}
+/* Real-size geometry generated by normalizers deriveGeo (rounded polygons, document/cylinder
+   curves); mounts only for those kinds, whose data-shape rules below already display the geo svg. */
+.er-shape__path--dynamic,
+.er-shape__cap--dynamic {
+  display: block;
+}
+.er-shape__inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  --er-shape-h-inset: 7.5%;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  border: 1.2px solid var(--er-stroke);
+  /* Corner radius: min(min(w,h) * 0.15, 12). */
+  border-radius: min(12px, 15%);
+  background: var(--er-fill);
+  /* Horizontal inset = width * 0.15 total. */
+  padding: 0 var(--er-shape-h-inset);
+  box-sizing: border-box;
+}
+/* styleMode default is 'shadow' — the hard offset silhouette; plain and watercolor drop it. */
+.er-shape[data-style='shadow'] .er-shape__inner {
+  box-shadow: 4px 4px 0 0 #e8e8e8;
+}
+/* Texture stain body for CSS-geometry kinds: the shared er-washtex span (base.style.css) fills
+   the inner box with the recolored scan master. Only the per-kind mask rounding lives here. */
+/* Watercolor edge knobs:
+   --er-wc-border-alpha: watercolor border ink opacity (100% = solid hairline).
+   --er-wc-border-blur:  smudge radius of the watercolor border (0 = crisp).
+   The wash edge FADE lives in the template as feGaussianBlur filter attributes on the mask
+   content (wcb-/wcbf-/wcc- defs), not CSS: Chromium ignores the CSS filter property on elements
+   inside <mask> in some builds (playground pane, user Chrome) while honoring the SVG attribute
+   everywhere. The cylinder floor region rides in the same mask near-solid so pigment pools into
+   the vessel bottom instead of fading across it. */
+/* The CSS-geometry mask rect mirrors the inner box rounding per kind. */
+.er-shape .er-washtex .er-washmask {
+  rx: min(12px, 15%);
+}
+.er-shape[data-shape='oval'] .er-washtex .er-washmask {
+  rx: 9999px;
+}
+.er-shape[data-shape='circle'] .er-washtex .er-washmask,
+.er-shape[data-shape='ellipse'] .er-washtex .er-washmask {
+  rx: 50%;
+  ry: 50%;
+}
+.er-shape[data-style='watercolor'] .er-shape__path,
+.er-shape[data-style='watercolor'] .er-shape__cap {
+  stroke: color-mix(
+    in srgb,
+    var(--er-stroke) var(--er-wc-border-alpha, 45%),
+    transparent
+  );
+  filter: blur(var(--er-wc-border-blur, 0.7px));
+}
+/* CSS-geometry kinds: the watercolor border moves to a blurable overlay so smudge can spill
+   both ways; the inner keeps layout but paints no border ink of its own. */
+.er-shape[data-style='watercolor'][data-washtex-css]:not([data-washtex-css=''])
+  .er-shape__inner {
+  border-color: transparent;
+}
+.er-shape[data-style='watercolor'][data-washtex-css]:not([data-washtex-css=''])
+  .er-shape__inner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border-width: 1.2px;
+  border-style: inherit;
+  border-color: color-mix(
+    in srgb,
+    var(--er-stroke) var(--er-wc-border-alpha, 45%),
+    transparent
+  );
+  filter: blur(var(--er-wc-border-blur, 0.7px));
+  pointer-events: none;
+}
+.er-shape[data-border='dashed'] .er-shape__inner {
+  border-style: dashed;
+}
+.er-shape[data-border='dotted'] .er-shape__inner {
+  border-style: dotted;
+}
+.er-shape[data-border='dashed'] .er-shape__path,
+.er-shape[data-border='dashed'] .er-shape__cap {
+  stroke-dasharray: 8 8.75;
+}
+.er-shape[data-border='dotted'] .er-shape__path,
+.er-shape[data-border='dotted'] .er-shape__cap {
+  stroke-dasharray: 1.5 6.75;
+}
+/* Oval: stadium ends; circle/ellipse: true elliptical outline. */
+.er-shape[data-shape='oval'] .er-shape__inner {
+  border-radius: 9999px;
+}
+.er-shape[data-shape='circle'] .er-shape__inner,
+.er-shape[data-shape='ellipse'] .er-shape__inner {
+  --er-shape-h-inset: 12.5%;
+  border-radius: 50%;
+}
+/* SVG-geometry kinds: show the geo layer, strip the inner chrome. */
+.er-shape[data-shape='parallelogram'] .er-shape__geo,
+.er-shape[data-shape='trapezoid'] .er-shape__geo,
+.er-shape[data-shape='diamond'] .er-shape__geo,
+.er-shape[data-shape='hexagon'] .er-shape__geo,
+.er-shape[data-shape='triangle'] .er-shape__geo,
+.er-shape[data-shape='star'] .er-shape__geo,
+.er-shape[data-shape='document'] .er-shape__geo,
+.er-shape[data-shape='cylinder'] .er-shape__geo {
+  display: block;
+}
+.er-shape[data-shape='parallelogram'] .er-shape__inner,
+.er-shape[data-shape='trapezoid'] .er-shape__inner,
+.er-shape[data-shape='diamond'] .er-shape__inner,
+.er-shape[data-shape='hexagon'] .er-shape__inner,
+.er-shape[data-shape='triangle'] .er-shape__inner,
+.er-shape[data-shape='star'] .er-shape__inner,
+.er-shape[data-shape='document'] .er-shape__inner,
+.er-shape[data-shape='cylinder'] .er-shape__inner {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+.er-shape[data-shape='parallelogram'] .er-shape__path--parallelogram,
+.er-shape[data-shape='trapezoid'] .er-shape__path--trapezoid,
+.er-shape[data-shape='diamond'] .er-shape__path--diamond,
+.er-shape[data-shape='hexagon'] .er-shape__path--hexagon,
+.er-shape[data-shape='triangle'] .er-shape__path--triangle,
+.er-shape[data-shape='star'] .er-shape__path--star,
+.er-shape[data-shape='document'] .er-shape__path--document,
+.er-shape[data-shape='cylinder'] .er-shape__path--cylinder-body {
+  display: block;
+}
+.er-shape[data-shape='cylinder'] .er-shape__path--cylinder-cap {
+  display: block;
+}
+.er-shape[data-style='shadow'] .er-shape__geo {
+  filter: drop-shadow(4px 4px 0 #e8e8e8);
+}
+/* Per-kind text insets (horizontal padding per side). */
+.er-shape[data-shape='triangle'] .er-shape__inner {
+  --er-shape-h-inset: 25%;
+}
+.er-shape[data-shape='diamond'] .er-shape__inner,
+.er-shape[data-shape='star'] .er-shape__inner {
+  --er-shape-h-inset: 10%;
+}
+/* Cylinder: text clears the cap (its front rim dips to y=22 in the geo svg's 0–100 units) and
+   leaves 6% above the bottom rim. Percentage padding resolves against the width, so the bands are
+   grid rows, whose percentages come from the box height. The px minimums carry the bands into
+   the auto-sized (indefinite height) measure, where percentages collapse to nothing. */
+.er-shape[data-shape='cylinder'] .er-shape__inner {
+  grid-template-rows: minmax(10px, 22%) 1fr minmax(6px, 6%);
+}
+.er-shape[data-shape='cylinder'] .er-shape__icon,
+.er-shape[data-shape='cylinder'] .er-shape__texts {
+  grid-row: 2;
+}
+.er-shape__inner[data-v-align='top'] {
+  align-content: start;
+  padding-top: var(--er-v-margin, 10px);
+}
+.er-shape__inner[data-v-align='bottom'] {
+  align-content: end;
+  padding-bottom: var(--er-v-margin, 10px);
+}
+.er-shape[data-shape='cylinder'] .er-shape__inner[data-v-align='top'] {
+  align-items: start;
+}
+.er-shape[data-shape='cylinder'] .er-shape__inner[data-v-align='bottom'] {
+  align-items: end;
+}
+/* Side icon: stable left edge; every text run gets the entire remaining lane. Default icon
+   inset is 10% of shape width; iconPadding overrides it. */
+.er-shape__inner:has(.er-shape__icon):has(.er-shape__text) {
+  grid-template-columns:
+    10% var(--er-icon-size, 20px) max(10px, var(--er-shape-h-inset))
+    minmax(0, 1fr) var(--er-shape-h-inset);
+  padding-left: 0;
+  padding-right: 0;
+}
+.er-shape[data-icon-pad]:not([data-icon-pad=''])
+  .er-shape__inner:has(.er-shape__icon):has(.er-shape__text) {
+  grid-template-columns:
+    var(--er-icon-pad) var(--er-icon-size, 20px) max(
+      10px,
+      var(--er-shape-h-inset)
+    )
+    minmax(0, 1fr) var(--er-shape-h-inset);
+}
+.er-shape__inner:has(.er-shape__icon):has(.er-shape__text) .er-shape__icon {
+  grid-column: 2;
+}
+.er-shape__inner:has(.er-shape__icon):has(.er-shape__text) .er-shape__texts {
+  grid-column: 4;
+}
+.er-shape__icon {
+  width: var(--er-icon-size, 20px);
+  height: var(--er-icon-size, 20px);
+  justify-self: center;
+  color: var(--er-icon-ink, #242424);
+  line-height: 0;
+}
+.er-shape__icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.er-shape__texts {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+.er-shape__texts:empty {
+  display: none;
+}
+/* texts[0] is the primary slot (15px), texts[1+] the 12px sub slot. */
+.er-shape__text {
+  --er-base: 12px;
+  font-family: var(--f, var(--font-clean, sans-serif));
+  font-size: var(--er-base);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+  word-break: normal;
+  color: var(--er-ink, #242424);
+}
+/* texts[1+] are the muted sub slot (2px gap). */
+.er-shape__text + .er-shape__text {
+  margin-top: 2px;
+  opacity: 0.72;
+}
+.er-shape__text:first-child {
+  --er-base: 15px;
+}
+/* An element-level px re-bases every run; a run-level scale still multiplies it. */
+.er-shape[data-font-px]:not([data-font-px='']) .er-shape__text {
+  --er-base: var(--er-font-px);
+}
+.er-shape__text[data-run-px]:not([data-run-px='']) {
+  font-size: var(--er-run-px);
+}
+.er-shape__text[data-h-align='left'] {
+  text-align: left;
+}
+.er-shape__text[data-h-align='right'] {
+  text-align: right;
+}

@@ -1,0 +1,51 @@
+/* Solid #1c1c1c line; optional centered 14px label breaking the line with a 6px gap on each
+   side (the line splits around the label). */
+/* Text sizing (see CUSTOMIZATION.md): sizes are pixels only — this slot's literal default, or
+   an authored `fontSize` through the gated data-font-px + --er-font-px idiom. */
+.er-divider {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  font-family: var(--f, var(--font-clean, sans-serif));
+}
+.er-divider__line {
+  flex: 1;
+  border-top: var(--er-line-w, 1.3px) solid var(--er-stroke, #1c1c1c);
+}
+.er-divider[data-line-style='dashed'] .er-divider__line {
+  border-top-style: dashed;
+}
+.er-divider[data-line-style='dotted'] .er-divider__line {
+  border-top-style: dotted;
+}
+.er-divider__label {
+  flex: 0 0 auto;
+  margin: 0 6px;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: #242424;
+}
+.er-divider[data-font-px]:not([data-font-px='']) .er-divider__label {
+  font-size: var(--er-font-px);
+}
+.er-divider[data-orientation='vertical'] {
+  flex-direction: column;
+}
+.er-divider[data-orientation='vertical'] .er-divider__line {
+  border-top: none;
+  border-left: var(--er-line-w, 1.3px) solid var(--er-stroke, #1c1c1c);
+}
+.er-divider[data-orientation='vertical'][data-line-style='dashed']
+  .er-divider__line {
+  border-left-style: dashed;
+}
+.er-divider[data-orientation='vertical'][data-line-style='dotted']
+  .er-divider__line {
+  border-left-style: dotted;
+}
+.er-divider[data-orientation='vertical'] .er-divider__label {
+  margin: 6px 0;
+}

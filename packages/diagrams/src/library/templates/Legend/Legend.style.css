@@ -1,0 +1,53 @@
+/* Plain card of swatch + text rows: white body, near-black hairline, 6px corners. */
+.er-legend {
+  /* Identity treatment, one authored `color` (see Shape.style.css for the shared model). */
+  --er-fill: #ffffff;
+  --er-stroke: #242424;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--er-stroke);
+  border-radius: 6px;
+  background: var(--er-fill);
+  padding: 8px 10px;
+  box-sizing: border-box;
+  font-family: var(--font-clean, sans-serif);
+}
+.er-legend[data-color]:not([data-color='']) {
+  --er-fill: hsl(from var(--er-color) h s 85%);
+  --er-stroke: var(--er-color);
+}
+.er-legend[data-bg]:not([data-bg='']) {
+  --er-fill: var(--er-bg);
+}
+.er-legend[data-border-color]:not([data-border-color='']) {
+  --er-stroke: var(--er-border);
+}
+.er-legend__items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.er-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 22px;
+}
+.er-legend__swatch {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(36, 36, 36, 0.4);
+  background: #e4e4e4;
+}
+/* An entry without a color substitutes empty, which would void the declaration rather than fire a
+   var() fallback — so the authored swatch is gated behind its own attribute. */
+.er-legend__swatch[data-swatch]:not([data-swatch='']) {
+  background: var(--er-swatch);
+}
+.er-legend__text {
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  color: #242424;
+}

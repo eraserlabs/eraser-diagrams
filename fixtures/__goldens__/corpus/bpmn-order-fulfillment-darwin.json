@@ -1,0 +1,510 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "Pool",
+      "id": "pool-customer",
+      "x": 15,
+      "y": 15,
+      "width": 1370,
+      "height": 330,
+      "color": "orange",
+      "title": {
+        "text": "Customer"
+      }
+    },
+    {
+      "tag": "Event",
+      "id": "need-product",
+      "x": 120,
+      "y": 120,
+      "containerId": "pool-customer",
+      "texts": [
+        {
+          "text": "Need product"
+        }
+      ],
+      "width": 56,
+      "height": 56
+    },
+    {
+      "tag": "Activity",
+      "id": "place-order",
+      "x": 350,
+      "y": 95,
+      "width": 220,
+      "height": 105,
+      "icon": "shopping-cart",
+      "containerId": "pool-customer",
+      "texts": [
+        {
+          "text": "Place order"
+        }
+      ]
+    },
+    {
+      "tag": "Event",
+      "id": "shipment-received",
+      "x": 800,
+      "y": 120,
+      "icon": "mail",
+      "containerId": "pool-customer",
+      "texts": [
+        {
+          "text": "Shipment received"
+        }
+      ],
+      "width": 56,
+      "height": 56
+    },
+    {
+      "tag": "Event",
+      "id": "order-completed",
+      "x": 1150,
+      "y": 120,
+      "containerId": "pool-customer",
+      "texts": [
+        {
+          "text": "Order completed"
+        }
+      ],
+      "width": 56,
+      "height": 56
+    },
+    {
+      "tag": "Pool",
+      "id": "pool-store",
+      "x": 15,
+      "y": 430,
+      "width": 1370,
+      "height": 645,
+      "color": "blue",
+      "title": {
+        "text": "Online Store"
+      }
+    },
+    {
+      "tag": "Lane",
+      "id": "lane-sales",
+      "x": 65,
+      "y": 445,
+      "width": 1305,
+      "height": 310,
+      "title": {
+        "text": "Sales"
+      },
+      "containerId": "pool-store"
+    },
+    {
+      "tag": "Activity",
+      "id": "verify-payment",
+      "x": 140,
+      "y": 560,
+      "width": 200,
+      "height": 95,
+      "icon": "credit-card",
+      "containerId": "lane-sales",
+      "texts": [
+        {
+          "text": "Verify payment"
+        }
+      ]
+    },
+    {
+      "tag": "Gateway",
+      "id": "payment-approved",
+      "x": 520,
+      "y": 580,
+      "icon": "x",
+      "containerId": "lane-sales",
+      "texts": [
+        {
+          "text": "Payment approved?"
+        }
+      ],
+      "width": 56,
+      "height": 56
+    },
+    {
+      "tag": "Activity",
+      "id": "generate-pick-list",
+      "x": 760,
+      "y": 560,
+      "width": 220,
+      "height": 95,
+      "icon": "list",
+      "containerId": "lane-sales",
+      "texts": [
+        {
+          "text": "Generate pick list"
+        }
+      ]
+    },
+    {
+      "tag": "Lane",
+      "id": "lane-warehouse",
+      "x": 65,
+      "y": 760,
+      "width": 1305,
+      "height": 300,
+      "title": {
+        "text": "Warehouse"
+      },
+      "containerId": "pool-store"
+    },
+    {
+      "tag": "Activity",
+      "id": "pick-items",
+      "x": 140,
+      "y": 865,
+      "width": 190,
+      "height": 90,
+      "icon": "box",
+      "containerId": "lane-warehouse",
+      "texts": [
+        {
+          "text": "Pick items"
+        }
+      ]
+    },
+    {
+      "tag": "Activity",
+      "id": "pack-label",
+      "x": 430,
+      "y": 865,
+      "width": 230,
+      "height": 90,
+      "icon": "package",
+      "containerId": "lane-warehouse",
+      "texts": [
+        {
+          "text": "Pack & label shipment"
+        }
+      ]
+    },
+    {
+      "tag": "Activity",
+      "id": "ship-order",
+      "x": 760,
+      "y": 865,
+      "width": 190,
+      "height": 90,
+      "icon": "truck",
+      "containerId": "lane-warehouse",
+      "texts": [
+        {
+          "text": "Ship order"
+        }
+      ]
+    },
+    {
+      "tag": "Event",
+      "id": "shipped",
+      "x": 1150,
+      "y": 880,
+      "containerId": "lane-warehouse",
+      "texts": [
+        {
+          "text": "Shipped"
+        }
+      ],
+      "width": 56,
+      "height": 56
+    }
+  ],
+  "connections": [
+    {
+      "from": "need-product",
+      "to": "place-order",
+      "x": 176,
+      "y": 148,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 174,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "from": "place-order",
+      "to": "verify-payment",
+      "label": "Order",
+      "lineStyle": "dashed",
+      "x": 460,
+      "y": 200,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 303
+        },
+        {
+          "x": -220,
+          "y": 303
+        },
+        {
+          "x": -220,
+          "y": 360
+        }
+      ],
+      "labelPlacement": {
+        "x": -130,
+        "y": 295,
+        "width": 41,
+        "height": 17
+      }
+    },
+    {
+      "from": "verify-payment",
+      "to": "payment-approved",
+      "x": 340,
+      "y": 608,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 180,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "from": "payment-approved",
+      "to": "generate-pick-list",
+      "label": "Yes",
+      "x": 576,
+      "y": 613,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 184,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": 32,
+        "y": -8,
+        "width": 27,
+        "height": 17
+      }
+    },
+    {
+      "from": "payment-approved",
+      "to": "order-completed",
+      "label": "Payment declined",
+      "lineStyle": "dashed",
+      "x": 576,
+      "y": 600,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 104,
+          "y": 0
+        },
+        {
+          "x": 104,
+          "y": -97
+        },
+        {
+          "x": 427,
+          "y": -97
+        },
+        {
+          "x": 427,
+          "y": -441
+        },
+        {
+          "x": 574,
+          "y": -441
+        }
+      ],
+      "labelPlacement": {
+        "x": 206,
+        "y": -105,
+        "width": 120,
+        "height": 17
+      }
+    },
+    {
+      "from": "generate-pick-list",
+      "to": "pick-items",
+      "label": "Pick list",
+      "lineStyle": "dashed",
+      "x": 760,
+      "y": 634,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -96,
+          "y": 0
+        },
+        {
+          "x": -96,
+          "y": 179
+        },
+        {
+          "x": -380,
+          "y": 179
+        },
+        {
+          "x": -380,
+          "y": 259
+        },
+        {
+          "x": -430,
+          "y": 259
+        }
+      ],
+      "labelPlacement": {
+        "x": -265,
+        "y": 171,
+        "width": 53,
+        "height": 17
+      }
+    },
+    {
+      "from": "pick-items",
+      "to": "pack-label",
+      "x": 330,
+      "y": 921,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 100,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "from": "pack-label",
+      "to": "ship-order",
+      "x": 660,
+      "y": 910,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 100,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "from": "place-order",
+      "to": "shipment-received",
+      "x": 570,
+      "y": 148,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 230,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "from": "ship-order",
+      "to": "shipment-received",
+      "label": "Shipment",
+      "lineStyle": "dashed",
+      "x": 855,
+      "y": 865,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": -160
+        },
+        {
+          "x": -183,
+          "y": -160
+        },
+        {
+          "x": -183,
+          "y": -592
+        },
+        {
+          "x": -27,
+          "y": -592
+        },
+        {
+          "x": -27,
+          "y": -664
+        }
+      ],
+      "labelPlacement": {
+        "x": -216,
+        "y": -486,
+        "width": 66,
+        "height": 17
+      }
+    },
+    {
+      "from": "ship-order",
+      "to": "shipped",
+      "x": 950,
+      "y": 908,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 200,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "from": "shipment-received",
+      "to": "order-completed",
+      "x": 856,
+      "y": 141,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 294,
+          "y": 0
+        }
+      ]
+    }
+  ],
+  "scene": {
+    "x": -1,
+    "y": -1,
+    "width": 1402,
+    "height": 1092
+  }
+}

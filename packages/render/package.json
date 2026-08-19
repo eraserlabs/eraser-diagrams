@@ -1,0 +1,52 @@
+{
+  "name": "@eraserlabs/render",
+  "version": "0.1.0",
+  "description": "In-browser fill, measure, layout, and apply implementation for the Eraser diagram protocol.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eraserlabs/eraser-diagrams.git",
+    "directory": "packages/render"
+  },
+  "homepage": "https://github.com/eraserlabs/eraser-diagrams",
+  "bugs": "https://github.com/eraserlabs/eraser-diagrams/issues",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./browser": {
+      "types": "./dist/browser/index.d.ts",
+      "default": "./dist/browser/index.js"
+    },
+    "./browser/iife": "./dist/browser/eraser-render.iife.js"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map",
+    "SPEC.md"
+  ],
+  "scripts": {
+    "build": "tsc -b && tsc -p tsconfig.browser.json && node scripts/build-browser.mjs && node ../../tools/strip-dist-comments.mjs",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "test": "vitest run --passWithNoTests",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@eraserlabs/layout": "workspace:*",
+    "@eraserlabs/protocol": "workspace:*",
+    "@eraserlabs/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1",
+    "esbuild": "0.25.12"
+  }
+}

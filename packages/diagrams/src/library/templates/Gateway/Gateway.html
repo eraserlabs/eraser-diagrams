@@ -1,0 +1,36 @@
+<template name="Gateway">
+  <figure
+    data-tpl="Gateway"
+    data-role="body"
+    class="er-gateway"
+    data-color="{{color}}"
+    data-bg="{{bgColor}}"
+    data-border-color="{{borderColor}}"
+    data-border="{{borderStyle}}"
+    data-font-px="{{fontSize}}"
+    style="--er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-font-px: {{fontSize}}px"
+  >
+    <span data-role="anchor" data-part="diamond" class="er-gateway__box">
+      <svg class="er-gateway__geo" viewBox="0 0 56 56" aria-hidden="true">
+        <path class="er-gateway__path" d="M28 2L54 28L28 54L2 28Z"></path>
+      </svg>
+      <span class="er-gateway__glyph" data-slot="icon" data-if="icon"></span>
+    </span>
+    <figcaption
+      class="er-gateway__caption"
+      data-role="external-text"
+      data-part="caption"
+      data-each="t of texts"
+      data-key="text"
+    >
+      <div
+        class="er-gateway__caption-line er-md"
+        data-run-px="{{t.fontSize}}"
+        style="--f: var(--font-{{t.typeface}}, var(--font-clean)); --er-ink: {{t.color}}; --er-run-px: {{t.fontSize}}px"
+      >
+        {{t.text}}
+      </div>
+    </figcaption>
+    <span data-use="Badge" data-props="badge" data-if="badge"></span>
+  </figure>
+</template>

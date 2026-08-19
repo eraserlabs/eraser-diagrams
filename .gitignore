@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Test / coverage
+coverage/
+.vitest/
+test-results/
+playwright-report/
+.tmp-*/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Runtime
+/fonts-cache/
+*.log
+
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.tmp
+
+# Fixture working files: private drop zone for exports, icon cache, local renders
+/fixtures/.local/
+/fixtures/.icon-cache/
+/fixtures/*.png
+/tools/watercolor/

@@ -1,0 +1,123 @@
+<template name="Relationship">
+  <div
+    data-tpl="Relationship"
+    data-role="body"
+    class="er-rel"
+    data-line-style="{{lineStyle}}"
+    data-font-px="{{fontSize}}"
+    style="--er-stroke: {{color}}; --er-line-w: {{lineWidthPx}}px; --er-font-px: {{fontSize}}px"
+  >
+    <svg class="er-rel__svg">
+      <defs>
+        <marker
+          id="er-ah-triangle"
+          markerUnits="strokeWidth"
+          markerWidth="7.69"
+          markerHeight="9.23"
+          viewBox="0 0 10 12"
+          refX="10"
+          refY="6"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0,0 L 10,6 L 0,12 Z" fill="context-stroke"></path>
+        </marker>
+        <marker
+          id="er-ah-arrow"
+          markerUnits="strokeWidth"
+          markerWidth="9.23"
+          markerHeight="10.77"
+          viewBox="0 0 12 14"
+          refX="12"
+          refY="7"
+          orient="auto-start-reverse"
+        >
+          <path
+            d="M 0,0 L 12,7 L 0,14"
+            fill="none"
+            stroke="context-stroke"
+            stroke-width="1.3"
+          ></path>
+        </marker>
+        <marker
+          id="er-ah-bar"
+          markerUnits="strokeWidth"
+          markerWidth="2.31"
+          markerHeight="11.54"
+          viewBox="0 0 3 15"
+          refX="1.5"
+          refY="7.5"
+          orient="auto-start-reverse"
+        >
+          <path
+            d="M 1.5,0 L 1.5,15"
+            fill="none"
+            stroke="context-stroke"
+            stroke-width="1.5"
+          ></path>
+        </marker>
+        <marker
+          id="er-ah-dot"
+          markerUnits="strokeWidth"
+          markerWidth="6.15"
+          markerHeight="6.15"
+          viewBox="0 0 8 8"
+          refX="4"
+          refY="4"
+          orient="auto-start-reverse"
+        >
+          <circle cx="4" cy="4" r="3.5" fill="context-stroke"></circle>
+        </marker>
+        <marker
+          id="er-ah-crowFootSingle"
+          markerUnits="strokeWidth"
+          markerWidth="6.15"
+          markerHeight="7.69"
+          viewBox="0 0 8 10"
+          refX="8"
+          refY="5"
+          orient="auto-start-reverse"
+        >
+          <path
+            d="M 4,0 L 4,10 M 0,5 L 8,5"
+            fill="none"
+            stroke="context-stroke"
+            stroke-width="1.3"
+          ></path>
+        </marker>
+        <marker
+          id="er-ah-crowFootMany"
+          markerUnits="strokeWidth"
+          markerWidth="7.69"
+          markerHeight="7.69"
+          viewBox="0 0 10 10"
+          refX="10"
+          refY="5"
+          orient="auto-start-reverse"
+        >
+          <path
+            d="M 0,5 L 10,0 M 0,5 L 10,5 M 0,5 L 10,10"
+            fill="none"
+            stroke="context-stroke"
+            stroke-width="1.3"
+          ></path>
+        </marker>
+      </defs>
+      <path
+        data-role="anchor"
+        class="er-rel__line"
+        d="{{ }}"
+        marker-start="url(#er-ah-{{startArrowhead}})"
+        marker-end="url(#er-ah-{{endArrowhead}})"
+      ></path>
+    </svg>
+    <span
+      data-role="external-text"
+      data-text-grow-policy="balanced"
+      class="er-rel__label er-md"
+      data-part="label"
+      data-if="label"
+      style="--f: var(--font-{{typeface}}, var(--font-clean))"
+      >{{label}}</span
+    >
+  </div>
+</template>

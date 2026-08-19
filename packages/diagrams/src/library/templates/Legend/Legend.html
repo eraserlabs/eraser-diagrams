@@ -1,0 +1,27 @@
+<template name="Legend">
+  <div
+    data-tpl="Legend"
+    data-role="body"
+    class="er-legend"
+    data-color="{{color}}"
+    data-bg="{{bgColor}}"
+    data-border-color="{{borderColor}}"
+    style="--er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}"
+  >
+    <ul
+      class="er-legend__items"
+      data-role="internal-text"
+      data-each="e of entries"
+      data-key="text"
+    >
+      <li class="er-legend__item" data-part="entry">
+        <span
+          class="er-legend__swatch"
+          data-swatch="{{e.color}}"
+          style="--er-swatch: {{e.color}}"
+        ></span>
+        <span class="er-legend__text">{{e.text}}</span>
+      </li>
+    </ul>
+  </div>
+</template>

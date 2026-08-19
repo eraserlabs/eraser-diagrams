@@ -1,0 +1,1122 @@
+{
+  "title": "Aviation AI Architecture Bottom Span Fit",
+  "elements": [
+    {
+      "tag": "Textbox",
+      "text": "# Aerovant Enterprise AI Experimentation & Development Platform",
+      "hAlign": "center",
+      "fontSize": 22,
+      "color": "#232F3E",
+      "id": "title",
+      "x": 25,
+      "y": 15,
+      "width": 814,
+      "height": 32
+    },
+    {
+      "tag": "Textbox",
+      "text": "Governed, Secure, and Scalable AI Development on AWS",
+      "hAlign": "center",
+      "fontSize": 14,
+      "color": "#5A6B7B",
+      "id": "subtitle",
+      "x": 25,
+      "y": 53,
+      "width": 326,
+      "height": 15
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Layer 1 \u2014 Users",
+        "icon": "users",
+        "bgColor": "#E8F1FB",
+        "border": true,
+        "fontSize": 14,
+        "color": "#0F4C81"
+      },
+      "bgColor": "#F5FAFF",
+      "borderColor": "#9BBEDC",
+      "cornerRadius": "round",
+      "styleMode": "plain",
+      "id": "g_users",
+      "x": 25,
+      "y": 95,
+      "width": 1240,
+      "height": 160
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-iam-role",
+      "texts": [
+        {
+          "text": "Data Scientists",
+          "fontSize": 12
+        }
+      ],
+      "id": "u1",
+      "x": 85,
+      "y": 155,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_users"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-iam-role",
+      "texts": [
+        {
+          "text": "Flight Certification",
+          "fontSize": 12
+        }
+      ],
+      "id": "u2",
+      "x": 275,
+      "y": 155,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_users"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-iam-role",
+      "texts": [
+        {
+          "text": "Propulsion",
+          "fontSize": 12
+        }
+      ],
+      "id": "u3",
+      "x": 475,
+      "y": 155,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_users"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-iam-role",
+      "texts": [
+        {
+          "text": "Avionics Systems",
+          "fontSize": 12
+        }
+      ],
+      "id": "u4",
+      "x": 665,
+      "y": 155,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_users"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-iam-role",
+      "texts": [
+        {
+          "text": "AI Architecture Team",
+          "fontSize": 12
+        }
+      ],
+      "id": "u5",
+      "x": 855,
+      "y": 155,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_users"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-iam-role",
+      "texts": [
+        {
+          "text": "Software Developers",
+          "fontSize": 12
+        }
+      ],
+      "id": "u6",
+      "x": 1065,
+      "y": 155,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_users"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Layer 2 \u2014 Secure Access & Governance",
+        "icon": "shield-check",
+        "bgColor": "#E8F1FB",
+        "border": true,
+        "fontSize": 14,
+        "color": "#0F4C81"
+      },
+      "bgColor": "#F5FAFF",
+      "borderColor": "#9BBEDC",
+      "cornerRadius": "round",
+      "styleMode": "plain",
+      "id": "g_gov",
+      "x": 25,
+      "y": 285,
+      "width": 1240,
+      "height": 165
+    },
+    {
+      "tag": "Icon",
+      "icon": "azure-active-directory",
+      "texts": [
+        {
+          "text": "Microsoft Entra ID",
+          "fontSize": 12
+        }
+      ],
+      "id": "entra",
+      "x": 75,
+      "y": 350,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_gov"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-iam-identity-center",
+      "texts": [
+        {
+          "text": "IAM Identity Center",
+          "fontSize": 12
+        }
+      ],
+      "id": "iamic",
+      "x": 275,
+      "y": 350,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_gov"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-identity-and-access-management",
+      "texts": [
+        {
+          "text": "IAM Roles",
+          "fontSize": 12
+        }
+      ],
+      "id": "iam",
+      "x": 475,
+      "y": 350,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_gov"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-cloudtrail",
+      "texts": [
+        {
+          "text": "CloudTrail",
+          "fontSize": 12
+        }
+      ],
+      "id": "ctrail",
+      "x": 665,
+      "y": 350,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_gov"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-cloudwatch",
+      "texts": [
+        {
+          "text": "CloudWatch",
+          "fontSize": 12
+        }
+      ],
+      "id": "cwatch",
+      "x": 855,
+      "y": 350,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_gov"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-budgets",
+      "texts": [
+        {
+          "text": "AWS Budgets",
+          "fontSize": 12
+        }
+      ],
+      "id": "budgets",
+      "x": 1065,
+      "y": 350,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_gov"
+    },
+    {
+      "tag": "Relationship",
+      "from": "g_users",
+      "fromPort": "bottom",
+      "to": "g_gov",
+      "toPort": "top",
+      "label": "Authenticate (SSO)",
+      "color": "#0F4C81",
+      "labelPlacement": {
+        "x": 4,
+        "y": -2
+      },
+      "id": "r1",
+      "x": 635,
+      "y": 243,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Layer 3 \u2014 AI Experimentation Workspace",
+        "icon": "monitor",
+        "bgColor": "#FFF4E5",
+        "border": true,
+        "fontSize": 14,
+        "color": "#B25900"
+      },
+      "bgColor": "#FFFBF3",
+      "borderColor": "#E8A86B",
+      "cornerRadius": "round",
+      "styleMode": "plain",
+      "id": "g_workspace",
+      "x": 25,
+      "y": 480,
+      "width": 1240,
+      "height": 160
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-ec2",
+      "texts": [
+        {
+          "text": "EC2 Dev Environment",
+          "fontSize": 12
+        }
+      ],
+      "id": "ec2",
+      "x": 105,
+      "y": 545,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_workspace"
+    },
+    {
+      "tag": "Icon",
+      "icon": "vs-code",
+      "texts": [
+        {
+          "text": "VS Code Server",
+          "fontSize": 12
+        }
+      ],
+      "id": "vscode",
+      "x": 315,
+      "y": 545,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_workspace"
+    },
+    {
+      "tag": "Icon",
+      "icon": "jupyter",
+      "texts": [
+        {
+          "text": "Jupyter Notebooks",
+          "fontSize": 12
+        }
+      ],
+      "id": "jupyter",
+      "x": 525,
+      "y": 545,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_workspace"
+    },
+    {
+      "tag": "Icon",
+      "icon": "anthropic",
+      "texts": [
+        {
+          "text": "Claude Code",
+          "fontSize": 12
+        }
+      ],
+      "id": "claudec",
+      "x": 735,
+      "y": 545,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_workspace"
+    },
+    {
+      "tag": "Icon",
+      "icon": "git",
+      "texts": [
+        {
+          "text": "Git Client",
+          "fontSize": 12
+        }
+      ],
+      "id": "git",
+      "x": 945,
+      "y": 545,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_workspace"
+    },
+    {
+      "tag": "Relationship",
+      "from": "g_gov",
+      "fromPort": "bottom",
+      "to": "g_workspace",
+      "toPort": "top",
+      "label": "Authorized Access",
+      "color": "#0F4C81",
+      "labelPlacement": {
+        "x": 4,
+        "y": 0
+      },
+      "id": "r2",
+      "x": 635,
+      "y": 408,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Layer 4 \u2014 Foundation Models (Amazon Bedrock)",
+        "icon": "aws-bedrock",
+        "bgColor": "#E5F0FF",
+        "border": true,
+        "fontSize": 14,
+        "color": "#0F4C81"
+      },
+      "bgColor": "#F2F7FF",
+      "borderColor": "#7FA8D6",
+      "cornerRadius": "round",
+      "styleMode": "plain",
+      "id": "g_bedrock",
+      "x": 25,
+      "y": 670,
+      "width": 1240,
+      "height": 160
+    },
+    {
+      "tag": "Icon",
+      "icon": "anthropic",
+      "texts": [
+        {
+          "text": "Claude Sonnet 4.6",
+          "fontSize": 12
+        },
+        {
+          "text": "(Primary)",
+          "fontSize": 11,
+          "color": "#5A6B7B"
+        }
+      ],
+      "id": "sonnet",
+      "x": 185,
+      "y": 735,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_bedrock"
+    },
+    {
+      "tag": "Relationship",
+      "from": "claudec",
+      "fromPort": "bottom",
+      "to": "sonnet",
+      "toPort": "top",
+      "label": "Direct API",
+      "color": "#D97706",
+      "labelPlacement": {
+        "x": -388,
+        "y": 5
+      },
+      "id": "r4",
+      "x": 750,
+      "y": 559,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Icon",
+      "icon": "anthropic",
+      "texts": [
+        {
+          "text": "Claude Opus",
+          "fontSize": 12
+        },
+        {
+          "text": "(Advanced Reasoning)",
+          "fontSize": 11,
+          "color": "#5A6B7B"
+        }
+      ],
+      "id": "opus",
+      "x": 535,
+      "y": 735,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_bedrock"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-bedrock",
+      "texts": [
+        {
+          "text": "Amazon Nova",
+          "fontSize": 12
+        },
+        {
+          "text": "(Future Option)",
+          "fontSize": 11,
+          "color": "#5A6B7B"
+        }
+      ],
+      "id": "nova",
+      "x": 885,
+      "y": 735,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_bedrock"
+    },
+    {
+      "tag": "Relationship",
+      "from": "g_workspace",
+      "fromPort": "bottom",
+      "to": "g_bedrock",
+      "toPort": "top",
+      "label": "Invoke Models",
+      "color": "#0F4C81",
+      "labelPlacement": {
+        "x": 4,
+        "y": 2
+      },
+      "id": "r3",
+      "x": 635,
+      "y": 585,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Layer 5 \u2014 Experimentation Data, Code Repositories, Research Assets & AI Knowledge",
+        "icon": "database",
+        "bgColor": "#E8F1FB",
+        "border": true,
+        "fontSize": 14,
+        "color": "#0F4C81"
+      },
+      "bgColor": "#F5FAFF",
+      "borderColor": "#9BBEDC",
+      "cornerRadius": "round",
+      "styleMode": "plain",
+      "id": "g_data",
+      "x": 25,
+      "y": 860,
+      "width": 1240,
+      "height": 160
+    },
+    {
+      "tag": "Icon",
+      "icon": "github",
+      "texts": [
+        {
+          "text": "GitHub Enterprise",
+          "fontSize": 12
+        }
+      ],
+      "id": "ghe",
+      "x": 75,
+      "y": 925,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_data"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-simple-storage-service",
+      "texts": [
+        {
+          "text": "Amazon S3",
+          "fontSize": 12
+        }
+      ],
+      "id": "s3",
+      "x": 275,
+      "y": 925,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_data"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-sagemaker",
+      "texts": [
+        {
+          "text": "SageMaker",
+          "fontSize": 12
+        }
+      ],
+      "id": "sagemaker",
+      "x": 475,
+      "y": 925,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_data"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-glue",
+      "texts": [
+        {
+          "text": "AWS Glue",
+          "fontSize": 12
+        }
+      ],
+      "id": "glue",
+      "x": 665,
+      "y": 925,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_data"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-opensearch-service",
+      "texts": [
+        {
+          "text": "OpenSearch",
+          "fontSize": 12
+        }
+      ],
+      "id": "opensearch",
+      "x": 855,
+      "y": 925,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_data"
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-bedrock",
+      "texts": [
+        {
+          "text": "Bedrock Knowledge Bases",
+          "fontSize": 11
+        }
+      ],
+      "id": "kb",
+      "x": 1055,
+      "y": 925,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_data"
+    },
+    {
+      "tag": "Relationship",
+      "from": "g_workspace",
+      "fromPort": "bottom",
+      "to": "g_data",
+      "toPort": "top",
+      "color": "#0F4C81",
+      "lineStyle": "solid",
+      "id": "r5",
+      "x": 635,
+      "y": 585,
+      "endArrowhead": "triangle",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "g_bedrock",
+      "fromPort": "bottom",
+      "to": "g_data",
+      "toPort": "top",
+      "color": "#0F4C81",
+      "id": "r6",
+      "x": 635,
+      "y": 773,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Layer 6 \u2014 Enterprise Data Sources (Future Phase)",
+        "icon": "building",
+        "bgColor": "#EEEAF7",
+        "border": true,
+        "fontSize": 14,
+        "color": "#5B3E94"
+      },
+      "bgColor": "#F7F5FC",
+      "borderColor": "#B5A5D9",
+      "borderStyle": "dashed",
+      "cornerRadius": "round",
+      "styleMode": "plain",
+      "id": "g_enterprise",
+      "x": 25,
+      "y": 1050,
+      "width": 1240,
+      "height": 165
+    },
+    {
+      "tag": "Icon",
+      "icon": "sharepoint",
+      "texts": [
+        {
+          "text": "SharePoint Online",
+          "fontSize": 12
+        }
+      ],
+      "id": "sp",
+      "x": 75,
+      "y": 1115,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_enterprise"
+    },
+    {
+      "tag": "Relationship",
+      "from": "sp",
+      "fromPort": "top",
+      "to": "kb",
+      "toPort": "bottom",
+      "color": "#5B3E94",
+      "lineStyle": "dashed",
+      "id": "r7",
+      "x": 90,
+      "y": 1030,
+      "endArrowhead": "triangle",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Icon",
+      "icon": "database",
+      "texts": [
+        {
+          "text": "Avion",
+          "fontSize": 12
+        }
+      ],
+      "id": "avion",
+      "x": 275,
+      "y": 1115,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_enterprise"
+    },
+    {
+      "tag": "Relationship",
+      "from": "avion",
+      "fromPort": "top",
+      "to": "kb",
+      "toPort": "bottom",
+      "color": "#5B3E94",
+      "lineStyle": "dashed",
+      "id": "r8",
+      "x": 290,
+      "y": 1030,
+      "endArrowhead": "triangle",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Icon",
+      "icon": "file-text",
+      "texts": [
+        {
+          "text": "FAA Documents",
+          "fontSize": 12
+        }
+      ],
+      "id": "fda",
+      "x": 475,
+      "y": 1115,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_enterprise"
+    },
+    {
+      "tag": "Relationship",
+      "from": "fda",
+      "fromPort": "top",
+      "to": "opensearch",
+      "toPort": "bottom",
+      "color": "#5B3E94",
+      "lineStyle": "dashed",
+      "id": "r9",
+      "x": 490,
+      "y": 1030,
+      "endArrowhead": "triangle",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Icon",
+      "icon": "aws-lake-formation",
+      "texts": [
+        {
+          "text": "Flight Data Lake",
+          "fontSize": 12
+        }
+      ],
+      "id": "cdl",
+      "x": 665,
+      "y": 1115,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_enterprise"
+    },
+    {
+      "tag": "Relationship",
+      "from": "cdl",
+      "fromPort": "top",
+      "to": "opensearch",
+      "toPort": "bottom",
+      "color": "#5B3E94",
+      "lineStyle": "dashed",
+      "id": "r10",
+      "x": 680,
+      "y": 1030,
+      "endArrowhead": "triangle",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Icon",
+      "icon": "book-open",
+      "texts": [
+        {
+          "text": "Publications Repo",
+          "fontSize": 12
+        }
+      ],
+      "id": "pubs",
+      "x": 855,
+      "y": 1115,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_enterprise"
+    },
+    {
+      "tag": "Relationship",
+      "from": "pubs",
+      "fromPort": "top",
+      "to": "kb",
+      "toPort": "bottom",
+      "color": "#5B3E94",
+      "lineStyle": "dashed",
+      "id": "r11",
+      "x": 877,
+      "y": 1030,
+      "endArrowhead": "triangle",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Enterprise Guardrails",
+        "icon": "shield",
+        "bgColor": "#FDECEC",
+        "border": true,
+        "fontSize": 14,
+        "color": "#9B2C2C"
+      },
+      "bgColor": "#FFF8F8",
+      "borderColor": "#E2A4A4",
+      "cornerRadius": "round",
+      "styleMode": "plain",
+      "id": "g_guardrails",
+      "x": 1285,
+      "y": 95,
+      "width": 240,
+      "height": 955
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Non-FAA Environment",
+          "fontSize": 12
+        }
+      ],
+      "icon": "shield-off",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#E2A4A4",
+      "id": "gr1",
+      "x": 1305,
+      "y": 155,
+      "width": 200,
+      "height": 50,
+      "containerId": "g_guardrails"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Role-Based Access Control",
+          "fontSize": 12
+        }
+      ],
+      "icon": "key",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#E2A4A4",
+      "id": "gr2",
+      "x": 1305,
+      "y": 220,
+      "width": 200,
+      "height": 50,
+      "containerId": "g_guardrails"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Audit Logging",
+          "fontSize": 12
+        }
+      ],
+      "icon": "file-search",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#E2A4A4",
+      "id": "gr3",
+      "x": 1305,
+      "y": 285,
+      "width": 200,
+      "height": 50,
+      "containerId": "g_guardrails"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Cost Monitoring",
+          "fontSize": 12
+        }
+      ],
+      "icon": "dollar-sign",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#E2A4A4",
+      "id": "gr4",
+      "x": 1305,
+      "y": 350,
+      "width": 200,
+      "height": 50,
+      "containerId": "g_guardrails"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Data Classification",
+          "fontSize": 12
+        }
+      ],
+      "icon": "tag",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#E2A4A4",
+      "id": "gr5",
+      "x": 1305,
+      "y": 415,
+      "width": 200,
+      "height": 50,
+      "containerId": "g_guardrails"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Human Review Required",
+          "fontSize": 12
+        }
+      ],
+      "icon": "user-check",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#E2A4A4",
+      "id": "gr6",
+      "x": 1305,
+      "y": 480,
+      "width": 200,
+      "height": 50,
+      "containerId": "g_guardrails"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Approved Models Only",
+          "fontSize": 12
+        }
+      ],
+      "icon": "check-circle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#E2A4A4",
+      "id": "gr7",
+      "x": 1305,
+      "y": 545,
+      "width": 200,
+      "height": 50,
+      "containerId": "g_guardrails"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Business Benefits",
+        "icon": "star",
+        "bgColor": "#E6F7EE",
+        "border": true,
+        "fontSize": 14,
+        "color": "#1E6E42"
+      },
+      "bgColor": "#F4FBF7",
+      "borderColor": "#8ECBA9",
+      "cornerRadius": "round",
+      "styleMode": "plain",
+      "id": "g_benefits",
+      "x": 25,
+      "y": 1255,
+      "width": 1500,
+      "height": 140
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Governed AI Experimentation",
+          "fontSize": 12
+        }
+      ],
+      "icon": "shield-check",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#8ECBA9",
+      "id": "b1",
+      "x": 55,
+      "y": 1315,
+      "width": 220,
+      "height": 60,
+      "containerId": "g_benefits"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Claude Code for Engineers & Devs",
+          "fontSize": 12
+        }
+      ],
+      "icon": "code",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#8ECBA9",
+      "id": "b2",
+      "x": 295,
+      "y": 1315,
+      "width": 220,
+      "height": 60,
+      "containerId": "g_benefits"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Secure Enterprise Access",
+          "fontSize": 12
+        }
+      ],
+      "icon": "lock",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#8ECBA9",
+      "id": "b3",
+      "x": 535,
+      "y": 1315,
+      "width": 220,
+      "height": 60,
+      "containerId": "g_benefits"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Centralized Cost Management",
+          "fontSize": 12
+        }
+      ],
+      "icon": "trending-down",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#8ECBA9",
+      "id": "b4",
+      "x": 775,
+      "y": 1315,
+      "width": 220,
+      "height": 60,
+      "containerId": "g_benefits"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Rapid Prototyping",
+          "fontSize": 12
+        }
+      ],
+      "icon": "zap",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#8ECBA9",
+      "id": "b5",
+      "x": 1015,
+      "y": 1315,
+      "width": 220,
+      "height": 60,
+      "containerId": "g_benefits"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Future Multi-Model Strategy",
+          "fontSize": 12
+        }
+      ],
+      "icon": "layers",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#8ECBA9",
+      "id": "b6",
+      "x": 1255,
+      "y": 1315,
+      "width": 240,
+      "height": 60,
+      "containerId": "g_benefits"
+    }
+  ]
+}

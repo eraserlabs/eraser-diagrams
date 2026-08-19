@@ -1,0 +1,20 @@
+<template name="Textbox">
+  <div
+    data-tpl="Textbox"
+    data-role="body"
+    class="er-textbox"
+    data-h-align="{{hAlign}}"
+    data-wrap-mode="{{wrapMode}}"
+    data-font-px="{{fontSize}}"
+    style="--f: var(--font-{{typeface}}, var(--font-clean)); --er-ink: {{color}}; --er-font-px: {{fontSize}}px"
+  >
+    <div
+      class="er-textbox__text er-md"
+      data-role="internal-text"
+      data-part="text"
+      data-text-grow-policy="height-only"
+      >{{text}}</div
+    >
+    <span data-use="Badge" data-props="badge" data-if="badge"></span>
+  </div>
+</template>

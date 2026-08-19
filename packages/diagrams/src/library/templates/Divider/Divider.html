@@ -1,0 +1,24 @@
+<template name="Divider">
+  <div
+    data-tpl="Divider"
+    data-role="body"
+    class="er-divider"
+    data-orientation="{{orientation}}"
+    data-line-style="{{lineStyle}}"
+    data-font-px="{{fontSize}}"
+    style="--er-stroke: {{color}}; --er-line-w: {{lineWidthPx}}px; --er-font-px: {{fontSize}}px; --f: var(--font-{{typeface}}, var(--font-clean))"
+  >
+    <span class="er-divider__line"></span>
+    <span
+      class="er-divider__label"
+      data-role="external-text"
+      data-part="label"
+      data-if="label"
+      >{{label}}</span
+    >
+    <span
+      class="er-divider__line er-divider__line--after"
+      data-if="label"
+    ></span>
+  </div>
+</template>

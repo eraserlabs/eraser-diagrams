@@ -1,0 +1,275 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "Textbox",
+      "id": "title",
+      "text": "# Option Positioning Map",
+      "x": 295,
+      "y": 15,
+      "width": 600,
+      "height": 59,
+      "hAlign": "center",
+      "fontSize": 21
+    },
+    {
+      "tag": "Textbox",
+      "id": "y-axis-label",
+      "text": "**Inventory & Fulfillment Strength** →",
+      "x": 15,
+      "y": 295,
+      "width": 80,
+      "height": 200,
+      "hAlign": "center",
+      "color": "gray"
+    },
+    {
+      "tag": "Textbox",
+      "id": "x-axis-label",
+      "text": "**Cost Efficiency** →",
+      "x": 495,
+      "y": 815,
+      "width": 200,
+      "height": 39,
+      "hAlign": "center",
+      "color": "gray"
+    },
+    {
+      "tag": "Shape",
+      "id": "quadrant",
+      "shape": "rectangle",
+      "x": 115,
+      "y": 75,
+      "width": 1000,
+      "height": 720,
+      "bgColor": "#fafafa",
+      "borderColor": "#cccccc",
+      "borderWidth": 0.75,
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Divider",
+      "id": "vdiv",
+      "orientation": "vertical",
+      "x": 611,
+      "y": 75,
+      "width": 8,
+      "height": 720,
+      "lineStyle": "dashed",
+      "color": "#bbbbbb"
+    },
+    {
+      "tag": "Divider",
+      "id": "hdiv",
+      "orientation": "horizontal",
+      "x": 115,
+      "y": 431,
+      "width": 1000,
+      "height": 8,
+      "lineStyle": "dashed",
+      "color": "#bbbbbb"
+    },
+    {
+      "tag": "Textbox",
+      "id": "q-tl",
+      "text": "_High Capability • Higher Cost_",
+      "x": 135,
+      "y": 90,
+      "width": 300,
+      "height": 39,
+      "color": "gray"
+    },
+    {
+      "tag": "Textbox",
+      "id": "q-tr",
+      "text": "_Ideal: Strong + Affordable_",
+      "x": 815,
+      "y": 90,
+      "width": 280,
+      "height": 39,
+      "hAlign": "right",
+      "color": "gray"
+    },
+    {
+      "tag": "Textbox",
+      "id": "q-bl",
+      "text": "_Limited Capability • Higher Cost_",
+      "x": 135,
+      "y": 765,
+      "width": 320,
+      "height": 39,
+      "color": "gray"
+    },
+    {
+      "tag": "Textbox",
+      "id": "q-br",
+      "text": "_Lower Capability • Lower Cost_",
+      "x": 795,
+      "y": 765,
+      "width": 300,
+      "height": 39,
+      "hAlign": "right",
+      "color": "gray"
+    },
+    {
+      "tag": "Shape",
+      "id": "boxwise",
+      "shape": "oval",
+      "x": 195,
+      "y": 175,
+      "width": 180,
+      "height": 120,
+      "texts": [
+        {
+          "text": "**Boxwise Pro**",
+          "fontSize": 18
+        },
+        {
+          "text": "Strongest inventory + fulfillment",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#e8d5f2",
+      "borderColor": "#9b59b6",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "palletgo",
+      "shape": "oval",
+      "x": 755,
+      "y": 215,
+      "width": 190,
+      "height": 130,
+      "texts": [
+        {
+          "text": "**PalletGo**",
+          "fontSize": 18
+        },
+        {
+          "text": "Low cost + strong syncing",
+          "color": "gray"
+        },
+        {
+          "text": "Smaller vendor",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#d5f2e3",
+      "borderColor": "#27ae60",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "silo",
+      "shape": "oval",
+      "x": 675,
+      "y": 475,
+      "width": 180,
+      "height": 130,
+      "texts": [
+        {
+          "text": "**Silo**",
+          "fontSize": 18
+        },
+        {
+          "text": "Mature ecosystem",
+          "color": "gray"
+        },
+        {
+          "text": "High build/maint. cost",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#fff2cc",
+      "borderColor": "#d4a017",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "ops",
+      "shape": "oval",
+      "x": 255,
+      "y": 535,
+      "width": 200,
+      "height": 130,
+      "texts": [
+        {
+          "text": "**OPS AWS Fulfillment**",
+          "fontSize": 18
+        },
+        {
+          "text": "OPS-aligned, least disruptive",
+          "color": "gray"
+        },
+        {
+          "text": "Usage-based cost, no fulfillment",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#fde2e2",
+      "borderColor": "#e74c3c",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Textbox",
+      "id": "legend-title",
+      "text": "**Legend**",
+      "x": 915,
+      "y": 635,
+      "width": 180,
+      "height": 39
+    },
+    {
+      "tag": "Shape",
+      "id": "leg1",
+      "shape": "oval",
+      "x": 915,
+      "y": 665,
+      "width": 15,
+      "height": 15,
+      "bgColor": "#d5f2e3",
+      "borderColor": "#27ae60",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Textbox",
+      "id": "leg1-t",
+      "text": "Preferred direction",
+      "x": 940,
+      "y": 662,
+      "width": 160,
+      "height": 38,
+      "color": "gray"
+    },
+    {
+      "tag": "Shape",
+      "id": "leg2",
+      "shape": "oval",
+      "x": 915,
+      "y": 690,
+      "width": 15,
+      "height": 15,
+      "bgColor": "#fde2e2",
+      "borderColor": "#e74c3c",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Textbox",
+      "id": "leg2-t",
+      "text": "Short-term / interim",
+      "x": 940,
+      "y": 687,
+      "width": 160,
+      "height": 38,
+      "color": "gray"
+    }
+  ],
+  "connections": [],
+  "scene": {
+    "x": -1,
+    "y": -1,
+    "width": 1132,
+    "height": 871
+  }
+}

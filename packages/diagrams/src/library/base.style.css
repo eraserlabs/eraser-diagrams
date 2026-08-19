@@ -1,0 +1,153 @@
+/* Shared, template-agnostic CSS applied before per-template rules (unscoped, emitted first). */
+* {
+  box-sizing: border-box;
+}
+/* Every template inherits the clean font role; without this the injected FontFaces are never
+   consumed and text falls back to the platform default font. */
+[data-tpl] {
+  font-family: var(--font-clean, sans-serif);
+}
+
+/* Outline icons ship a 24-unit viewBox at stroke-width 1.5, so scaling the glyph box with CSS
+   scales the stroke with it and a 50px icon reads twice too heavy. Cap via
+   `35 / clamp(1, box, 50)` so the on-screen stroke stays ~1.46px until the box passes 50px, then
+   grows with the glyph. `--er-glyph-num` is the box edge in unitless px (for division); every
+   icon slot declares it next to its own width/height. The `stroke="currentColor"` gate keeps
+   brand assets out — they carry their own palette and stroke weights. */
+svg[stroke='currentColor'] {
+  stroke-width: calc(35 / clamp(1, var(--er-glyph-num, 24), 50));
+}
+
+/* Markdown output, inside `er-md` containers only (Shape's own <li> runs and the DatabaseTable /
+   Legend list markup must not inherit these). Absolute header sizes, zero paragraph margins,
+   20px list indents, 13/15 code scale, link blue. */
+.er-md p {
+  margin: 0;
+}
+.er-md h1 {
+  font-size: 26px;
+  line-height: 32px;
+  font-weight: 700;
+  margin: 32px 0 0;
+}
+.er-md h2 {
+  font-size: 21px;
+  line-height: 28px;
+  font-weight: 700;
+  margin: 24px 0 0;
+}
+.er-md h3 {
+  font-size: 17px;
+  line-height: 25px;
+  font-weight: 700;
+  margin: 18px 0 0;
+}
+.er-md h1:first-child,
+.er-md h2:first-child,
+.er-md h3:first-child {
+  margin-top: 0;
+}
+.er-md ul,
+.er-md ol {
+  margin: 0;
+  padding-left: 20px;
+}
+.er-md li {
+  margin-top: 4px;
+}
+.er-md li:first-child {
+  margin-top: 0;
+}
+.er-md code {
+  font-family: var(--font-mono, monospace);
+  font-size: calc(1em * 13 / 15);
+}
+.er-md a {
+  color: #457fe5;
+  text-decoration: none;
+}
+
+/* Texture-stain wash, shared by every boxy watercolor body — Shape's CSS-geometry kinds,
+   Group/Lane/Pool, DatabaseTable. A span hosts the recolored scan master; a blurred (and
+   dilated) rect mask fades the pigment out past the body edge so it bleeds slightly over.
+   Each template stamps the same flat props (washTexCss, washUid, washSym), so the render
+   prephase (masters.ts) tints and shares masters without caring which tag mounts the wash.
+   This unscoped sheet is the cross-template channel: the class family lives here once, and
+   host sheets only refine mask rounding (rx) per body. Shape's polygon kinds instead mask the
+   master inside their dynamic geo svg — same props, no CSS needed. */
+.er-washtex {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* The wash terminates at the drawn boundary: the dilated mask keeps the interior organic,
+     and this clip stops the paint exactly at the body's rounded edge. */
+  overflow: hidden;
+  border-radius: inherit;
+}
+.er-washtex svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* Containers hold members and rows of text: keep their wash a ground, not a figure. */
+.er-grouplike .er-washtex {
+  opacity: 0.55;
+}
+.er-dbtable .er-washtex {
+  opacity: 0.7;
+}
+/* Mask rounding mirrors each card's border-radius (grouplike 6px, dbtable 5px). */
+.er-grouplike .er-washmask {
+  rx: 6px;
+}
+.er-dbtable .er-washmask {
+  rx: 5px;
+}
+/* Watercolor grouplike (Group/Lane/Pool share the class family across three templates, so the
+   mode rules ride this unscoped channel): in texture mode the body IS the recolored master, so
+   the flat tint goes away; the hard hairline moves to a blurable overlay for the same faint
+   smudged edge Shape wears (shared knobs: --er-wc-border-alpha / --er-wc-border-blur). */
+.er-grouplike[data-style='watercolor'][data-washtex-css]:not(
+    [data-washtex-css='']
+  ) {
+  --er-fill: transparent;
+}
+.er-grouplike[data-style='watercolor'] {
+  border-color: transparent;
+  /* Published for nested mounts (Badge): inherited across the mount boundary like --er-tint. */
+  --er-wc-ink-alpha: var(--er-wc-border-alpha, 45%);
+}
+.er-grouplike[data-style='watercolor']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--er-stroke) var(--er-wc-border-alpha, 45%),
+      transparent
+    );
+  border-radius: inherit;
+  filter: blur(var(--er-wc-border-blur, 0.7px));
+  pointer-events: none;
+}
+/* Watercolor titles: the wash already runs under the band, so translucent title paint reads as
+   pooled pigment — the texture shows through instead of a solid slab. The extra [data-color] /
+   [data-title-bg] qualifiers outrank the opaque template formulas (base is emitted first, so
+   specificity has to do the winning). The full-width band's hairline joins the faint border. */
+.er-grouplike[data-style='watercolor'][data-color]:not([data-color='']) {
+  --er-title-surface: hsl(from var(--er-color) h s 85% / 0.6);
+}
+.er-grouplike[data-style='watercolor'][data-title-bg]:not([data-title-bg='']) {
+  --er-title-paint: rgb(from var(--er-title-bg) r g b / 0.65);
+}
+.er-grouplike[data-style='watercolor'][data-title-width='full']
+  .er-grouplike__title,
+.er-grouplike[data-style='watercolor'][data-title-border='true']
+  .er-grouplike__title {
+  border-color: color-mix(
+    in srgb,
+    var(--er-stroke) var(--er-wc-border-alpha, 45%),
+    transparent
+  );
+}

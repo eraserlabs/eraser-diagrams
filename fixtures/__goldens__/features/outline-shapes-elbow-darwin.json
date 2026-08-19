@@ -1,0 +1,443 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "id": "hub",
+      "texts": [
+        {
+          "text": "Hub",
+          "hAlign": "center"
+        }
+      ],
+      "color": "blue",
+      "x": 430,
+      "y": 350,
+      "width": 140,
+      "height": 90
+    },
+    {
+      "tag": "Shape",
+      "shape": "triangle",
+      "id": "triangle",
+      "texts": [
+        {
+          "text": "triangle",
+          "hAlign": "center"
+        }
+      ],
+      "color": "green",
+      "x": 120,
+      "y": 80,
+      "width": 140,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "shape": "circle",
+      "id": "circle",
+      "texts": [
+        {
+          "text": "circle",
+          "hAlign": "center"
+        }
+      ],
+      "color": "green",
+      "x": 360,
+      "y": 40,
+      "width": 110,
+      "height": 110
+    },
+    {
+      "tag": "Shape",
+      "shape": "star",
+      "id": "star",
+      "texts": [
+        {
+          "text": "star",
+          "hAlign": "center"
+        }
+      ],
+      "color": "green",
+      "x": 600,
+      "y": 40,
+      "width": 120,
+      "height": 120
+    },
+    {
+      "tag": "Shape",
+      "shape": "diamond",
+      "id": "diamond",
+      "texts": [
+        {
+          "text": "diamond",
+          "hAlign": "center"
+        }
+      ],
+      "color": "green",
+      "x": 840,
+      "y": 90,
+      "width": 150,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "shape": "cylinder",
+      "id": "cylinder",
+      "texts": [
+        {
+          "text": "cylinder",
+          "hAlign": "center"
+        }
+      ],
+      "color": "orange",
+      "x": 80,
+      "y": 350,
+      "width": 130,
+      "height": 110
+    },
+    {
+      "tag": "Shape",
+      "shape": "document",
+      "id": "document",
+      "texts": [
+        {
+          "text": "document",
+          "hAlign": "center"
+        }
+      ],
+      "color": "orange",
+      "x": 890,
+      "y": 360,
+      "width": 150,
+      "height": 110
+    },
+    {
+      "tag": "Shape",
+      "shape": "hexagon",
+      "id": "hexagon",
+      "texts": [
+        {
+          "text": "hexagon",
+          "hAlign": "center"
+        }
+      ],
+      "color": "purple",
+      "x": 120,
+      "y": 640,
+      "width": 150,
+      "height": 90
+    },
+    {
+      "tag": "Shape",
+      "shape": "oval",
+      "id": "oval",
+      "texts": [
+        {
+          "text": "oval",
+          "hAlign": "center"
+        }
+      ],
+      "color": "purple",
+      "x": 380,
+      "y": 690,
+      "width": 150,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "shape": "trapezoid",
+      "id": "trapezoid",
+      "texts": [
+        {
+          "text": "trapezoid",
+          "hAlign": "center"
+        }
+      ],
+      "color": "purple",
+      "x": 620,
+      "y": 690,
+      "width": 150,
+      "height": 90
+    },
+    {
+      "tag": "Shape",
+      "shape": "ellipse",
+      "id": "ellipse",
+      "texts": [
+        {
+          "text": "ellipse",
+          "hAlign": "center"
+        }
+      ],
+      "color": "purple",
+      "x": 860,
+      "y": 640,
+      "width": 150,
+      "height": 90
+    }
+  ],
+  "connections": [
+    {
+      "tag": "Relationship",
+      "id": "r-triangle",
+      "from": "hub",
+      "to": "triangle",
+      "endArrowhead": "arrow",
+      "x": 430,
+      "y": 373,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -115,
+          "y": 0
+        },
+        {
+          "x": -115,
+          "y": -243
+        },
+        {
+          "x": -205,
+          "y": -243
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-circle",
+      "from": "hub",
+      "to": "circle",
+      "endArrowhead": "arrow",
+      "x": 500,
+      "y": 350,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": -174
+        },
+        {
+          "x": -85,
+          "y": -174
+        },
+        {
+          "x": -85,
+          "y": -200
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-star",
+      "from": "hub",
+      "to": "star",
+      "endArrowhead": "arrow",
+      "x": 570,
+      "y": 362,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 20,
+          "y": 0
+        },
+        {
+          "x": 20,
+          "y": -262
+        },
+        {
+          "x": 44.26,
+          "y": -262
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-diamond",
+      "from": "hub",
+      "to": "diamond",
+      "endArrowhead": "arrow",
+      "x": 570,
+      "y": 387,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 215,
+          "y": 0
+        },
+        {
+          "x": 215,
+          "y": -247
+        },
+        {
+          "x": 274.82,
+          "y": -247
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-cylinder",
+      "from": "hub",
+      "to": "cylinder",
+      "endArrowhead": "arrow",
+      "x": 430,
+      "y": 395,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -220,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-document",
+      "from": "hub",
+      "to": "document",
+      "endArrowhead": "arrow",
+      "x": 570,
+      "y": 399,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 321.3,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-hexagon",
+      "from": "hub",
+      "to": "hexagon",
+      "endArrowhead": "arrow",
+      "x": 430,
+      "y": 418,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -107,
+          "y": 0
+        },
+        {
+          "x": -107,
+          "y": 264
+        },
+        {
+          "x": -163.01,
+          "y": 264
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-oval",
+      "from": "hub",
+      "to": "oval",
+      "endArrowhead": "arrow",
+      "x": 500,
+      "y": 440,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 176
+        },
+        {
+          "x": -45,
+          "y": 176
+        },
+        {
+          "x": -45,
+          "y": 250
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-trapezoid",
+      "from": "hub",
+      "to": "trapezoid",
+      "endArrowhead": "arrow",
+      "x": 569.83,
+      "y": 430,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 5.17,
+          "y": 0
+        },
+        {
+          "x": 5.17,
+          "y": 305
+        },
+        {
+          "x": 65.63,
+          "y": 305
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-ellipse",
+      "from": "hub",
+      "to": "ellipse",
+      "endArrowhead": "arrow",
+      "x": 570,
+      "y": 409,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 220,
+          "y": 0
+        },
+        {
+          "x": 220,
+          "y": 273
+        },
+        {
+          "x": 290.17,
+          "y": 273
+        }
+      ]
+    }
+  ],
+  "scene": {
+    "x": 64,
+    "y": 24,
+    "width": 992,
+    "height": 772
+  }
+}

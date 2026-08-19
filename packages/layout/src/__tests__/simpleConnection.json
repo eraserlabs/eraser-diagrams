@@ -1,0 +1,22 @@
+{
+  "entities": [
+    { "id": "left", "x": -200, "y": 0, "width": 100, "height": 100 },
+    { "id": "from", "x": 0, "y": 0, "width": 100, "height": 100 },
+    { "id": "to", "x": 200, "y": 0, "width": 100, "height": 100 },
+    { "id": "right", "x": 400, "y": 0, "width": 100, "height": 100 }
+  ],
+  "connections": [
+    {
+      "id": "rel-left-right-forward",
+      "from": "left",
+      "to": "right",
+      "x": 100,
+      "y": 50,
+      "points": [
+        [0, 0],
+        [100, 0]
+      ]
+    }
+  ],
+  "primaryDirection": "right"
+}

@@ -1,0 +1,939 @@
+{
+  "title": "Left Col Center Noise Semi Aligned",
+  "elements": [
+    {
+      "tag": "Group",
+      "title": {
+        "text": "USER (Web Browser)",
+        "icon": "user",
+        "hAlign": "center",
+        "width": "full",
+        "bgColor": "#E8DFFF",
+        "color": "#5B4FE9"
+      },
+      "bgColor": "#F5EFFF",
+      "borderColor": "#B8A8E8",
+      "cornerRadius": "round",
+      "id": "user_group",
+      "x": 415,
+      "y": 15,
+      "width": 640,
+      "height": 170
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Voice Input",
+          "fontSize": 14
+        }
+      ],
+      "icon": "mic",
+      "bgColor": "white",
+      "borderColor": "#B8A8E8",
+      "id": "voice_input",
+      "x": 445,
+      "y": 75,
+      "width": 130,
+      "height": 90,
+      "containerId": "user_group"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Text Input",
+          "fontSize": 14
+        }
+      ],
+      "icon": "message-square",
+      "bgColor": "white",
+      "borderColor": "#B8A8E8",
+      "id": "text_input",
+      "x": 595,
+      "y": 75,
+      "width": 130,
+      "height": 90,
+      "containerId": "user_group"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Chat History",
+          "fontSize": 14
+        }
+      ],
+      "icon": "message-circle",
+      "bgColor": "white",
+      "borderColor": "#B8A8E8",
+      "id": "chat_history",
+      "x": 745,
+      "y": 75,
+      "width": 130,
+      "height": 90,
+      "containerId": "user_group"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Settings Panel",
+          "fontSize": 14
+        }
+      ],
+      "icon": "settings",
+      "bgColor": "white",
+      "borderColor": "#B8A8E8",
+      "id": "settings",
+      "x": 895,
+      "y": 75,
+      "width": 130,
+      "height": 90,
+      "containerId": "user_group"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "VOICE CONVERSATION FLOW",
+        "hAlign": "center",
+        "width": "full",
+        "bgColor": "#FFE4E1",
+        "color": "#C44"
+      },
+      "bgColor": "#FFF5F3",
+      "borderColor": "#F5B5AC",
+      "cornerRadius": "round",
+      "id": "voice_flow",
+      "x": 15,
+      "y": 155,
+      "width": 300,
+      "height": 900
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "User Speaks",
+          "fontSize": 13
+        },
+        {
+          "text": "Audio recorded in browser",
+          "fontSize": 11,
+          "color": "gray"
+        }
+      ],
+      "icon": "user",
+      "bgColor": "white",
+      "borderColor": "#F5B5AC",
+      "badge": {
+        "text": "1",
+        "shape": "circle",
+        "bgColor": "#C44",
+        "color": "white",
+        "placement": "top-left"
+      },
+      "id": "flow1",
+      "x": 45,
+      "y": 230,
+      "width": 240,
+      "height": 75,
+      "containerId": "voice_flow"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Voice Server",
+          "fontSize": 13
+        },
+        {
+          "text": "Receives audio file",
+          "fontSize": 11,
+          "color": "gray"
+        }
+      ],
+      "icon": "server",
+      "bgColor": "white",
+      "borderColor": "#F5B5AC",
+      "badge": {
+        "text": "2",
+        "shape": "circle",
+        "bgColor": "#C44",
+        "color": "white",
+        "placement": "top-left"
+      },
+      "id": "flow2",
+      "x": 45,
+      "y": 325,
+      "width": 240,
+      "height": 75,
+      "containerId": "voice_flow"
+    },
+    {
+      "tag": "Relationship",
+      "from": "flow1",
+      "fromPort": "bottom",
+      "to": "flow2",
+      "toPort": "top",
+      "color": "#888",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "id": "f1f2",
+      "x": 165,
+      "y": 305,
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Verdant STT",
+          "fontSize": 13
+        },
+        {
+          "text": "Speech to Text",
+          "fontSize": 11,
+          "color": "gray"
+        }
+      ],
+      "icon": "mic",
+      "bgColor": "white",
+      "borderColor": "#F5B5AC",
+      "badge": {
+        "text": "3",
+        "shape": "circle",
+        "bgColor": "#C44",
+        "color": "white",
+        "placement": "top-left"
+      },
+      "id": "flow3",
+      "x": 45,
+      "y": 420,
+      "width": 240,
+      "height": 75,
+      "containerId": "voice_flow"
+    },
+    {
+      "tag": "Relationship",
+      "from": "flow2",
+      "fromPort": "bottom",
+      "to": "flow3",
+      "toPort": "top",
+      "color": "#888",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "id": "f2f3",
+      "x": 165,
+      "y": 400,
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Canopy RAG",
+          "fontSize": 13
+        },
+        {
+          "text": "Searches knowledge base",
+          "fontSize": 11,
+          "color": "gray"
+        }
+      ],
+      "icon": "database",
+      "bgColor": "white",
+      "borderColor": "#F5B5AC",
+      "badge": {
+        "text": "4",
+        "shape": "circle",
+        "bgColor": "#C44",
+        "color": "white",
+        "placement": "top-left"
+      },
+      "id": "flow4",
+      "x": 45,
+      "y": 515,
+      "width": 240,
+      "height": 75,
+      "containerId": "voice_flow"
+    },
+    {
+      "tag": "Relationship",
+      "from": "flow3",
+      "fromPort": "bottom",
+      "to": "flow4",
+      "toPort": "top",
+      "color": "#888",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "id": "f3f4",
+      "x": 165,
+      "y": 495,
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Voice Server",
+          "fontSize": 13
+        },
+        {
+          "text": "Gets relevant answer",
+          "fontSize": 11,
+          "color": "gray"
+        }
+      ],
+      "icon": "server",
+      "bgColor": "white",
+      "borderColor": "#F5B5AC",
+      "badge": {
+        "text": "5",
+        "shape": "circle",
+        "bgColor": "#C44",
+        "color": "white",
+        "placement": "top-left"
+      },
+      "id": "flow5",
+      "x": 45,
+      "y": 610,
+      "width": 240,
+      "height": 75,
+      "containerId": "voice_flow"
+    },
+    {
+      "tag": "Relationship",
+      "from": "flow4",
+      "fromPort": "bottom",
+      "to": "flow5",
+      "toPort": "top",
+      "color": "#888",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "id": "f4f5",
+      "x": 165,
+      "y": 590,
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Petalor TTS",
+          "fontSize": 13
+        },
+        {
+          "text": "Text to Speech",
+          "fontSize": 11,
+          "color": "gray"
+        }
+      ],
+      "icon": "volume-2",
+      "bgColor": "white",
+      "borderColor": "#F5B5AC",
+      "badge": {
+        "text": "6",
+        "shape": "circle",
+        "bgColor": "#C44",
+        "color": "white",
+        "placement": "top-left"
+      },
+      "id": "flow6",
+      "x": 45,
+      "y": 705,
+      "width": 240,
+      "height": 75,
+      "containerId": "voice_flow"
+    },
+    {
+      "tag": "Relationship",
+      "from": "flow5",
+      "fromPort": "bottom",
+      "to": "flow6",
+      "toPort": "top",
+      "color": "#888",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "id": "f5f6",
+      "x": 165,
+      "y": 685,
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Voice Server",
+          "fontSize": 13
+        },
+        {
+          "text": "Stores audio in MinIO",
+          "fontSize": 11,
+          "color": "gray"
+        }
+      ],
+      "icon": "server",
+      "bgColor": "white",
+      "borderColor": "#F5B5AC",
+      "badge": {
+        "text": "7",
+        "shape": "circle",
+        "bgColor": "#C44",
+        "color": "white",
+        "placement": "top-left"
+      },
+      "id": "flow7",
+      "x": 45,
+      "y": 800,
+      "width": 240,
+      "height": 75,
+      "containerId": "voice_flow"
+    },
+    {
+      "tag": "Relationship",
+      "from": "flow6",
+      "fromPort": "bottom",
+      "to": "flow7",
+      "toPort": "top",
+      "color": "#888",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "id": "f6f7",
+      "x": 165,
+      "y": 780,
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Frontend",
+          "fontSize": 13
+        },
+        {
+          "text": "Plays audio & shows text",
+          "fontSize": 11,
+          "color": "gray"
+        }
+      ],
+      "icon": "monitor",
+      "bgColor": "white",
+      "borderColor": "#F5B5AC",
+      "badge": {
+        "text": "8",
+        "shape": "circle",
+        "bgColor": "#C44",
+        "color": "white",
+        "placement": "top-left"
+      },
+      "id": "flow8",
+      "x": 45,
+      "y": 895,
+      "width": 240,
+      "height": 75,
+      "containerId": "voice_flow"
+    },
+    {
+      "tag": "Relationship",
+      "from": "flow7",
+      "fromPort": "bottom",
+      "to": "flow8",
+      "toPort": "top",
+      "color": "#888",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "id": "f7f8",
+      "x": 165,
+      "y": 875,
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "FRONTEND (Next.js)                              ",
+          "fontSize": 16,
+          "color": "#3A7BD5"
+        },
+        {
+          "text": "\u2713 Voice Recording UI    \u2713 Text Chat Interface       \u2713 Real-time Audio Playback",
+          "fontSize": 12,
+          "color": "#555"
+        }
+      ],
+      "icon": "globe",
+      "bgColor": "#EAF3FC",
+      "borderColor": "#3A7BD5",
+      "vAlign": "middle",
+      "id": "frontend",
+      "x": 345,
+      "y": 235,
+      "width": 760,
+      "height": 140
+    },
+    {
+      "tag": "Relationship",
+      "from": "user_group",
+      "fromPort": "bottom",
+      "to": "frontend",
+      "toPort": "top",
+      "color": "#444",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "id": "user_fe",
+      "x": 731,
+      "y": 185,
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "BACKEND API (FastAPI)",
+        "icon": "server",
+        "hAlign": "left",
+        "width": "full",
+        "bgColor": "#D9F2E3",
+        "color": "#2E8B57"
+      },
+      "bgColor": "#EAFBEF",
+      "borderColor": "#7CC998",
+      "cornerRadius": "round",
+      "id": "backend_grp",
+      "x": 345,
+      "y": 448,
+      "width": 370,
+      "height": 240
+    },
+    {
+      "tag": "Textbox",
+      "text": "Port: 8000",
+      "fontSize": 12,
+      "color": "#555",
+      "id": "backend_port",
+      "x": 625,
+      "y": 498,
+      "width": 53,
+      "height": 13,
+      "containerId": "backend_grp"
+    },
+    {
+      "tag": "Textbox",
+      "text": "\u2022 Visitor Management\n\u2022 Guide Configuration\n\u2022 Tour Management\n\u2022 Plant Catalog\n\u2022 Analytics & Reporting",
+      "fontSize": 13,
+      "color": "#30a050",
+      "id": "backend_list",
+      "x": 370,
+      "y": 533,
+      "width": 137,
+      "height": 71,
+      "containerId": "backend_grp"
+    },
+    {
+      "tag": "Relationship",
+      "from": "frontend",
+      "fromPort": "bottom",
+      "to": "backend_grp",
+      "toPort": "top",
+      "color": "#444",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "id": "fe_be",
+      "x": 719,
+      "y": 375,
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "VOICE SERVER (FastAPI)",
+        "icon": "audio-lines",
+        "hAlign": "left",
+        "width": "full",
+        "bgColor": "#f4c0f8",
+        "color": "#6A4FE0"
+      },
+      "bgColor": "purple",
+      "borderColor": "purple",
+      "cornerRadius": "round",
+      "id": "voice_grp",
+      "x": 742,
+      "y": 452,
+      "width": 360,
+      "height": 240
+    },
+    {
+      "tag": "Textbox",
+      "text": "(2 Replicas)",
+      "fontSize": 12,
+      "color": "#555",
+      "id": "voice_replicas",
+      "x": 1002,
+      "y": 502,
+      "width": 58,
+      "height": 13,
+      "containerId": "voice_grp"
+    },
+    {
+      "tag": "Textbox",
+      "text": "\u2022 Audio Processing\n\u2022 Format Conversion\n\u2022 Voice Pipeline\n\u2022 Visit Recording\n\u2022 Audio Storage Integration",
+      "fontSize": 13,
+      "color": "#c43dcf",
+      "id": "voice_list",
+      "x": 762,
+      "y": 545,
+      "width": 146,
+      "height": 71,
+      "containerId": "voice_grp"
+    },
+    {
+      "tag": "Relationship",
+      "from": "frontend",
+      "fromPort": "bottom",
+      "to": "voice_grp",
+      "toPort": "top",
+      "color": "#444",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "id": "fe_vs",
+      "x": 731,
+      "y": 375,
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "backend_grp",
+      "fromPort": "right",
+      "to": "voice_grp",
+      "toPort": "left",
+      "startArrowhead": "arrow",
+      "endArrowhead": "arrow",
+      "color": "#444",
+      "lineStyle": "solid",
+      "id": "be_vs",
+      "x": 715,
+      "y": 568,
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "DATA STORAGE",
+        "hAlign": "left",
+        "width": "snug",
+        "bgColor": "#EAF3FC",
+        "color": "#3A7BD5",
+        "border": false
+      },
+      "bgColor": "transparent",
+      "borderColor": "#3A7BD5",
+      "borderWidth": 0,
+      "cornerRadius": "round",
+      "id": "storage",
+      "x": 345,
+      "y": 710,
+      "width": 800,
+      "height": 255
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "MongoDB",
+          "fontSize": 15,
+          "color": "#2E8B57",
+          "hAlign": "left"
+        },
+        {
+          "text": "Port: 27017",
+          "fontSize": 11,
+          "color": "#555",
+          "hAlign": "left"
+        }
+      ],
+      "icon": "leaf",
+      "bgColor": "#EAFBEF",
+      "borderColor": "#7CC998",
+      "vAlign": "top",
+      "id": "mongo",
+      "x": 355,
+      "y": 775,
+      "width": 370,
+      "height": 170,
+      "containerId": "storage"
+    },
+    {
+      "tag": "Relationship",
+      "from": "backend_grp",
+      "fromPort": "bottom",
+      "to": "mongo",
+      "toPort": "top",
+      "color": "#444",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "id": "be_mongo",
+      "x": 540,
+      "y": 688,
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Textbox",
+      "text": "\u2022 Visitors            \u2022 Knowledge Base\n\u2022 Guides           \u2022 Analytics\n\u2022 Tours       \u2022 Conversations",
+      "fontSize": 12,
+      "color": "#2E8B57",
+      "id": "mongo_list",
+      "x": 390,
+      "y": 840,
+      "width": 169,
+      "height": 39,
+      "containerId": "storage"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "MinIO   (S3 Compatible)",
+          "fontSize": 15,
+          "color": "#C44",
+          "hAlign": "left"
+        },
+        {
+          "text": "Port: 9000",
+          "fontSize": 11,
+          "color": "#555",
+          "hAlign": "left"
+        }
+      ],
+      "icon": "fire",
+      "bgColor": "#FFF5F3",
+      "borderColor": "#F5B5AC",
+      "vAlign": "top",
+      "id": "minio",
+      "x": 755,
+      "y": 775,
+      "width": 370,
+      "height": 170,
+      "containerId": "storage"
+    },
+    {
+      "tag": "Relationship",
+      "from": "voice_grp",
+      "fromPort": "bottom",
+      "to": "minio",
+      "toPort": "top",
+      "color": "#444",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "id": "vs_minio",
+      "x": 937,
+      "y": 692,
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Textbox",
+      "text": "\u2022 Visit Records      \u2022 Temp Storage\n\u2022 Audio Files          \u2022 Backups",
+      "fontSize": 12,
+      "color": "#C44",
+      "id": "minio_list",
+      "x": 785,
+      "y": 847,
+      "width": 166,
+      "height": 26,
+      "containerId": "storage"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "AI / ML SERVICES",
+        "icon": "brain",
+        "hAlign": "center",
+        "width": "full",
+        "bgColor": "#FFF2D9",
+        "color": "#D49810"
+      },
+      "bgColor": "#FFFBEF",
+      "borderColor": "#F0D080",
+      "cornerRadius": "round",
+      "id": "aiml",
+      "x": 1210,
+      "y": 328,
+      "width": 400,
+      "height": 335
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Verdant-2 STT",
+          "fontSize": 13,
+          "color": "#5B4FE9",
+          "hAlign": "left"
+        },
+        {
+          "text": "\u2022 Port: 8001  \u2022 GPU: CUDA",
+          "fontSize": 11,
+          "color": "#555",
+          "hAlign": "left"
+        },
+        {
+          "text": "\u2022 RAM: 8-16GB  \u2022 12 Languages",
+          "fontSize": 11,
+          "color": "#555",
+          "hAlign": "left"
+        }
+      ],
+      "icon": "mic",
+      "bgColor": "white",
+      "borderColor": "#E8D898",
+      "id": "stt",
+      "x": 1230,
+      "y": 383,
+      "width": 340,
+      "height": 80,
+      "containerId": "aiml"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Petalor-2 TTS",
+          "fontSize": 13,
+          "color": "#2E8B57",
+          "hAlign": "left"
+        },
+        {
+          "text": "\u2022 Port: 8002  \u2022 CPU Only",
+          "fontSize": 11,
+          "color": "#555",
+          "hAlign": "left"
+        },
+        {
+          "text": "\u2022 RAM: 4-8GB  \u2022 12 Languages",
+          "fontSize": 11,
+          "color": "#555",
+          "hAlign": "left"
+        }
+      ],
+      "icon": "volume-2",
+      "bgColor": "white",
+      "borderColor": "#E8D898",
+      "id": "tts",
+      "x": 1230,
+      "y": 473,
+      "width": 340,
+      "height": 80,
+      "containerId": "aiml"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Canopy Vector Store (RAG)",
+          "fontSize": 13,
+          "color": "#C44",
+          "hAlign": "left"
+        },
+        {
+          "text": "\u2022 ARC Cloud Service",
+          "fontSize": 11,
+          "color": "#555",
+          "hAlign": "left"
+        },
+        {
+          "text": "\u2022 Semantic Search  \u2022 Knowledge Base",
+          "fontSize": 11,
+          "color": "#555",
+          "hAlign": "left"
+        }
+      ],
+      "icon": "database",
+      "bgColor": "white",
+      "borderColor": "#E8D898",
+      "id": "rag",
+      "x": 1230,
+      "y": 563,
+      "width": 340,
+      "height": 80,
+      "containerId": "aiml"
+    },
+    {
+      "tag": "Relationship",
+      "from": "voice_grp",
+      "fromPort": "right",
+      "to": "aiml",
+      "toPort": "left",
+      "lineStyle": "dashed",
+      "color": "#6A4FE0",
+      "endArrowhead": "triangle",
+      "id": "vs_stt",
+      "x": 1102,
+      "y": 572,
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "OPENSHIFT CONTAINER PLATFORM  WITH BARE METAL GPU NODES",
+          "fontSize": 16,
+          "color": "#3A7BD5"
+        }
+      ],
+      "icon": "refresh-cw",
+      "bgColor": "#EAF3FC",
+      "borderColor": "#3A7BD5",
+      "id": "openshift",
+      "x": 390,
+      "y": 1055,
+      "width": 760,
+      "height": 100
+    },
+    {
+      "tag": "Relationship",
+      "from": "mongo",
+      "fromPort": "bottom",
+      "to": "openshift",
+      "toPort": "top",
+      "color": "#444",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "id": "mongo_os",
+      "x": 540,
+      "y": 945,
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "minio",
+      "fromPort": "bottom",
+      "to": "openshift",
+      "toPort": "top",
+      "color": "#444",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "id": "minio_os",
+      "x": 940,
+      "y": 945,
+      "lineWidth": 0.75
+    }
+  ]
+}

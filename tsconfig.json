@@ -1,0 +1,13 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/protocol" },
+    { "path": "packages/utils" },
+    { "path": "packages/render" },
+    { "path": "packages/layout" },
+    { "path": "packages/resolve" },
+    { "path": "packages/diagrams" },
+    { "path": "packages/diagrams-cli" },
+    { "path": "packages/server" }
+  ]
+}

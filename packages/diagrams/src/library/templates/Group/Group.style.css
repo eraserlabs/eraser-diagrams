@@ -1,0 +1,245 @@
+/* Near-white identity tint body, saturated identity hairline, 6px corners, hard 4px/4px
+   #E8E8E8 offset shadow. Title chrome follows width: snug chip (default), full band, or
+   none (plain text). A full band with no fill keeps a group-colored hairline. */
+/* Text sizing (see CUSTOMIZATION.md): sizes are pixels only — this slot's literal default, or
+   an authored `fontSize` through the gated data-font-px + --er-font-px idiom. */
+.er-grouplike {
+  /* Identity treatment, one authored `color` (see Shape.style.css for the shared model). A group
+     body is the near-white 98% lightness tint, not the shape pastel; the raised title surface is
+     the 85% step of the body (same hue/saturation as the identity). */
+  --er-fill: transparent;
+  --er-stroke: #242424;
+  --er-tint: #ffffff;
+  --er-title-surface: transparent;
+  --er-title-paint: transparent;
+  /* Title-band icon buckets; unitless px so base.style.css can divide for the stroke-width
+     formula. */
+  --er-title-icon-num: 15;
+  --er-title-icon-px: calc(var(--er-title-icon-num) * 1px);
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--er-stroke);
+  border-radius: 6px;
+  background: var(--er-fill);
+  box-sizing: border-box;
+}
+.er-grouplike[data-color]:not([data-color='']) {
+  --er-fill: hsl(from var(--er-color) h s 98%);
+  --er-stroke: var(--er-color);
+  --er-tint: hsl(from var(--er-color) h s 98%);
+  --er-title-surface: hsl(from var(--er-color) h s 85%);
+}
+/* Authored paint outranks the identity formulas — same specificity, later in source order. */
+.er-grouplike[data-bg]:not([data-bg='']) {
+  --er-fill: var(--er-bg);
+  --er-tint: hsl(from var(--er-bg) h s 98%);
+  --er-title-surface: hsl(from var(--er-bg) h s 85%);
+}
+.er-grouplike[data-border-color]:not([data-border-color='']) {
+  --er-stroke: var(--er-border);
+}
+/* The redundant-looking `:not()` keeps this at the same specificity as the rule above, so
+   source order decides — see Shape.style.css for the shared cascade discipline. */
+.er-grouplike[data-bg='transparent']:not([data-bg='']),
+.er-grouplike[data-bg='none']:not([data-bg='']) {
+  --er-fill: transparent;
+  --er-tint: #ffffff;
+  --er-title-surface: transparent;
+}
+.er-grouplike[data-style='shadow'] {
+  box-shadow: 4px 4px 0 0 #e8e8e8;
+}
+/* Watercolor: the wash mount, faint smudged border, and texture fill-drop are shared with Lane
+   and Pool, so they live in base.style.css under the er-grouplike/er-washtex family. */
+/* No body to cast it: an explicitly unpainted group, and a group given only a border, drop
+   the offset shadow that would float behind nothing. */
+.er-grouplike[data-bg='transparent'],
+.er-grouplike[data-bg='none'],
+.er-grouplike[data-border-color]:not(
+    [data-border-color='']
+  )[data-color=''][data-bg=''] {
+  box-shadow: none;
+}
+/* CSS dashed borders draw browser dashes; hide the border and stroke via the SVG rects
+   instead. The solid offset shadow reads as a second border behind a dashed stroke — drop it. */
+.er-grouplike[data-border='dashed'],
+.er-grouplike[data-border='dotted'] {
+  box-shadow: none;
+  border-color: transparent;
+}
+.er-grouplike__stroke {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  color: var(--er-stroke);
+}
+.er-grouplike[data-border='dashed'] .er-grouplike__stroke,
+.er-grouplike[data-border='dotted'] .er-grouplike__stroke {
+  display: block;
+}
+.er-grouplike__dash {
+  display: none;
+}
+.er-grouplike[data-border='dashed'] .er-grouplike__dash--dashed {
+  display: block;
+}
+.er-grouplike[data-border='dotted'] .er-grouplike__dash--dotted {
+  display: block;
+}
+.er-grouplike__title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  max-width: calc(100% - 15px);
+  margin: 7.5px 7.5px 0;
+  padding: 3px 5px;
+  border-radius: 2px;
+  font-family: var(--f, var(--font-clean, sans-serif));
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: #242424;
+  box-sizing: border-box;
+}
+.er-grouplike[data-title-ink]:not([data-title-ink='']) .er-grouplike__title {
+  color: var(--er-title-ink);
+}
+.er-grouplike[data-font-px]:not([data-font-px='']) .er-grouplike__title {
+  font-size: var(--er-font-px);
+}
+.er-grouplike[data-title-icon-size='sm'] {
+  --er-title-icon-num: 12;
+}
+.er-grouplike[data-title-icon-size='md'] {
+  --er-title-icon-num: 15;
+}
+.er-grouplike[data-title-icon-size='lg'] {
+  --er-title-icon-num: 22;
+}
+.er-grouplike[data-title-icon-size='xl'] {
+  --er-title-icon-num: 32;
+}
+.er-grouplike__title-text {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.er-grouplike[data-title-align='center'] .er-grouplike__title {
+  margin-left: auto;
+  margin-right: auto;
+}
+.er-grouplike[data-title-align='right'] .er-grouplike__title {
+  margin-left: auto;
+  margin-right: 7.5px;
+}
+/* Paint: an authored bgColor wins; a bordered title without one pulls the raised surface.
+   The rectangle itself only exists for snug/full — `none` is text. */
+.er-grouplike[data-title-border='true'] {
+  --er-title-paint: var(--er-title-surface);
+}
+.er-grouplike[data-title-bg]:not([data-title-bg='']) {
+  --er-title-paint: var(--er-title-bg);
+}
+.er-grouplike[data-title-width='snug'][data-title-border='true']
+  .er-grouplike__title,
+.er-grouplike[data-title-width='snug'][data-title-bg]:not([data-title-bg=''])
+  .er-grouplike__title,
+.er-grouplike[data-title-width='full'][data-title-border='true']
+  .er-grouplike__title,
+.er-grouplike[data-title-width='full'][data-title-bg]:not([data-title-bg=''])
+  .er-grouplike__title {
+  background: var(--er-title-paint);
+}
+/* The group outline's watercolor treatment lives in base.style.css (the unscoped grouplike
+   channel); the title rules below extend it to the underline and the snug box. */
+/* `border` semantics by width: snug draws a box AROUND the title; full draws the line UNDER the
+   band and never side/top edges (the group's own border is the band's outline). border:false
+   renders no title border at all — paint, if any, stands alone. */
+.er-grouplike[data-title-width='snug'][data-title-border='true']
+  .er-grouplike__title {
+  border: 1px solid var(--er-stroke);
+}
+/* Full-width band layout. */
+.er-grouplike[data-title-width='full'] .er-grouplike__title {
+  width: 100%;
+  margin: 0;
+  padding: 8px 12.5px;
+  border-radius: 5px 5px 0 0;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+.er-grouplike[data-title-width='full'][data-title-border='true']
+  .er-grouplike__title {
+  border-bottom: 1px solid var(--er-stroke);
+}
+/* Watercolor titles: same overlay trick — the crisp line/box goes transparent and a blurred
+   twin takes its place, so title borders age exactly like the group outline. */
+.er-grouplike[data-style='watercolor'][data-title-border='true']
+  .er-grouplike__title {
+  position: relative;
+  border-color: transparent;
+}
+.er-grouplike[data-style='watercolor'][data-title-width='full'][data-title-border='true']
+  .er-grouplike__title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: color-mix(
+    in srgb,
+    var(--er-stroke) var(--er-wc-border-alpha, 45%),
+    transparent
+  );
+  filter: blur(var(--er-wc-border-blur, 0.7px));
+  pointer-events: none;
+}
+.er-grouplike[data-style='watercolor'][data-title-width='snug'][data-title-border='true']
+  .er-grouplike__title::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--er-stroke) var(--er-wc-border-alpha, 45%),
+      transparent
+    );
+  border-radius: inherit;
+  filter: blur(var(--er-wc-border-blur, 0.7px));
+  pointer-events: none;
+}
+.er-grouplike[data-title-width='full'][data-title-align='center']
+  .er-grouplike__title {
+  justify-content: center;
+}
+.er-grouplike[data-title-width='full'][data-title-align='right']
+  .er-grouplike__title {
+  justify-content: flex-end;
+}
+/* The glyph takes the band's own ink unless the author pinned one. */
+.er-grouplike__title-icon {
+  --er-glyph-num: var(--er-title-icon-num);
+  flex: 0 0 auto;
+  width: var(--er-title-icon-px, 15px);
+  height: var(--er-title-icon-px, 15px);
+  color: inherit;
+  line-height: 0;
+}
+.er-grouplike[data-title-icon-ink]:not([data-title-icon-ink=''])
+  .er-grouplike__title-icon {
+  color: var(--er-title-icon-ink);
+}
+.er-grouplike__title-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

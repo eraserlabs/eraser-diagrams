@@ -1,0 +1,432 @@
+// Tokens adapted (approximately) from the example scenes — directional, not authoritative.
+$bg: #f5f8fb;
+$ink: #1f2d3d;
+$soft: #5b6b7f;
+$border: #e3e9f0;
+$accent: #2866c4;
+$edge: #64748b;
+$font:
+  -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+  sans-serif;
+$mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+$shadow-flat: 4px 4px 0 0 #e8e8e8;
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font: 14px/1.5 $font;
+  background: $bg;
+  color: $ink;
+}
+.app__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 12px;
+  background: #fff;
+  border-bottom: 1px solid $border;
+
+  h1 {
+    font-size: 13px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  nav {
+    display: flex;
+    gap: 4px;
+  }
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 12px;
+  border-bottom: 1px solid $border;
+  background: #fff;
+  font-size: 13px;
+}
+
+button {
+  font: inherit;
+  font-size: 13px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid $border;
+  background: #fff;
+  cursor: pointer;
+
+  &.primary {
+    background: $accent;
+    color: #fff;
+    border-color: $accent;
+  }
+  &.tab.active {
+    background: $accent;
+    color: #fff;
+    border-color: $accent;
+  }
+}
+select {
+  font: inherit;
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid $border;
+  background: #fff;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 12px;
+  height: calc(100vh - 72px);
+
+  // Request hidden: the response pane spans the page and the preview grows to fill it.
+  &--single {
+    grid-template-columns: 1fr;
+
+    .render-preview {
+      height: calc(100vh - 300px);
+      min-height: 480px;
+    }
+  }
+}
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  > h2 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: $soft;
+    margin: 0 0 6px;
+  }
+}
+.request {
+  flex: 1;
+  width: 100%;
+  font: 12px/1.45 $mono;
+  resize: none;
+  padding: 10px;
+  border: 1px solid $border;
+  border-radius: 10px;
+}
+.out {
+  flex: 1;
+  overflow: auto;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fff;
+}
+.note {
+  font-size: 11px;
+  color: $soft;
+}
+.shell-modes {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 4px 0;
+  font-size: 12px;
+  color: $soft;
+}
+
+.badge {
+  display: inline-block;
+  padding: 1px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 6px;
+
+  &.ok {
+    background: #16a34a1a;
+    color: #16a34a;
+  }
+  &.err {
+    background: #dc26261a;
+    color: #dc2626;
+  }
+  &.warn {
+    background: #d977061a;
+    color: #d97706;
+  }
+  &.muted {
+    background: #5b6b7f1a;
+    color: $soft;
+  }
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12px;
+  margin: 4px 0 10px;
+
+  td,
+  th {
+    border: 1px solid $border;
+    padding: 3px 7px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #f6f9fc;
+  }
+}
+pre {
+  white-space: pre-wrap;
+  word-break: break-all;
+  font: 11px/1.4 $mono;
+  background: #f6f9fc;
+  padding: 8px;
+  border-radius: 8px;
+}
+details > summary {
+  cursor: pointer;
+  margin: 8px 0 4px;
+  color: $soft;
+}
+
+// --- API reference explorer ---
+.explorer {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 12px;
+  padding: 12px;
+
+  &__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .tag {
+      text-align: left;
+    }
+  }
+}
+// --- custom OpenAPI reference ---
+.openapi {
+  padding: 12px 16px;
+  overflow: auto;
+  height: calc(100vh - 72px);
+
+  &__head {
+    margin-bottom: 12px;
+    h3 {
+      margin: 0 0 4px;
+    }
+  }
+}
+.endpoint {
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 0 0 10px;
+  background: #fff;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  &__path {
+    font: 13px/1.4 $mono;
+  }
+  &__summary {
+    color: $soft;
+    font-size: 12px;
+  }
+  &__block {
+    margin-top: 8px;
+    h5 {
+      margin: 6px 0 2px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: $soft;
+    }
+  }
+}
+.method {
+  font: 700 11px/1 $mono;
+  padding: 3px 7px;
+  border-radius: 6px;
+  color: #fff;
+  &--get {
+    background: #16a34a;
+  }
+  &--post {
+    background: #2866c4;
+  }
+  &--put,
+  &--patch {
+    background: #d97706;
+  }
+  &--delete {
+    background: #dc2626;
+  }
+}
+.status {
+  font: 700 11px/1 $mono;
+  padding: 2px 6px;
+  border-radius: 6px;
+  &--2 {
+    background: #16a34a1a;
+    color: #16a34a;
+  }
+  &--4 {
+    background: #d977061a;
+    color: #d97706;
+  }
+  &--5 {
+    background: #dc26261a;
+    color: #dc2626;
+  }
+}
+
+// --- toy scene preview (temporary) ---
+.scene {
+  position: relative;
+  height: 380px;
+  overflow: auto;
+  border: 1px solid $border;
+  border-radius: 10px;
+  margin: 4px 0;
+  background: #fff
+    radial-gradient(rgba(100, 116, 139, 0.14) 1.2px, transparent 1.2px) 0 0 /
+    22px 22px;
+
+  &__canvas {
+    position: relative;
+  }
+}
+.node {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--node-border, #242424);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--fill, #fff);
+  box-shadow: $shadow-flat;
+  font-size: 12px;
+
+  &[data-container] {
+    background: color-mix(in oklab, var(--accent, #8a97a8) 6%, #fff);
+    box-shadow: none;
+    align-items: flex-start;
+  }
+  .lbl {
+    font-weight: 600;
+    color: #242424;
+  }
+  .er-ico {
+    width: 22px;
+    height: 22px;
+    flex: none;
+    color: var(--strong, $ink);
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+  .chip {
+    position: absolute;
+    top: -8px;
+    right: 8px;
+    background: var(--strong, #333);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 0 6px;
+  }
+  .fields {
+    margin: 2px 0 0;
+    padding: 0;
+    list-style: none;
+    font: 11px/1.5 $mono;
+  }
+}
+svg.edges {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+
+  path {
+    fill: none;
+    stroke: $edge;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.85;
+  }
+}
+.edge-label {
+  font-size: 10px;
+  fill: $ink;
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 3px;
+}
+
+.render-preview-wrap {
+  position: relative;
+}
+.render-preview__controls {
+  position: absolute;
+  top: 8px;
+  right: 20px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(31, 45, 61, 0.12);
+
+  button {
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+}
+.render-preview__scale {
+  min-width: 40px;
+  text-align: center;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: $soft;
+}
+.render-preview {
+  width: 100%;
+  height: 480px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  overflow: auto;
+
+  &--error {
+    color: #b3261e;
+    font-size: 12px;
+    padding: 10px;
+  }
+}

@@ -1,0 +1,34 @@
+<template name="Icon">
+  <figure
+    data-tpl="Icon"
+    data-role="body"
+    class="er-icon"
+    data-sized="{{sizePx}}"
+    data-size="{{size}}"
+    data-font-px="{{fontSize}}"
+    style="--er-bounds-num: {{sizePx}}; --er-glyph-ink: {{color}}; --er-font-px: {{fontSize}}px"
+  >
+    <span
+      data-role="anchor"
+      data-part="icon"
+      data-slot="icon"
+      class="er-icon__glyph"
+    ></span>
+    <figcaption
+      class="er-icon__caption"
+      data-role="external-text"
+      data-part="caption"
+      data-each="t of texts"
+      data-key="text"
+    >
+      <div
+        class="er-icon__caption-line er-md"
+        data-run-px="{{t.fontSize}}"
+        style="--f: var(--font-{{t.typeface}}, var(--font-clean)); --er-ink: {{t.color}}; --er-run-px: {{t.fontSize}}px"
+      >
+        {{t.text}}
+      </div>
+    </figcaption>
+    <span data-use="Badge" data-props="badge" data-if="badge"></span>
+  </figure>
+</template>

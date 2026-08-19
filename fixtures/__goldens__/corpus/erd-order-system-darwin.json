@@ -1,0 +1,236 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "DatabaseTable",
+      "id": "users",
+      "label": "users",
+      "icon": "database",
+      "color": "blue",
+      "x": 60,
+      "y": 60,
+      "width": 220,
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "meta": "pk"
+        },
+        {
+          "name": "email",
+          "type": "text"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz"
+        }
+      ],
+      "hAlign": "center",
+      "height": 150
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "orders",
+      "label": "orders",
+      "icon": "database",
+      "color": "purple",
+      "x": 480,
+      "y": 60,
+      "width": 220,
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "meta": "pk"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "meta": "fk"
+        },
+        {
+          "name": "status",
+          "type": "text"
+        },
+        {
+          "name": "total_cents",
+          "type": "int"
+        },
+        {
+          "name": "placed_at",
+          "type": "timestamptz"
+        }
+      ],
+      "titleBgColor": "#ecdffa",
+      "height": 178
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "products",
+      "label": "products",
+      "icon": "package",
+      "color": "green",
+      "x": 60,
+      "y": 400,
+      "width": 220,
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "meta": "pk"
+        },
+        {
+          "name": "sku",
+          "type": "text"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "price_cents",
+          "type": "int"
+        }
+      ],
+      "height": 150
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "order_items",
+      "label": "order_items",
+      "icon": "list",
+      "color": "orange",
+      "x": 480,
+      "y": 400,
+      "width": 220,
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "meta": "pk"
+        },
+        {
+          "name": "order_id",
+          "type": "uuid",
+          "meta": "fk"
+        },
+        {
+          "name": "product_id",
+          "type": "uuid",
+          "meta": "fk"
+        },
+        {
+          "name": "qty",
+          "type": "int"
+        },
+        {
+          "name": "unit_cents",
+          "type": "int"
+        }
+      ],
+      "height": 178
+    }
+  ],
+  "connections": [
+    {
+      "tag": "DatabaseRelationship",
+      "id": "rel-users-orders",
+      "from": "users",
+      "to": "orders",
+      "fromField": "id",
+      "toField": "user_id",
+      "relType": "one-to-many",
+      "notation": "crows-foot",
+      "x": 280,
+      "y": 120,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 100,
+          "y": 0
+        },
+        {
+          "x": 100,
+          "y": 28
+        },
+        {
+          "x": 200,
+          "y": 28
+        }
+      ]
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "rel-orders-items",
+      "from": "orders",
+      "to": "order_items",
+      "fromField": "id",
+      "toField": "order_id",
+      "relType": "one-to-many",
+      "notation": "crows-foot",
+      "x": 700,
+      "y": 120,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 50,
+          "y": 0
+        },
+        {
+          "x": 50,
+          "y": 368
+        },
+        {
+          "x": 0,
+          "y": 368
+        }
+      ]
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "rel-products-items",
+      "from": "products",
+      "to": "order_items",
+      "fromField": "id",
+      "toField": "product_id",
+      "relType": "one-to-many",
+      "notation": "crows-foot",
+      "x": 280,
+      "y": 460,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 100,
+          "y": 0
+        },
+        {
+          "x": 100,
+          "y": 56
+        },
+        {
+          "x": 200,
+          "y": 56
+        }
+      ]
+    }
+  ],
+  "scene": {
+    "x": 44,
+    "y": 44,
+    "width": 722,
+    "height": 550
+  }
+}

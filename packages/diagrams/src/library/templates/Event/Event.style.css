@@ -1,0 +1,83 @@
+/* BPMN event: a fixed 56px circle — uniform across a diagram, the BPMN convention — with an
+   optional glyph centered inside and the caption stack hanging below as external text (the Icon
+   caption model: the disc is the anchor). Identity coloring follows the shared scheme: near-white
+   tint body, saturated identity ring. */
+/* Text sizing (see CUSTOMIZATION.md): sizes are pixels only. The caption slot's --er-base is
+   15px; an authored element `fontSize` arrives as gated data-font-px, per-run as data-run-px. */
+.er-event {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  text-align: center;
+}
+.er-event__disc {
+  --er-fill: #ffffff;
+  --er-stroke: #242424;
+  --er-glyph-num: 22;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+  border: 2px solid var(--er-stroke);
+  border-radius: 50%;
+  background: var(--er-fill);
+  box-sizing: border-box;
+}
+.er-event[data-color]:not([data-color='']) .er-event__disc {
+  --er-fill: hsl(from var(--er-color) h s 96%);
+  --er-stroke: var(--er-color);
+}
+/* Authored paint outranks the identity formulas — same specificity, later in source order. */
+.er-event[data-bg]:not([data-bg='']) .er-event__disc {
+  --er-fill: var(--er-bg);
+}
+.er-event[data-border-color]:not([data-border-color='']) .er-event__disc {
+  --er-stroke: var(--er-border);
+}
+.er-event[data-border='dashed'] .er-event__disc {
+  border-style: dashed;
+}
+.er-event[data-border='dotted'] .er-event__disc {
+  border-style: dotted;
+}
+.er-event__glyph {
+  display: block;
+  width: calc(var(--er-glyph-num) * 1px);
+  height: calc(var(--er-glyph-num) * 1px);
+  color: #242424;
+  line-height: 0;
+}
+.er-event__glyph svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.er-event__caption {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 300%;
+  margin: 0;
+}
+/* Every caption slot is styled identically at the primary size. */
+.er-event__caption-line {
+  --er-base: 15px;
+  display: block;
+  font-family: var(--f, var(--font-clean, sans-serif));
+  font-size: var(--er-base);
+  line-height: 1.25;
+  color: var(--er-ink, #242424);
+}
+.er-event[data-font-px]:not([data-font-px='']) .er-event__caption-line {
+  font-size: var(--er-font-px);
+}
+.er-event__caption-line[data-run-px]:not([data-run-px='']) {
+  font-size: var(--er-run-px);
+}

@@ -1,0 +1,39 @@
+{
+  "name": "@eraserlabs/layout",
+  "version": "0.1.0",
+  "description": "Eraser's layout geometry and corridor connection router.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eraserlabs/eraser-diagrams.git",
+    "directory": "packages/layout"
+  },
+  "homepage": "https://github.com/eraserlabs/eraser-diagrams",
+  "bugs": "https://github.com/eraserlabs/eraser-diagrams/issues",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map",
+    "THIRD_PARTY_NOTICES.md",
+    "licenses"
+  ],
+  "scripts": {
+    "build": "tsc -b && node ../../tools/strip-dist-comments.mjs",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@eraserlabs/utils": "workspace:*"
+  }
+}

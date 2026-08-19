@@ -1,0 +1,438 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "text": "Pet Grooming Services & Bundles",
+      "id": "main-title",
+      "height": 60,
+      "fontSize": 24,
+      "y": 15,
+      "tag": "Textbox",
+      "width": 500,
+      "x": 415,
+      "hAlign": "center"
+    },
+    {
+      "tag": "Group",
+      "bgColor": "#E1F5FE",
+      "width": 350,
+      "x": 15,
+      "title": {
+        "icon": "camera",
+        "text": "Services",
+        "bgColor": "#E1F5FE"
+      },
+      "color": "#0277BD",
+      "id": "grp-services",
+      "height": 350,
+      "y": 75
+    },
+    {
+      "shape": "rectangle",
+      "tag": "Shape",
+      "bgColor": "#FFFFFF",
+      "width": 310,
+      "x": 35,
+      "texts": [
+        {
+          "text": "Full Grooming (Puppy/Adult/Senior)",
+          "fontSize": 14,
+          "hAlign": "left"
+        }
+      ],
+      "id": "srv-portraits",
+      "height": 40,
+      "containerId": "grp-services",
+      "y": 145
+    },
+    {
+      "bgColor": "#FFFFFF",
+      "width": 310,
+      "x": 35,
+      "shape": "rectangle",
+      "tag": "Shape",
+      "texts": [
+        {
+          "fontSize": 14,
+          "hAlign": "left",
+          "text": "Spa Days (Holidays, Weekends, etc.)"
+        }
+      ],
+      "height": 40,
+      "id": "srv-events",
+      "containerId": "grp-services",
+      "y": 195
+    },
+    {
+      "shape": "rectangle",
+      "tag": "Shape",
+      "bgColor": "#FFFFFF",
+      "width": 310,
+      "x": 35,
+      "texts": [
+        {
+          "hAlign": "left",
+          "fontSize": 14,
+          "text": "Custom Collar & Bow Sets"
+        }
+      ],
+      "height": 40,
+      "id": "srv-frame",
+      "containerId": "grp-services",
+      "y": 245
+    },
+    {
+      "bgColor": "#FFFFFF",
+      "width": 310,
+      "x": 35,
+      "shape": "rectangle",
+      "tag": "Shape",
+      "texts": [
+        {
+          "text": "Coat De-Shedding",
+          "fontSize": 14,
+          "hAlign": "left"
+        }
+      ],
+      "id": "srv-restore",
+      "height": 40,
+      "containerId": "grp-services",
+      "y": 295
+    },
+    {
+      "containerId": "grp-services",
+      "y": 345,
+      "height": 40,
+      "id": "srv-passport",
+      "texts": [
+        {
+          "hAlign": "left",
+          "fontSize": 14,
+          "text": "Nail Trim & Ear Clean"
+        }
+      ],
+      "shape": "rectangle",
+      "tag": "Shape",
+      "bgColor": "#FFFFFF",
+      "width": 310,
+      "x": 35
+    },
+    {
+      "height": 350,
+      "id": "grp-packages",
+      "y": 75,
+      "bgColor": "#FCE4EC",
+      "width": 350,
+      "x": 395,
+      "tag": "Group",
+      "color": "#C2185B",
+      "title": {
+        "text": "Packages",
+        "icon": "package",
+        "bgColor": "#FCE4EC"
+      }
+    },
+    {
+      "containerId": "grp-packages",
+      "y": 145,
+      "height": 50,
+      "id": "pkg-main",
+      "texts": [
+        {
+          "text": "Premium Groom Package",
+          "fontSize": 16,
+          "color": "#C2185B",
+          "hAlign": "center"
+        }
+      ],
+      "bgColor": "#FFFFFF",
+      "width": 310,
+      "x": 415,
+      "shape": "rectangle",
+      "tag": "Shape"
+    },
+    {
+      "tag": "Textbox",
+      "width": 310,
+      "x": 415,
+      "fontSize": 14,
+      "containerId": "grp-packages",
+      "y": 215,
+      "text": "Duration: 3hrs\nDeliverables: Same day pickup\nPrice: 30,000\nLocation: Mobile Van",
+      "id": "pkg-details",
+      "height": 120
+    },
+    {
+      "bgColor": "#E8F5E9",
+      "width": 350,
+      "x": 775,
+      "tag": "Group",
+      "color": "#388E3C",
+      "title": {
+        "icon": "dollar-sign",
+        "text": "Pricing",
+        "bgColor": "#E8F5E9"
+      },
+      "height": 350,
+      "id": "grp-pricing",
+      "y": 75
+    },
+    {
+      "bgColor": "#FFFFFF",
+      "width": 310,
+      "x": 795,
+      "shape": "rectangle",
+      "tag": "Shape",
+      "texts": [
+        {
+          "hAlign": "left",
+          "fontSize": 14,
+          "text": "Basic Groom: 12,000"
+        }
+      ],
+      "height": 37,
+      "id": "price-party",
+      "containerId": "grp-pricing",
+      "y": 145
+    },
+    {
+      "containerId": "grp-pricing",
+      "y": 190,
+      "id": "price-wedding",
+      "height": 37,
+      "texts": [
+        {
+          "hAlign": "left",
+          "fontSize": 14,
+          "text": "Deluxe Grooming: 22,000"
+        }
+      ],
+      "bgColor": "#FFFFFF",
+      "width": 310,
+      "x": 795,
+      "shape": "rectangle",
+      "tag": "Shape"
+    },
+    {
+      "texts": [
+        {
+          "text": "Premium Groom: 30,000",
+          "fontSize": 14,
+          "hAlign": "left"
+        }
+      ],
+      "shape": "rectangle",
+      "tag": "Shape",
+      "bgColor": "#FFFFFF",
+      "width": 310,
+      "x": 795,
+      "containerId": "grp-pricing",
+      "y": 235,
+      "height": 37,
+      "id": "price-pre"
+    },
+    {
+      "width": 310,
+      "x": 795,
+      "tag": "Textbox",
+      "height": 100,
+      "id": "price-notes",
+      "text": "• Travel fee: Depends on distance\n• Add-ons: Extra charges\n• Discounts: On multi-pet visits",
+      "fontSize": 13,
+      "containerId": "grp-pricing",
+      "y": 290
+    },
+    {
+      "bgColor": "#FFF3E0",
+      "width": 650,
+      "x": 15,
+      "tag": "Group",
+      "title": {
+        "icon": "git-commit",
+        "text": "Booking Workflow",
+        "bgColor": "#FFF3E0"
+      },
+      "color": "#F57C00",
+      "id": "grp-workflow",
+      "height": 200,
+      "y": 455
+    },
+    {
+      "containerId": "grp-workflow",
+      "y": 525,
+      "height": 60,
+      "id": "flow-inquiry",
+      "texts": [
+        {
+          "hAlign": "center",
+          "fontSize": 14,
+          "text": "Inquiry"
+        }
+      ],
+      "bgColor": "#FFFFFF",
+      "width": 100,
+      "x": 45,
+      "shape": "oval",
+      "tag": "Shape"
+    },
+    {
+      "id": "flow-date",
+      "height": 60,
+      "containerId": "grp-workflow",
+      "y": 525,
+      "shape": "oval",
+      "tag": "Shape",
+      "bgColor": "#FFFFFF",
+      "width": 120,
+      "x": 195,
+      "texts": [
+        {
+          "fontSize": 14,
+          "hAlign": "center",
+          "text": "Date/Time Confirmed"
+        }
+      ]
+    },
+    {
+      "bgColor": "#FFFFFF",
+      "width": 100,
+      "x": 355,
+      "shape": "oval",
+      "tag": "Shape",
+      "texts": [
+        {
+          "hAlign": "center",
+          "fontSize": 14,
+          "text": "Deposit"
+        }
+      ],
+      "id": "flow-deposit",
+      "height": 60,
+      "containerId": "grp-workflow",
+      "y": 525
+    },
+    {
+      "containerId": "grp-workflow",
+      "y": 525,
+      "id": "flow-delivery",
+      "height": 60,
+      "texts": [
+        {
+          "text": "Final Pickup",
+          "hAlign": "center",
+          "fontSize": 14
+        }
+      ],
+      "shape": "oval",
+      "tag": "Shape",
+      "bgColor": "#FFFFFF",
+      "width": 120,
+      "x": 495
+    },
+    {
+      "bgColor": "#F3E5F5",
+      "width": 650,
+      "x": 695,
+      "tag": "Group",
+      "color": "#7B1FA2",
+      "title": {
+        "bgColor": "#F3E5F5",
+        "icon": "clipboard-list",
+        "text": "Client Checklist"
+      },
+      "height": 200,
+      "id": "grp-checklist",
+      "y": 455
+    },
+    {
+      "fontSize": 14,
+      "containerId": "grp-checklist",
+      "y": 515,
+      "text": "• Name:\n• Email / Phone:\n• Groom Type:\n• Preferred Date/Time:",
+      "height": 120,
+      "id": "chk-col1",
+      "tag": "Textbox",
+      "width": 280,
+      "x": 715
+    },
+    {
+      "fontSize": 14,
+      "containerId": "grp-checklist",
+      "y": 515,
+      "text": "• Location:\n• Budget Range:\n• Style Preferences (Notes):\n• Special Requests:",
+      "id": "chk-col2",
+      "height": 120,
+      "tag": "Textbox",
+      "width": 300,
+      "x": 1015
+    }
+  ],
+  "connections": [
+    {
+      "id": "rel-1",
+      "lineStyle": "solid",
+      "tag": "Relationship",
+      "from": "flow-inquiry",
+      "color": "#F57C00",
+      "to": "flow-date",
+      "x": 145,
+      "y": 555,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 50,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "rel-2",
+      "lineStyle": "solid",
+      "to": "flow-deposit",
+      "from": "flow-date",
+      "color": "#F57C00",
+      "x": 315,
+      "y": 555,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 40,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "rel-3",
+      "lineStyle": "solid",
+      "tag": "Relationship",
+      "from": "flow-deposit",
+      "color": "#F57C00",
+      "to": "flow-delivery",
+      "x": 455,
+      "y": 555,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 40,
+          "y": 0
+        }
+      ]
+    }
+  ],
+  "scene": {
+    "x": -1,
+    "y": -1,
+    "width": 1362,
+    "height": 672
+  }
+}

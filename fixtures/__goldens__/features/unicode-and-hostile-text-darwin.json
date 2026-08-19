@@ -1,0 +1,35 @@
+{
+  "warnings": [
+    "W_CONTENT_SANITIZED /elements/0/texts/0/text",
+    "W_CONTENT_SANITIZED /elements/0/texts/1/text",
+    "W_CONTENT_SANITIZED /elements/0/texts/2/text"
+  ],
+  "entities": [
+    {
+      "tag": "Shape",
+      "id": "hostile",
+      "x": 0,
+      "y": 0,
+      "width": 253,
+      "height": 107,
+      "texts": [
+        {
+          "text": "</script><script>alert(document.cookie)</script>"
+        },
+        {
+          "text": "<img src=x onerror=alert(1)>"
+        },
+        {
+          "text": "Unicode: ☃ 你好 𝕏 café — “quotes” & <b>bold</b>"
+        }
+      ]
+    }
+  ],
+  "connections": [],
+  "scene": {
+    "x": -16,
+    "y": -16,
+    "width": 285,
+    "height": 139
+  }
+}

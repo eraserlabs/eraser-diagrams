@@ -1,0 +1,91 @@
+<template name="Lane">
+  <section
+    data-tpl="Lane"
+    data-role="body"
+    class="er-grouplike er-lane"
+    data-border="{{borderStyle}}"
+    data-style="{{styleMode}}"
+    data-color="{{color}}"
+    data-bg="{{bgColor}}"
+    data-border-color="{{borderColor}}"
+    data-washtex-css="{{washTexCss}}"
+    data-title-width="{{title.width}}"
+    data-title-bg="{{title.bgColor}}"
+    data-title-border="{{title.border}}"
+    data-title-align="{{title.hAlign}}"
+    data-title-ink="{{title.color}}"
+    data-title-icon-ink="{{title.iconProps.color}}"
+    data-title-icon-size="{{title.iconProps.size}}"
+    data-font-px="{{title.fontSize}}"
+    style="--er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-title-bg: {{title.bgColor}}; --er-title-ink: {{title.color}}; --er-title-icon-ink: {{title.iconProps.color}}; --er-font-px: {{title.fontSize}}px; --f: var(--font-{{title.typeface}}, var(--font-clean))"
+  >
+    <span class="er-washtex" data-if="washTexCss" aria-hidden="true"><svg
+        width="100%"
+        height="100%"
+      ><filter id="wcc-{{washUid}}" x="-50%" y="-50%" width="200%" height="200%"><feMorphology
+            operator="dilate"
+            radius="5"
+          ></feMorphology><feGaussianBlur stdDeviation="7"></feGaussianBlur></filter><mask id="wcf-{{washUid}}"><rect
+            class="er-washmask"
+            width="100%"
+            height="100%"
+            fill="#fff"
+            filter="url(#wcc-{{washUid}})"
+          ></rect></mask><g mask="url(#wcf-{{washUid}})"><use
+            href="#{{washSym}}"
+            x="-6%"
+            y="-6%"
+            width="112%"
+            height="112%"
+          ></use></g></svg></span>
+    <svg
+      class="er-grouplike__stroke"
+      aria-hidden="true"
+      width="100%"
+      height="100%"
+    >
+      <rect
+        class="er-grouplike__dash er-grouplike__dash--dashed"
+        x="0.5"
+        y="0.5"
+        width="100%"
+        height="100%"
+        rx="5.5"
+        ry="5.5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1"
+        stroke-dasharray="8 8.75"
+        vector-effect="non-scaling-stroke"
+      ></rect>
+      <rect
+        class="er-grouplike__dash er-grouplike__dash--dotted"
+        x="0.5"
+        y="0.5"
+        width="100%"
+        height="100%"
+        rx="5.5"
+        ry="5.5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1"
+        stroke-dasharray="1.5 6.75"
+        vector-effect="non-scaling-stroke"
+      ></rect>
+    </svg>
+    <header class="er-grouplike__title" data-if="title" data-part="title">
+      <span
+        class="er-grouplike__title-icon"
+        data-slot="title.icon"
+        data-if="title.icon"
+      ></span>
+      <span
+        class="er-grouplike__title-text er-md"
+        data-role="internal-text"
+        data-text-grow-policy="height-only"
+        >{{title.text}}</span
+      >
+    </header>
+    <span data-use="Badge" data-props="badge" data-if="badge"></span>
+  </section>
+</template>

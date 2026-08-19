@@ -1,0 +1,1291 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "Shape",
+      "id": "wc-00",
+      "shape": "rectangle",
+      "color": "blue",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "rectangle 0",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 40,
+      "y": 40,
+      "width": 120,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-01",
+      "shape": "ellipse",
+      "color": "orange",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "ellipse 1",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 510,
+      "y": 40,
+      "width": 180,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-02",
+      "shape": "diamond",
+      "color": "blue",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "diamond 2",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 980,
+      "y": 40,
+      "width": 150,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-03",
+      "shape": "hexagon",
+      "color": "purple",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "hexagon 3",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 1450,
+      "y": 40,
+      "width": 120,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-04",
+      "shape": "parallelogram",
+      "color": "red",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "parallelogram 4",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 1920,
+      "y": 40,
+      "width": 210,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-05",
+      "shape": "trapezoid",
+      "color": "orange",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "trapezoid 5",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 2390,
+      "y": 40,
+      "width": 120,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-06",
+      "shape": "triangle",
+      "color": "yellow",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "triangle 6",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 2860,
+      "y": 40,
+      "width": 150,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-07",
+      "shape": "star",
+      "color": "green",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "star 7",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 3330,
+      "y": 40,
+      "width": 120,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-08",
+      "shape": "document",
+      "color": "purple",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "document 8",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 3800,
+      "y": 40,
+      "width": 210,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-09",
+      "shape": "cylinder",
+      "color": "yellow",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "cylinder 9",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 4270,
+      "y": 40,
+      "width": 210,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-10",
+      "shape": "rectangle",
+      "color": "green",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "rectangle 10",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 40,
+      "y": 240,
+      "width": 120,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-11",
+      "shape": "ellipse",
+      "color": "purple",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "ellipse 11",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 510,
+      "y": 240,
+      "width": 210,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-12",
+      "shape": "diamond",
+      "color": "yellow",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "diamond 12",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 980,
+      "y": 240,
+      "width": 180,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-13",
+      "shape": "hexagon",
+      "color": "blue",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "hexagon 13",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 1450,
+      "y": 240,
+      "width": 150,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-14",
+      "shape": "parallelogram",
+      "color": "orange",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "parallelogram 14",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 1920,
+      "y": 240,
+      "width": 132,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-15",
+      "shape": "trapezoid",
+      "color": "purple",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "trapezoid 15",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 2390,
+      "y": 240,
+      "width": 210,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-16",
+      "shape": "triangle",
+      "color": "red",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "triangle 16",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 2860,
+      "y": 240,
+      "width": 180,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-17",
+      "shape": "star",
+      "color": "red",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "star 17",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 3330,
+      "y": 240,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-18",
+      "shape": "document",
+      "color": "yellow",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "document 18",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 3800,
+      "y": 240,
+      "width": 210,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-19",
+      "shape": "cylinder",
+      "color": "green",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "cylinder 19",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 4270,
+      "y": 240,
+      "width": 210,
+      "height": 61
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-20",
+      "shape": "rectangle",
+      "color": "red",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "rectangle 20",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 40,
+      "y": 440,
+      "width": 180,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-21",
+      "shape": "ellipse",
+      "color": "purple",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "ellipse 21",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 510,
+      "y": 440,
+      "width": 150,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-22",
+      "shape": "diamond",
+      "color": "red",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "diamond 22",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 980,
+      "y": 440,
+      "width": 120,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-23",
+      "shape": "hexagon",
+      "color": "green",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "hexagon 23",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 1450,
+      "y": 440,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-24",
+      "shape": "parallelogram",
+      "color": "purple",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "parallelogram 24",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 1920,
+      "y": 440,
+      "width": 150,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-25",
+      "shape": "trapezoid",
+      "color": "yellow",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "trapezoid 25",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 2390,
+      "y": 440,
+      "width": 210,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-26",
+      "shape": "triangle",
+      "color": "blue",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "triangle 26",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 2860,
+      "y": 440,
+      "width": 210,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-27",
+      "shape": "star",
+      "color": "orange",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "star 27",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 3330,
+      "y": 440,
+      "width": 150,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-28",
+      "shape": "document",
+      "color": "red",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "document 28",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 3800,
+      "y": 440,
+      "width": 180,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-29",
+      "shape": "cylinder",
+      "color": "orange",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "cylinder 29",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 4270,
+      "y": 440,
+      "width": 180,
+      "height": 61
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-30",
+      "shape": "rectangle",
+      "color": "orange",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "rectangle 30",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 40,
+      "y": 640,
+      "width": 150,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-31",
+      "shape": "ellipse",
+      "color": "green",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "ellipse 31",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 510,
+      "y": 640,
+      "width": 150,
+      "height": 120
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-32",
+      "shape": "diamond",
+      "color": "blue",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "diamond 32",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 980,
+      "y": 640,
+      "width": 210,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-33",
+      "shape": "hexagon",
+      "color": "red",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "hexagon 33",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 1450,
+      "y": 640,
+      "width": 150,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-34",
+      "shape": "parallelogram",
+      "color": "red",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "parallelogram 34",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 1920,
+      "y": 640,
+      "width": 132,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-35",
+      "shape": "trapezoid",
+      "color": "orange",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "trapezoid 35",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 2390,
+      "y": 640,
+      "width": 120,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-36",
+      "shape": "triangle",
+      "color": "green",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "triangle 36",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 2860,
+      "y": 640,
+      "width": 210,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-37",
+      "shape": "star",
+      "color": "purple",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "star 37",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 3330,
+      "y": 640,
+      "width": 120,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-38",
+      "shape": "document",
+      "color": "yellow",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "document 38",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 3800,
+      "y": 640,
+      "width": 180,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-39",
+      "shape": "cylinder",
+      "color": "blue",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "cylinder 39",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 4270,
+      "y": 640,
+      "width": 210,
+      "height": 120
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-40",
+      "shape": "rectangle",
+      "color": "purple",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "rectangle 40",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 40,
+      "y": 840,
+      "width": 210,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-41",
+      "shape": "ellipse",
+      "color": "yellow",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "ellipse 41",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 510,
+      "y": 840,
+      "width": 180,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-42",
+      "shape": "diamond",
+      "color": "blue",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "diamond 42",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 980,
+      "y": 840,
+      "width": 150,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-43",
+      "shape": "hexagon",
+      "color": "orange",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "hexagon 43",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 1450,
+      "y": 840,
+      "width": 210,
+      "height": 120
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-44",
+      "shape": "parallelogram",
+      "color": "blue",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "parallelogram 44",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 1920,
+      "y": 840,
+      "width": 180,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-45",
+      "shape": "trapezoid",
+      "color": "purple",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "trapezoid 45",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 2390,
+      "y": 840,
+      "width": 150,
+      "height": 120
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-46",
+      "shape": "triangle",
+      "color": "red",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "triangle 46",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 2860,
+      "y": 840,
+      "width": 123,
+      "height": 68
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-47",
+      "shape": "star",
+      "color": "orange",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "star 47",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 3330,
+      "y": 840,
+      "width": 120,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-48",
+      "shape": "document",
+      "color": "yellow",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "document 48",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 3800,
+      "y": 840,
+      "width": 150,
+      "height": 120
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-49",
+      "shape": "cylinder",
+      "color": "green",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "cylinder 49",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 4270,
+      "y": 840,
+      "width": 120,
+      "height": 120
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-50",
+      "shape": "rectangle",
+      "color": "blue",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "rectangle 50",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 40,
+      "y": 1040,
+      "width": 210,
+      "height": 120
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-51",
+      "shape": "ellipse",
+      "color": "purple",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "ellipse 51",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 510,
+      "y": 1040,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-52",
+      "shape": "diamond",
+      "color": "green",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "diamond 52",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 980,
+      "y": 1040,
+      "width": 120,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-53",
+      "shape": "hexagon",
+      "color": "purple",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "hexagon 53",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 1450,
+      "y": 1040,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-54",
+      "shape": "parallelogram",
+      "color": "yellow",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "parallelogram 54",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 1920,
+      "y": 1040,
+      "width": 180,
+      "height": 120
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-55",
+      "shape": "trapezoid",
+      "color": "blue",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "trapezoid 55",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 2390,
+      "y": 1040,
+      "width": 150,
+      "height": 120
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-56",
+      "shape": "triangle",
+      "color": "orange",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "triangle 56",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 2860,
+      "y": 1040,
+      "width": 123,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-57",
+      "shape": "star",
+      "color": "purple",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "star 57",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 3330,
+      "y": 1040,
+      "width": 150,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-58",
+      "shape": "document",
+      "color": "red",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "document 58",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 3800,
+      "y": 1040,
+      "width": 180,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-59",
+      "shape": "cylinder",
+      "color": "red",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "cylinder 59",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "x": 4270,
+      "y": 1040,
+      "width": 150,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-huge-1",
+      "shape": "rectangle",
+      "color": "blue",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "huge container 1400x500",
+          "fontSize": 21,
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "beta",
+        "shape": "rectangle",
+        "placement": "top-right"
+      },
+      "x": 40,
+      "y": 1300,
+      "width": 1400,
+      "height": 500
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-huge-2",
+      "shape": "ellipse",
+      "color": "purple",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "huge ellipse 900x500",
+          "fontSize": 21,
+          "hAlign": "center"
+        }
+      ],
+      "x": 1520,
+      "y": 1300,
+      "width": 900,
+      "height": 500
+    },
+    {
+      "tag": "Group",
+      "id": "wc-grp",
+      "title": {
+        "text": "Watercolor Group",
+        "icon": "layers",
+        "width": "snug",
+        "border": true
+      },
+      "color": "#2f6fba",
+      "styleMode": "watercolor",
+      "badge": {
+        "text": "beta",
+        "shape": "rectangle",
+        "placement": "top-right"
+      },
+      "x": 40,
+      "y": 1900,
+      "width": 420,
+      "height": 260
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-grp-m1",
+      "shape": "rectangle",
+      "color": "#2f6fba",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "member A",
+          "fontSize": 16,
+          "hAlign": "center"
+        }
+      ],
+      "x": 80,
+      "y": 1980,
+      "width": 150,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "id": "wc-grp-m2",
+      "shape": "ellipse",
+      "color": "#b3452f",
+      "styleMode": "watercolor",
+      "texts": [
+        {
+          "text": "member B",
+          "fontSize": 16,
+          "hAlign": "center"
+        }
+      ],
+      "x": 270,
+      "y": 1980,
+      "width": 150,
+      "height": 70
+    },
+    {
+      "tag": "Pool",
+      "id": "wc-pool",
+      "title": {
+        "text": "Watercolor Pool",
+        "width": "full",
+        "border": true
+      },
+      "color": "#3f8f5f",
+      "styleMode": "watercolor",
+      "x": 520,
+      "y": 1900,
+      "width": 460,
+      "height": 722
+    },
+    {
+      "tag": "Lane",
+      "id": "wc-lane-1",
+      "title": {
+        "text": "Lane one"
+      },
+      "color": "#7a4fd0",
+      "styleMode": "watercolor",
+      "x": 1040,
+      "y": 1900,
+      "width": 420,
+      "height": 722
+    },
+    {
+      "tag": "Lane",
+      "id": "wc-lane-2",
+      "title": {
+        "text": "Lane two"
+      },
+      "color": "#c78a1f",
+      "styleMode": "watercolor",
+      "x": 1040,
+      "y": 2040,
+      "width": 420,
+      "height": 722
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "wc-dbt",
+      "label": "users",
+      "icon": "database",
+      "color": "#7a4fd0",
+      "styleMode": "watercolor",
+      "badge": {
+        "text": "beta",
+        "shape": "rectangle",
+        "placement": "top-right"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "meta": "pk"
+        },
+        {
+          "name": "email",
+          "type": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz"
+        }
+      ],
+      "x": 1520,
+      "y": 1900,
+      "width": 280,
+      "height": 122
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "wc-dbt-2",
+      "label": "orders",
+      "icon": "shopping-cart",
+      "color": "#b3452f",
+      "styleMode": "watercolor",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "meta": "pk"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "meta": "fk"
+        },
+        {
+          "name": "total",
+          "type": "numeric"
+        }
+      ],
+      "x": 1860,
+      "y": 1900,
+      "width": 280,
+      "height": 122
+    }
+  ],
+  "connections": [],
+  "scene": {
+    "x": 24,
+    "y": 24,
+    "width": 4472,
+    "height": 2754
+  }
+}

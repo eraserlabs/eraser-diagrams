@@ -1,0 +1,820 @@
+{
+  "warnings": [
+    "W_CONTENT_SANITIZED /elements/12/texts/2/text",
+    "W_CONTENT_SANITIZED /elements/16/text",
+    "W_CONTENT_SANITIZED /elements/27/texts/1/text",
+    "W_CONTENT_SANITIZED /elements/3/text"
+  ],
+  "entities": [
+    {
+      "tag": "Textbox",
+      "id": "title",
+      "text": "# KELPO Field Services",
+      "x": 575,
+      "y": 15,
+      "width": 400,
+      "height": 62,
+      "fontSize": 24,
+      "hAlign": "center"
+    },
+    {
+      "tag": "Group",
+      "id": "g_sink",
+      "title": {
+        "text": "Monthly Sink Service",
+        "icon": "droplets",
+        "fontSize": 18,
+        "width": "full",
+        "bgColor": "blue"
+      },
+      "x": 15,
+      "y": 85,
+      "width": 720,
+      "height": 890,
+      "bgColor": "#eef4fb",
+      "borderColor": "blue",
+      "cornerRadius": "round"
+    },
+    {
+      "tag": "Shape",
+      "id": "s_what",
+      "shape": "document",
+      "x": 55,
+      "y": 155,
+      "width": 640,
+      "height": 110,
+      "texts": [
+        {
+          "text": "What it is",
+          "fontSize": 16,
+          "hAlign": "left",
+          "color": "blue"
+        },
+        {
+          "text": "Recurring service of dedicated wash stations built for specific tasks — dishwashing, produce prep, and greasy waste drainage — required by health codes to prevent cross-contamination. Monthly recurring; mobile kitchen support.",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "vAlign": "top",
+      "bgColor": "white",
+      "containerId": "g_sink"
+    },
+    {
+      "tag": "Textbox",
+      "id": "s_field_t",
+      "text": "### How it's performed",
+      "x": 55,
+      "y": 285,
+      "width": 640,
+      "height": 45,
+      "fontSize": 16,
+      "hAlign": "left",
+      "color": "blue",
+      "containerId": "g_sink"
+    },
+    {
+      "tag": "Shape",
+      "id": "s_deploy",
+      "shape": "rectangle",
+      "x": 55,
+      "y": 320,
+      "width": 640,
+      "height": 64,
+      "texts": [
+        {
+          "text": "KELPO sets up a multi-station wash rig on-site",
+          "fontSize": 13
+        },
+        {
+          "text": "Each station clearly labeled with its own fresh + greywater lines",
+          "fontSize": 11,
+          "color": "gray"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g_sink"
+    },
+    {
+      "tag": "Shape",
+      "id": "s_dish",
+      "shape": "rectangle",
+      "x": 55,
+      "y": 405,
+      "width": 200,
+      "height": 90,
+      "texts": [
+        {
+          "text": "Dishwashing",
+          "fontSize": 13,
+          "color": "blue"
+        },
+        {
+          "text": "3-basin wash sink (wash, rinse, sanitize)",
+          "fontSize": 11
+        }
+      ],
+      "icon": "utensils",
+      "bgColor": "white",
+      "containerId": "g_sink"
+    },
+    {
+      "tag": "Shape",
+      "id": "s_prep",
+      "shape": "rectangle",
+      "x": 275,
+      "y": 405,
+      "width": 200,
+      "height": 90,
+      "texts": [
+        {
+          "text": "Food Prep",
+          "fontSize": 13,
+          "color": "blue"
+        },
+        {
+          "text": "Separate fresh-water tap and prep sink",
+          "fontSize": 11
+        }
+      ],
+      "icon": "salad",
+      "bgColor": "white",
+      "containerId": "g_sink"
+    },
+    {
+      "tag": "Shape",
+      "id": "s_oily",
+      "shape": "rectangle",
+      "x": 495,
+      "y": 405,
+      "width": 200,
+      "height": 90,
+      "texts": [
+        {
+          "text": "Oily Waste",
+          "fontSize": 13,
+          "color": "blue"
+        },
+        {
+          "text": "Grease-rated drain catches FOG before greywater",
+          "fontSize": 11
+        }
+      ],
+      "icon": "fire",
+      "bgColor": "white",
+      "containerId": "g_sink"
+    },
+    {
+      "tag": "Shape",
+      "id": "s_monthly",
+      "shape": "rectangle",
+      "x": 55,
+      "y": 525,
+      "width": 640,
+      "height": 80,
+      "texts": [
+        {
+          "text": "Monthly Service Tasks",
+          "fontSize": 14,
+          "color": "blue"
+        },
+        {
+          "text": "Top off fresh water tanks · drain greywater · replace sanitizer solution",
+          "fontSize": 11
+        },
+        {
+          "text": "Skim grease trap at the oily-waste station · check plumbing fittings",
+          "fontSize": 11
+        }
+      ],
+      "bgColor": "#dde9f7",
+      "containerId": "g_sink"
+    },
+    {
+      "tag": "Textbox",
+      "id": "s_eq_t",
+      "text": "### Equipment",
+      "x": 55,
+      "y": 620,
+      "width": 300,
+      "height": 45,
+      "fontSize": 16,
+      "hAlign": "left",
+      "color": "blue",
+      "containerId": "g_sink"
+    },
+    {
+      "tag": "Shape",
+      "id": "s_eq",
+      "shape": "rectangle",
+      "x": 55,
+      "y": 655,
+      "width": 300,
+      "height": 160,
+      "texts": [
+        {
+          "text": "• Multi-basin wash stations (3-compartment)",
+          "fontSize": 11,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Dedicated grease-trap lines",
+          "fontSize": 11,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Fresh water holding tanks (50–100 gal)",
+          "fontSize": 11,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Greywater holding tanks by type",
+          "fontSize": 11,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Sanitizer solution (quat / chlorine)",
+          "fontSize": 11,
+          "hAlign": "left"
+        }
+      ],
+      "vAlign": "top",
+      "bgColor": "white",
+      "containerId": "g_sink"
+    },
+    {
+      "tag": "Textbox",
+      "id": "s_crew_t",
+      "text": "### Crew & Skill",
+      "x": 375,
+      "y": 620,
+      "width": 320,
+      "height": 45,
+      "fontSize": 16,
+      "hAlign": "left",
+      "color": "blue",
+      "containerId": "g_sink"
+    },
+    {
+      "tag": "Shape",
+      "id": "s_crew",
+      "shape": "rectangle",
+      "x": 375,
+      "y": 655,
+      "width": 320,
+      "height": 160,
+      "texts": [
+        {
+          "text": "1 field technician",
+          "fontSize": 13
+        },
+        {
+          "text": "Food-safety code training is required",
+          "fontSize": 11
+        },
+        {
+          "text": "Careful judgment needed — tech must know which station handles which waste (a mix-up can shut down a client's service)",
+          "fontSize": 11,
+          "color": "gray"
+        }
+      ],
+      "icon": "user-check",
+      "vAlign": "top",
+      "bgColor": "white",
+      "containerId": "g_sink"
+    },
+    {
+      "tag": "Shape",
+      "id": "s_example",
+      "shape": "document",
+      "x": 55,
+      "y": 835,
+      "width": 640,
+      "height": 120,
+      "texts": [
+        {
+          "text": "Real-life Example",
+          "fontSize": 15,
+          "color": "orange",
+          "hAlign": "left"
+        },
+        {
+          "text": "A food-truck operator at a weekend market signs KELPO for weekly multi-station wash service (3-basin dishwashing, produce prep, grease-trap waste). Technician arrives every Friday before the market opens: top off water, drain greywater into a holding tank, replace sanitizer, skim the grease trap. Vendor keeps its health permit current.",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "vAlign": "top",
+      "bgColor": "#fff5e6",
+      "borderColor": "orange",
+      "containerId": "g_sink"
+    },
+    {
+      "tag": "Group",
+      "id": "g_men",
+      "title": {
+        "text": "Pet-Waste Bag Dispensers — Restock & Upkeep",
+        "icon": "package",
+        "fontSize": 18,
+        "width": "full",
+        "bgColor": "purple"
+      },
+      "x": 775,
+      "y": 85,
+      "width": 720,
+      "height": 890,
+      "bgColor": "#f5eefb",
+      "borderColor": "purple",
+      "cornerRadius": "round"
+    },
+    {
+      "tag": "Shape",
+      "id": "m_what",
+      "shape": "document",
+      "x": 815,
+      "y": 155,
+      "width": 640,
+      "height": 110,
+      "texts": [
+        {
+          "text": "What it is",
+          "fontSize": 16,
+          "hAlign": "left",
+          "color": "purple"
+        },
+        {
+          "text": "Stocking and upkeep of pet-waste bag dispensers (bags, liner rolls) along trails — at events, on monthly-serviced routes, or standalone post refills. Increasingly required by park and city ordinance; common park-amenity upgrade.",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "vAlign": "top",
+      "bgColor": "white",
+      "containerId": "g_men"
+    },
+    {
+      "tag": "Textbox",
+      "id": "m_field_t",
+      "text": "### How it's performed",
+      "x": 815,
+      "y": 285,
+      "width": 640,
+      "height": 45,
+      "fontSize": 16,
+      "hAlign": "left",
+      "color": "purple",
+      "containerId": "g_men"
+    },
+    {
+      "tag": "Shape",
+      "id": "m_carry",
+      "shape": "rectangle",
+      "x": 815,
+      "y": 320,
+      "width": 640,
+      "height": 64,
+      "texts": [
+        {
+          "text": "Technician carries a restock kit on regular routes",
+          "fontSize": 13
+        },
+        {
+          "text": "Often paired with scheduled trash-pickup and cleaning runs",
+          "fontSize": 11,
+          "color": "gray"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g_men"
+    },
+    {
+      "tag": "Shape",
+      "id": "m_check",
+      "shape": "rectangle",
+      "x": 815,
+      "y": 405,
+      "width": 150,
+      "height": 90,
+      "texts": [
+        {
+          "text": "Check",
+          "fontSize": 13,
+          "color": "purple"
+        },
+        {
+          "text": "Inspect dispenser bag supply level",
+          "fontSize": 11
+        }
+      ],
+      "icon": "search",
+      "bgColor": "white",
+      "containerId": "g_men"
+    },
+    {
+      "tag": "Shape",
+      "id": "m_refill",
+      "shape": "rectangle",
+      "x": 978,
+      "y": 405,
+      "width": 150,
+      "height": 90,
+      "texts": [
+        {
+          "text": "Refill",
+          "fontSize": 13,
+          "color": "purple"
+        },
+        {
+          "text": "Top up bags as they run low",
+          "fontSize": 11
+        }
+      ],
+      "icon": "plus",
+      "bgColor": "white",
+      "containerId": "g_men"
+    },
+    {
+      "tag": "Shape",
+      "id": "m_bins",
+      "shape": "rectangle",
+      "x": 1141,
+      "y": 405,
+      "width": 150,
+      "height": 90,
+      "texts": [
+        {
+          "text": "Verify Bins",
+          "fontSize": 13,
+          "color": "purple"
+        },
+        {
+          "text": "Waste bins present, not overflowing",
+          "fontSize": 11
+        }
+      ],
+      "icon": "trash-2",
+      "bgColor": "white",
+      "containerId": "g_men"
+    },
+    {
+      "tag": "Shape",
+      "id": "m_batt",
+      "shape": "rectangle",
+      "x": 1304,
+      "y": 405,
+      "width": 151,
+      "height": 90,
+      "texts": [
+        {
+          "text": "Batteries",
+          "fontSize": 13,
+          "color": "purple"
+        },
+        {
+          "text": "Swap on battery-operated posts",
+          "fontSize": 11
+        }
+      ],
+      "icon": "battery",
+      "bgColor": "white",
+      "containerId": "g_men"
+    },
+    {
+      "tag": "Shape",
+      "id": "m_event",
+      "shape": "rectangle",
+      "x": 815,
+      "y": 525,
+      "width": 640,
+      "height": 80,
+      "texts": [
+        {
+          "text": "Event Handling",
+          "fontSize": 14,
+          "color": "purple"
+        },
+        {
+          "text": "Fill every post to full capacity before gates open · restock mid-event during rounds",
+          "fontSize": 11
+        },
+        {
+          "text": "Usage counts logged for billing and next future-event planning",
+          "fontSize": 11
+        }
+      ],
+      "bgColor": "#ebddf7",
+      "containerId": "g_men"
+    },
+    {
+      "tag": "Textbox",
+      "id": "m_eq_t",
+      "text": "### Equipment",
+      "x": 815,
+      "y": 620,
+      "width": 300,
+      "height": 45,
+      "fontSize": 16,
+      "hAlign": "left",
+      "color": "purple",
+      "containerId": "g_men"
+    },
+    {
+      "tag": "Shape",
+      "id": "m_eq",
+      "shape": "rectangle",
+      "x": 815,
+      "y": 655,
+      "width": 300,
+      "height": 160,
+      "texts": [
+        {
+          "text": "• Post-mounted dispensers (roll or fold)",
+          "fontSize": 11,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Sturdier waste bins (foot-pedal lids)",
+          "fontSize": 11,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Restock kits: bag rolls (std/large), liner sheets, spare mount clips, ties",
+          "fontSize": 11,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Spare batteries pack",
+          "fontSize": 11,
+          "hAlign": "left"
+        }
+      ],
+      "vAlign": "top",
+      "bgColor": "white",
+      "containerId": "g_men"
+    },
+    {
+      "tag": "Textbox",
+      "id": "m_crew_t",
+      "text": "### Crew & Skill",
+      "x": 1135,
+      "y": 620,
+      "width": 320,
+      "height": 45,
+      "fontSize": 16,
+      "hAlign": "left",
+      "color": "purple",
+      "containerId": "g_men"
+    },
+    {
+      "tag": "Shape",
+      "id": "m_crew",
+      "shape": "rectangle",
+      "x": 1135,
+      "y": 655,
+      "width": 320,
+      "height": 160,
+      "texts": [
+        {
+          "text": "Same technician as trash and cleanup",
+          "fontSize": 13
+        },
+        {
+          "text": "No special training is needed",
+          "fontSize": 11
+        },
+        {
+          "text": "Attention to detail matters — park visitors and staff notice fast when a dispenser runs dry or a bin overflows",
+          "fontSize": 11,
+          "color": "gray"
+        }
+      ],
+      "icon": "user",
+      "vAlign": "top",
+      "bgColor": "white",
+      "containerId": "g_men"
+    },
+    {
+      "tag": "Shape",
+      "id": "m_example",
+      "shape": "document",
+      "x": 815,
+      "y": 835,
+      "width": 640,
+      "height": 120,
+      "texts": [
+        {
+          "text": "Real-life Example",
+          "fontSize": 15,
+          "color": "orange",
+          "hAlign": "left"
+        },
+        {
+          "text": "City marathon route, 12,000 runners over the day. KELPO pre-fills all 24 waypoint posts (4 aid zones) to full before the start gun. Mid-race, technician restocks any post below 40% — typically 6–10 of 24 posts. Usage counts shared with organizers to plan next year's route.",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "vAlign": "top",
+      "bgColor": "#fff5e6",
+      "borderColor": "orange",
+      "containerId": "g_men"
+    }
+  ],
+  "connections": [
+    {
+      "tag": "Relationship",
+      "id": "r1",
+      "from": "s_deploy",
+      "fromPort": "bottom",
+      "to": "s_dish",
+      "toPort": "top",
+      "color": "blue",
+      "x": 155,
+      "y": 384,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 21
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r2",
+      "from": "s_deploy",
+      "fromPort": "bottom",
+      "to": "s_prep",
+      "toPort": "top",
+      "color": "blue",
+      "x": 375,
+      "y": 384,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 21
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r3",
+      "from": "s_deploy",
+      "fromPort": "bottom",
+      "to": "s_oily",
+      "toPort": "top",
+      "color": "blue",
+      "x": 595,
+      "y": 384,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 21
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r4",
+      "from": "s_prep",
+      "fromPort": "bottom",
+      "to": "s_monthly",
+      "toPort": "top",
+      "color": "blue",
+      "x": 375,
+      "y": 495,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 30
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r5",
+      "from": "m_carry",
+      "fromPort": "bottom",
+      "to": "m_check",
+      "toPort": "top",
+      "color": "purple",
+      "x": 890,
+      "y": 384,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 21
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r6",
+      "from": "m_check",
+      "fromPort": "right",
+      "to": "m_refill",
+      "toPort": "left",
+      "color": "purple",
+      "x": 965,
+      "y": 450,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 13,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r7",
+      "from": "m_refill",
+      "fromPort": "right",
+      "to": "m_bins",
+      "toPort": "left",
+      "color": "purple",
+      "x": 1128,
+      "y": 450,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 13,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r8",
+      "from": "m_bins",
+      "fromPort": "right",
+      "to": "m_batt",
+      "toPort": "left",
+      "color": "purple",
+      "x": 1291,
+      "y": 450,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 13,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r9",
+      "from": "m_refill",
+      "fromPort": "bottom",
+      "to": "m_event",
+      "toPort": "top",
+      "color": "purple",
+      "x": 1053,
+      "y": 495,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 30
+        }
+      ]
+    }
+  ],
+  "scene": {
+    "x": -1,
+    "y": -1,
+    "width": 1512,
+    "height": 992
+  }
+}

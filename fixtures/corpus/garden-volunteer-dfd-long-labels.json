@@ -1,0 +1,136 @@
+{
+  "title": "Garden Volunteer DFD Long Labels",
+  "elements": [
+    {
+      "tag": "Shape",
+      "id": "student",
+      "shape": "rectangle",
+      "x": 15,
+      "y": 15,
+      "width": 140,
+      "height": 90,
+      "texts": [
+        {
+          "text": "Volunteer",
+          "fontSize": 16
+        }
+      ],
+      "icon": "user",
+      "bgColor": "#E3F2FD",
+      "borderColor": "#1976D2"
+    },
+    {
+      "tag": "Shape",
+      "id": "admin",
+      "shape": "rectangle",
+      "x": 15,
+      "y": 315,
+      "width": 140,
+      "height": 90,
+      "texts": [
+        {
+          "text": "Admin",
+          "fontSize": 16
+        }
+      ],
+      "icon": "shield",
+      "bgColor": "#E3F2FD",
+      "borderColor": "#1976D2"
+    },
+    {
+      "tag": "Shape",
+      "id": "leafvault",
+      "shape": "rectangle",
+      "x": 755,
+      "y": 165,
+      "width": 160,
+      "height": 90,
+      "texts": [
+        {
+          "text": "LeafVault CDN",
+          "fontSize": 16
+        }
+      ],
+      "icon": "cloud",
+      "bgColor": "#FFF8E1",
+      "borderColor": "#F9A825",
+      "borderStyle": "dashed"
+    },
+    {
+      "tag": "Shape",
+      "id": "system",
+      "shape": "oval",
+      "x": 355,
+      "y": 125,
+      "width": 220,
+      "height": 170,
+      "texts": [
+        {
+          "text": "0.0",
+          "fontSize": 14
+        },
+        {
+          "text": "GreenGrow Portal & AI",
+          "fontSize": 16
+        }
+      ],
+      "bgColor": "#F3E5F5",
+      "borderColor": "#6A1B9A",
+      "borderWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "id": "r1",
+      "from": "student",
+      "fromPort": "right",
+      "to": "system",
+      "toPort": "left",
+      "label": "Natural Language Queries, Search Filters"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r2",
+      "from": "system",
+      "fromPort": "left",
+      "to": "student",
+      "toPort": "right",
+      "label": "Bot Responses, PDF Downloads, Task Records"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r3",
+      "from": "admin",
+      "fromPort": "right",
+      "to": "system",
+      "toPort": "left",
+      "label": "Excel Sheets, PDF Files, Credentials"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r4",
+      "from": "system",
+      "fromPort": "left",
+      "to": "admin",
+      "toPort": "right",
+      "label": "Dashboard Metrics, Confirmation Alerts"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r5",
+      "from": "system",
+      "fromPort": "right",
+      "to": "leafvault",
+      "toPort": "left",
+      "label": "File Buffers (PDF/Images)"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r6",
+      "from": "leafvault",
+      "fromPort": "left",
+      "to": "system",
+      "toPort": "right",
+      "label": "Secure URLs, Asset IDs"
+    }
+  ]
+}

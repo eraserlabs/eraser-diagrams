@@ -1,0 +1,284 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "Shape",
+      "id": "student",
+      "shape": "rectangle",
+      "x": 15,
+      "y": 15,
+      "width": 140,
+      "height": 90,
+      "texts": [
+        {
+          "text": "Volunteer",
+          "fontSize": 16
+        }
+      ],
+      "icon": "user",
+      "bgColor": "#E3F2FD",
+      "borderColor": "#1976D2"
+    },
+    {
+      "tag": "Shape",
+      "id": "admin",
+      "shape": "rectangle",
+      "x": 15,
+      "y": 315,
+      "width": 140,
+      "height": 90,
+      "texts": [
+        {
+          "text": "Admin",
+          "fontSize": 16
+        }
+      ],
+      "icon": "shield",
+      "bgColor": "#E3F2FD",
+      "borderColor": "#1976D2"
+    },
+    {
+      "tag": "Shape",
+      "id": "leafvault",
+      "shape": "rectangle",
+      "x": 755,
+      "y": 165,
+      "width": 160,
+      "height": 90,
+      "texts": [
+        {
+          "text": "LeafVault CDN",
+          "fontSize": 16
+        }
+      ],
+      "icon": "cloud",
+      "bgColor": "#FFF8E1",
+      "borderColor": "#F9A825",
+      "borderStyle": "dashed"
+    },
+    {
+      "tag": "Shape",
+      "id": "system",
+      "shape": "oval",
+      "x": 355,
+      "y": 125,
+      "width": 220,
+      "height": 170,
+      "texts": [
+        {
+          "text": "0.0",
+          "fontSize": 14
+        },
+        {
+          "text": "GreenGrow Portal & AI",
+          "fontSize": 16
+        }
+      ],
+      "bgColor": "#F3E5F5",
+      "borderColor": "#6A1B9A",
+      "borderWidth": 0.75
+    }
+  ],
+  "connections": [
+    {
+      "tag": "Relationship",
+      "id": "r1",
+      "from": "student",
+      "fromPort": "right",
+      "to": "system",
+      "toPort": "left",
+      "label": "Natural Language Queries, Search Filters",
+      "x": 155,
+      "y": 38,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 131,
+          "y": 0
+        },
+        {
+          "x": 131,
+          "y": 108
+        },
+        {
+          "x": 229.06,
+          "y": 108
+        }
+      ],
+      "labelPlacement": {
+        "x": 10,
+        "y": -34,
+        "width": 107,
+        "height": 67
+      }
+    },
+    {
+      "tag": "Relationship",
+      "id": "r2",
+      "from": "system",
+      "fromPort": "left",
+      "to": "student",
+      "toPort": "right",
+      "label": "Bot Responses, PDF Downloads, Task Records",
+      "x": 357.63,
+      "y": 189,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -79.63,
+          "y": 0
+        },
+        {
+          "x": -79.63,
+          "y": -106
+        },
+        {
+          "x": -202.63,
+          "y": -106
+        }
+      ],
+      "labelPlacement": {
+        "x": -129,
+        "y": -95,
+        "width": 99,
+        "height": 84
+      }
+    },
+    {
+      "tag": "Relationship",
+      "id": "r3",
+      "from": "admin",
+      "fromPort": "right",
+      "to": "system",
+      "toPort": "left",
+      "label": "Excel Sheets, PDF Files, Credentials",
+      "x": 155,
+      "y": 338,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 123,
+          "y": 0
+        },
+        {
+          "x": 123,
+          "y": -107
+        },
+        {
+          "x": 202.63,
+          "y": -107
+        }
+      ],
+      "labelPlacement": {
+        "x": 14,
+        "y": -25,
+        "width": 99,
+        "height": 50
+      }
+    },
+    {
+      "tag": "Relationship",
+      "id": "r4",
+      "from": "system",
+      "fromPort": "left",
+      "to": "admin",
+      "toPort": "right",
+      "label": "Dashboard Metrics, Confirmation Alerts",
+      "x": 384.06,
+      "y": 274,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -98.06,
+          "y": 0
+        },
+        {
+          "x": -98.06,
+          "y": 109
+        },
+        {
+          "x": -229.06,
+          "y": 109
+        }
+      ],
+      "labelPlacement": {
+        "x": -217,
+        "y": 75,
+        "width": 107,
+        "height": 67
+      }
+    },
+    {
+      "tag": "Relationship",
+      "id": "r5",
+      "from": "system",
+      "fromPort": "right",
+      "to": "leafvault",
+      "toPort": "left",
+      "label": "File Buffers (PDF/Images)",
+      "x": 571.83,
+      "y": 187,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 183.17,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": 12,
+        "y": -17,
+        "width": 159,
+        "height": 34
+      }
+    },
+    {
+      "tag": "Relationship",
+      "id": "r6",
+      "from": "leafvault",
+      "fromPort": "left",
+      "to": "system",
+      "toPort": "right",
+      "label": "Secure URLs, Asset IDs",
+      "x": 755,
+      "y": 233,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -183.17,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": -169,
+        "y": -8,
+        "width": 156,
+        "height": 17
+      }
+    }
+  ],
+  "scene": {
+    "x": -1,
+    "y": -11.59,
+    "width": 932,
+    "height": 444.19
+  }
+}

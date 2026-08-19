@@ -1,0 +1,17 @@
+{
+  "elements": [
+    {
+      "tag": "Shape",
+      "id": "hostile",
+      "x": 0,
+      "y": 0,
+      "width": 200,
+      "height": 80,
+      "texts": [
+        { "text": "</script><script>alert(document.cookie)</script>" },
+        { "text": "<img src=x onerror=alert(1)>" },
+        { "text": "Unicode: ☃ 你好 𝕏 café — “quotes” & <b>bold</b>" }
+      ]
+    }
+  ]
+}

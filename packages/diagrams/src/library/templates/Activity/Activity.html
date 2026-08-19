@@ -1,0 +1,31 @@
+<template name="Activity">
+  <section
+    data-tpl="Activity"
+    data-role="body"
+    class="er-activity"
+    data-color="{{color}}"
+    data-bg="{{bgColor}}"
+    data-border-color="{{borderColor}}"
+    data-border="{{borderStyle}}"
+    data-font-px="{{fontSize}}"
+    style="--er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-font-px: {{fontSize}}px"
+  >
+    <span class="er-activity__icon" data-slot="icon" data-if="icon"></span>
+    <div
+      class="er-activity__text"
+      data-role="internal-text"
+      data-text-grow-policy="balanced"
+      data-each="t of texts"
+      data-key="text"
+    >
+      <div
+        class="er-activity__line er-md"
+        data-run-px="{{t.fontSize}}"
+        style="--f: var(--font-{{t.typeface}}, var(--font-clean)); --er-ink: {{t.color}}; --er-run-px: {{t.fontSize}}px"
+      >
+        {{t.text}}
+      </div>
+    </div>
+    <span data-use="Badge" data-props="badge" data-if="badge"></span>
+  </section>
+</template>

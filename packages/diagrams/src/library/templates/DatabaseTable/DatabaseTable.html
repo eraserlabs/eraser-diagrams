@@ -1,0 +1,49 @@
+<template name="DatabaseTable">
+  <div
+    data-tpl="DatabaseTable"
+    data-role="body"
+    class="er-dbtable"
+    data-border="{{borderStyle}}"
+    data-style="{{styleMode}}"
+    data-font-px="{{fontSize}}"
+    data-color="{{color}}"
+    data-bg="{{bgColor}}"
+    data-border-color="{{borderColor}}"
+    data-title-bg="{{titleBgColor}}"
+    data-h-align="{{hAlign}}"
+    data-washtex-css="{{washTexCss}}"
+    style="--er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-title-bg: {{titleBgColor}}; --er-font-px: {{fontSize}}px; --f: var(--font-{{typeface}}, var(--font-clean))"
+  >
+    <span class="er-washtex" data-if="washTexCss" aria-hidden="true"><svg
+        width="100%"
+        height="100%"
+      ><filter id="wcc-{{washUid}}" x="-50%" y="-50%" width="200%" height="200%"><feMorphology
+            operator="dilate"
+            radius="5"
+          ></feMorphology><feGaussianBlur stdDeviation="7"></feGaussianBlur></filter><mask id="wcf-{{washUid}}"><rect
+            class="er-washmask"
+            width="100%"
+            height="100%"
+            fill="#fff"
+            filter="url(#wcc-{{washUid}})"
+          ></rect></mask><g mask="url(#wcf-{{washUid}})"><use
+            href="#{{washSym}}"
+            x="-6%"
+            y="-6%"
+            width="112%"
+            height="112%"
+          ></use></g></svg></span>
+    <header class="er-dbtable__head" data-part="title">
+      <h4 class="er-dbtable__title" data-role="internal-text">{{label}}</h4>
+      <span class="er-dbtable__icon" data-slot="icon" data-if="icon"></span>
+    </header>
+    <ul class="er-dbtable__rows" data-each="f of fields" data-key="name">
+      <li class="er-dbtable__row" data-part="field">
+        <span class="er-dbtable__f-name">{{f.name}}</span>
+        <span class="er-dbtable__f-type">{{f.type}}</span>
+        <span class="er-dbtable__f-meta">{{f.meta}}</span>
+      </li>
+    </ul>
+    <span data-use="Badge" data-props="badge" data-if="badge"></span>
+  </div>
+</template>

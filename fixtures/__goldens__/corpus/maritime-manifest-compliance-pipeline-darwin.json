@@ -1,0 +1,914 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "id": "title",
+      "x": 545,
+      "text": "CAT OC-Voyagex PORTSIDE",
+      "tag": "Textbox",
+      "y": 15,
+      "height": 40,
+      "width": 300
+    },
+    {
+      "x": 15,
+      "tag": "Group",
+      "height": 300,
+      "width": 250,
+      "bgColor": "#fafafa",
+      "id": "group_ocl_left",
+      "y": 75,
+      "title": {
+        "bgColor": "#f5f5f5",
+        "icon": "server",
+        "text": "OCL (On-Premise)"
+      },
+      "color": "#7a7a7a"
+    },
+    {
+      "y": 135,
+      "shape": "rectangle",
+      "color": "#4b7a47",
+      "containerId": "group_ocl_left",
+      "height": 60,
+      "width": 210,
+      "x": 35,
+      "tag": "Shape",
+      "texts": [
+        {
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#4b7a47",
+          "text": "Reference Files (S3)"
+        },
+        {
+          "text": "(MARSA)",
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#4b7a47"
+        }
+      ],
+      "bgColor": "#e8f5e9",
+      "id": "node_a"
+    },
+    {
+      "texts": [
+        {
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#4b7a47",
+          "text": "Reference Files"
+        },
+        {
+          "text": "(HDFS)",
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#4b7a47"
+        }
+      ],
+      "bgColor": "#e8f5e9",
+      "id": "node_b",
+      "x": 35,
+      "tag": "Shape",
+      "height": 60,
+      "width": 210,
+      "color": "#4b7a47",
+      "containerId": "group_ocl_left",
+      "y": 215,
+      "shape": "rectangle"
+    },
+    {
+      "y": 295,
+      "shape": "rectangle",
+      "color": "#7a7a7a",
+      "containerId": "group_ocl_left",
+      "x": 35,
+      "tag": "Shape",
+      "height": 60,
+      "width": 210,
+      "icon": "hard-drive",
+      "texts": [
+        {
+          "hAlign": "center",
+          "fontSize": 14,
+          "color": "#7a7a7a",
+          "text": "NAS"
+        }
+      ],
+      "bgColor": "#f5f5f5",
+      "id": "node_c"
+    },
+    {
+      "color": "#00acc1",
+      "title": {
+        "bgColor": "#e0f7fa",
+        "icon": "aperture",
+        "text": "PORTSIDE"
+      },
+      "y": 75,
+      "bgColor": "#f0fdff",
+      "id": "group_portside",
+      "height": 1020,
+      "width": 780,
+      "x": 295,
+      "tag": "Group"
+    },
+    {
+      "icon": "package",
+      "height": 50,
+      "width": 740,
+      "x": 315,
+      "tag": "Shape",
+      "texts": [
+        {
+          "text": "Shipment",
+          "hAlign": "center",
+          "fontSize": 14,
+          "color": "#7a7a7a"
+        }
+      ],
+      "bgColor": "#f5f5f5",
+      "id": "node_d",
+      "y": 125,
+      "shape": "rectangle",
+      "containerId": "group_portside",
+      "color": "#7a7a7a"
+    },
+    {
+      "x": 315,
+      "tag": "Group",
+      "height": 300,
+      "width": 250,
+      "bgColor": "#e0f7fa",
+      "id": "group_dmf",
+      "y": 195,
+      "title": {
+        "text": "CTS",
+        "bgColor": "#e0f7fa",
+        "icon": "layers"
+      },
+      "color": "#00acc1",
+      "containerId": "group_portside"
+    },
+    {
+      "y": 235,
+      "shape": "rectangle",
+      "color": "#006064",
+      "containerId": "group_dmf",
+      "x": 335,
+      "tag": "Shape",
+      "height": 50,
+      "width": 210,
+      "texts": [
+        {
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#006064",
+          "text": "Dataset Registration"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "id": "node_e1"
+    },
+    {
+      "x": 335,
+      "tag": "Shape",
+      "height": 50,
+      "width": 210,
+      "texts": [
+        {
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#006064",
+          "text": "Job Registration"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "id": "node_e2",
+      "y": 295,
+      "shape": "rectangle",
+      "color": "#006064",
+      "containerId": "group_dmf"
+    },
+    {
+      "height": 50,
+      "width": 210,
+      "x": 335,
+      "tag": "Shape",
+      "texts": [
+        {
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#006064",
+          "text": "Task Registration"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "id": "node_e3",
+      "y": 355,
+      "shape": "rectangle",
+      "containerId": "group_dmf",
+      "color": "#006064"
+    },
+    {
+      "texts": [
+        {
+          "text": "Task Flow",
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#006064"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "id": "node_e4",
+      "x": 335,
+      "tag": "Shape",
+      "height": 50,
+      "width": 210,
+      "containerId": "group_dmf",
+      "color": "#006064",
+      "y": 415,
+      "shape": "rectangle"
+    },
+    {
+      "icon": "wind",
+      "height": 64,
+      "width": 200,
+      "x": 715,
+      "tag": "Shape",
+      "texts": [
+        {
+          "text": "Airflow based",
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#1d4ed8"
+        },
+        {
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#1d4ed8",
+          "text": "Orchestration"
+        }
+      ],
+      "bgColor": "#e3f2fd",
+      "id": "node_f",
+      "y": 440,
+      "shape": "rectangle",
+      "containerId": "group_portside",
+      "color": "#1d4ed8"
+    },
+    {
+      "texts": [
+        {
+          "text": "On Prem Parquet",
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#4b7a47"
+        },
+        {
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#4b7a47",
+          "text": "Reports (ADLS)"
+        }
+      ],
+      "bgColor": "#e8f5e9",
+      "id": "node_h",
+      "x": 315,
+      "tag": "Shape",
+      "icon": "database",
+      "height": 64,
+      "width": 210,
+      "containerId": "group_portside",
+      "color": "#4b7a47",
+      "y": 525,
+      "shape": "rectangle"
+    },
+    {
+      "x": 315,
+      "tag": "Group",
+      "height": 440,
+      "width": 740,
+      "bgColor": "#e0f2f1",
+      "id": "group_spark",
+      "y": 615,
+      "title": {
+        "bgColor": "#e0f2f1",
+        "icon": "cpu",
+        "text": "OC-Voyagex Spark Jobs"
+      },
+      "color": "#004d40",
+      "containerId": "group_portside"
+    },
+    {
+      "height": 50,
+      "width": 700,
+      "x": 335,
+      "tag": "Shape",
+      "texts": [
+        {
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#004d40",
+          "text": "Reference File"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "id": "node_g1",
+      "y": 655,
+      "shape": "rectangle",
+      "containerId": "group_spark",
+      "color": "#004d40"
+    },
+    {
+      "texts": [
+        {
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#004d40",
+          "text": "Common Model"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "id": "node_g2",
+      "x": 335,
+      "tag": "Shape",
+      "height": 50,
+      "width": 700,
+      "color": "#004d40",
+      "containerId": "group_spark",
+      "y": 730,
+      "shape": "rectangle"
+    },
+    {
+      "containerId": "group_spark",
+      "color": "#004d40",
+      "y": 805,
+      "shape": "rectangle",
+      "texts": [
+        {
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#004d40",
+          "text": "Parquet Generation"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "id": "node_g3",
+      "x": 335,
+      "tag": "Shape",
+      "height": 50,
+      "width": 700
+    },
+    {
+      "y": 880,
+      "shape": "rectangle",
+      "containerId": "group_spark",
+      "color": "#004d40",
+      "x": 335,
+      "tag": "Shape",
+      "height": 50,
+      "width": 700,
+      "texts": [
+        {
+          "text": "CSV Reports",
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#004d40"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "id": "node_g4"
+    },
+    {
+      "containerId": "group_spark",
+      "color": "#004d40",
+      "y": 955,
+      "shape": "rectangle",
+      "texts": [
+        {
+          "hAlign": "center",
+          "fontSize": 12,
+          "color": "#004d40",
+          "text": "Data Reconciliation"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "id": "node_g5",
+      "height": 50,
+      "width": 700,
+      "x": 335,
+      "tag": "Shape"
+    },
+    {
+      "color": "#7a7a7a",
+      "title": {
+        "bgColor": "#f5f5f5",
+        "icon": "server",
+        "text": "OCL (On-Premise)"
+      },
+      "y": 75,
+      "bgColor": "#fafafa",
+      "id": "group_ocl_right",
+      "height": 300,
+      "width": 250,
+      "x": 1095,
+      "tag": "Group"
+    },
+    {
+      "texts": [
+        {
+          "text": "NAS",
+          "hAlign": "center",
+          "fontSize": 14,
+          "color": "#7a7a7a"
+        }
+      ],
+      "bgColor": "#f5f5f5",
+      "id": "node_i",
+      "icon": "hard-drive",
+      "height": 60,
+      "width": 210,
+      "x": 1115,
+      "tag": "Shape",
+      "containerId": "group_ocl_right",
+      "color": "#7a7a7a",
+      "y": 135,
+      "shape": "rectangle"
+    },
+    {
+      "y": 215,
+      "shape": "rectangle",
+      "containerId": "group_ocl_right",
+      "color": "#b3742d",
+      "icon": "upload-cloud",
+      "height": 60,
+      "width": 210,
+      "x": 1115,
+      "tag": "Shape",
+      "texts": [
+        {
+          "text": "MARSA Uploader",
+          "hAlign": "center",
+          "fontSize": 14,
+          "color": "#b3742d"
+        }
+      ],
+      "bgColor": "#fff3e0",
+      "id": "node_j"
+    },
+    {
+      "y": 295,
+      "shape": "rectangle",
+      "containerId": "group_ocl_right",
+      "color": "#0ea5e9",
+      "icon": "cloud",
+      "height": 60,
+      "width": 210,
+      "x": 1115,
+      "tag": "Shape",
+      "texts": [
+        {
+          "text": "MARSA Cloud",
+          "hAlign": "center",
+          "fontSize": 14,
+          "color": "#0ea5e9"
+        }
+      ],
+      "bgColor": "#e0f2fe",
+      "id": "node_k"
+    }
+  ],
+  "connections": [
+    {
+      "lineStyle": "solid",
+      "id": "rel_a_c",
+      "color": "#4b7a47",
+      "to": "node_c",
+      "from": "node_a",
+      "tag": "Relationship",
+      "x": 114,
+      "y": 195,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 16
+        },
+        {
+          "x": -89,
+          "y": 16
+        },
+        {
+          "x": -89,
+          "y": 84
+        },
+        {
+          "x": 0,
+          "y": 84
+        },
+        {
+          "x": 0,
+          "y": 100
+        }
+      ]
+    },
+    {
+      "from": "node_b",
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "id": "rel_b_c",
+      "color": "#4b7a47",
+      "to": "node_c",
+      "x": 166,
+      "y": 275,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 20
+        }
+      ]
+    },
+    {
+      "from": "node_c",
+      "tag": "Relationship",
+      "color": "#7a7a7a",
+      "label": "CTS Ingress",
+      "to": "node_d",
+      "lineStyle": "solid",
+      "id": "rel_c_d",
+      "x": 245,
+      "y": 325,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 35,
+          "y": 0
+        },
+        {
+          "x": 35,
+          "y": -175
+        },
+        {
+          "x": 70,
+          "y": -175
+        }
+      ],
+      "labelPlacement": {
+        "x": 9,
+        "y": -104,
+        "width": 51,
+        "height": 34
+      }
+    },
+    {
+      "from": "node_d",
+      "tag": "Relationship",
+      "color": "#7a7a7a",
+      "to": "node_e1",
+      "lineStyle": "solid",
+      "id": "rel_d_e1",
+      "x": 440,
+      "y": 175,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 60
+        }
+      ]
+    },
+    {
+      "id": "rel_e1_e2",
+      "lineStyle": "solid",
+      "to": "node_e2",
+      "color": "#006064",
+      "from": "node_e1",
+      "tag": "Relationship",
+      "x": 440,
+      "y": 285,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 10
+        }
+      ]
+    },
+    {
+      "from": "node_e2",
+      "tag": "Relationship",
+      "to": "node_e3",
+      "color": "#006064",
+      "id": "rel_e2_e3",
+      "lineStyle": "solid",
+      "x": 440,
+      "y": 345,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 10
+        }
+      ]
+    },
+    {
+      "from": "node_e3",
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "id": "rel_e3_e4",
+      "color": "#006064",
+      "to": "node_e4",
+      "x": 440,
+      "y": 405,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 10
+        }
+      ]
+    },
+    {
+      "label": "Event / Time based",
+      "to": "node_f",
+      "color": "#006064",
+      "id": "rel_e4_f",
+      "lineStyle": "solid",
+      "from": "node_e4",
+      "tag": "Relationship",
+      "x": 545,
+      "y": 440,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 44,
+          "y": 0
+        },
+        {
+          "x": 44,
+          "y": 32
+        },
+        {
+          "x": 170,
+          "y": 32
+        }
+      ],
+      "labelPlacement": {
+        "x": 56,
+        "y": 15,
+        "width": 102,
+        "height": 34
+      }
+    },
+    {
+      "to": "node_g1",
+      "color": "#1d4ed8",
+      "id": "rel_f_g1",
+      "lineStyle": "solid",
+      "from": "node_f",
+      "tag": "Relationship",
+      "x": 815,
+      "y": 504,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 40
+        },
+        {
+          "x": -175,
+          "y": 40
+        },
+        {
+          "x": -175,
+          "y": 131
+        },
+        {
+          "x": 0,
+          "y": 131
+        },
+        {
+          "x": 0,
+          "y": 151
+        }
+      ]
+    },
+    {
+      "from": "node_h",
+      "tag": "Relationship",
+      "lineStyle": "dotted",
+      "id": "rel_h_g1",
+      "color": "#4b7a47",
+      "label": "Input Files in Parquet format",
+      "to": "node_g1",
+      "x": 420,
+      "y": 589,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 66
+        }
+      ],
+      "labelPlacement": {
+        "x": -93,
+        "y": 5,
+        "width": 186,
+        "height": 17
+      }
+    },
+    {
+      "color": "#004d40",
+      "to": "node_g2",
+      "lineStyle": "solid",
+      "id": "rel_g1_g2",
+      "from": "node_g1",
+      "tag": "Relationship",
+      "x": 685,
+      "y": 705,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 25
+        }
+      ]
+    },
+    {
+      "from": "node_g2",
+      "tag": "Relationship",
+      "id": "rel_g2_g3",
+      "lineStyle": "solid",
+      "to": "node_g3",
+      "color": "#004d40",
+      "x": 685,
+      "y": 780,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 25
+        }
+      ]
+    },
+    {
+      "from": "node_g3",
+      "tag": "Relationship",
+      "id": "rel_g3_g4",
+      "lineStyle": "solid",
+      "to": "node_g4",
+      "color": "#004d40",
+      "x": 685,
+      "y": 855,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 25
+        }
+      ]
+    },
+    {
+      "lineStyle": "solid",
+      "id": "rel_g4_g5",
+      "color": "#004d40",
+      "to": "node_g5",
+      "from": "node_g4",
+      "tag": "Relationship",
+      "x": 685,
+      "y": 930,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 25
+        }
+      ]
+    },
+    {
+      "from": "node_g5",
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "id": "rel_g5_i",
+      "color": "#004d40",
+      "label": "CTS Egress",
+      "to": "node_i",
+      "x": 1035,
+      "y": 980,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 70,
+          "y": 0
+        },
+        {
+          "x": 70,
+          "y": -815
+        },
+        {
+          "x": 80,
+          "y": -815
+        }
+      ],
+      "labelPlacement": {
+        "x": 46,
+        "y": -424,
+        "width": 48,
+        "height": 34
+      }
+    },
+    {
+      "from": "node_i",
+      "tag": "Relationship",
+      "color": "#7a7a7a",
+      "to": "node_j",
+      "lineStyle": "solid",
+      "id": "rel_i_j",
+      "x": 1220,
+      "y": 195,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 20
+        }
+      ]
+    },
+    {
+      "from": "node_j",
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "id": "rel_j_k",
+      "color": "#b3742d",
+      "to": "node_k",
+      "x": 1220,
+      "y": 275,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 20
+        }
+      ]
+    }
+  ],
+  "scene": {
+    "x": -1,
+    "y": -1,
+    "width": 1362,
+    "height": 1112
+  }
+}

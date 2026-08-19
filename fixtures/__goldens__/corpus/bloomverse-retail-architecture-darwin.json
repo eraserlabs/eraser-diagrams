@@ -1,0 +1,756 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "id": "group-aws",
+      "color": "#0EA5E9",
+      "y": 15,
+      "bgColor": "#F0F9FF",
+      "height": 780,
+      "x": 255,
+      "tag": "Group",
+      "title": {
+        "bgColor": "#E0F2FE",
+        "text": "AWS VPC / Cloud",
+        "icon": "cloud"
+      },
+      "width": 500
+    },
+    {
+      "width": 60,
+      "tag": "Icon",
+      "y": 75,
+      "id": "client-rn",
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#166534",
+          "hAlign": "center",
+          "text": "React Native\n(Staff)"
+        }
+      ],
+      "icon": "smartphone",
+      "height": 60,
+      "x": 15
+    },
+    {
+      "id": "client-web",
+      "y": 195,
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#166534",
+          "hAlign": "center",
+          "text": "Next.js Web\n(Owner)"
+        }
+      ],
+      "height": 60,
+      "x": 15,
+      "icon": "monitor",
+      "width": 60,
+      "tag": "Icon"
+    },
+    {
+      "width": 60,
+      "tag": "Icon",
+      "y": 315,
+      "id": "client-webhook",
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#166534",
+          "hAlign": "center",
+          "text": "Webhooks\n(GABI/Claude)"
+        }
+      ],
+      "icon": "webhook",
+      "height": 60,
+      "x": 15
+    },
+    {
+      "width": 60,
+      "tag": "Icon",
+      "y": 75,
+      "containerId": "group-aws",
+      "id": "aws-alb",
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "Load Balancer",
+          "fontSize": 12,
+          "color": "#9A3412"
+        }
+      ],
+      "icon": "network",
+      "height": 60,
+      "x": 305
+    },
+    {
+      "width": 60,
+      "tag": "Icon",
+      "icon": "server",
+      "height": 60,
+      "x": 305,
+      "y": 195,
+      "containerId": "group-aws",
+      "id": "aws-api",
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#9A3412",
+          "hAlign": "center",
+          "text": "Fastify API"
+        }
+      ]
+    },
+    {
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "Redis",
+          "fontSize": 12,
+          "color": "#475569"
+        }
+      ],
+      "containerId": "group-aws",
+      "id": "aws-redis",
+      "y": 315,
+      "height": 60,
+      "x": 305,
+      "icon": "zap",
+      "tag": "Icon",
+      "width": 60
+    },
+    {
+      "height": 60,
+      "x": 305,
+      "icon": "database",
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "PostgreSQL",
+          "fontSize": 12,
+          "color": "#475569"
+        }
+      ],
+      "containerId": "group-aws",
+      "id": "aws-pg",
+      "y": 435,
+      "tag": "Icon",
+      "width": 60
+    },
+    {
+      "width": 60,
+      "tag": "Icon",
+      "height": 60,
+      "x": 425,
+      "icon": "archive",
+      "containerId": "group-aws",
+      "id": "aws-s3",
+      "y": 435,
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "S3",
+          "fontSize": 12,
+          "color": "#475569"
+        }
+      ]
+    },
+    {
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "BullMQ\nWorkers",
+          "fontSize": 12,
+          "color": "#9A3412"
+        }
+      ],
+      "y": 555,
+      "containerId": "group-aws",
+      "id": "aws-worker",
+      "icon": "layers",
+      "height": 60,
+      "x": 305,
+      "tag": "Icon",
+      "width": 60
+    },
+    {
+      "tag": "Icon",
+      "width": 60,
+      "height": 60,
+      "x": 425,
+      "icon": "brain-circuit",
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#9A3412",
+          "hAlign": "center",
+          "text": "Python ML\nService"
+        }
+      ],
+      "containerId": "group-aws",
+      "id": "aws-ml",
+      "y": 555
+    },
+    {
+      "id": "ext-claude",
+      "y": 180,
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#9F1239",
+          "hAlign": "center",
+          "text": "Claude API"
+        }
+      ],
+      "height": 60,
+      "x": 815,
+      "icon": "bot",
+      "width": 60,
+      "tag": "Icon"
+    },
+    {
+      "tag": "Icon",
+      "width": 60,
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "PayCrest",
+          "fontSize": 12,
+          "color": "#9F1239"
+        }
+      ],
+      "y": 275,
+      "id": "ext-paycrest",
+      "icon": "credit-card",
+      "height": 60,
+      "x": 815
+    },
+    {
+      "id": "ext-gabi",
+      "y": 505,
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "GABI\nWhatsApp",
+          "fontSize": 12,
+          "color": "#9F1239"
+        }
+      ],
+      "height": 60,
+      "x": 815,
+      "icon": "message-circle",
+      "width": 60,
+      "tag": "Icon"
+    },
+    {
+      "height": 60,
+      "x": 815,
+      "icon": "message-square",
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#9F1239",
+          "hAlign": "center",
+          "text": "TXT82\nSMS"
+        }
+      ],
+      "id": "ext-txt82",
+      "y": 610,
+      "tag": "Icon",
+      "width": 60
+    },
+    {
+      "width": 60,
+      "tag": "Icon",
+      "height": 60,
+      "x": 815,
+      "icon": "bell",
+      "id": "ext-fcm",
+      "y": 715,
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#9F1239",
+          "hAlign": "center",
+          "text": "Firebase\nFCM"
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "to": "aws-alb",
+      "id": "rel-rn-alb",
+      "color": "#64748B",
+      "from": "client-rn",
+      "label": "HTTPS",
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "x": 75,
+      "y": 95,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 230,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": 16,
+        "y": -8,
+        "width": 49,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "label": "HTTPS",
+      "from": "client-web",
+      "to": "aws-alb",
+      "id": "rel-web-alb",
+      "color": "#64748B",
+      "x": 75,
+      "y": 225,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 86,
+          "y": 0
+        },
+        {
+          "x": 86,
+          "y": -120
+        },
+        {
+          "x": 230,
+          "y": -120
+        }
+      ],
+      "labelPlacement": {
+        "x": 18,
+        "y": -8,
+        "width": 49,
+        "height": 17
+      }
+    },
+    {
+      "to": "aws-alb",
+      "id": "rel-webhook-alb",
+      "color": "#64748B",
+      "from": "client-webhook",
+      "label": "HTTPS",
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "x": 75,
+      "y": 345,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 94,
+          "y": 0
+        },
+        {
+          "x": 94,
+          "y": -220
+        },
+        {
+          "x": 230,
+          "y": -220
+        }
+      ],
+      "labelPlacement": {
+        "x": 22,
+        "y": -8,
+        "width": 49,
+        "height": 17
+      }
+    },
+    {
+      "from": "aws-alb",
+      "color": "#64748B",
+      "to": "aws-api",
+      "id": "rel-alb-api",
+      "lineStyle": "solid",
+      "tag": "Relationship",
+      "label": "HTTP",
+      "x": 335,
+      "y": 155,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 40
+        }
+      ],
+      "labelPlacement": {
+        "x": -20,
+        "y": 11,
+        "width": 41,
+        "height": 17
+      }
+    },
+    {
+      "from": "aws-api",
+      "to": "aws-redis",
+      "id": "rel-api-redis",
+      "color": "#64748B",
+      "tag": "Relationship",
+      "lineStyle": "dashed",
+      "label": "TCP 6379",
+      "x": 332,
+      "y": 275,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 40
+        }
+      ],
+      "labelPlacement": {
+        "x": -34,
+        "y": 11,
+        "width": 69,
+        "height": 17
+      }
+    },
+    {
+      "from": "aws-api",
+      "to": "aws-pg",
+      "id": "rel-api-pg",
+      "color": "#64748B",
+      "tag": "Relationship",
+      "lineStyle": "dashed",
+      "label": "TCP 5432",
+      "x": 324,
+      "y": 275,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 20
+        },
+        {
+          "x": -43,
+          "y": 20
+        },
+        {
+          "x": -43,
+          "y": 130
+        },
+        {
+          "x": -5,
+          "y": 130
+        },
+        {
+          "x": -5,
+          "y": 160
+        }
+      ],
+      "labelPlacement": {
+        "x": -67,
+        "y": 60,
+        "width": 48,
+        "height": 34
+      }
+    },
+    {
+      "color": "#64748B",
+      "to": "aws-worker",
+      "id": "rel-api-worker",
+      "from": "aws-api",
+      "label": "Queue",
+      "lineStyle": "dotted",
+      "tag": "Relationship",
+      "x": 351,
+      "y": 275,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 32
+        },
+        {
+          "x": 37,
+          "y": 32
+        },
+        {
+          "x": 37,
+          "y": 255
+        },
+        {
+          "x": -16,
+          "y": 255
+        },
+        {
+          "x": -16,
+          "y": 280
+        }
+      ],
+      "labelPlacement": {
+        "x": 14,
+        "y": 227,
+        "width": 47,
+        "height": 17
+      }
+    },
+    {
+      "from": "aws-api",
+      "to": "ext-claude",
+      "id": "rel-api-claude",
+      "color": "#64748B",
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "label": "HTTPS",
+      "x": 365,
+      "y": 210,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 450,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": 200,
+        "y": -8,
+        "width": 49,
+        "height": 17
+      }
+    },
+    {
+      "from": "aws-api",
+      "to": "ext-paycrest",
+      "id": "rel-api-paycrest",
+      "color": "#64748B",
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "label": "HTTPS",
+      "x": 365,
+      "y": 225,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 40,
+          "y": 0
+        },
+        {
+          "x": 40,
+          "y": 74
+        },
+        {
+          "x": 450,
+          "y": 74
+        }
+      ],
+      "labelPlacement": {
+        "x": 216,
+        "y": 66,
+        "width": 49,
+        "height": 17
+      }
+    },
+    {
+      "lineStyle": "solid",
+      "tag": "Relationship",
+      "label": "HTTPS",
+      "from": "aws-api",
+      "color": "#64748B",
+      "to": "aws-s3",
+      "id": "rel-api-s3",
+      "x": 365,
+      "y": 241,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 31,
+          "y": 0
+        },
+        {
+          "x": 31,
+          "y": 224
+        },
+        {
+          "x": 60,
+          "y": 224
+        }
+      ],
+      "labelPlacement": {
+        "x": 6,
+        "y": 102,
+        "width": 49,
+        "height": 17
+      }
+    },
+    {
+      "from": "aws-worker",
+      "color": "#64748B",
+      "to": "aws-ml",
+      "id": "rel-worker-ml",
+      "lineStyle": "solid",
+      "tag": "Relationship",
+      "label": "HTTP",
+      "x": 365,
+      "y": 581,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 60,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": 7,
+        "y": -8,
+        "width": 41,
+        "height": 17
+      }
+    },
+    {
+      "from": "aws-worker",
+      "to": "ext-gabi",
+      "id": "rel-worker-gabi",
+      "color": "#64748B",
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "label": "HTTPS",
+      "x": 365,
+      "y": 563,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 30,
+          "y": 0
+        },
+        {
+          "x": 30,
+          "y": -28
+        },
+        {
+          "x": 450,
+          "y": -28
+        }
+      ],
+      "labelPlacement": {
+        "x": 216,
+        "y": -36,
+        "width": 49,
+        "height": 17
+      }
+    },
+    {
+      "label": "HTTPS",
+      "lineStyle": "solid",
+      "tag": "Relationship",
+      "color": "#64748B",
+      "to": "ext-txt82",
+      "id": "rel-worker-txt82",
+      "from": "aws-worker",
+      "x": 365,
+      "y": 592,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 34,
+          "y": 0
+        },
+        {
+          "x": 34,
+          "y": 48
+        },
+        {
+          "x": 450,
+          "y": 48
+        }
+      ],
+      "labelPlacement": {
+        "x": 216,
+        "y": 40,
+        "width": 49,
+        "height": 17
+      }
+    },
+    {
+      "from": "aws-worker",
+      "color": "#64748B",
+      "to": "ext-fcm",
+      "id": "rel-worker-fcm",
+      "lineStyle": "solid",
+      "tag": "Relationship",
+      "label": "HTTPS",
+      "x": 365,
+      "y": 607,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 26,
+          "y": 0
+        },
+        {
+          "x": 26,
+          "y": 138
+        },
+        {
+          "x": 450,
+          "y": 138
+        }
+      ],
+      "labelPlacement": {
+        "x": 216,
+        "y": 130,
+        "width": 49,
+        "height": 17
+      }
+    }
+  ],
+  "scene": {
+    "x": -1,
+    "y": -1,
+    "width": 892,
+    "height": 812
+  }
+}

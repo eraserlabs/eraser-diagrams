@@ -1,0 +1,33 @@
+<template name="Event">
+  <figure
+    data-tpl="Event"
+    data-role="body"
+    class="er-event"
+    data-color="{{color}}"
+    data-bg="{{bgColor}}"
+    data-border-color="{{borderColor}}"
+    data-border="{{borderStyle}}"
+    data-font-px="{{fontSize}}"
+    style="--er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-font-px: {{fontSize}}px"
+  >
+    <span data-role="anchor" data-part="disc" class="er-event__disc">
+      <span class="er-event__glyph" data-slot="icon" data-if="icon"></span>
+    </span>
+    <figcaption
+      class="er-event__caption"
+      data-role="external-text"
+      data-part="caption"
+      data-each="t of texts"
+      data-key="text"
+    >
+      <div
+        class="er-event__caption-line er-md"
+        data-run-px="{{t.fontSize}}"
+        style="--f: var(--font-{{t.typeface}}, var(--font-clean)); --er-ink: {{t.color}}; --er-run-px: {{t.fontSize}}px"
+      >
+        {{t.text}}
+      </div>
+    </figcaption>
+    <span data-use="Badge" data-props="badge" data-if="badge"></span>
+  </figure>
+</template>

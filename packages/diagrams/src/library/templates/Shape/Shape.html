@@ -1,0 +1,157 @@
+<template name="Shape">
+  <div
+    data-tpl="Shape"
+    data-role="body"
+    class="er-shape er-style--{{styleMode}}"
+    data-shape="{{shape}}"
+    data-border="{{borderStyle}}"
+    data-style="{{styleMode}}"
+    data-icon-pad="{{iconPadding}}"
+    data-icon-size="{{iconProps.size}}"
+    data-font-px="{{fontSize}}"
+    data-color="{{color}}"
+    data-bg="{{bgColor}}"
+    data-border-color="{{borderColor}}"
+    data-washtex-css="{{washTexCss}}"
+    data-washtex-geo="{{washTexGeo}}"
+    style="--er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-icon-pad: {{iconPadding}}px; --er-icon-ink: {{iconColor}}; --er-v-margin: {{vMargin}}px; --er-font-px: {{fontSize}}px; --er-font-num: {{fontSize}}"
+  >
+    <svg
+      class="er-shape__geo er-shape__geo--dynamic"
+      data-if="geoPath"
+      viewBox="0 0 {{geoW}} {{geoH}}"
+      aria-hidden="true"
+    >
+      <g data-if="washTexGeo">
+        <defs>
+          <filter id="wcb-{{washUid}}" x="-50%" y="-50%" width="200%" height="200%">
+            <feMorphology operator="dilate" radius="5"></feMorphology>
+            <feGaussianBlur stdDeviation="7"></feGaussianBlur>
+          </filter>
+          <filter id="wcbf-{{washUid}}" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="1.5"></feGaussianBlur>
+          </filter>
+          <mask id="wcg-{{washUid}}">
+            <path
+              class="er-shape__washmask"
+              d="{{geoPath}}"
+              fill="#fff"
+              filter="url(#wcb-{{washUid}})"
+            ></path>
+            <path
+              data-if="geoWashFloorPath"
+              class="er-shape__washmask-floor"
+              d="{{geoWashFloorPath}}"
+              fill="#fff"
+              filter="url(#wcbf-{{washUid}})"
+            ></path>
+          </mask>
+          <clipPath id="wcgc-{{washUid}}">
+            <path d="{{geoPath}}"></path>
+          </clipPath>
+        </defs>
+        <!-- Mask keeps the interior organic; the clip terminates the wash at the drawn outline. -->
+        <g mask="url(#wcg-{{washUid}})" clip-path="url(#wcgc-{{washUid}})">
+          <use href="#{{washSym}}" x="-14" y="-14" width="{{washUseW}}" height="{{washUseH}}"></use>
+        </g>
+      </g>
+      <path class="er-shape__path er-shape__path--dynamic" d="{{geoPath}}"></path>
+      <path
+        data-if="geoCapPath"
+        class="er-shape__cap er-shape__cap--dynamic"
+        d="{{geoCapPath}}"
+      ></path>
+    </svg>
+    <svg
+      class="er-shape__geo"
+      data-if="staticGeo"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path
+        class="er-shape__path er-shape__path--parallelogram"
+        d="M 15.3846,0 L 100,0 L 84.6154,100 L 0,100 Z"
+      ></path>
+      <path
+        class="er-shape__path er-shape__path--trapezoid"
+        d="M 20.6186,0 L 79.3814,0 L 100,100 L 0,100 Z"
+      ></path>
+      <path
+        class="er-shape__path er-shape__path--diamond"
+        d="M 50,0 L 100,50 L 50,100 L 0,50 Z"
+      ></path>
+      <path
+        class="er-shape__path er-shape__path--hexagon"
+        d="M 0,50 L 25,99.7965 L 75,99.7965 L 100,50 L 75,0.2035 L 25,0.2035 Z"
+      ></path>
+      <path
+        class="er-shape__path er-shape__path--triangle"
+        d="M 50,0 L 0,100 L 100,100 Z"
+      ></path>
+      <path
+        class="er-shape__path er-shape__path--star"
+        d="M 50,0 L 66.1641,28.3024 L 97.5528,38.0041 L 76.1541,65.1976 L 79.3893,99.4959 L 50,88 L 20.6107,99.4959 L 23.8459,65.1976 L 2.4472,38.0041 L 33.8359,28.3024 Z"
+      ></path>
+      <path
+        class="er-shape__path er-shape__path--document"
+        d="M 0.87,6.67 C 0.87,3.47 3.41,1 6.53,1 H 93.3 C 96.4,1 99,3.51 99,7 V 77.7 C 98.9,86.3 95.1,89.9 91.3,88.8 C 85.1,87.1 76.1,85.1 68.5,85.1 C 55.4,98.1 44.3,98.1 28,98.1 C 15.2,98.1 5.9,90.8 2.45,87.6 C 0.87,86.7 0.87,85.2 0.87,83.9 V 6.67 Z"
+      ></path>
+      <path
+        class="er-shape__path er-shape__path--cylinder-body"
+        d="M 0,11 L 0,89 A 50,11 0 0 0 100,89 L 100,11 A 50,11 0 0 0 0,11"
+      ></path>
+      <path
+        class="er-shape__cap er-shape__path--cylinder-cap"
+        d="M 0,11 A 50,11 0 0 0 100,11"
+      ></path>
+    </svg>
+    <div class="er-shape__inner" data-v-align="{{vAlign}}">
+      <span class="er-washtex" data-if="washTexCss" aria-hidden="true"><svg
+          width="100%"
+          height="100%"
+        ><filter id="wcc-{{washUid}}" x="-50%" y="-50%" width="200%" height="200%"><feMorphology
+              operator="dilate"
+              radius="5"
+            ></feMorphology><feGaussianBlur stdDeviation="7"></feGaussianBlur></filter><mask id="wcf-{{washUid}}"><rect
+              class="er-washmask"
+              width="100%"
+              height="100%"
+              fill="#fff"
+              filter="url(#wcc-{{washUid}})"
+            ></rect></mask><g mask="url(#wcf-{{washUid}})"><use
+              href="#{{washSym}}"
+              x="-6%"
+              y="-6%"
+              width="112%"
+              height="112%"
+            ></use></g></svg></span>
+      <span
+        class="er-shape__icon"
+        data-part="icon"
+        data-slot="icon"
+        data-if="icon"
+      ></span>
+      <div
+        class="er-shape__texts"
+        data-part="label"
+        data-role="internal-text"
+        data-text-grow-policy="balanced"
+        data-text-max-lines="3"
+        data-text-aspect="{{textAspectRatio}}"
+        data-each="t of texts"
+        data-key="text"
+      >
+        <div
+          class="er-shape__text er-md"
+          data-h-align="{{t.hAlign}}"
+          data-run-px="{{t.fontSize}}"
+          style="--f: var(--font-{{t.typeface}}, var(--font-clean)); --er-ink: {{t.color}}; --er-run-px: {{t.fontSize}}px"
+        >
+          {{t.text}}
+        </div>
+      </div>
+    </div>
+    <span data-use="Badge" data-props="badge" data-if="badge"></span>
+  </div>
+</template>

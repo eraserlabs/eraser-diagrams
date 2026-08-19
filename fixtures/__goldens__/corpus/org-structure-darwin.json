@@ -1,0 +1,960 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "CEO",
+          "fontSize": 16,
+          "hAlign": "center"
+        },
+        {
+          "text": "Nora Blake",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "white"
+        }
+      ],
+      "bgColor": "#4a90d9",
+      "color": "white",
+      "borderColor": "#2d6fa8",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "ceo",
+      "x": 315,
+      "y": 15,
+      "width": 160,
+      "height": 60,
+      "badge": {
+        "text": "Founder"
+      }
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "CTO",
+          "fontSize": 16,
+          "hAlign": "center"
+        },
+        {
+          "text": "Ravi Nair",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "white"
+        }
+      ],
+      "bgColor": "#4a90d9",
+      "color": "white",
+      "borderColor": "#2d6fa8",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "cto",
+      "x": 535,
+      "y": 15,
+      "width": 160,
+      "height": 60,
+      "badge": {
+        "text": "Founder"
+      }
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "VP Product",
+          "fontSize": 14,
+          "hAlign": "center"
+        },
+        {
+          "text": "Ella Rossi",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "white"
+        }
+      ],
+      "bgColor": "#7bb8f0",
+      "color": "white",
+      "borderColor": "#4a90d9",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "vp-product",
+      "x": 75,
+      "y": 175,
+      "width": 160,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "VP Engineering",
+          "fontSize": 14,
+          "hAlign": "center"
+        },
+        {
+          "text": "Ben Fowler",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "white"
+        }
+      ],
+      "bgColor": "#7bb8f0",
+      "color": "white",
+      "borderColor": "#4a90d9",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "vp-eng",
+      "x": 315,
+      "y": 175,
+      "width": 160,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "VP Design",
+          "fontSize": 14,
+          "hAlign": "center"
+        },
+        {
+          "text": "Lena Cho",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "white"
+        }
+      ],
+      "bgColor": "#7bb8f0",
+      "color": "white",
+      "borderColor": "#4a90d9",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "vp-design",
+      "x": 555,
+      "y": 175,
+      "width": 160,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "VP Infrastructure",
+          "fontSize": 14,
+          "hAlign": "center"
+        },
+        {
+          "text": "Ana Silva",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "white"
+        }
+      ],
+      "bgColor": "#7bb8f0",
+      "color": "white",
+      "borderColor": "#4a90d9",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "vp-infra",
+      "x": 795,
+      "y": 175,
+      "width": 160,
+      "height": 60
+    },
+    {
+      "tag": "Group",
+      "color": "#4a90d9",
+      "bgColor": "#eaf3fc",
+      "borderColor": "#b0d0f0",
+      "title": {
+        "text": "Product Team",
+        "fontSize": 14,
+        "hAlign": "left",
+        "bgColor": "#b0d0f0",
+        "border": false
+      },
+      "id": "grp-product",
+      "x": 15,
+      "y": 315,
+      "width": 280,
+      "height": 200,
+      "styleMode": "watercolor"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Team Lead",
+          "fontSize": 12,
+          "hAlign": "center"
+        },
+        {
+          "text": "Marco Yu",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "#666"
+        }
+      ],
+      "bgColor": "#c8e2f8",
+      "borderColor": "#7bb8f0",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "lead-product",
+      "x": 35,
+      "y": 375,
+      "width": 120,
+      "height": 64,
+      "containerId": "grp-product"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "PM",
+          "fontSize": 12,
+          "hAlign": "center"
+        },
+        {
+          "text": "Talia P.",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "#666"
+        }
+      ],
+      "bgColor": "white",
+      "borderColor": "#b0d0f0",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "pm1",
+      "x": 175,
+      "y": 375,
+      "width": 100,
+      "height": 50,
+      "containerId": "grp-product"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "PM",
+          "fontSize": 12,
+          "hAlign": "center"
+        },
+        {
+          "text": "Emi K.",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "#666"
+        }
+      ],
+      "bgColor": "white",
+      "borderColor": "#b0d0f0",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "pm2",
+      "x": 35,
+      "y": 445,
+      "width": 100,
+      "height": 50,
+      "containerId": "grp-product"
+    },
+    {
+      "tag": "Group",
+      "color": "#4a90d9",
+      "bgColor": "#eaf3fc",
+      "borderColor": "#b0d0f0",
+      "title": {
+        "text": "Engineering Team",
+        "fontSize": 14,
+        "hAlign": "left",
+        "bgColor": "#b0d0f0",
+        "border": false
+      },
+      "id": "grp-eng",
+      "x": 335,
+      "y": 315,
+      "width": 280,
+      "height": 200,
+      "styleMode": "watercolor"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Team Lead",
+          "fontSize": 12,
+          "hAlign": "center"
+        },
+        {
+          "text": "Farah T.",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "#666"
+        }
+      ],
+      "bgColor": "#c8e2f8",
+      "borderColor": "#7bb8f0",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "lead-eng",
+      "x": 355,
+      "y": 375,
+      "width": 120,
+      "height": 50,
+      "containerId": "grp-eng"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Engineer",
+          "fontSize": 12,
+          "hAlign": "center"
+        },
+        {
+          "text": "Kim R.",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "#666"
+        }
+      ],
+      "bgColor": "white",
+      "borderColor": "#b0d0f0",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "eng1",
+      "x": 495,
+      "y": 375,
+      "width": 100,
+      "height": 50,
+      "containerId": "grp-eng"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Engineer",
+          "fontSize": 12,
+          "hAlign": "center"
+        },
+        {
+          "text": "Omar D.",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "#666"
+        }
+      ],
+      "bgColor": "white",
+      "borderColor": "#b0d0f0",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "eng2",
+      "x": 355,
+      "y": 445,
+      "width": 100,
+      "height": 64,
+      "containerId": "grp-eng"
+    },
+    {
+      "tag": "Group",
+      "color": "#4a90d9",
+      "bgColor": "#eaf3fc",
+      "borderColor": "#b0d0f0",
+      "title": {
+        "text": "Design Team",
+        "fontSize": 14,
+        "hAlign": "left",
+        "bgColor": "#b0d0f0",
+        "border": false
+      },
+      "id": "grp-design",
+      "x": 655,
+      "y": 315,
+      "width": 280,
+      "height": 200,
+      "styleMode": "watercolor"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Team Lead",
+          "fontSize": 12,
+          "hAlign": "center"
+        },
+        {
+          "text": "Eva H.",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "#666"
+        }
+      ],
+      "bgColor": "#c8e2f8",
+      "borderColor": "#7bb8f0",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "lead-design",
+      "x": 675,
+      "y": 375,
+      "width": 120,
+      "height": 50,
+      "containerId": "grp-design"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Designer",
+          "fontSize": 12,
+          "hAlign": "center"
+        },
+        {
+          "text": "Femi Q.",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "#666"
+        }
+      ],
+      "bgColor": "white",
+      "borderColor": "#b0d0f0",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "des1",
+      "x": 815,
+      "y": 375,
+      "width": 100,
+      "height": 50,
+      "containerId": "grp-design"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Designer",
+          "fontSize": 12,
+          "hAlign": "center"
+        },
+        {
+          "text": "Ines R.",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "#666"
+        }
+      ],
+      "bgColor": "white",
+      "borderColor": "#b0d0f0",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "des2",
+      "x": 675,
+      "y": 445,
+      "width": 100,
+      "height": 50,
+      "containerId": "grp-design"
+    },
+    {
+      "tag": "Group",
+      "color": "#4a90d9",
+      "bgColor": "#eaf3fc",
+      "borderColor": "#b0d0f0",
+      "title": {
+        "text": "Infrastructure Team",
+        "fontSize": 14,
+        "hAlign": "left",
+        "bgColor": "#b0d0f0",
+        "border": false
+      },
+      "id": "grp-infra",
+      "x": 975,
+      "y": 315,
+      "width": 280,
+      "height": 200,
+      "styleMode": "watercolor"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Team Lead",
+          "fontSize": 12,
+          "hAlign": "center"
+        },
+        {
+          "text": "Rio P.",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "#666"
+        }
+      ],
+      "bgColor": "#c8e2f8",
+      "borderColor": "#7bb8f0",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "lead-infra",
+      "x": 995,
+      "y": 375,
+      "width": 120,
+      "height": 50,
+      "containerId": "grp-infra"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "SRE",
+          "fontSize": 12,
+          "hAlign": "center"
+        },
+        {
+          "text": "Amy V.",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "#666"
+        }
+      ],
+      "bgColor": "white",
+      "borderColor": "#b0d0f0",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "inf1",
+      "x": 1135,
+      "y": 375,
+      "width": 100,
+      "height": 50,
+      "containerId": "grp-infra"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "SRE",
+          "fontSize": 12,
+          "hAlign": "center"
+        },
+        {
+          "text": "Ivo C.",
+          "fontSize": 12,
+          "hAlign": "center",
+          "color": "#666"
+        }
+      ],
+      "bgColor": "white",
+      "borderColor": "#b0d0f0",
+      "cornerRadius": "round",
+      "styleMode": "watercolor",
+      "id": "inf2",
+      "x": 995,
+      "y": 445,
+      "width": 100,
+      "height": 50,
+      "containerId": "grp-infra"
+    },
+    {
+      "tag": "Textbox",
+      "text": "--- Skip-level reporting",
+      "color": "#e07b39",
+      "fontSize": 12,
+      "id": "legend-skip",
+      "x": 15,
+      "y": 555,
+      "width": 114,
+      "height": 45
+    }
+  ],
+  "connections": [
+    {
+      "tag": "Relationship",
+      "from": "ceo",
+      "to": "vp-product",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "lineStyle": "solid",
+      "color": "#4a90d9",
+      "endArrowhead": "arrow",
+      "id": "r-ceo-vpp",
+      "x": 395,
+      "y": 75,
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 54
+        },
+        {
+          "x": -240,
+          "y": 54
+        },
+        {
+          "x": -240,
+          "y": 100
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "ceo",
+      "to": "vp-eng",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "lineStyle": "solid",
+      "color": "#4a90d9",
+      "endArrowhead": "arrow",
+      "id": "r-ceo-vpe",
+      "x": 422,
+      "y": 75,
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 100
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "cto",
+      "to": "vp-design",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "lineStyle": "solid",
+      "color": "#4a90d9",
+      "endArrowhead": "arrow",
+      "id": "r-cto-vpd",
+      "x": 609,
+      "y": 75,
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 100
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "cto",
+      "to": "vp-infra",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "lineStyle": "solid",
+      "color": "#4a90d9",
+      "endArrowhead": "arrow",
+      "id": "r-cto-vpi",
+      "x": 652,
+      "y": 75,
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 42
+        },
+        {
+          "x": 223,
+          "y": 42
+        },
+        {
+          "x": 223,
+          "y": 100
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "lead-product",
+      "to": "ceo",
+      "fromPort": "top",
+      "toPort": "bottom",
+      "lineStyle": "dashed",
+      "color": "#e07b39",
+      "endArrowhead": "arrow",
+      "id": "skip-lead-product-ceo",
+      "x": 95,
+      "y": 375,
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": -116
+        },
+        {
+          "x": -50,
+          "y": -116
+        },
+        {
+          "x": -50,
+          "y": -254
+        },
+        {
+          "x": 247,
+          "y": -254
+        },
+        {
+          "x": 247,
+          "y": -300
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "vp-product",
+      "to": "grp-product",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "lineStyle": "solid",
+      "color": "#4a90d9",
+      "endArrowhead": "arrow",
+      "id": "r-vpp-grp",
+      "x": 155,
+      "y": 235,
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 80
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "lead-eng",
+      "to": "cto",
+      "fromPort": "top",
+      "toPort": "bottom",
+      "lineStyle": "dashed",
+      "color": "#e07b39",
+      "endArrowhead": "arrow",
+      "id": "skip-lead-eng-cto",
+      "x": 415,
+      "y": 375,
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": -100
+        },
+        {
+          "x": 90,
+          "y": -100
+        },
+        {
+          "x": 90,
+          "y": -250
+        },
+        {
+          "x": 157,
+          "y": -250
+        },
+        {
+          "x": 157,
+          "y": -300
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "vp-eng",
+      "to": "grp-eng",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "lineStyle": "solid",
+      "color": "#4a90d9",
+      "endArrowhead": "arrow",
+      "id": "r-vpe-grp",
+      "x": 403,
+      "y": 235,
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 80
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "lead-design",
+      "to": "cto",
+      "fromPort": "top",
+      "toPort": "bottom",
+      "lineStyle": "dashed",
+      "color": "#e07b39",
+      "endArrowhead": "arrow",
+      "id": "skip-lead-design-cto",
+      "x": 735,
+      "y": 375,
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": -242
+        },
+        {
+          "x": -112,
+          "y": -242
+        },
+        {
+          "x": -112,
+          "y": -300
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "vp-design",
+      "to": "grp-design",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "lineStyle": "solid",
+      "color": "#4a90d9",
+      "endArrowhead": "arrow",
+      "id": "r-vpd-grp",
+      "x": 635,
+      "y": 235,
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 40
+        },
+        {
+          "x": 92,
+          "y": 40
+        },
+        {
+          "x": 92,
+          "y": 80
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "lead-infra",
+      "to": "cto",
+      "fromPort": "top",
+      "toPort": "bottom",
+      "lineStyle": "dashed",
+      "color": "#e07b39",
+      "endArrowhead": "arrow",
+      "id": "skip-lead-infra-cto",
+      "x": 1055,
+      "y": 375,
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": -250
+        },
+        {
+          "x": -374,
+          "y": -250
+        },
+        {
+          "x": -374,
+          "y": -300
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "vp-infra",
+      "to": "grp-infra",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "lineStyle": "solid",
+      "color": "#4a90d9",
+      "endArrowhead": "arrow",
+      "id": "r-vpi-grp",
+      "x": 875,
+      "y": 235,
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 40
+        },
+        {
+          "x": 172,
+          "y": 40
+        },
+        {
+          "x": 172,
+          "y": 80
+        }
+      ]
+    }
+  ],
+  "scene": {
+    "x": -1,
+    "y": -1,
+    "width": 1272,
+    "height": 617
+  }
+}

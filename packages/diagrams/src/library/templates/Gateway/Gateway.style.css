@@ -1,0 +1,90 @@
+/* BPMN gateway: a fixed 56px diamond with an optional decision glyph centered inside (the `x`
+   exclusive marker, typically) and the caption stack below as external text — the Event model
+   with a rotated square for the anchor. The diamond is SVG so the stroke stays crisp. */
+/* Text sizing (see CUSTOMIZATION.md): sizes are pixels only. The caption slot's --er-base is
+   15px; an authored element `fontSize` arrives as gated data-font-px, per-run as data-run-px. */
+.er-gateway {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  text-align: center;
+}
+.er-gateway__box {
+  --er-fill: #ffffff;
+  --er-stroke: #242424;
+  --er-glyph-num: 18;
+  position: relative;
+  display: block;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+}
+.er-gateway[data-color]:not([data-color='']) .er-gateway__box {
+  --er-fill: hsl(from var(--er-color) h s 96%);
+  --er-stroke: var(--er-color);
+}
+/* Authored paint outranks the identity formulas — same specificity, later in source order. */
+.er-gateway[data-bg]:not([data-bg='']) .er-gateway__box {
+  --er-fill: var(--er-bg);
+}
+.er-gateway[data-border-color]:not([data-border-color='']) .er-gateway__box {
+  --er-stroke: var(--er-border);
+}
+.er-gateway__geo {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.er-gateway__path {
+  fill: var(--er-fill);
+  stroke: var(--er-stroke);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.er-gateway[data-border='dashed'] .er-gateway__path {
+  stroke-dasharray: 6 5;
+}
+.er-gateway[data-border='dotted'] .er-gateway__path {
+  stroke-dasharray: 1.5 4;
+}
+.er-gateway__glyph {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(var(--er-glyph-num) * 1px);
+  height: calc(var(--er-glyph-num) * 1px);
+  color: #242424;
+  line-height: 0;
+}
+.er-gateway__glyph svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.er-gateway__caption {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 300%;
+  margin: 0;
+}
+/* Every caption slot is styled identically at the primary size. */
+.er-gateway__caption-line {
+  --er-base: 15px;
+  display: block;
+  font-family: var(--f, var(--font-clean, sans-serif));
+  font-size: var(--er-base);
+  line-height: 1.25;
+  color: var(--er-ink, #242424);
+}
+.er-gateway[data-font-px]:not([data-font-px='']) .er-gateway__caption-line {
+  font-size: var(--er-font-px);
+}
+.er-gateway__caption-line[data-run-px]:not([data-run-px='']) {
+  font-size: var(--er-run-px);
+}

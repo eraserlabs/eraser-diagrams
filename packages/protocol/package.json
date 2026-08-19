@@ -1,0 +1,44 @@
+{
+  "name": "@eraserlabs/protocol",
+  "version": "0.1.0",
+  "description": "Reference TypeScript contracts, schema vocabulary, and machine-readable schemas for the Model Diagramming Protocol (MDP).",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22.12"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eraserlabs/eraser-diagrams.git",
+    "directory": "packages/protocol"
+  },
+  "homepage": "https://github.com/eraserlabs/eraser-diagrams",
+  "bugs": "https://github.com/eraserlabs/eraser-diagrams/issues",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "default": "./dist/schema.js"
+    },
+    "./schemas/document": "./schemas/document.schema.json",
+    "./schemas/tag-schema": "./schemas/tag-schema.schema.json"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map",
+    "schemas",
+    "README.md",
+    "SPEC.md"
+  ],
+  "scripts": {
+    "build": "tsc -b && node ../../tools/strip-dist-comments.mjs",
+    "test": "vitest run --passWithNoTests"
+  }
+}

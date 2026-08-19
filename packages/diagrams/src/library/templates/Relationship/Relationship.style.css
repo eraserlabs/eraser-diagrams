@@ -1,0 +1,39 @@
+/* Default stroke #1c1c1c at ~1.3px; labels are transparent centered 14px text with 2px of
+   horizontal breathing room. The browser apply stage cuts the corresponding gap from the SVG
+   line. Arrowheads ride SVG markers with markerUnits="strokeWidth", so a head scales with the
+   line. markerWidth/markerHeight are the intended arrow pixel sizes divided by the 1.3px
+   default stroke, which keeps the default render pixel-identical; refX/refY and each marker's
+   own `d` are in viewBox units, which absorb that scale, so they take no divisor. */
+/* Text sizing (see CUSTOMIZATION.md): sizes are pixels only — this slot's literal default, or
+   an authored `fontSize` through the gated data-font-px + --er-font-px idiom. */
+.er-rel__line {
+  fill: none;
+  stroke: var(--er-stroke, #1c1c1c);
+  stroke-width: var(--er-line-w, 1.3px);
+}
+.er-rel[data-line-style='dashed'] .er-rel__line {
+  stroke-dasharray: 8 8.75;
+}
+.er-rel[data-line-style='dotted'] .er-rel__line {
+  stroke-dasharray: 1.5 6.75;
+}
+.er-rel__label {
+  position: relative;
+  display: inline-block;
+  z-index: 1;
+  font-family: var(--f, var(--font-clean, sans-serif));
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+  color: #242424;
+  background: transparent;
+  padding: 0 2px;
+}
+.er-rel[data-font-px]:not([data-font-px='']) .er-rel__label {
+  font-size: var(--er-font-px);
+}

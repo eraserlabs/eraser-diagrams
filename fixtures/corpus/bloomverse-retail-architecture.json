@@ -1,0 +1,408 @@
+{
+  "title": "Bloomverse Retail Architecture",
+  "elements": [
+    {
+      "id": "group-aws",
+      "color": "#0EA5E9",
+      "y": 15,
+      "bgColor": "#F0F9FF",
+      "height": 780,
+      "x": 255,
+      "tag": "Group",
+      "title": {
+        "bgColor": "#E0F2FE",
+        "text": "AWS VPC / Cloud",
+        "icon": "cloud"
+      },
+      "width": 500
+    },
+    {
+      "width": 60,
+      "tag": "Icon",
+      "y": 75,
+      "id": "client-rn",
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#166534",
+          "hAlign": "center",
+          "text": "React Native\n(Staff)"
+        }
+      ],
+      "icon": "smartphone",
+      "height": 60,
+      "x": 15
+    },
+    {
+      "id": "client-web",
+      "y": 195,
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#166534",
+          "hAlign": "center",
+          "text": "Next.js Web\n(Owner)"
+        }
+      ],
+      "height": 60,
+      "x": 15,
+      "icon": "monitor",
+      "width": 60,
+      "tag": "Icon"
+    },
+    {
+      "width": 60,
+      "tag": "Icon",
+      "y": 315,
+      "id": "client-webhook",
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#166534",
+          "hAlign": "center",
+          "text": "Webhooks\n(GABI/Claude)"
+        }
+      ],
+      "icon": "webhook",
+      "height": 60,
+      "x": 15
+    },
+    {
+      "width": 60,
+      "tag": "Icon",
+      "y": 75,
+      "containerId": "group-aws",
+      "id": "aws-alb",
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "Load Balancer",
+          "fontSize": 12,
+          "color": "#9A3412"
+        }
+      ],
+      "icon": "network",
+      "height": 60,
+      "x": 305
+    },
+    {
+      "width": 60,
+      "tag": "Icon",
+      "icon": "server",
+      "height": 60,
+      "x": 305,
+      "y": 195,
+      "containerId": "group-aws",
+      "id": "aws-api",
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#9A3412",
+          "hAlign": "center",
+          "text": "Fastify API"
+        }
+      ]
+    },
+    {
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "Redis",
+          "fontSize": 12,
+          "color": "#475569"
+        }
+      ],
+      "containerId": "group-aws",
+      "id": "aws-redis",
+      "y": 315,
+      "height": 60,
+      "x": 305,
+      "icon": "zap",
+      "tag": "Icon",
+      "width": 60
+    },
+    {
+      "height": 60,
+      "x": 305,
+      "icon": "database",
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "PostgreSQL",
+          "fontSize": 12,
+          "color": "#475569"
+        }
+      ],
+      "containerId": "group-aws",
+      "id": "aws-pg",
+      "y": 435,
+      "tag": "Icon",
+      "width": 60
+    },
+    {
+      "width": 60,
+      "tag": "Icon",
+      "height": 60,
+      "x": 425,
+      "icon": "archive",
+      "containerId": "group-aws",
+      "id": "aws-s3",
+      "y": 435,
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "S3",
+          "fontSize": 12,
+          "color": "#475569"
+        }
+      ]
+    },
+    {
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "BullMQ\nWorkers",
+          "fontSize": 12,
+          "color": "#9A3412"
+        }
+      ],
+      "y": 555,
+      "containerId": "group-aws",
+      "id": "aws-worker",
+      "icon": "layers",
+      "height": 60,
+      "x": 305,
+      "tag": "Icon",
+      "width": 60
+    },
+    {
+      "tag": "Icon",
+      "width": 60,
+      "height": 60,
+      "x": 425,
+      "icon": "brain-circuit",
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#9A3412",
+          "hAlign": "center",
+          "text": "Python ML\nService"
+        }
+      ],
+      "containerId": "group-aws",
+      "id": "aws-ml",
+      "y": 555
+    },
+    {
+      "id": "ext-claude",
+      "y": 180,
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#9F1239",
+          "hAlign": "center",
+          "text": "Claude API"
+        }
+      ],
+      "height": 60,
+      "x": 815,
+      "icon": "bot",
+      "width": 60,
+      "tag": "Icon"
+    },
+    {
+      "tag": "Icon",
+      "width": 60,
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "PayCrest",
+          "fontSize": 12,
+          "color": "#9F1239"
+        }
+      ],
+      "y": 275,
+      "id": "ext-paycrest",
+      "icon": "credit-card",
+      "height": 60,
+      "x": 815
+    },
+    {
+      "id": "ext-gabi",
+      "y": 505,
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "GABI\nWhatsApp",
+          "fontSize": 12,
+          "color": "#9F1239"
+        }
+      ],
+      "height": 60,
+      "x": 815,
+      "icon": "message-circle",
+      "width": 60,
+      "tag": "Icon"
+    },
+    {
+      "height": 60,
+      "x": 815,
+      "icon": "message-square",
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#9F1239",
+          "hAlign": "center",
+          "text": "TXT82\nSMS"
+        }
+      ],
+      "id": "ext-txt82",
+      "y": 610,
+      "tag": "Icon",
+      "width": 60
+    },
+    {
+      "width": 60,
+      "tag": "Icon",
+      "height": 60,
+      "x": 815,
+      "icon": "bell",
+      "id": "ext-fcm",
+      "y": 715,
+      "texts": [
+        {
+          "fontSize": 12,
+          "color": "#9F1239",
+          "hAlign": "center",
+          "text": "Firebase\nFCM"
+        }
+      ]
+    },
+    {
+      "to": "aws-alb",
+      "id": "rel-rn-alb",
+      "color": "#64748B",
+      "from": "client-rn",
+      "label": "HTTPS",
+      "tag": "Relationship",
+      "lineStyle": "solid"
+    },
+    {
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "label": "HTTPS",
+      "from": "client-web",
+      "to": "aws-alb",
+      "id": "rel-web-alb",
+      "color": "#64748B"
+    },
+    {
+      "to": "aws-alb",
+      "id": "rel-webhook-alb",
+      "color": "#64748B",
+      "from": "client-webhook",
+      "label": "HTTPS",
+      "tag": "Relationship",
+      "lineStyle": "solid"
+    },
+    {
+      "from": "aws-alb",
+      "color": "#64748B",
+      "to": "aws-api",
+      "id": "rel-alb-api",
+      "lineStyle": "solid",
+      "tag": "Relationship",
+      "label": "HTTP"
+    },
+    {
+      "from": "aws-api",
+      "to": "aws-redis",
+      "id": "rel-api-redis",
+      "color": "#64748B",
+      "tag": "Relationship",
+      "lineStyle": "dashed",
+      "label": "TCP 6379"
+    },
+    {
+      "from": "aws-api",
+      "to": "aws-pg",
+      "id": "rel-api-pg",
+      "color": "#64748B",
+      "tag": "Relationship",
+      "lineStyle": "dashed",
+      "label": "TCP 5432"
+    },
+    {
+      "color": "#64748B",
+      "to": "aws-worker",
+      "id": "rel-api-worker",
+      "from": "aws-api",
+      "label": "Queue",
+      "lineStyle": "dotted",
+      "tag": "Relationship"
+    },
+    {
+      "from": "aws-api",
+      "to": "ext-claude",
+      "id": "rel-api-claude",
+      "color": "#64748B",
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "label": "HTTPS"
+    },
+    {
+      "from": "aws-api",
+      "to": "ext-paycrest",
+      "id": "rel-api-paycrest",
+      "color": "#64748B",
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "label": "HTTPS"
+    },
+    {
+      "lineStyle": "solid",
+      "tag": "Relationship",
+      "label": "HTTPS",
+      "from": "aws-api",
+      "color": "#64748B",
+      "to": "aws-s3",
+      "id": "rel-api-s3"
+    },
+    {
+      "from": "aws-worker",
+      "color": "#64748B",
+      "to": "aws-ml",
+      "id": "rel-worker-ml",
+      "lineStyle": "solid",
+      "tag": "Relationship",
+      "label": "HTTP"
+    },
+    {
+      "from": "aws-worker",
+      "to": "ext-gabi",
+      "id": "rel-worker-gabi",
+      "color": "#64748B",
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "label": "HTTPS"
+    },
+    {
+      "label": "HTTPS",
+      "lineStyle": "solid",
+      "tag": "Relationship",
+      "color": "#64748B",
+      "to": "ext-txt82",
+      "id": "rel-worker-txt82",
+      "from": "aws-worker"
+    },
+    {
+      "from": "aws-worker",
+      "color": "#64748B",
+      "to": "ext-fcm",
+      "id": "rel-worker-fcm",
+      "lineStyle": "solid",
+      "tag": "Relationship",
+      "label": "HTTPS"
+    }
+  ]
+}

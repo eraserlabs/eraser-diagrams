@@ -1,0 +1,909 @@
+{
+  "title": "Center Aligned Shapes",
+  "elements": [
+    {
+      "tag": "Textbox",
+      "text": "# LTI EULA Acceptance Flow\n\n_Student assignment submission with Content Auditor EULA_",
+      "fontSize": 18,
+      "hAlign": "center",
+      "id": "title",
+      "x": 15,
+      "y": 15,
+      "width": 560,
+      "height": 52
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "STEP 1: Student Clicks Submit",
+        "icon": "mouse-pointer-click",
+        "bgColor": "#dbeafe",
+        "border": true
+      },
+      "bgColor": "#eff6ff",
+      "borderColor": "#3b82f6",
+      "id": "step1",
+      "x": 15,
+      "y": 95,
+      "width": 900,
+      "height": 180
+    },
+    {
+      "tag": "Icon",
+      "icon": "user",
+      "texts": [
+        {
+          "text": "Student",
+          "fontSize": 12
+        }
+      ],
+      "id": "student1",
+      "x": 65,
+      "y": 155,
+      "width": 50,
+      "height": 50,
+      "containerId": "step1"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Lumen UI",
+          "fontSize": 14,
+          "hAlign": "center"
+        },
+        {
+          "text": "Checks if assignment has CA link with EULA",
+          "fontSize": 11,
+          "hAlign": "center",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "borderColor": "#3b82f6",
+      "id": "lumencheck",
+      "x": 175,
+      "y": 155,
+      "width": 280,
+      "height": 80,
+      "containerId": "step1"
+    },
+    {
+      "tag": "Relationship",
+      "from": "student1",
+      "to": "lumencheck",
+      "fromPort": "right",
+      "toPort": "left",
+      "label": "clicks Submit",
+      "labelPlacement": {
+        "x": -24,
+        "y": -20
+      },
+      "id": "r1",
+      "x": 115,
+      "y": 180,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "GET /v1/users/{userId}/lti/eulaconfig/{placementId}",
+          "fontSize": 12,
+          "hAlign": "center",
+          "typeface": "mono"
+        },
+        {
+          "text": "Returns:",
+          "fontSize": 11,
+          "hAlign": "center",
+          "color": "gray"
+        },
+        {
+          "text": "{ eulaRequired, eulaAccepted }",
+          "fontSize": 11,
+          "hAlign": "center",
+          "typeface": "mono",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "borderColor": "#3b82f6",
+      "id": "eulaapi",
+      "x": 495,
+      "y": 145,
+      "width": 360,
+      "height": 100,
+      "containerId": "step1"
+    },
+    {
+      "tag": "Relationship",
+      "from": "lumencheck",
+      "to": "eulaapi",
+      "fromPort": "right",
+      "toPort": "left",
+      "id": "r2",
+      "x": 455,
+      "y": 195,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Shape",
+      "shape": "diamond",
+      "texts": [
+        {
+          "text": "eulaRequired = true",
+          "fontSize": 12,
+          "hAlign": "center"
+        },
+        {
+          "text": "&& eulaAccepted = false?",
+          "fontSize": 12,
+          "hAlign": "center"
+        }
+      ],
+      "bgColor": "#fef3c7",
+      "borderColor": "#f59e0b",
+      "id": "decision",
+      "x": 355,
+      "y": 300,
+      "width": 220,
+      "height": 80
+    },
+    {
+      "tag": "Relationship",
+      "from": "step1",
+      "to": "decision",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "id": "r3",
+      "x": 465,
+      "y": 265,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "STEP 2: Lumen Shows EULA Iframe",
+        "icon": "layout",
+        "bgColor": "#dbeafe",
+        "border": true
+      },
+      "bgColor": "#eff6ff",
+      "borderColor": "#3b82f6",
+      "id": "step2",
+      "x": 15,
+      "y": 405,
+      "width": 900,
+      "height": 140
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Submit Confirmation Modal",
+          "fontSize": 13,
+          "hAlign": "center"
+        },
+        {
+          "text": "Source: contentAuditorLink.eulaUrl",
+          "fontSize": 11,
+          "hAlign": "center",
+          "color": "gray",
+          "typeface": "mono"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "borderColor": "#3b82f6",
+      "id": "modal",
+      "x": 65,
+      "y": 465,
+      "width": 340,
+      "height": 60,
+      "containerId": "step2"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Submit Button: DISABLED",
+          "fontSize": 13,
+          "hAlign": "center",
+          "color": "#dc2626"
+        },
+        {
+          "text": "while EULA is showing",
+          "fontSize": 11,
+          "hAlign": "center",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#fee2e2",
+      "borderColor": "#dc2626",
+      "id": "submitdisabled",
+      "x": 475,
+      "y": 465,
+      "width": 380,
+      "height": 60,
+      "containerId": "step2"
+    },
+    {
+      "tag": "Relationship",
+      "from": "modal",
+      "to": "submitdisabled",
+      "fromPort": "right",
+      "toPort": "left",
+      "id": "r5",
+      "x": 405,
+      "y": 495,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "decision",
+      "to": "step2",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "label": "YES",
+      "labelPlacement": {
+        "x": 4,
+        "y": 4
+      },
+      "id": "r4",
+      "x": 465,
+      "y": 380,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "STEP 3: Lumen Backend Launches LtiEulaRequest (LTI JWT)",
+        "icon": "server",
+        "bgColor": "#e9d5ff",
+        "border": true
+      },
+      "bgColor": "#faf5ff",
+      "borderColor": "#a855f7",
+      "id": "step3",
+      "x": 15,
+      "y": 585,
+      "width": 900,
+      "height": 380
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "ContentAuditorLaunchController",
+          "fontSize": 13,
+          "hAlign": "center",
+          "typeface": "mono"
+        },
+        {
+          "text": ".launchEula()",
+          "fontSize": 11,
+          "hAlign": "center",
+          "typeface": "mono",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "borderColor": "#a855f7",
+      "id": "controller",
+      "x": 55,
+      "y": 645,
+      "width": 390,
+      "height": 70,
+      "containerId": "step3"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "ContentAuditorLauncher",
+          "fontSize": 13,
+          "hAlign": "center",
+          "typeface": "mono"
+        },
+        {
+          "text": ".launchEula()",
+          "fontSize": 11,
+          "hAlign": "center",
+          "typeface": "mono",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "borderColor": "#a855f7",
+      "id": "launcher",
+      "x": 485,
+      "y": 645,
+      "width": 390,
+      "height": 70,
+      "containerId": "step3"
+    },
+    {
+      "tag": "Relationship",
+      "from": "controller",
+      "to": "launcher",
+      "fromPort": "right",
+      "toPort": "left",
+      "id": "r7",
+      "x": 445,
+      "y": 680,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Shape",
+      "shape": "document",
+      "texts": [
+        {
+          "text": "JWT Claims sent to tool",
+          "fontSize": 13,
+          "hAlign": "center"
+        },
+        {
+          "text": "message_type: \"LtiEulaRequest\"",
+          "fontSize": 10,
+          "hAlign": "left",
+          "typeface": "mono"
+        },
+        {
+          "text": "version: \"1.3.0\"",
+          "fontSize": 10,
+          "hAlign": "left",
+          "typeface": "mono"
+        },
+        {
+          "text": "deployment_id, target_link_uri, roles",
+          "fontSize": 10,
+          "hAlign": "left",
+          "typeface": "mono"
+        },
+        {
+          "text": "eulaservice: { url, scope[eula/deployment, eula/user] }",
+          "fontSize": 10,
+          "hAlign": "left",
+          "typeface": "mono"
+        },
+        {
+          "text": "activity: { id: contentId }",
+          "fontSize": 10,
+          "hAlign": "left",
+          "typeface": "mono"
+        },
+        {
+          "text": "custom: { report_released }",
+          "fontSize": 10,
+          "hAlign": "left",
+          "typeface": "mono"
+        },
+        {
+          "text": "context + user info (sub, name, email)",
+          "fontSize": 10,
+          "hAlign": "left",
+          "typeface": "mono"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "borderColor": "#a855f7",
+      "id": "jwt",
+      "x": 55,
+      "y": 735,
+      "width": 540,
+      "height": 210,
+      "containerId": "step3"
+    },
+    {
+      "tag": "Relationship",
+      "from": "launcher",
+      "to": "jwt",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "id": "r8",
+      "x": 680,
+      "y": 715,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "\u26a0 BUG",
+          "fontSize": 13,
+          "hAlign": "center",
+          "color": "#dc2626"
+        },
+        {
+          "text": "LaunchLTIBase (GENERIC)",
+          "fontSize": 11,
+          "hAlign": "center",
+          "typeface": "mono"
+        },
+        {
+          "text": "Adds AGS + NRPS + Groups",
+          "fontSize": 10,
+          "hAlign": "center",
+          "color": "#dc2626"
+        }
+      ],
+      "bgColor": "#fee2e2",
+      "borderColor": "#dc2626",
+      "id": "buggy",
+      "x": 625,
+      "y": 735,
+      "width": 260,
+      "height": 95,
+      "containerId": "step3"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "\u2713 CORRECT",
+          "fontSize": 13,
+          "hAlign": "center",
+          "color": "#16a34a"
+        },
+        {
+          "text": "ContentAuditorLauncher",
+          "fontSize": 11,
+          "hAlign": "center",
+          "typeface": "mono"
+        },
+        {
+          "text": "Does NOT add AGS/NRPS",
+          "fontSize": 10,
+          "hAlign": "center",
+          "color": "#16a34a"
+        }
+      ],
+      "bgColor": "#dcfce7",
+      "borderColor": "#16a34a",
+      "id": "correct",
+      "x": 625,
+      "y": 845,
+      "width": 260,
+      "height": 95,
+      "containerId": "step3"
+    },
+    {
+      "tag": "Relationship",
+      "from": "step2",
+      "to": "step3",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "id": "r6",
+      "x": 465,
+      "y": 545,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "STEP 4: Checkify Renders EULA",
+        "icon": "file-text",
+        "bgColor": "#fed7aa",
+        "border": true
+      },
+      "bgColor": "#fff7ed",
+      "borderColor": "#ea580c",
+      "id": "step4",
+      "x": 15,
+      "y": 1005,
+      "width": 900,
+      "height": 138
+    },
+    {
+      "tag": "Icon",
+      "icon": "file-check",
+      "texts": [
+        {
+          "text": "Checkify Tool",
+          "fontSize": 12
+        }
+      ],
+      "id": "checkify",
+      "x": 115,
+      "y": 1055,
+      "width": 50,
+      "height": 50,
+      "containerId": "step4"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "EULA Iframe",
+          "fontSize": 13,
+          "hAlign": "center"
+        },
+        {
+          "text": "User sees EULA text",
+          "fontSize": 11,
+          "hAlign": "center",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "borderColor": "#ea580c",
+      "id": "eulaiframe",
+      "x": 275,
+      "y": 1055,
+      "width": 280,
+      "height": 60,
+      "containerId": "step4"
+    },
+    {
+      "tag": "Relationship",
+      "from": "checkify",
+      "to": "eulaiframe",
+      "fromPort": "right",
+      "toPort": "left",
+      "id": "r10",
+      "x": 165,
+      "y": 1080,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Accept / Decline",
+          "fontSize": 13,
+          "hAlign": "center"
+        },
+        {
+          "text": "User clicks button",
+          "fontSize": 11,
+          "hAlign": "center",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#fff7ed",
+      "borderColor": "#ea580c",
+      "id": "userchoice",
+      "x": 595,
+      "y": 1055,
+      "width": 260,
+      "height": 60,
+      "containerId": "step4"
+    },
+    {
+      "tag": "Relationship",
+      "from": "eulaiframe",
+      "to": "userchoice",
+      "fromPort": "right",
+      "toPort": "left",
+      "id": "r11",
+      "x": 555,
+      "y": 1085,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "step3",
+      "to": "step4",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "label": "sends JWT",
+      "labelPlacement": {
+        "x": 4,
+        "y": 12
+      },
+      "id": "r9",
+      "x": 465,
+      "y": 965,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "STEP 5: Tool Sends Two Things Back",
+        "icon": "send",
+        "bgColor": "#fed7aa",
+        "border": true
+      },
+      "bgColor": "#fff7ed",
+      "borderColor": "#ea580c",
+      "id": "step5",
+      "x": 15,
+      "y": 1175,
+      "width": 900,
+      "height": 390
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "A) postMessage to parent window",
+          "fontSize": 13,
+          "hAlign": "center"
+        },
+        {
+          "text": "{ subject: 'lti.close' }",
+          "fontSize": 11,
+          "hAlign": "center",
+          "typeface": "mono"
+        },
+        {
+          "text": "\u2192 Lumen hides iframe",
+          "fontSize": 11,
+          "hAlign": "center",
+          "color": "gray"
+        },
+        {
+          "text": "\u2192 Re-fetches EULA status",
+          "fontSize": 11,
+          "hAlign": "center",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "borderColor": "#ea580c",
+      "id": "postmsg",
+      "x": 45,
+      "y": 1235,
+      "width": 410,
+      "height": 110,
+      "containerId": "step5"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "B) REST call (OAuth2 Bearer)",
+          "fontSize": 13,
+          "hAlign": "center"
+        },
+        {
+          "text": "POST /lumen/api/v1/lti/external/eula/user",
+          "fontSize": 10,
+          "hAlign": "center",
+          "typeface": "mono"
+        },
+        {
+          "text": "Body:",
+          "fontSize": 10,
+          "hAlign": "left",
+          "color": "gray"
+        },
+        {
+          "text": "{ userId, accepted: true,",
+          "fontSize": 10,
+          "hAlign": "left",
+          "typeface": "mono"
+        },
+        {
+          "text": "  timestamp: \"2022-04-16T18:54:36.736Z\" }",
+          "fontSize": 10,
+          "hAlign": "left",
+          "typeface": "mono"
+        },
+        {
+          "text": "Scope: lti/scope/eula/user",
+          "fontSize": 10,
+          "hAlign": "center",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "borderColor": "#ea580c",
+      "id": "restcall",
+      "x": 475,
+      "y": 1235,
+      "width": 410,
+      "height": 160,
+      "containerId": "step5"
+    },
+    {
+      "tag": "Shape",
+      "shape": "cylinder",
+      "texts": [
+        {
+          "text": "lti_eula_acceptance table",
+          "fontSize": 13,
+          "hAlign": "center",
+          "typeface": "mono"
+        },
+        {
+          "text": "users_pk1, lumt_deployment_pk1,",
+          "fontSize": 11,
+          "hAlign": "center",
+          "typeface": "mono",
+          "color": "gray"
+        },
+        {
+          "text": "eula_acceptance=Y/N, eula_accepted_at",
+          "fontSize": 11,
+          "hAlign": "center",
+          "typeface": "mono",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#ecfccb",
+      "borderColor": "#65a30d",
+      "id": "dbstore",
+      "x": 125,
+      "y": 1435,
+      "width": 660,
+      "height": 105,
+      "containerId": "step5"
+    },
+    {
+      "tag": "Relationship",
+      "from": "restcall",
+      "to": "dbstore",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "label": "stores",
+      "labelPlacement": {
+        "x": -60,
+        "y": 107
+      },
+      "id": "r13",
+      "x": 680,
+      "y": 1395,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "step4",
+      "to": "step5",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "id": "r12",
+      "x": 465,
+      "y": 1143,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "STEP 6: Lumen Re-fetches EULA Status",
+        "icon": "refresh-cw",
+        "bgColor": "#bbf7d0",
+        "border": true
+      },
+      "bgColor": "#f0fdf4",
+      "borderColor": "#16a34a",
+      "id": "step6",
+      "x": 15,
+      "y": 1605,
+      "width": 900,
+      "height": 160
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "GET /v1/users/{userId}/lti/eulaconfig/{placementId}",
+          "fontSize": 11,
+          "hAlign": "center",
+          "typeface": "mono"
+        },
+        {
+          "text": "Returns: { eulaRequired: true, eulaAccepted: true }",
+          "fontSize": 11,
+          "hAlign": "center",
+          "typeface": "mono",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "borderColor": "#16a34a",
+      "id": "refetch",
+      "x": 55,
+      "y": 1665,
+      "width": 420,
+      "height": 80,
+      "containerId": "step6"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Submit Button: ENABLED \u2713",
+          "fontSize": 13,
+          "hAlign": "center",
+          "color": "#16a34a"
+        },
+        {
+          "text": "Student can now submit assignment",
+          "fontSize": 11,
+          "hAlign": "center",
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#dcfce7",
+      "borderColor": "#16a34a",
+      "id": "enabled",
+      "x": 505,
+      "y": 1665,
+      "width": 370,
+      "height": 80,
+      "containerId": "step6"
+    },
+    {
+      "tag": "Relationship",
+      "from": "refetch",
+      "to": "enabled",
+      "fromPort": "right",
+      "toPort": "left",
+      "id": "r15",
+      "x": 475,
+      "y": 1655,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "step5",
+      "to": "step6",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "id": "r14",
+      "x": 465,
+      "y": 1520,
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    }
+  ]
+}

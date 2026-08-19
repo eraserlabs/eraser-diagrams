@@ -1,0 +1,161 @@
+/* White header band (or authored titleBgColor), 5px corners, 1.8px identity border; key 17px in
+   the table face, type/meta 15px mono mid-gray; solid light-scale row separators the outer border
+   paints over. Header 36 / rows 28 px. */
+/* Text sizing (see CUSTOMIZATION.md): sizes are pixels only. Each slot names its own --er-base;
+   an authored `fontSize` arrives as gated data-font-px + --er-font-px and replaces it. */
+/* The table's own type ramp hangs off one base: the 17px field name is --er-base, the 18px title
+   and the 15px type/meta columns are fixed ratios of it, so one authored fontSize moves the whole
+   ramp instead of flattening it. */
+.er-dbtable {
+  /* Identity treatment, one authored `color` (see Shape.style.css for the shared model). The
+     identity drives the border, the row separators (92% lightness), and the face tint (98%,
+     the same lightening groups use); an authored bgColor paints the face directly. */
+  --er-stroke: #737373;
+  --er-divider: #ebebeb;
+  --er-tint: #ffffff;
+  --er-base: 17px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 1.8px solid var(--er-stroke);
+  border-radius: 5px;
+  background: var(--er-tint);
+  box-sizing: border-box;
+  font-family: var(--f, var(--font-clean, sans-serif));
+}
+.er-dbtable[data-style='shadow'] {
+  box-shadow: 4px 4px 0 0 #e8e8e8;
+}
+.er-dbtable[data-font-px]:not([data-font-px='']) {
+  --er-base: var(--er-font-px);
+}
+.er-dbtable[data-color]:not([data-color='']) {
+  --er-stroke: var(--er-color);
+  --er-divider: hsl(from var(--er-color) h s 92%);
+  --er-tint: hsl(from var(--er-color) h s 98%);
+}
+.er-dbtable[data-bg]:not([data-bg='']) {
+  --er-tint: var(--er-bg);
+}
+.er-dbtable[data-border-color]:not([data-border-color='']) {
+  --er-stroke: var(--er-border);
+}
+.er-dbtable[data-border='dashed'] {
+  border-style: dashed;
+}
+.er-dbtable[data-border='dotted'] {
+  border-style: dotted;
+}
+/* Watercolor texture: the card face is the recolored scan master (base.style.css er-washtex).
+   The header's opaque paint would hide it, and the hidden overflow would clip the bleed — both
+   relax only in texture mode. The hairline moves to a blurable overlay, same knobs as Shape. */
+.er-dbtable[data-style='watercolor'][data-washtex-css]:not(
+    [data-washtex-css='']
+  )
+  .er-dbtable__head {
+  background: transparent;
+}
+.er-dbtable[data-style='watercolor'] {
+  border-color: transparent;
+  /* Published for nested mounts (Badge): inherited across the mount boundary like --er-tint. */
+  --er-wc-ink-alpha: var(--er-wc-border-alpha, 45%);
+}
+.er-dbtable[data-style='watercolor']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1.8px solid
+    color-mix(
+      in srgb,
+      var(--er-stroke) var(--er-wc-border-alpha, 45%),
+      transparent
+    );
+  border-radius: inherit;
+  filter: blur(var(--er-wc-border-blur, 0.7px));
+  pointer-events: none;
+}
+.er-dbtable__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 10px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--er-divider);
+  box-sizing: border-box;
+}
+/* A painted band gets the identity color as its underline; the plain white band keeps the
+   subtle divider so uncolored tables stay quiet. */
+.er-dbtable[data-title-bg]:not([data-title-bg='']) .er-dbtable__head {
+  background: var(--er-title-bg);
+  border-bottom-color: var(--er-stroke);
+}
+.er-dbtable__title {
+  flex: 1;
+  margin: 0;
+  font-size: calc(var(--er-base) * 18 / 17);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: #242424;
+  text-align: left;
+}
+.er-dbtable[data-h-align='center'] .er-dbtable__title {
+  text-align: center;
+}
+.er-dbtable[data-h-align='right'] .er-dbtable__title {
+  text-align: right;
+}
+.er-dbtable__icon {
+  --er-glyph-num: 25;
+  flex: 0 0 auto;
+  width: 25px;
+  height: 25px;
+  color: #454545;
+  line-height: 0;
+}
+.er-dbtable__icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.er-dbtable__rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.er-dbtable__row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--er-divider);
+  box-sizing: border-box;
+}
+.er-dbtable__row:last-child {
+  border-bottom: none;
+}
+.er-dbtable__f-name {
+  font-size: var(--er-base);
+  color: #2e2e2e;
+}
+.er-dbtable__f-type {
+  flex: 1;
+  text-align: right;
+  color: #737373;
+  font-family: var(--font-mono, monospace);
+  font-size: calc(var(--er-base) * 15 / 17);
+}
+.er-dbtable__f-meta {
+  text-align: right;
+  color: #737373;
+  font-family: var(--font-mono, monospace);
+  font-size: calc(var(--er-base) * 15 / 17);
+}
+/* data-if does not execute inside data-each items — an absent meta substitutes empty. */
+.er-dbtable__f-meta:empty {
+  display: none;
+}

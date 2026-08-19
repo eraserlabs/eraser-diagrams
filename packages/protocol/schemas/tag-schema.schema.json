@@ -1,0 +1,165 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schemas.eraser.io/mdp/0.1/tag-schema.schema.json",
+  "title": "MDP 0.1 tag schema",
+  "description": "The closed JSON Schema draft-07 subset accepted for one MDP profile tag.",
+  "$ref": "#/definitions/tagSchema",
+  "definitions": {
+    "schemaNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": ["object", "array", "string", "number", "boolean", "null"]
+        },
+        "const": {
+          "type": "string"
+        },
+        "enum": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "anyOf": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/schemaNode"
+          },
+          "minItems": 1
+        },
+        "not": {
+          "$ref": "#/definitions/schemaNode"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/schemaNode"
+          }
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "additionalProperties": {
+          "type": "boolean"
+        },
+        "items": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/schemaNode"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/schemaNode"
+              },
+              "minItems": 1
+            }
+          ]
+        },
+        "additionalItems": {
+          "type": "boolean"
+        },
+        "minItems": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxItems": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "default": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "x-schema-kind": {
+          "enum": ["entity", "connection"]
+        },
+        "x-is-container": {
+          "const": true
+        },
+        "x-content": {
+          "enum": ["plain", "markdown", "inline-markdown", "html"]
+        },
+        "x-css-color": {
+          "const": true
+        },
+        "x-icon-name": {
+          "const": true
+        },
+        "x-ref": {
+          "const": "element"
+        },
+        "x-palette": {
+          "const": true
+        }
+      }
+    },
+    "tagSchema": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/schemaNode"
+        },
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "x-schema-kind",
+            "additionalProperties",
+            "required",
+            "properties"
+          ],
+          "properties": {
+            "type": {
+              "const": "object"
+            },
+            "x-schema-kind": {
+              "enum": ["entity", "connection"]
+            },
+            "x-is-container": {
+              "const": true
+            },
+            "additionalProperties": {
+              "const": false
+            },
+            "required": {
+              "type": "array"
+            },
+            "properties": {
+              "type": "object"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

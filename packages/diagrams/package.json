@@ -1,0 +1,68 @@
+{
+  "name": "@eraserlabs/diagrams",
+  "version": "0.1.0",
+  "description": "The impure conductor: owns Chromium, network, the font lifecycle, and the Eraser template library.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eraserlabs/eraser-diagrams.git",
+    "directory": "packages/diagrams"
+  },
+  "homepage": "https://github.com/eraserlabs/eraser-diagrams",
+  "bugs": "https://github.com/eraserlabs/eraser-diagrams/issues",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./normalizers": {
+      "types": "./dist/library/normalizers.d.ts",
+      "default": "./dist/library/normalizers.js"
+    },
+    "./svg-transforms": {
+      "types": "./dist/icons/svgTransforms.d.ts",
+      "default": "./dist/icons/svgTransforms.js"
+    },
+    "./library": {
+      "types": "./dist/library/index.d.ts",
+      "default": "./dist/library/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map",
+    "fonts",
+    "README.md"
+  ],
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "build": "node scripts/generate.mjs && tsc -b && node ../../tools/strip-dist-comments.mjs",
+    "test": "vitest run --passWithNoTests",
+    "test:e2e": "playwright test --grep-invert @golden",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json",
+    "snap": "PLAYWRIGHT_HTML_OPEN=on-failure playwright test --grep @golden",
+    "snap:update": "playwright test --grep @golden --update-snapshots",
+    "snap:report": "playwright show-report"
+  },
+  "dependencies": {
+    "@eraserlabs/layout": "workspace:*",
+    "@eraserlabs/protocol": "workspace:*",
+    "@eraserlabs/render": "workspace:*",
+    "@eraserlabs/resolve": "workspace:*",
+    "@eraserlabs/utils": "workspace:*",
+    "playwright-core": "1.61.1"
+  },
+  "devDependencies": {
+    "@eraserlabs/server": "workspace:*",
+    "@playwright/test": "1.61.1",
+    "fast-check": "^4.9.0"
+  }
+}

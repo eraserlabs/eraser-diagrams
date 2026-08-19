@@ -1,0 +1,653 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "Group",
+      "title": {
+        "text": "User Layerrrrrr",
+        "icon": "users",
+        "width": "snug"
+      },
+      "bgColor": "#f0f4ff",
+      "borderColor": "#4a6fa5",
+      "id": "g_user",
+      "x": 15,
+      "y": 15,
+      "width": 239,
+      "height": 220
+    },
+    {
+      "tag": "Icon",
+      "icon": "user",
+      "size": "md",
+      "texts": [
+        {
+          "text": "End UserUserUserUserUserUserUser"
+        }
+      ],
+      "id": "user",
+      "x": 110,
+      "y": 105,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_user"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Edge & Web",
+        "icon": "globe",
+        "width": "snug"
+      },
+      "bgColor": "#e8f1fb",
+      "borderColor": "#3b7dd8",
+      "id": "g_edge",
+      "x": 335,
+      "y": 15,
+      "width": 307,
+      "height": 220
+    },
+    {
+      "tag": "Icon",
+      "icon": "azure-front-doors",
+      "size": "md",
+      "texts": [
+        {
+          "text": "Azure Front Door"
+        }
+      ],
+      "id": "frontdoor",
+      "x": 375,
+      "y": 85,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_edge"
+    },
+    {
+      "tag": "Icon",
+      "icon": "azure-app-services",
+      "size": "md",
+      "texts": [
+        {
+          "text": "App Service /",
+          "fontSize": 13
+        },
+        {
+          "text": "Static Web Apps",
+          "fontSize": 13
+        }
+      ],
+      "id": "webapp",
+      "x": 545,
+      "y": 85,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_edge"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "API Gateway",
+        "icon": "shield",
+        "width": "snug"
+      },
+      "bgColor": "#eaf4ec",
+      "borderColor": "#4a9d64",
+      "id": "g_api",
+      "x": 715,
+      "y": 15,
+      "width": 204,
+      "height": 220
+    },
+    {
+      "tag": "Icon",
+      "icon": "azure-api-management-services",
+      "size": "md",
+      "texts": [
+        {
+          "text": "API Management"
+        }
+      ],
+      "id": "apim",
+      "x": 792,
+      "y": 95,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_api"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "AI & Retrieval Services",
+        "icon": "brain",
+        "width": "snug"
+      },
+      "bgColor": "#fdf3e7",
+      "borderColor": "#d38a3a",
+      "id": "g_ai",
+      "x": 15,
+      "y": 285,
+      "width": 904,
+      "height": 260
+    },
+    {
+      "tag": "Icon",
+      "icon": "azure-cognitive-search",
+      "size": "md",
+      "texts": [
+        {
+          "text": "Cognitive Search"
+        }
+      ],
+      "id": "search",
+      "x": 85,
+      "y": 375,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_ai"
+    },
+    {
+      "tag": "Icon",
+      "icon": "azure-openai",
+      "size": "md",
+      "texts": [
+        {
+          "text": "Azure OpenAI"
+        }
+      ],
+      "id": "openai",
+      "x": 295,
+      "y": 375,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_ai"
+    },
+    {
+      "tag": "Icon",
+      "icon": "azure-functions",
+      "size": "md",
+      "texts": [
+        {
+          "text": "Azure Functions"
+        }
+      ],
+      "id": "functions",
+      "x": 505,
+      "y": 375,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_ai"
+    },
+    {
+      "tag": "Icon",
+      "icon": "azure-cache-redis",
+      "size": "md",
+      "texts": [
+        {
+          "text": "Cache for Redis"
+        }
+      ],
+      "id": "redis",
+      "x": 725,
+      "y": 375,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_ai"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Codebase Sources",
+        "icon": "database",
+        "width": "snug"
+      },
+      "bgColor": "#f2ecfa",
+      "borderColor": "#7a5bbf",
+      "id": "g_data",
+      "x": 15,
+      "y": 595,
+      "width": 415,
+      "height": 190
+    },
+    {
+      "tag": "Icon",
+      "icon": "azure-storage-accounts",
+      "size": "md",
+      "texts": [
+        {
+          "text": "Storage"
+        }
+      ],
+      "id": "blob",
+      "x": 85,
+      "y": 675,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_data"
+    },
+    {
+      "tag": "Icon",
+      "icon": "azure-devops",
+      "size": "md",
+      "texts": [
+        {
+          "text": "DevOps Repos"
+        }
+      ],
+      "id": "devops",
+      "x": 305,
+      "y": 675,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_data"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Observability",
+        "icon": "activity",
+        "width": "snug"
+      },
+      "bgColor": "#fdecec",
+      "borderColor": "#c95a5a",
+      "id": "g_mon",
+      "x": 515,
+      "y": 595,
+      "width": 404,
+      "height": 190
+    },
+    {
+      "tag": "Icon",
+      "icon": "azure-monitor",
+      "size": "md",
+      "texts": [
+        {
+          "text": "Azure Monitor"
+        }
+      ],
+      "id": "monitor",
+      "x": 585,
+      "y": 675,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_mon"
+    },
+    {
+      "tag": "Icon",
+      "icon": "azure-application-insights",
+      "size": "md",
+      "texts": [
+        {
+          "text": "App Insights"
+        }
+      ],
+      "id": "appinsights",
+      "x": 805,
+      "y": 675,
+      "width": 50,
+      "height": 50,
+      "containerId": "g_mon"
+    }
+  ],
+  "connections": [
+    {
+      "tag": "Relationship",
+      "from": "user",
+      "to": "frontdoor",
+      "cornerStyle": "elbow",
+      "label": "HTTPS",
+      "labelPlacement": {
+        "x": 43,
+        "y": -8,
+        "width": 49,
+        "height": 17
+      },
+      "id": "r1",
+      "x": 160,
+      "y": 130,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 135,
+          "y": 0
+        },
+        {
+          "x": 135,
+          "y": -20
+        },
+        {
+          "x": 215,
+          "y": -20
+        }
+      ],
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "frontdoor",
+      "to": "webapp",
+      "cornerStyle": "elbow",
+      "id": "r2",
+      "x": 425,
+      "y": 110,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 120,
+          "y": 0
+        }
+      ],
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "webapp",
+      "to": "apim",
+      "cornerStyle": "elbow",
+      "label": "query",
+      "labelPlacement": {
+        "x": 120,
+        "y": 2,
+        "width": 41,
+        "height": 17
+      },
+      "id": "r3",
+      "x": 595,
+      "y": 110,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 84,
+          "y": 0
+        },
+        {
+          "x": 84,
+          "y": 10
+        },
+        {
+          "x": 197,
+          "y": 10
+        }
+      ],
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "apim",
+      "to": "search",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "cornerStyle": "elbow",
+      "id": "r4",
+      "x": 809,
+      "y": 183,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 71
+        },
+        {
+          "x": -699,
+          "y": 71
+        },
+        {
+          "x": -699,
+          "y": 192
+        }
+      ],
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "search",
+      "to": "openai",
+      "cornerStyle": "elbow",
+      "id": "r5",
+      "x": 135,
+      "y": 400,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 160,
+          "y": 0
+        }
+      ],
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "openai",
+      "to": "functions",
+      "cornerStyle": "elbow",
+      "id": "r6",
+      "x": 345,
+      "y": 400,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 160,
+          "y": 0
+        }
+      ],
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "functions",
+      "to": "redis",
+      "cornerStyle": "elbow",
+      "id": "r7",
+      "x": 555,
+      "y": 400,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 170,
+          "y": 0
+        }
+      ],
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "redis",
+      "to": "apim",
+      "label": "response",
+      "fromPort": "top",
+      "toPort": "bottom",
+      "cornerStyle": "elbow",
+      "lineStyle": "dashed",
+      "labelPlacement": {
+        "x": -32,
+        "y": -62,
+        "width": 64,
+        "height": 17
+      },
+      "id": "r8",
+      "x": 750,
+      "y": 375,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": -109
+        },
+        {
+          "x": 67,
+          "y": -109
+        },
+        {
+          "x": 67,
+          "y": -192
+        }
+      ],
+      "endArrowhead": "triangle",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "search",
+      "to": "g_data",
+      "cornerStyle": "elbow",
+      "label": "index",
+      "labelPlacement": {
+        "x": 36,
+        "y": 99,
+        "width": 39,
+        "height": 17
+      },
+      "id": "r9",
+      "x": 110,
+      "y": 463,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 107
+        },
+        {
+          "x": 112,
+          "y": 107
+        },
+        {
+          "x": 112,
+          "y": 132
+        }
+      ],
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "functions",
+      "to": "monitor",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "cornerStyle": "elbow",
+      "lineStyle": "dotted",
+      "color": "gray",
+      "id": "r11",
+      "x": 530,
+      "y": 463,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 180
+        },
+        {
+          "x": 80,
+          "y": 180
+        },
+        {
+          "x": 80,
+          "y": 213
+        }
+      ],
+      "endArrowhead": "triangle",
+      "lineWidth": 0.75
+    },
+    {
+      "tag": "Relationship",
+      "from": "apim",
+      "to": "appinsights",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "cornerStyle": "elbow",
+      "lineStyle": "dotted",
+      "color": "gray",
+      "id": "r12",
+      "x": 825,
+      "y": 183,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 90
+        },
+        {
+          "x": 110,
+          "y": 90
+        },
+        {
+          "x": 110,
+          "y": 390
+        },
+        {
+          "x": 5,
+          "y": 390
+        },
+        {
+          "x": 5,
+          "y": 493
+        }
+      ],
+      "endArrowhead": "triangle",
+      "lineWidth": 0.75
+    }
+  ],
+  "scene": {
+    "x": -1,
+    "y": -1,
+    "width": 952,
+    "height": 802
+  }
+}

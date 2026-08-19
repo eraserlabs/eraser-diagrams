@@ -1,0 +1,452 @@
+{
+  "title": "User Journey Grid",
+  "elements": [
+    {
+      "tag": "Textbox",
+      "id": "title",
+      "text": "# User Journey Map: Anxious Alex",
+      "x": 15,
+      "y": 15,
+      "width": 1280,
+      "height": 40,
+      "fontSize": 20,
+      "hAlign": "center"
+    },
+    {
+      "tag": "Shape",
+      "id": "s1",
+      "shape": "rectangle",
+      "x": 35,
+      "y": 85,
+      "width": 300,
+      "height": 80,
+      "texts": [
+        {
+          "text": "1. The Trigger",
+          "fontSize": 18,
+          "color": "white"
+        }
+      ],
+      "bgColor": "#6b7fb5",
+      "borderColor": "#4a5d8f",
+      "color": "white"
+    },
+    {
+      "tag": "Shape",
+      "id": "s2",
+      "shape": "rectangle",
+      "x": 365,
+      "y": 85,
+      "width": 300,
+      "height": 80,
+      "texts": [
+        {
+          "text": "2. Opening App",
+          "fontSize": 18,
+          "color": "white"
+        }
+      ],
+      "bgColor": "#6b7fb5",
+      "borderColor": "#4a5d8f",
+      "color": "white"
+    },
+    {
+      "tag": "Shape",
+      "id": "s3",
+      "shape": "rectangle",
+      "x": 695,
+      "y": 85,
+      "width": 300,
+      "height": 80,
+      "texts": [
+        {
+          "text": "3. Checking Details",
+          "fontSize": 18,
+          "color": "white"
+        }
+      ],
+      "bgColor": "#6b7fb5",
+      "borderColor": "#4a5d8f",
+      "color": "white"
+    },
+    {
+      "tag": "Shape",
+      "id": "s4",
+      "shape": "rectangle",
+      "x": 1025,
+      "y": 85,
+      "width": 300,
+      "height": 80,
+      "texts": [
+        {
+          "text": "4. Resolution",
+          "fontSize": 18,
+          "color": "white"
+        }
+      ],
+      "bgColor": "#6b7fb5",
+      "borderColor": "#4a5d8f",
+      "color": "white"
+    },
+    {
+      "tag": "Textbox",
+      "id": "lbl-action",
+      "text": "**User Action**",
+      "x": 35,
+      "y": 195,
+      "width": 120,
+      "height": 30,
+      "fontSize": 14
+    },
+    {
+      "tag": "Shape",
+      "id": "a1",
+      "shape": "rectangle",
+      "x": 35,
+      "y": 235,
+      "width": 300,
+      "height": 130,
+      "texts": [
+        {
+          "text": "Alex's phone buzzes with a ParcelPing push notification about a delay.",
+          "fontSize": 13
+        }
+      ],
+      "bgColor": "#fef3e2",
+      "borderColor": "#d4a574",
+      "icon": "bell"
+    },
+    {
+      "tag": "Shape",
+      "id": "a2",
+      "shape": "rectangle",
+      "x": 365,
+      "y": 235,
+      "width": 300,
+      "height": 130,
+      "texts": [
+        {
+          "text": "Alex taps the notification and opens the ParcelPing Home screen.",
+          "fontSize": 13
+        }
+      ],
+      "bgColor": "#fef3e2",
+      "borderColor": "#d4a574",
+      "icon": "smartphone"
+    },
+    {
+      "tag": "Shape",
+      "id": "a3",
+      "shape": "rectangle",
+      "x": 695,
+      "y": 235,
+      "width": 300,
+      "height": 130,
+      "texts": [
+        {
+          "text": "Alex taps the \"Shipments\" tab to see the exact delayed package.",
+          "fontSize": 13
+        }
+      ],
+      "bgColor": "#fef3e2",
+      "borderColor": "#d4a574",
+      "icon": "search"
+    },
+    {
+      "tag": "Shape",
+      "id": "a4",
+      "shape": "rectangle",
+      "x": 1025,
+      "y": 235,
+      "width": 300,
+      "height": 130,
+      "texts": [
+        {
+          "text": "Alex reads the specific Courier Message and logs out to start the return.",
+          "fontSize": 13
+        }
+      ],
+      "bgColor": "#fef3e2",
+      "borderColor": "#d4a574",
+      "icon": "check-circle"
+    },
+    {
+      "tag": "Textbox",
+      "id": "lbl-system",
+      "text": "**System Action**",
+      "x": 35,
+      "y": 395,
+      "width": 150,
+      "height": 30,
+      "fontSize": 14
+    },
+    {
+      "tag": "Shape",
+      "id": "sy1",
+      "shape": "rectangle",
+      "x": 35,
+      "y": 435,
+      "width": 300,
+      "height": 130,
+      "texts": [
+        {
+          "text": "System pushes alert: \"Pickup Window Delayed\".",
+          "fontSize": 13
+        }
+      ],
+      "bgColor": "#e8f0f8",
+      "borderColor": "#7a9cc6",
+      "icon": "server"
+    },
+    {
+      "tag": "Shape",
+      "id": "sy2",
+      "shape": "rectangle",
+      "x": 365,
+      "y": 435,
+      "width": 300,
+      "height": 130,
+      "texts": [
+        {
+          "text": "System loads Home showing 2.5 ETA and AI Summary in under 3 seconds.",
+          "fontSize": 13
+        }
+      ],
+      "bgColor": "#e8f0f8",
+      "borderColor": "#7a9cc6",
+      "icon": "server"
+    },
+    {
+      "tag": "Shape",
+      "id": "sy3",
+      "shape": "rectangle",
+      "x": 695,
+      "y": 435,
+      "width": 300,
+      "height": 130,
+      "texts": [
+        {
+          "text": "System displays Zone 4 with a 94 rating and 1 delayed parcel.",
+          "fontSize": 13
+        }
+      ],
+      "bgColor": "#e8f0f8",
+      "borderColor": "#7a9cc6",
+      "icon": "server"
+    },
+    {
+      "tag": "Shape",
+      "id": "sy4",
+      "shape": "rectangle",
+      "x": 1025,
+      "y": 435,
+      "width": 300,
+      "height": 130,
+      "texts": [
+        {
+          "text": "System marks notification as read.",
+          "fontSize": 13
+        }
+      ],
+      "bgColor": "#e8f0f8",
+      "borderColor": "#7a9cc6",
+      "icon": "server"
+    },
+    {
+      "tag": "Textbox",
+      "id": "lbl-emo",
+      "text": "**User Emotion**",
+      "x": 35,
+      "y": 595,
+      "width": 150,
+      "height": 30,
+      "fontSize": 14
+    },
+    {
+      "tag": "Shape",
+      "id": "e1",
+      "shape": "rectangle",
+      "x": 35,
+      "y": 635,
+      "width": 300,
+      "height": 110,
+      "texts": [
+        {
+          "text": "Anxious / Startled",
+          "fontSize": 15,
+          "color": "white"
+        }
+      ],
+      "bgColor": "#e07b7b",
+      "borderColor": "#b85a5a",
+      "color": "white",
+      "icon": "frown"
+    },
+    {
+      "tag": "Shape",
+      "id": "e2",
+      "shape": "rectangle",
+      "x": 365,
+      "y": 635,
+      "width": 300,
+      "height": 110,
+      "texts": [
+        {
+          "text": "Relieved (seeing the \"Priority Delivery Eligible\" summary)",
+          "fontSize": 14,
+          "color": "white"
+        }
+      ],
+      "bgColor": "#e6b955",
+      "borderColor": "#b8923a",
+      "color": "white",
+      "icon": "smile"
+    },
+    {
+      "tag": "Shape",
+      "id": "e3",
+      "shape": "rectangle",
+      "x": 695,
+      "y": 635,
+      "width": 300,
+      "height": 110,
+      "texts": [
+        {
+          "text": "Focused / Informed",
+          "fontSize": 15,
+          "color": "white"
+        }
+      ],
+      "bgColor": "#7fb87f",
+      "borderColor": "#5a945a",
+      "color": "white",
+      "icon": "eye"
+    },
+    {
+      "tag": "Shape",
+      "id": "e4",
+      "shape": "rectangle",
+      "x": 1025,
+      "y": 635,
+      "width": 300,
+      "height": 110,
+      "texts": [
+        {
+          "text": "Satisfied / Clear on next steps",
+          "fontSize": 15,
+          "color": "white"
+        }
+      ],
+      "bgColor": "#5fa890",
+      "borderColor": "#3f8770",
+      "color": "white",
+      "icon": "thumbs-up"
+    },
+    {
+      "tag": "Textbox",
+      "id": "lbl-pain",
+      "text": "**Pain Point Addressed**",
+      "x": 35,
+      "y": 775,
+      "width": 220,
+      "height": 30,
+      "fontSize": 14
+    },
+    {
+      "tag": "Shape",
+      "id": "p1",
+      "shape": "rectangle",
+      "x": 35,
+      "y": 815,
+      "width": 300,
+      "height": 120,
+      "texts": [
+        {
+          "text": "Replaces waiting for slow call centre updates.",
+          "fontSize": 13
+        }
+      ],
+      "bgColor": "#f5e6f0",
+      "borderColor": "#b07ba0",
+      "icon": "message-circle-off"
+    },
+    {
+      "tag": "Shape",
+      "id": "p2",
+      "shape": "rectangle",
+      "x": 365,
+      "y": 815,
+      "width": 300,
+      "height": 120,
+      "texts": [
+        {
+          "text": "Replaces logging into a slow, laggy carrier portal.",
+          "fontSize": 13
+        }
+      ],
+      "bgColor": "#f5e6f0",
+      "borderColor": "#b07ba0",
+      "icon": "wifi-off"
+    },
+    {
+      "tag": "Shape",
+      "id": "p3",
+      "shape": "rectangle",
+      "x": 695,
+      "y": 815,
+      "width": 300,
+      "height": 120,
+      "texts": [
+        {
+          "text": "Replaces digging through old shipment emails.",
+          "fontSize": 13
+        }
+      ],
+      "bgColor": "#f5e6f0",
+      "borderColor": "#b07ba0",
+      "icon": "folder-x"
+    },
+    {
+      "tag": "Shape",
+      "id": "p4",
+      "shape": "rectangle",
+      "x": 1025,
+      "y": 815,
+      "width": 300,
+      "height": 120,
+      "texts": [
+        {
+          "text": "Provides clear, actionable next steps.",
+          "fontSize": 13
+        }
+      ],
+      "bgColor": "#f5e6f0",
+      "borderColor": "#b07ba0",
+      "icon": "list-checks"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r1",
+      "from": "s1",
+      "fromPort": "right",
+      "to": "s2",
+      "toPort": "left"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r2",
+      "from": "s2",
+      "fromPort": "right",
+      "to": "s3",
+      "toPort": "left"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r3",
+      "from": "s3",
+      "fromPort": "right",
+      "to": "s4",
+      "toPort": "left"
+    }
+  ]
+}

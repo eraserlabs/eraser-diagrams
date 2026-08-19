@@ -1,0 +1,295 @@
+{
+  "title": "Garden Plant Lookup Pipeline",
+  "elements": [
+    {
+      "bgColor": "#E1F5FE",
+      "height": 400,
+      "y": 15,
+      "tag": "Group",
+      "color": "#0288D1",
+      "title": {
+        "text": "Setup & Config",
+        "bgColor": "#E1F5FE",
+        "icon": "settings-2"
+      },
+      "x": 15,
+      "id": "g-setup",
+      "width": 250
+    },
+    {
+      "color": "#388E3C",
+      "title": {
+        "text": "Plant Retrieval",
+        "icon": "search",
+        "bgColor": "#E8F5E9"
+      },
+      "x": 315,
+      "id": "g-retrieve",
+      "width": 300,
+      "bgColor": "#E8F5E9",
+      "height": 400,
+      "y": 15,
+      "tag": "Group"
+    },
+    {
+      "id": "g-process",
+      "width": 300,
+      "color": "#7B1FA2",
+      "title": {
+        "text": "Processing & Storage",
+        "bgColor": "#F3E5F5",
+        "icon": "database"
+      },
+      "x": 665,
+      "tag": "Group",
+      "bgColor": "#F3E5F5",
+      "height": 400,
+      "y": 15
+    },
+    {
+      "bgColor": "#FFFFFF",
+      "height": 60,
+      "y": 75,
+      "containerId": "g-setup",
+      "shape": "oval",
+      "tag": "Shape",
+      "icon": "clock",
+      "color": "#0277BD",
+      "x": 45,
+      "texts": [
+        {
+          "fontSize": 12,
+          "hAlign": "center",
+          "text": "Daily Schedule"
+        }
+      ],
+      "id": "n-schedule",
+      "width": 140
+    },
+    {
+      "icon": "settings-2",
+      "tag": "Shape",
+      "bgColor": "#FFFFFF",
+      "height": 60,
+      "y": 175,
+      "containerId": "g-setup",
+      "shape": "rectangle",
+      "width": 140,
+      "texts": [
+        {
+          "fontSize": 12,
+          "text": "Config Setup",
+          "hAlign": "center"
+        }
+      ],
+      "id": "n-config",
+      "x": 45,
+      "color": "#0277BD"
+    },
+    {
+      "texts": [
+        {
+          "fontSize": 12,
+          "hAlign": "center",
+          "text": "All Species List"
+        }
+      ],
+      "id": "n-industries",
+      "width": 140,
+      "color": "#0277BD",
+      "x": 45,
+      "tag": "Shape",
+      "icon": "list",
+      "bgColor": "#FFFFFF",
+      "height": 60,
+      "y": 275,
+      "containerId": "g-setup",
+      "shape": "rectangle"
+    },
+    {
+      "containerId": "g-retrieve",
+      "shape": "rectangle",
+      "bgColor": "#FFFFFF",
+      "height": 60,
+      "y": 75,
+      "tag": "Shape",
+      "icon": "git-branch",
+      "color": "#2E7D32",
+      "x": 345,
+      "texts": [
+        {
+          "fontSize": 12,
+          "hAlign": "center",
+          "text": "Split by Species"
+        }
+      ],
+      "id": "n-split",
+      "width": 140
+    },
+    {
+      "containerId": "g-retrieve",
+      "shape": "rectangle",
+      "bgColor": "#FFFFFF",
+      "height": 60,
+      "y": 175,
+      "icon": "globe",
+      "tag": "Shape",
+      "x": 345,
+      "color": "#2E7D32",
+      "width": 140,
+      "texts": [
+        {
+          "fontSize": 12,
+          "hAlign": "center",
+          "text": "Petal Plant Search"
+        }
+      ],
+      "id": "n-petal"
+    },
+    {
+      "width": 120,
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "Has Plants?",
+          "fontSize": 12
+        }
+      ],
+      "id": "n-check",
+      "x": 355,
+      "color": "#2E7D32",
+      "icon": "help-circle",
+      "tag": "Shape",
+      "bgColor": "#FFFFFF",
+      "height": 80,
+      "y": 275,
+      "containerId": "g-retrieve",
+      "shape": "diamond"
+    },
+    {
+      "color": "#6A1B9A",
+      "x": 695,
+      "texts": [
+        {
+          "hAlign": "center",
+          "text": "Format Plant Data",
+          "fontSize": 12
+        }
+      ],
+      "id": "n-format",
+      "width": 140,
+      "bgColor": "#FFFFFF",
+      "height": 60,
+      "y": 75,
+      "containerId": "g-process",
+      "shape": "rectangle",
+      "tag": "Shape",
+      "icon": "code-xml"
+    },
+    {
+      "tag": "Shape",
+      "icon": "repeat",
+      "containerId": "g-process",
+      "shape": "rectangle",
+      "bgColor": "#FFFFFF",
+      "height": 60,
+      "y": 175,
+      "texts": [
+        {
+          "fontSize": 12,
+          "text": "Loop Each Plant",
+          "hAlign": "center"
+        }
+      ],
+      "id": "n-loop",
+      "width": 140,
+      "color": "#6A1B9A",
+      "x": 695
+    },
+    {
+      "color": "#6A1B9A",
+      "x": 695,
+      "texts": [
+        {
+          "fontSize": 12,
+          "text": "Save to Sheet",
+          "hAlign": "center"
+        }
+      ],
+      "id": "n-save",
+      "width": 140,
+      "containerId": "g-process",
+      "shape": "rectangle",
+      "bgColor": "#FFFFFF",
+      "height": 60,
+      "y": 275,
+      "tag": "Shape",
+      "icon": "table"
+    },
+    {
+      "from": "n-schedule",
+      "color": "#546E7A",
+      "to": "n-config",
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "id": "r-schedule-config"
+    },
+    {
+      "lineStyle": "solid",
+      "id": "r-config-industries",
+      "tag": "Relationship",
+      "to": "n-industries",
+      "color": "#546E7A",
+      "from": "n-config"
+    },
+    {
+      "color": "#546E7A",
+      "from": "n-industries",
+      "lineStyle": "solid",
+      "id": "r-industries-split",
+      "tag": "Relationship",
+      "to": "n-split"
+    },
+    {
+      "color": "#546E7A",
+      "from": "n-split",
+      "lineStyle": "solid",
+      "id": "r-split-petal",
+      "tag": "Relationship",
+      "to": "n-petal"
+    },
+    {
+      "from": "n-petal",
+      "color": "#546E7A",
+      "to": "n-check",
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "id": "r-petal-check"
+    },
+    {
+      "to": "n-format",
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "id": "r-check-format",
+      "from": "n-check",
+      "label": "Yes",
+      "color": "#546E7A"
+    },
+    {
+      "color": "#546E7A",
+      "from": "n-format",
+      "lineStyle": "solid",
+      "id": "r-format-loop",
+      "tag": "Relationship",
+      "to": "n-loop"
+    },
+    {
+      "tag": "Relationship",
+      "lineStyle": "solid",
+      "id": "r-loop-save",
+      "to": "n-save",
+      "color": "#546E7A",
+      "from": "n-loop"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "name": "eraser-diagrams",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "biome check .",
+    "lint:fix": "biome check --apply-unsafe .",
+    "depcruise": "depcruise packages/*/src --config .dependency-cruiser.cjs",
+    "lint:templates": "pnpm --filter @eraserlabs/diagrams exec vitest run test/lint.test.ts",
+    "typecheck": "tsc -b",
+    "start": "pnpm --filter @eraserlabs/server build && pnpm --filter @eraserlabs/server start",
+    "dev:server": "pnpm --filter @eraserlabs/server dev",
+    "dev:web": "pnpm --filter @eraserlabs/playground dev",
+    "dev": "concurrently -k -n server,web -c blue,magenta \"pnpm dev:server\" \"pnpm dev:web\"",
+    "format": "prettier --write .",
+    "prepare": "husky",
+    "fixtures:import": "tsx tools/fixtures/import.ts",
+    "test:e2e": "pnpm --filter @eraserlabs/render test:e2e && pnpm --filter @eraserlabs/diagrams test:e2e",
+    "snap": "pnpm --filter @eraserlabs/diagrams snap",
+    "snap:update": "pnpm --filter @eraserlabs/diagrams snap:update",
+    "snap:report": "pnpm --filter @eraserlabs/diagrams snap:report",
+    "snap:sheet": "tsx tools/fixtures/snap-sheet.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.8.3",
+    "@eraserlabs/diagrams": "workspace:*",
+    "@eraserlabs/resolve": "workspace:*",
+    "@types/node": "^22.10.0",
+    "concurrently": "^10.0.3",
+    "dependency-cruiser": "^16.10.0",
+    "esbuild": "0.25.12",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.2.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.23.1",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "biome check --error-on-warnings",
+      "prettier --write"
+    ],
+    "*.{json,md,yaml,yml,css,scss,html}": [
+      "prettier --write"
+    ]
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "Textbox",
+      "id": "rough",
+      "x": 30,
+      "y": 20,
+      "width": 720,
+      "typeface": "rough",
+      "fontSize": 28,
+      "text": "rough — The five boxing wizards jump quickly.",
+      "height": 70
+    },
+    {
+      "tag": "Textbox",
+      "id": "clean",
+      "x": 30,
+      "y": 80,
+      "width": 720,
+      "typeface": "clean",
+      "fontSize": 28,
+      "text": "clean — The five boxing wizards jump quickly.",
+      "height": 70
+    },
+    {
+      "tag": "Textbox",
+      "id": "mono",
+      "x": 30,
+      "y": 140,
+      "width": 720,
+      "typeface": "mono",
+      "fontSize": 28,
+      "text": "mono — The five boxing wizards jump quickly.",
+      "height": 105
+    },
+    {
+      "tag": "Shape",
+      "id": "mixed",
+      "x": 30,
+      "y": 220,
+      "width": 720,
+      "height": 133,
+      "styleMode": "plain",
+      "texts": [
+        {
+          "text": "mixed runs: ",
+          "typeface": "clean",
+          "fontSize": 20
+        },
+        {
+          "text": "rough ",
+          "typeface": "rough",
+          "fontSize": 20
+        },
+        {
+          "text": "clean ",
+          "typeface": "clean",
+          "fontSize": 20
+        },
+        {
+          "text": "mono",
+          "typeface": "mono",
+          "fontSize": 20
+        }
+      ]
+    }
+  ],
+  "connections": [],
+  "scene": {
+    "x": 14,
+    "y": 4,
+    "width": 752,
+    "height": 365
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "types": []
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/browser"],
+  "references": [{ "path": "../protocol" }, { "path": "../utils" }]
+}

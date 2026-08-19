@@ -1,0 +1,2739 @@
+{
+  "title": "Bird Classification Zigzag",
+  "elements": [
+    {
+      "tag": "Textbox",
+      "id": "title",
+      "text": "# Bird Species Classification using Neural Networks\n**Detailed Branched Project Flow**",
+      "x": 2415,
+      "y": 15,
+      "width": 1200,
+      "height": 80,
+      "fontSize": 21,
+      "hAlign": "center"
+    },
+    {
+      "tag": "Shape",
+      "id": "start",
+      "shape": "oval",
+      "x": 2765,
+      "y": 135,
+      "width": 500,
+      "height": 70,
+      "texts": [
+        {
+          "text": "START — Project Topic Selection",
+          "fontSize": 18
+        }
+      ],
+      "bgColor": "#d4f1d4",
+      "borderColor": "#2d7a2d"
+    },
+    {
+      "tag": "Group",
+      "id": "g1",
+      "title": {
+        "text": "1. Problem Identification",
+        "icon": "search",
+        "bgColor": "#ffe4b5"
+      },
+      "x": 15,
+      "y": 255,
+      "width": 1180,
+      "height": 420,
+      "bgColor": "#fff8ec",
+      "borderColor": "#cc8400"
+    },
+    {
+      "tag": "Shape",
+      "id": "g1_h",
+      "x": 55,
+      "y": 315,
+      "width": 1100,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Study field-recording system challenges",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#ffe4b5",
+      "containerId": "g1"
+    },
+    {
+      "tag": "Shape",
+      "id": "g1a",
+      "x": 55,
+      "y": 385,
+      "width": 350,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Traditional Limitations",
+          "fontSize": 15
+        },
+        {
+          "text": "• Manual feature extraction",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Poor low-SNR performance",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Complex signal processing",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Limited adaptability",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g1"
+    },
+    {
+      "tag": "Shape",
+      "id": "g1b",
+      "x": 430,
+      "y": 385,
+      "width": 350,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Need for Intelligent Classification",
+          "fontSize": 15
+        },
+        {
+          "text": "• Smart sensors",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Habitat monitoring",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Wildlife conservation",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Autonomous recording units",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g1"
+    },
+    {
+      "tag": "Shape",
+      "id": "g1c",
+      "x": 805,
+      "y": 385,
+      "width": 350,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Project Objectives",
+          "fontSize": 15
+        },
+        {
+          "text": "• High classification accuracy",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Low-SNR robustness",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Reduced manual processing",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Real-time capability",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g1"
+    },
+    {
+      "tag": "Group",
+      "id": "g2",
+      "title": {
+        "text": "2. Literature Review",
+        "icon": "book-open",
+        "bgColor": "#ffe4b5"
+      },
+      "x": 1245,
+      "y": 255,
+      "width": 1480,
+      "height": 420,
+      "bgColor": "#fff8ec",
+      "borderColor": "#cc8400"
+    },
+    {
+      "tag": "Shape",
+      "id": "g2_h",
+      "x": 1285,
+      "y": 315,
+      "width": 1400,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Study existing research works",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#ffe4b5",
+      "containerId": "g2"
+    },
+    {
+      "tag": "Shape",
+      "id": "g2a",
+      "x": 1285,
+      "y": 385,
+      "width": 330,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Acoustic Signal Theory",
+          "fontSize": 15
+        },
+        {
+          "text": "• AMRO, BCCH, RBGU",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• SOS16, SOS64",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• COO",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• TWP",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g2"
+    },
+    {
+      "tag": "Shape",
+      "id": "g2b",
+      "x": 1640,
+      "y": 385,
+      "width": 330,
+      "height": 270,
+      "texts": [
+        {
+          "text": "NN Architectures",
+          "fontSize": 15
+        },
+        {
+          "text": "• CNN",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• RNN / LSTM",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Attention Networks",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Hybrid models",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g2"
+    },
+    {
+      "tag": "Shape",
+      "id": "g2c",
+      "x": 1995,
+      "y": 385,
+      "width": 330,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Bio ML Papers",
+          "fontSize": 15
+        },
+        {
+          "text": "• Accuracy analysis",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Noise analysis",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• SNR studies",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Model comparison",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g2"
+    },
+    {
+      "tag": "Shape",
+      "id": "g2d",
+      "x": 2350,
+      "y": 385,
+      "width": 330,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Optimization Methods",
+          "fontSize": 15
+        },
+        {
+          "text": "• Adam",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• SGD",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• RMSProp",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• LR scheduling",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g2"
+    },
+    {
+      "tag": "Group",
+      "id": "g3",
+      "title": {
+        "text": "3. Dataset Collection",
+        "icon": "database",
+        "bgColor": "#ffe4b5"
+      },
+      "x": 2775,
+      "y": 255,
+      "width": 1240,
+      "height": 420,
+      "bgColor": "#fff8ec",
+      "borderColor": "#cc8400"
+    },
+    {
+      "tag": "Shape",
+      "id": "g3_h",
+      "x": 2815,
+      "y": 315,
+      "width": 1160,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Collect AviaCall 2016.10a dataset",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#ffe4b5",
+      "containerId": "g3"
+    },
+    {
+      "tag": "Shape",
+      "id": "g3a",
+      "x": 2815,
+      "y": 385,
+      "width": 560,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Dataset Contents",
+          "fontSize": 15
+        },
+        {
+          "text": "• Raw audio clips",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Multiple call-type classes",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Multiple SNR levels",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Signal metadata",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Label information",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g3"
+    },
+    {
+      "tag": "Shape",
+      "id": "g3b",
+      "x": 3395,
+      "y": 385,
+      "width": 580,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Verify Dataset Integrity",
+          "fontSize": 15
+        },
+        {
+          "text": "• Missing samples?",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Corrupted signals?",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Label mismatch?",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Imbalanced classes?",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g3"
+    },
+    {
+      "tag": "Group",
+      "id": "g4",
+      "title": {
+        "text": "4. Data Analysis",
+        "icon": "chart-bar-increasing",
+        "bgColor": "#ffe4b5"
+      },
+      "x": 4065,
+      "y": 255,
+      "width": 1180,
+      "height": 420,
+      "bgColor": "#fff8ec",
+      "borderColor": "#cc8400"
+    },
+    {
+      "tag": "Shape",
+      "id": "g4_h",
+      "x": 4105,
+      "y": 315,
+      "width": 1100,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Analyze signal properties",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#ffe4b5",
+      "containerId": "g4"
+    },
+    {
+      "tag": "Shape",
+      "id": "g4a",
+      "x": 4105,
+      "y": 385,
+      "width": 350,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Signal Visualization",
+          "fontSize": 15
+        },
+        {
+          "text": "• Time-domain analysis",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Spectrogram",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Spectrogram diagrams",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Noise distribution",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g4"
+    },
+    {
+      "tag": "Shape",
+      "id": "g4b",
+      "x": 4480,
+      "y": 385,
+      "width": 350,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Statistical Analysis",
+          "fontSize": 15
+        },
+        {
+          "text": "• Mean",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Variance",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Signal power",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• SNR distribution",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g4"
+    },
+    {
+      "tag": "Shape",
+      "id": "g4c",
+      "x": 4855,
+      "y": 385,
+      "width": 350,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Dataset Understanding",
+          "fontSize": 15
+        },
+        {
+          "text": "• Number of samples",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Number of classes",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Signal dimensions",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Class balance",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g4"
+    },
+    {
+      "tag": "Group",
+      "id": "g5",
+      "title": {
+        "text": "5. Data Preprocessing",
+        "icon": "sliders",
+        "bgColor": "#cfe6ff"
+      },
+      "x": 15,
+      "y": 735,
+      "width": 1480,
+      "height": 420,
+      "bgColor": "#eef6ff",
+      "borderColor": "#3a78c2"
+    },
+    {
+      "tag": "Shape",
+      "id": "g5_h",
+      "x": 55,
+      "y": 795,
+      "width": 1400,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Prepare data for training",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#cfe6ff",
+      "containerId": "g5"
+    },
+    {
+      "tag": "Shape",
+      "id": "g5a",
+      "x": 55,
+      "y": 865,
+      "width": 265,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Signal Normalization",
+          "fontSize": 14
+        },
+        {
+          "text": "• Min-Max scaling",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Standard norm.",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g5"
+    },
+    {
+      "tag": "Shape",
+      "id": "g5b",
+      "x": 335,
+      "y": 865,
+      "width": 265,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Label Processing",
+          "fontSize": 14
+        },
+        {
+          "text": "• Integer encoding",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• One-hot encoding",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g5"
+    },
+    {
+      "tag": "Shape",
+      "id": "g5c",
+      "x": 615,
+      "y": 865,
+      "width": 265,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Dataset Balancing",
+          "fontSize": 14
+        },
+        {
+          "text": "• Oversampling",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Undersampling",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Balanced split",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g5"
+    },
+    {
+      "tag": "Shape",
+      "id": "g5d",
+      "x": 895,
+      "y": 865,
+      "width": 265,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Noise Filtering",
+          "fontSize": 14
+        },
+        {
+          "text": "• Remove corrupted",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Outlier detection",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g5"
+    },
+    {
+      "tag": "Shape",
+      "id": "g5e",
+      "x": 1175,
+      "y": 865,
+      "width": 280,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Dataset Splitting",
+          "fontSize": 14
+        },
+        {
+          "text": "• Training set",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Validation set",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Testing set",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g5"
+    },
+    {
+      "tag": "Group",
+      "id": "g6",
+      "title": {
+        "text": "6. Baseline Model Selection",
+        "icon": "check-circle",
+        "bgColor": "#cfe6ff"
+      },
+      "x": 1545,
+      "y": 735,
+      "width": 1180,
+      "height": 420,
+      "bgColor": "#eef6ff",
+      "borderColor": "#3a78c2"
+    },
+    {
+      "tag": "Shape",
+      "id": "g6_h",
+      "x": 1585,
+      "y": 795,
+      "width": 1100,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Choose initial algorithm",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#cfe6ff",
+      "containerId": "g6"
+    },
+    {
+      "tag": "Shape",
+      "id": "g6a",
+      "x": 1585,
+      "y": 865,
+      "width": 540,
+      "height": 270,
+      "texts": [
+        {
+          "text": "CNN Selected as Baseline",
+          "fontSize": 15
+        },
+        {
+          "text": "• Strong feature extraction",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Efficient computation",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Good call detection",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Lower complexity",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g6"
+    },
+    {
+      "tag": "Shape",
+      "id": "g6b",
+      "x": 2140,
+      "y": 865,
+      "width": 545,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Baseline Objectives",
+          "fontSize": 15
+        },
+        {
+          "text": "• Stable learning",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Moderate accuracy",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Fast convergence",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Easy optimization",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g6"
+    },
+    {
+      "tag": "Group",
+      "id": "g7",
+      "title": {
+        "text": "7. Model Architecture Design",
+        "icon": "layers",
+        "bgColor": "#cfe6ff"
+      },
+      "x": 2775,
+      "y": 735,
+      "width": 2470,
+      "height": 420,
+      "bgColor": "#eef6ff",
+      "borderColor": "#3a78c2"
+    },
+    {
+      "tag": "Shape",
+      "id": "g7_h",
+      "x": 2815,
+      "y": 795,
+      "width": 2390,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Design Neural Network",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#cfe6ff",
+      "containerId": "g7"
+    },
+    {
+      "tag": "Shape",
+      "id": "g7a",
+      "x": 2815,
+      "y": 865,
+      "width": 380,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Input Layer",
+          "fontSize": 14
+        },
+        {
+          "text": "• I channel",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Q channel",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g7"
+    },
+    {
+      "tag": "Shape",
+      "id": "g7b",
+      "x": 3210,
+      "y": 865,
+      "width": 380,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Convolution Layers",
+          "fontSize": 14
+        },
+        {
+          "text": "• Feature extraction",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Local pattern learning",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Signal representation",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g7"
+    },
+    {
+      "tag": "Shape",
+      "id": "g7c",
+      "x": 3605,
+      "y": 865,
+      "width": 380,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Activation Functions",
+          "fontSize": 14
+        },
+        {
+          "text": "• ReLU",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Leaky ReLU",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• ELU",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g7"
+    },
+    {
+      "tag": "Shape",
+      "id": "g7d",
+      "x": 4000,
+      "y": 865,
+      "width": 380,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Pooling Layers",
+          "fontSize": 14
+        },
+        {
+          "text": "• Max pooling",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Average pooling",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g7"
+    },
+    {
+      "tag": "Shape",
+      "id": "g7e",
+      "x": 4395,
+      "y": 865,
+      "width": 380,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Dense Layers",
+          "fontSize": 14
+        },
+        {
+          "text": "• High-level learning",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Classification mapping",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g7"
+    },
+    {
+      "tag": "Shape",
+      "id": "g7f",
+      "x": 4790,
+      "y": 865,
+      "width": 415,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Output Layer",
+          "fontSize": 14
+        },
+        {
+          "text": "• Softmax activation",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Probability prediction",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g7"
+    },
+    {
+      "tag": "Group",
+      "id": "g8",
+      "title": {
+        "text": "8. Loss Function Study",
+        "icon": "trending-down",
+        "bgColor": "#e6d4f5"
+      },
+      "x": 15,
+      "y": 1215,
+      "width": 1480,
+      "height": 440,
+      "bgColor": "#f5edff",
+      "borderColor": "#6a3bb5"
+    },
+    {
+      "tag": "Shape",
+      "id": "g8_h",
+      "x": 55,
+      "y": 1275,
+      "width": 1400,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Analyze classification losses",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#e6d4f5",
+      "containerId": "g8"
+    },
+    {
+      "tag": "Shape",
+      "id": "g8a",
+      "x": 55,
+      "y": 1345,
+      "width": 345,
+      "height": 290,
+      "texts": [
+        {
+          "text": "Cross Entropy Loss",
+          "fontSize": 14
+        },
+        {
+          "text": "• Multi-class suitability",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Probability optimization",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Stable gradients",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g8"
+    },
+    {
+      "tag": "Shape",
+      "id": "g8b",
+      "x": 415,
+      "y": 1345,
+      "width": 345,
+      "height": 290,
+      "texts": [
+        {
+          "text": "Loss Curve Monitoring",
+          "fontSize": 14
+        },
+        {
+          "text": "• Training loss",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Validation loss",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Convergence behavior",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g8"
+    },
+    {
+      "tag": "Shape",
+      "id": "g8c",
+      "x": 775,
+      "y": 1345,
+      "width": 345,
+      "height": 290,
+      "texts": [
+        {
+          "text": "Error Analysis",
+          "fontSize": 14
+        },
+        {
+          "text": "• High-loss regions",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Gradient explosion",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Gradient vanishing",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Instability detection",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g8"
+    },
+    {
+      "tag": "Shape",
+      "id": "g8d",
+      "x": 1135,
+      "y": 1345,
+      "width": 320,
+      "height": 290,
+      "texts": [
+        {
+          "text": "Correction Methods",
+          "fontSize": 14
+        },
+        {
+          "text": "• LR tuning",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Gradient clipping",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Batch normalization",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Weight regularization",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g8"
+    },
+    {
+      "tag": "Group",
+      "id": "g9",
+      "title": {
+        "text": "9. Optimizer Comparison",
+        "icon": "git-compare",
+        "bgColor": "#e6d4f5"
+      },
+      "x": 1545,
+      "y": 1215,
+      "width": 1480,
+      "height": 440,
+      "bgColor": "#f5edff",
+      "borderColor": "#6a3bb5"
+    },
+    {
+      "tag": "Shape",
+      "id": "g9_h",
+      "x": 1585,
+      "y": 1275,
+      "width": 1400,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Apply different optimizers",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#e6d4f5",
+      "containerId": "g9"
+    },
+    {
+      "tag": "Shape",
+      "id": "g9a",
+      "x": 1585,
+      "y": 1345,
+      "width": 345,
+      "height": 290,
+      "texts": [
+        {
+          "text": "Adam",
+          "fontSize": 14
+        },
+        {
+          "text": "• Fast convergence",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Adaptive learning",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Stable training",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g9"
+    },
+    {
+      "tag": "Shape",
+      "id": "g9b",
+      "x": 1945,
+      "y": 1345,
+      "width": 345,
+      "height": 290,
+      "texts": [
+        {
+          "text": "SGD",
+          "fontSize": 14
+        },
+        {
+          "text": "• Better generalization",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Slower convergence",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Requires tuning",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g9"
+    },
+    {
+      "tag": "Shape",
+      "id": "g9c",
+      "x": 2305,
+      "y": 1345,
+      "width": 345,
+      "height": 290,
+      "texts": [
+        {
+          "text": "RMSProp",
+          "fontSize": 14
+        },
+        {
+          "text": "• Good for noisy gradients",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Stable updates",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g9"
+    },
+    {
+      "tag": "Shape",
+      "id": "g9d",
+      "x": 2665,
+      "y": 1345,
+      "width": 320,
+      "height": 290,
+      "texts": [
+        {
+          "text": "Compare Behavior",
+          "fontSize": 14
+        },
+        {
+          "text": "• Accuracy",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Loss reduction",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Training speed",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Stability",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g9"
+    },
+    {
+      "tag": "Group",
+      "id": "g10",
+      "title": {
+        "text": "10. Model Training",
+        "icon": "cpu",
+        "bgColor": "#e6d4f5"
+      },
+      "x": 3075,
+      "y": 1215,
+      "width": 2170,
+      "height": 440,
+      "bgColor": "#f5edff",
+      "borderColor": "#6a3bb5"
+    },
+    {
+      "tag": "Shape",
+      "id": "g10_h",
+      "x": 3115,
+      "y": 1275,
+      "width": 2090,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Train Neural Network & monitor learning",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#e6d4f5",
+      "containerId": "g10"
+    },
+    {
+      "tag": "Shape",
+      "id": "g10a",
+      "x": 3115,
+      "y": 1345,
+      "width": 1020,
+      "height": 290,
+      "texts": [
+        {
+          "text": "Training Loop",
+          "fontSize": 15
+        },
+        {
+          "text": "• Forward propagation",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Error calculation",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Backpropagation",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Weight update",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Epoch iteration",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g10"
+    },
+    {
+      "tag": "Shape",
+      "id": "g10b",
+      "x": 4150,
+      "y": 1345,
+      "width": 1055,
+      "height": 290,
+      "texts": [
+        {
+          "text": "Learning Behavior",
+          "fontSize": 15
+        },
+        {
+          "text": "• Accuracy curves",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Loss curves",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Overfitting detection",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Underfitting detection",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Validation performance",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g10"
+    },
+    {
+      "tag": "Group",
+      "id": "g11",
+      "title": {
+        "text": "11. Model Evaluation",
+        "icon": "clipboard-check",
+        "bgColor": "#ffd9d9"
+      },
+      "x": 15,
+      "y": 1715,
+      "width": 1480,
+      "height": 420,
+      "bgColor": "#fff0f0",
+      "borderColor": "#b53b3b"
+    },
+    {
+      "tag": "Shape",
+      "id": "g11_h",
+      "x": 55,
+      "y": 1775,
+      "width": 1400,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Evaluate classification performance",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#ffd9d9",
+      "containerId": "g11"
+    },
+    {
+      "tag": "Shape",
+      "id": "g11a",
+      "x": 55,
+      "y": 1845,
+      "width": 680,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Metrics",
+          "fontSize": 15
+        },
+        {
+          "text": "• Accuracy",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Precision",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Recall",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• F1-score",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Confusion matrix",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g11"
+    },
+    {
+      "tag": "Shape",
+      "id": "g11b",
+      "x": 750,
+      "y": 1845,
+      "width": 705,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Confusion Matrix Analysis",
+          "fontSize": 15
+        },
+        {
+          "text": "• Correct classifications",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Similar species confusion",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Low-SNR errors",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• False predictions",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g11"
+    },
+    {
+      "tag": "Group",
+      "id": "g12",
+      "title": {
+        "text": "12. Error Analysis",
+        "icon": "alert-triangle",
+        "bgColor": "#ffd9d9"
+      },
+      "x": 1545,
+      "y": 1715,
+      "width": 1480,
+      "height": 420,
+      "bgColor": "#fff0f0",
+      "borderColor": "#b53b3b"
+    },
+    {
+      "tag": "Shape",
+      "id": "g12_h",
+      "x": 1585,
+      "y": 1775,
+      "width": 1400,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Study incorrect predictions",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#ffd9d9",
+      "containerId": "g12"
+    },
+    {
+      "tag": "Shape",
+      "id": "g12a",
+      "x": 1585,
+      "y": 1845,
+      "width": 345,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Similar Signal Confusion",
+          "fontSize": 13
+        },
+        {
+          "text": "• BCCH vs RBGU",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• SOS16 vs SOS64",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• CH-TRL vs CH-WRB",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g12"
+    },
+    {
+      "tag": "Shape",
+      "id": "g12b",
+      "x": 1945,
+      "y": 1845,
+      "width": 345,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Noise Sensitivity",
+          "fontSize": 14
+        },
+        {
+          "text": "• High-SNR behavior",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Low-SNR degradation",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g12"
+    },
+    {
+      "tag": "Shape",
+      "id": "g12c",
+      "x": 2305,
+      "y": 1845,
+      "width": 345,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Model Instability",
+          "fontSize": 14
+        },
+        {
+          "text": "• Oscillating loss",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Poor convergence",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Weak generalization",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g12"
+    },
+    {
+      "tag": "Shape",
+      "id": "g12d",
+      "x": 2665,
+      "y": 1845,
+      "width": 320,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Root-Cause",
+          "fontSize": 14
+        },
+        {
+          "text": "• Poor features",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Weak architecture",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Improper tuning",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Data imbalance",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g12"
+    },
+    {
+      "tag": "Group",
+      "id": "g13",
+      "title": {
+        "text": "13. Model Optimization",
+        "icon": "settings",
+        "bgColor": "#ffd9d9"
+      },
+      "x": 3075,
+      "y": 1715,
+      "width": 2170,
+      "height": 420,
+      "bgColor": "#fff0f0",
+      "borderColor": "#b53b3b"
+    },
+    {
+      "tag": "Shape",
+      "id": "g13_h",
+      "x": 3115,
+      "y": 1775,
+      "width": 2090,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Improve model performance",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#ffd9d9",
+      "containerId": "g13"
+    },
+    {
+      "tag": "Shape",
+      "id": "g13a",
+      "x": 3115,
+      "y": 1845,
+      "width": 510,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Hyperparameter Tuning",
+          "fontSize": 14
+        },
+        {
+          "text": "• Learning rate",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Batch size",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Kernel size",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Number of filters",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Number of layers",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g13"
+    },
+    {
+      "tag": "Shape",
+      "id": "g13b",
+      "x": 3640,
+      "y": 1845,
+      "width": 510,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Regularization",
+          "fontSize": 14
+        },
+        {
+          "text": "• Dropout",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• L2 regularization",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Early stopping",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g13"
+    },
+    {
+      "tag": "Shape",
+      "id": "g13c",
+      "x": 4165,
+      "y": 1845,
+      "width": 510,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Architecture Improvement",
+          "fontSize": 14
+        },
+        {
+          "text": "• Deeper CNN",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Residual blocks",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Attention mechanism",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g13"
+    },
+    {
+      "tag": "Shape",
+      "id": "g13d",
+      "x": 4690,
+      "y": 1845,
+      "width": 515,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Computational Optimization",
+          "fontSize": 14
+        },
+        {
+          "text": "• Faster training",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Reduced memory",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Efficient inference",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g13"
+    },
+    {
+      "tag": "Group",
+      "id": "g14",
+      "title": {
+        "text": "14. Advanced Algorithm Testing",
+        "icon": "flask-conical",
+        "bgColor": "#d4f1d4"
+      },
+      "x": 15,
+      "y": 2195,
+      "width": 1780,
+      "height": 420,
+      "bgColor": "#ecf9ec",
+      "borderColor": "#2d7a2d"
+    },
+    {
+      "tag": "Shape",
+      "id": "g14_h",
+      "x": 55,
+      "y": 2255,
+      "width": 1700,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Apply alternative models",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#d4f1d4",
+      "containerId": "g14"
+    },
+    {
+      "tag": "Shape",
+      "id": "g14a",
+      "x": 55,
+      "y": 2325,
+      "width": 410,
+      "height": 270,
+      "texts": [
+        {
+          "text": "CNN + LSTM",
+          "fontSize": 14
+        },
+        {
+          "text": "• Temporal learning",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Sequential analysis",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g14"
+    },
+    {
+      "tag": "Shape",
+      "id": "g14b",
+      "x": 480,
+      "y": 2325,
+      "width": 410,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Deep CNN",
+          "fontSize": 14
+        },
+        {
+          "text": "• Better feature hierarchy",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Higher complexity",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g14"
+    },
+    {
+      "tag": "Shape",
+      "id": "g14c",
+      "x": 905,
+      "y": 2325,
+      "width": 410,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Attention-based CNN",
+          "fontSize": 14
+        },
+        {
+          "text": "• Focus on key regions",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Better interpretability",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g14"
+    },
+    {
+      "tag": "Shape",
+      "id": "g14d",
+      "x": 1330,
+      "y": 2325,
+      "width": 425,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Dense Neural Networks",
+          "fontSize": 14
+        },
+        {
+          "text": "• Simpler architecture",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Baseline comparison",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g14"
+    },
+    {
+      "tag": "Group",
+      "id": "g15",
+      "title": {
+        "text": "15. Comparative Analysis",
+        "icon": "bar-chart-2",
+        "bgColor": "#d4f1d4"
+      },
+      "x": 1845,
+      "y": 2195,
+      "width": 1780,
+      "height": 420,
+      "bgColor": "#ecf9ec",
+      "borderColor": "#2d7a2d"
+    },
+    {
+      "tag": "Shape",
+      "id": "g15_h",
+      "x": 1885,
+      "y": 2255,
+      "width": 1700,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Compare all models",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#d4f1d4",
+      "containerId": "g15"
+    },
+    {
+      "tag": "Shape",
+      "id": "g15a",
+      "x": 1885,
+      "y": 2325,
+      "width": 830,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Comparison Metrics",
+          "fontSize": 15
+        },
+        {
+          "text": "• Accuracy comparison",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Loss comparison",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Training time",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Memory usage",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Low-SNR robustness",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Computational complexity",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Stability",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g15"
+    },
+    {
+      "tag": "Shape",
+      "id": "g15b",
+      "x": 2730,
+      "y": 2325,
+      "width": 855,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Comparison Graphs",
+          "fontSize": 15
+        },
+        {
+          "text": "• Accuracy vs Epoch",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Loss vs Epoch",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Accuracy vs SNR",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Optimizer comparison",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Model comparison charts",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g15"
+    },
+    {
+      "tag": "Group",
+      "id": "g16",
+      "title": {
+        "text": "16. Final Model Selection",
+        "icon": "award",
+        "bgColor": "#d4f1d4"
+      },
+      "x": 3675,
+      "y": 2195,
+      "width": 1570,
+      "height": 420,
+      "bgColor": "#ecf9ec",
+      "borderColor": "#2d7a2d"
+    },
+    {
+      "tag": "Shape",
+      "id": "g16_h",
+      "x": 3715,
+      "y": 2255,
+      "width": 1490,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Choose best-performing architecture",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#d4f1d4",
+      "containerId": "g16"
+    },
+    {
+      "tag": "Shape",
+      "id": "g16a",
+      "x": 3715,
+      "y": 2325,
+      "width": 1490,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Selection Criteria",
+          "fontSize": 15
+        },
+        {
+          "text": "• Highest accuracy",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Lowest loss",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Better generalization",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Low-SNR performance",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Stability",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Computational efficiency",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g16"
+    },
+    {
+      "tag": "Group",
+      "id": "g17",
+      "title": {
+        "text": "17. Final Testing",
+        "icon": "check-square",
+        "bgColor": "#ffe4b5"
+      },
+      "x": 15,
+      "y": 2675,
+      "width": 1780,
+      "height": 420,
+      "bgColor": "#fff8ec",
+      "borderColor": "#cc8400"
+    },
+    {
+      "tag": "Shape",
+      "id": "g17_h",
+      "x": 55,
+      "y": 2735,
+      "width": 1700,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Test on unseen bird call samples",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#ffe4b5",
+      "containerId": "g17"
+    },
+    {
+      "tag": "Shape",
+      "id": "g17a",
+      "x": 55,
+      "y": 2805,
+      "width": 1700,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Testing Goals",
+          "fontSize": 15
+        },
+        {
+          "text": "• Real-world prediction capability",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Robustness verification",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Generalization testing",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Final performance validation",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g17"
+    },
+    {
+      "tag": "Group",
+      "id": "g18",
+      "title": {
+        "text": "18. Result Visualization",
+        "icon": "image",
+        "bgColor": "#ffe4b5"
+      },
+      "x": 1845,
+      "y": 2675,
+      "width": 1780,
+      "height": 420,
+      "bgColor": "#fff8ec",
+      "borderColor": "#cc8400"
+    },
+    {
+      "tag": "Shape",
+      "id": "g18_h",
+      "x": 1885,
+      "y": 2735,
+      "width": 1700,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Generate final outputs",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#ffe4b5",
+      "containerId": "g18"
+    },
+    {
+      "tag": "Shape",
+      "id": "g18a",
+      "x": 1885,
+      "y": 2805,
+      "width": 1700,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Visualizations",
+          "fontSize": 15
+        },
+        {
+          "text": "• Confusion matrix",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Accuracy plots",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Loss curves",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• SNR performance graphs",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Optimizer comparison tables",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Model architecture diagrams",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g18"
+    },
+    {
+      "tag": "Group",
+      "id": "g19",
+      "title": {
+        "text": "19. Conclusion",
+        "icon": "file-text",
+        "bgColor": "#ffe4b5"
+      },
+      "x": 3675,
+      "y": 2675,
+      "width": 1570,
+      "height": 420,
+      "bgColor": "#fff8ec",
+      "borderColor": "#cc8400"
+    },
+    {
+      "tag": "Shape",
+      "id": "g19_h",
+      "x": 3715,
+      "y": 2735,
+      "width": 1490,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Summarize findings",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#ffe4b5",
+      "containerId": "g19"
+    },
+    {
+      "tag": "Shape",
+      "id": "g19a",
+      "x": 3715,
+      "y": 2805,
+      "width": 1490,
+      "height": 270,
+      "texts": [
+        {
+          "text": "Conclusions",
+          "fontSize": 15
+        },
+        {
+          "text": "• Best-performing algorithm",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Neural Network effectiveness",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• BioML advantages",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Conservation applications",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Research contributions",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g19"
+    },
+    {
+      "tag": "Group",
+      "id": "g20",
+      "title": {
+        "text": "20. Future Scope",
+        "icon": "rocket",
+        "bgColor": "#cfe6ff"
+      },
+      "x": 1845,
+      "y": 3155,
+      "width": 1780,
+      "height": 380,
+      "bgColor": "#eef6ff",
+      "borderColor": "#3a78c2"
+    },
+    {
+      "tag": "Shape",
+      "id": "g20_h",
+      "x": 1885,
+      "y": 3215,
+      "width": 1700,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Possible future improvements",
+          "fontSize": 15
+        }
+      ],
+      "bgColor": "#cfe6ff",
+      "containerId": "g20"
+    },
+    {
+      "tag": "Shape",
+      "id": "g20a",
+      "x": 1885,
+      "y": 3285,
+      "width": 1700,
+      "height": 230,
+      "texts": [
+        {
+          "text": "Future Directions",
+          "fontSize": 15
+        },
+        {
+          "text": "• Real-time edge implementation",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Complex-valued Neural Networks",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• FPGA acceleration",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Edge-AI deployment",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Transformer architectures",
+          "fontSize": 12,
+          "hAlign": "left"
+        },
+        {
+          "text": "• Smart sensor net integration",
+          "fontSize": 12,
+          "hAlign": "left"
+        }
+      ],
+      "bgColor": "white",
+      "containerId": "g20"
+    },
+    {
+      "tag": "Shape",
+      "id": "end",
+      "shape": "oval",
+      "x": 2490,
+      "y": 3575,
+      "width": 500,
+      "height": 70,
+      "texts": [
+        {
+          "text": "END",
+          "fontSize": 18
+        }
+      ],
+      "bgColor": "#ffd9d9",
+      "borderColor": "#b53b3b"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_start_1",
+      "from": "start",
+      "fromPort": "left",
+      "to": "g1",
+      "toPort": "top"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_1_2",
+      "from": "g1",
+      "fromPort": "right",
+      "to": "g2",
+      "toPort": "left"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_2_3",
+      "from": "g2",
+      "fromPort": "right",
+      "to": "g3",
+      "toPort": "left"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_3_4",
+      "from": "g3",
+      "fromPort": "right",
+      "to": "g4",
+      "toPort": "left"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_4_5",
+      "from": "g4",
+      "fromPort": "bottom",
+      "to": "g5",
+      "toPort": "top"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_5_6",
+      "from": "g5",
+      "fromPort": "right",
+      "to": "g6",
+      "toPort": "left"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_6_7",
+      "from": "g6",
+      "fromPort": "right",
+      "to": "g7",
+      "toPort": "left"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_7_8",
+      "from": "g7",
+      "fromPort": "bottom",
+      "to": "g8",
+      "toPort": "top"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_8_9",
+      "from": "g8",
+      "fromPort": "right",
+      "to": "g9",
+      "toPort": "left"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_9_10",
+      "from": "g9",
+      "fromPort": "right",
+      "to": "g10",
+      "toPort": "left"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_10_11",
+      "from": "g10",
+      "fromPort": "bottom",
+      "to": "g11",
+      "toPort": "top"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_11_12",
+      "from": "g11",
+      "fromPort": "right",
+      "to": "g12",
+      "toPort": "left"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_12_13",
+      "from": "g12",
+      "fromPort": "right",
+      "to": "g13",
+      "toPort": "left"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_13_14",
+      "from": "g13",
+      "fromPort": "bottom",
+      "to": "g14",
+      "toPort": "top"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_14_15",
+      "from": "g14",
+      "fromPort": "right",
+      "to": "g15",
+      "toPort": "left"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_15_16",
+      "from": "g15",
+      "fromPort": "right",
+      "to": "g16",
+      "toPort": "left"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_16_17",
+      "from": "g16",
+      "fromPort": "bottom",
+      "to": "g17",
+      "toPort": "top"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_17_18",
+      "from": "g17",
+      "fromPort": "right",
+      "to": "g18",
+      "toPort": "left"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_18_19",
+      "from": "g18",
+      "fromPort": "right",
+      "to": "g19",
+      "toPort": "left"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_19_20",
+      "from": "g19",
+      "fromPort": "bottom",
+      "to": "g20",
+      "toPort": "right"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_20_end",
+      "from": "g20",
+      "fromPort": "bottom",
+      "to": "end",
+      "toPort": "top"
+    }
+  ]
+}

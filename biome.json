@@ -1,0 +1,140 @@
+{
+  "files": {
+    "ignore": [
+      "**/dist/*",
+      "storybook-static",
+      ".next",
+      ".vscode",
+      ".cursor",
+      ".claude",
+      ".kiro",
+      "./packages/app/.export",
+      "./packages/diagram-parser/src/diagrams/*/generated",
+      "./packages/eraser-dsl/out",
+      "./packages/eraser-dsl/src/language/generated",
+      "./packages/app/static/diagram-layout-engine.js",
+      "./packages/private-cloud/static/diagram-layout-engine.js",
+      "./scripts/**/*.sh",
+      "./admin-diagrams/baseline.json",
+      "./admin-diagrams/current.json"
+    ]
+  },
+  "formatter": {
+    "enabled": false
+  },
+  "organizeImports": {
+    "enabled": false
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "style": {
+        "noNonNullAssertion": "off",
+        "useEnumInitializers": "off",
+        "noUnusedTemplateLiteral": "off",
+        "useTemplate": "off",
+        "noParameterAssign": "off",
+        "useBlockStatements": "error",
+        "useFragmentSyntax": "error",
+        "useImportType": "off",
+        "noUselessElse": "off",
+        "useNumberNamespace": "off",
+        "useNodejsImportProtocol": "off"
+      },
+      "a11y": {
+        "useKeyWithClickEvents": "off",
+        "useButtonType": "off",
+        "useValidAnchor": "off",
+        "noAutofocus": "off",
+        "noSvgWithoutTitle": "off",
+        "noNoninteractiveTabindex": "off"
+      },
+      "nursery": {
+        "noDuplicateJsonKeys": "error"
+      },
+      "complexity": {
+        "noUselessEmptyExport": "error",
+        "noUselessSwitchCase": "off",
+        "useLiteralKeys": "off",
+        "noStaticOnlyClass": "off",
+        "noForEach": "off"
+      },
+      "suspicious": {
+        "useIsArray": "error",
+        "noConstEnum": "off",
+        "noGlobalIsNan": "off",
+        "noConfusingVoidType": "off",
+        "noConsoleLog": "warn",
+        "noArrayIndexKey": "warn",
+        "noImplicitAnyLet": "warn"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
+      },
+      "correctness": {
+        "noUnusedImports": "error",
+        "noUnnecessaryContinue": "off",
+        "noVoidElementsWithChildren": "off",
+        "useExhaustiveDependencies": {
+          "level": "error",
+          "options": {
+            "hooks": [
+              {
+                "name": "useLocation",
+                "closureIndex": 0,
+                "dependenciesIndex": 1
+              },
+              { "name": "useAsync", "closureIndex": 0, "dependenciesIndex": 1 },
+              {
+                "name": "useSafeLayoutEffect",
+                "closureIndex": 0,
+                "dependenciesIndex": 1
+              },
+              {
+                "name": "useUpdateEffect",
+                "closureIndex": 0,
+                "dependenciesIndex": 1
+              },
+              {
+                "name": "useDataLayer",
+                "stableResult": true
+              },
+              {
+                "name": "useToast",
+                "stableResult": true
+              },
+              {
+                "name": "useCopyToClipboard",
+                "stableResult": true
+              },
+              {
+                "name": "useCurrentValueRef",
+                "stableResult": true
+              },
+              {
+                "name": "useCallbackRef",
+                "stableResult": true
+              },
+              {
+                "name": "useIsMounted",
+                "stableResult": true
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "overrides": [
+    {
+      "include": ["scripts/typesense/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsoleLog": "off"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "@eraserlabs/utils",
+  "version": "0.1.0",
+  "description": "Dependency-free helpers shared across the Eraser packages: phase timing, set helpers, and type guards.",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22.12"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eraserlabs/eraser-diagrams.git",
+    "directory": "packages/utils"
+  },
+  "homepage": "https://github.com/eraserlabs/eraser-diagrams",
+  "bugs": "https://github.com/eraserlabs/eraser-diagrams/issues",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map"
+  ],
+  "scripts": {
+    "build": "tsc -b && node ../../tools/strip-dist-comments.mjs",
+    "test": "vitest run --passWithNoTests"
+  }
+}

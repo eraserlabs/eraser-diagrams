@@ -1,0 +1,221 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:mdp:schema:document:0.1",
+  "title": "MDP authored document",
+  "description": "Base Model Diagramming Protocol document. Always an object envelope, in one of two interchangeable forms: an { elements } envelope, or a split { entities, connections } envelope in which BOTH keys are required so an empty connection list is stated rather than forgotten. A bare array of elements is not a document. `title` is recognized and ignored by rendering. Tag schemas supply kind and profile properties.",
+  "oneOf": [
+    {
+      "$ref": "#/definitions/elementsEnvelope"
+    },
+    {
+      "$ref": "#/definitions/splitEnvelope"
+    }
+  ],
+  "definitions": {
+    "elementList": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/entity"
+          },
+          {
+            "$ref": "#/definitions/connection"
+          }
+        ]
+      }
+    },
+    "elementsEnvelope": {
+      "type": "object",
+      "required": ["elements"],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "elements": {
+          "$ref": "#/definitions/elementList"
+        }
+      },
+      "not": {
+        "anyOf": [
+          {
+            "required": ["entities"]
+          },
+          {
+            "required": ["connections"]
+          }
+        ]
+      },
+      "additionalProperties": true
+    },
+    "splitEnvelope": {
+      "type": "object",
+      "required": ["entities", "connections"],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "entities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/entity"
+          }
+        },
+        "connections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/splitConnection"
+          }
+        }
+      },
+      "not": {
+        "required": ["elements"]
+      },
+      "additionalProperties": true
+    },
+    "entity": {
+      "type": "object",
+      "required": ["tag", "id"],
+      "properties": {
+        "tag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "x": {
+          "type": "number",
+          "minimum": 0
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0
+        },
+        "width": {
+          "type": "number",
+          "minimum": 0
+        },
+        "height": {
+          "type": "number",
+          "minimum": 0
+        },
+        "containerId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "isContainer": {
+          "type": "boolean"
+        }
+      },
+      "not": {
+        "anyOf": [
+          {
+            "required": ["from"]
+          },
+          {
+            "required": ["to"]
+          }
+        ]
+      },
+      "additionalProperties": true
+    },
+    "connection": {
+      "type": "object",
+      "required": ["tag", "from", "to"],
+      "properties": {
+        "tag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "x": {
+          "type": "number",
+          "minimum": 0
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0
+        },
+        "from": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "not": {
+        "anyOf": [
+          {
+            "required": ["containerId"]
+          },
+          {
+            "required": ["width"]
+          },
+          {
+            "required": ["height"]
+          }
+        ]
+      },
+      "additionalProperties": true
+    },
+    "splitConnection": {
+      "type": "object",
+      "required": ["from", "to"],
+      "properties": {
+        "tag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "x": {
+          "type": "number",
+          "minimum": 0
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0
+        },
+        "from": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "not": {
+        "anyOf": [
+          {
+            "required": ["containerId"]
+          },
+          {
+            "required": ["width"]
+          },
+          {
+            "required": ["height"]
+          }
+        ]
+      },
+      "additionalProperties": true,
+      "description": "A connection in the split envelope: `tag` may be omitted when the profile declares a default connection tag."
+    }
+  }
+}

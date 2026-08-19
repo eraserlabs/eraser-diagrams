@@ -1,0 +1,1584 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "Textbox",
+      "id": "title",
+      "text": "# High Level Architecture – AI Powered Vending Fleet Ops Platform",
+      "x": 675,
+      "y": 15,
+      "width": 900,
+      "height": 62,
+      "fontSize": 24,
+      "hAlign": "center",
+      "color": "#0F6E7A",
+      "typeface": "clean"
+    },
+    {
+      "tag": "Group",
+      "id": "g_users",
+      "title": {
+        "text": "Users",
+        "icon": "users",
+        "fontSize": 16,
+        "color": "#0F6E7A",
+        "width": "full",
+        "bgColor": "#D6EEF1",
+        "border": true
+      },
+      "x": 15,
+      "y": 115,
+      "width": 230,
+      "height": 420,
+      "bgColor": "#F4FBFC",
+      "borderColor": "#0F6E7A",
+      "cornerRadius": "round",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "u1",
+      "shape": "rectangle",
+      "x": 40,
+      "y": 175,
+      "width": 180,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Enterprise Operators",
+          "fontSize": 13
+        }
+      ],
+      "icon": "building",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0F6E7A",
+      "containerId": "g_users",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "u2",
+      "shape": "rectangle",
+      "x": 40,
+      "y": 240,
+      "width": 180,
+      "height": 50,
+      "texts": [
+        {
+          "text": "IT Admins / Managers",
+          "fontSize": 13
+        }
+      ],
+      "icon": "shield",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0F6E7A",
+      "containerId": "g_users",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "u3",
+      "shape": "rectangle",
+      "x": 40,
+      "y": 305,
+      "width": 180,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Field Engineers",
+          "fontSize": 13
+        }
+      ],
+      "icon": "briefcase",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0F6E7A",
+      "containerId": "g_users",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "u4",
+      "shape": "rectangle",
+      "x": 40,
+      "y": 370,
+      "width": 180,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Third Party Partners",
+          "fontSize": 13
+        }
+      ],
+      "icon": "code",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0F6E7A",
+      "containerId": "g_users",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "u5",
+      "shape": "rectangle",
+      "x": 40,
+      "y": 435,
+      "width": 180,
+      "height": 50,
+      "texts": [
+        {
+          "text": "Service Teams",
+          "fontSize": 13
+        }
+      ],
+      "icon": "headphones",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0F6E7A",
+      "containerId": "g_users",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Group",
+      "id": "g_access",
+      "title": {
+        "text": "Access Channels",
+        "icon": "network",
+        "fontSize": 16,
+        "color": "#0F6E7A",
+        "width": "full",
+        "bgColor": "#D6EEF1",
+        "border": true
+      },
+      "x": 295,
+      "y": 205,
+      "width": 210,
+      "height": 240,
+      "bgColor": "#F4FBFC",
+      "borderColor": "#0F6E7A",
+      "cornerRadius": "round",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "a1",
+      "shape": "rectangle",
+      "x": 320,
+      "y": 265,
+      "width": 160,
+      "height": 45,
+      "texts": [
+        {
+          "text": "Mobile Application",
+          "fontSize": 13
+        }
+      ],
+      "icon": "smartphone",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0F6E7A",
+      "containerId": "g_access",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "a2",
+      "shape": "rectangle",
+      "x": 320,
+      "y": 325,
+      "width": 160,
+      "height": 45,
+      "texts": [
+        {
+          "text": "Web Portal",
+          "fontSize": 13
+        }
+      ],
+      "icon": "globe",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0F6E7A",
+      "containerId": "g_access",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "a3",
+      "shape": "rectangle",
+      "x": 320,
+      "y": 385,
+      "width": 160,
+      "height": 45,
+      "texts": [
+        {
+          "text": "API / SDK",
+          "fontSize": 13
+        }
+      ],
+      "icon": "plug",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0F6E7A",
+      "containerId": "g_access",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Group",
+      "id": "g_device",
+      "title": {
+        "text": "On-Machine AI Agent Platform",
+        "icon": "smartphone",
+        "fontSize": 16,
+        "color": "#0B5563",
+        "width": "full",
+        "bgColor": "#CFEAF0",
+        "border": true
+      },
+      "x": 555,
+      "y": 115,
+      "width": 620,
+      "height": 876,
+      "bgColor": "#F0FAFB",
+      "borderColor": "#0B5563",
+      "borderWidth": 0.75,
+      "cornerRadius": "round",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "d_iface",
+      "shape": "rectangle",
+      "x": 580,
+      "y": 180,
+      "width": 270,
+      "height": 150,
+      "texts": [
+        {
+          "text": "Agent Interface",
+          "fontSize": 15,
+          "color": "#0B5563"
+        },
+        {
+          "text": "Conversational UI",
+          "fontSize": 12
+        },
+        {
+          "text": "Voice/Text Query Handling",
+          "fontSize": 12
+        },
+        {
+          "text": "Session Management",
+          "fontSize": 12
+        },
+        {
+          "text": "Context Awareness",
+          "fontSize": 12
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0B5563",
+      "containerId": "g_device",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "d_orch",
+      "shape": "rectangle",
+      "x": 880,
+      "y": 180,
+      "width": 270,
+      "height": 150,
+      "texts": [
+        {
+          "text": "ReAct Agent Orchestration",
+          "fontSize": 15,
+          "color": "#0B5563"
+        },
+        {
+          "text": "Intent Understanding",
+          "fontSize": 12
+        },
+        {
+          "text": "Planning → Tool Selection",
+          "fontSize": 12
+        },
+        {
+          "text": "Tool Execution",
+          "fontSize": 12
+        },
+        {
+          "text": "Response Synthesis",
+          "fontSize": 12
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#E8F6E9",
+      "borderColor": "#2E8B57",
+      "containerId": "g_device",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "d_llm",
+      "shape": "rectangle",
+      "x": 580,
+      "y": 350,
+      "width": 270,
+      "height": 130,
+      "texts": [
+        {
+          "text": "Local LLM Runtime",
+          "fontSize": 15,
+          "color": "#0B5563"
+        },
+        {
+          "text": "On-device LLM",
+          "fontSize": 12
+        },
+        {
+          "text": "Offline Inference",
+          "fontSize": 12
+        },
+        {
+          "text": "Privacy Focused Processing",
+          "fontSize": 12
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0B5563",
+      "icon": "cpu",
+      "containerId": "g_device",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "d_mem",
+      "shape": "rectangle",
+      "x": 880,
+      "y": 350,
+      "width": 270,
+      "height": 136,
+      "texts": [
+        {
+          "text": "Memory & Context",
+          "fontSize": 15,
+          "color": "#0B5563"
+        },
+        {
+          "text": "Conversation History",
+          "fontSize": 12
+        },
+        {
+          "text": "Machine Context",
+          "fontSize": 12
+        },
+        {
+          "text": "User Preferences",
+          "fontSize": 12
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0B5563",
+      "icon": "database",
+      "containerId": "g_device",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "d_oem",
+      "shape": "rectangle",
+      "x": 580,
+      "y": 505,
+      "width": 570,
+      "height": 300,
+      "texts": [
+        {
+          "text": "Local Vendor Diagnostic & System Tools",
+          "fontSize": 15,
+          "color": "#8A4B00"
+        },
+        {
+          "text": "Machine Diagnostics · Logcat Access · Security Logs",
+          "fontSize": 12
+        },
+        {
+          "text": "Network Diagnostics · Hardware Health Checks",
+          "fontSize": 12
+        },
+        {
+          "text": "Battery Diagnostics · Sensor Diagnostics",
+          "fontSize": 12
+        },
+        {
+          "text": "Firmware Information · eOTA Integration",
+          "fontSize": 12
+        },
+        {
+          "text": "OEMConfig APIs · System Services",
+          "fontSize": 12
+        },
+        {
+          "text": "Custom SDK APIs · AOSP Privileged APIs",
+          "fontSize": 12
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFF3DC",
+      "borderColor": "#E0A100",
+      "borderWidth": 0.75,
+      "icon": "key",
+      "containerId": "g_device",
+      "styleMode": "shadow",
+      "badge": {
+        "text": "Vendor Privileged Access – Not available to third-party apps",
+        "icon": "lock",
+        "color": "white",
+        "bgColor": "#C0392B",
+        "shape": "rectangle",
+        "placement": "top-right"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "d_know",
+      "shape": "rectangle",
+      "x": 580,
+      "y": 830,
+      "width": 570,
+      "height": 130,
+      "texts": [
+        {
+          "text": "Local Knowledge & Cached Data",
+          "fontSize": 15,
+          "color": "#0B5563"
+        },
+        {
+          "text": "Cached Documentation · SDK References",
+          "fontSize": 12
+        },
+        {
+          "text": "Machine Manuals · Release Notes",
+          "fontSize": 12
+        },
+        {
+          "text": "Local Troubleshooting Data",
+          "fontSize": 12
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0B5563",
+      "icon": "book",
+      "containerId": "g_device",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Group",
+      "id": "g_cloud",
+      "title": {
+        "text": "Cloud-Based Agentic AI Platform",
+        "icon": "cloud",
+        "fontSize": 16,
+        "color": "#1565A0",
+        "width": "full",
+        "bgColor": "#D4E9F7",
+        "border": true
+      },
+      "x": 1225,
+      "y": 115,
+      "width": 620,
+      "height": 876,
+      "bgColor": "#F2F8FD",
+      "borderColor": "#1565A0",
+      "borderWidth": 0.75,
+      "cornerRadius": "round",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "c_iface",
+      "shape": "rectangle",
+      "x": 1250,
+      "y": 180,
+      "width": 270,
+      "height": 150,
+      "texts": [
+        {
+          "text": "Cloud Agent Interface",
+          "fontSize": 15,
+          "color": "#1565A0"
+        },
+        {
+          "text": "Conversation Management",
+          "fontSize": 12
+        },
+        {
+          "text": "Context Synchronization",
+          "fontSize": 12
+        },
+        {
+          "text": "Multi-session Support",
+          "fontSize": 12
+        },
+        {
+          "text": "Analytics & Feedback",
+          "fontSize": 12
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#1565A0",
+      "containerId": "g_cloud",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "c_orch",
+      "shape": "rectangle",
+      "x": 1550,
+      "y": 180,
+      "width": 270,
+      "height": 150,
+      "texts": [
+        {
+          "text": "Agentic Orchestration (ReAct)",
+          "fontSize": 15,
+          "color": "#1565A0"
+        },
+        {
+          "text": "Intent Analysis",
+          "fontSize": 12
+        },
+        {
+          "text": "Planning → Tool Invocation",
+          "fontSize": 12
+        },
+        {
+          "text": "API Execution",
+          "fontSize": 12
+        },
+        {
+          "text": "Response Generation",
+          "fontSize": 12
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#E8F6E9",
+      "borderColor": "#2E8B57",
+      "containerId": "g_cloud",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "c_llm",
+      "shape": "rectangle",
+      "x": 1250,
+      "y": 350,
+      "width": 270,
+      "height": 150,
+      "texts": [
+        {
+          "text": "Cloud LLM Layer",
+          "fontSize": 15,
+          "color": "#1565A0"
+        },
+        {
+          "text": "Enterprise Hosted LLM",
+          "fontSize": 12
+        },
+        {
+          "text": "Gemini / Claude / OpenAI Compatible",
+          "fontSize": 12
+        },
+        {
+          "text": "Advanced Reasoning",
+          "fontSize": 12
+        },
+        {
+          "text": "Long Context Processing",
+          "fontSize": 12
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#1565A0",
+      "icon": "brain",
+      "containerId": "g_cloud",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "c_rag",
+      "shape": "rectangle",
+      "x": 1550,
+      "y": 350,
+      "width": 270,
+      "height": 180,
+      "texts": [
+        {
+          "text": "RAG & Knowledge Retrieval",
+          "fontSize": 15,
+          "color": "#1565A0"
+        },
+        {
+          "text": "Query Understanding",
+          "fontSize": 12
+        },
+        {
+          "text": "Document Retrieval",
+          "fontSize": 12
+        },
+        {
+          "text": "Embedding Model",
+          "fontSize": 12
+        },
+        {
+          "text": "Vector Database",
+          "fontSize": 12
+        },
+        {
+          "text": "Context Augmentation",
+          "fontSize": 12
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#EDE7F6",
+      "borderColor": "#6A4FB6",
+      "icon": "search",
+      "containerId": "g_cloud",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "c_mem",
+      "shape": "rectangle",
+      "x": 1250,
+      "y": 550,
+      "width": 270,
+      "height": 150,
+      "texts": [
+        {
+          "text": "Memory & Context Layer",
+          "fontSize": 15,
+          "color": "#1565A0"
+        },
+        {
+          "text": "User Context",
+          "fontSize": 12
+        },
+        {
+          "text": "Enterprise Context",
+          "fontSize": 12
+        },
+        {
+          "text": "Session History",
+          "fontSize": 12
+        },
+        {
+          "text": "Machine History",
+          "fontSize": 12
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#1565A0",
+      "icon": "database",
+      "containerId": "g_cloud",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Group",
+      "id": "g_ent",
+      "title": {
+        "text": "Enterprise Tools & External Services",
+        "icon": "server",
+        "fontSize": 16,
+        "color": "#0B5563",
+        "width": "full",
+        "bgColor": "#D6EEF1",
+        "border": true
+      },
+      "x": 1895,
+      "y": 115,
+      "width": 280,
+      "height": 876,
+      "bgColor": "#F4FBFC",
+      "borderColor": "#0B5563",
+      "cornerRadius": "round",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "e1",
+      "shape": "rectangle",
+      "x": 1920,
+      "y": 200,
+      "width": 230,
+      "height": 60,
+      "texts": [
+        {
+          "text": "Licensing Server",
+          "fontSize": 13,
+          "color": "#0B5563"
+        },
+        {
+          "text": "Validation · Activation · Entitlements",
+          "fontSize": 10
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0B5563",
+      "icon": "key",
+      "containerId": "g_ent",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "e2",
+      "shape": "rectangle",
+      "x": 1920,
+      "y": 275,
+      "width": 230,
+      "height": 62,
+      "texts": [
+        {
+          "text": "V&K Public Documents",
+          "fontSize": 13,
+          "color": "#0B5563"
+        },
+        {
+          "text": "Manuals · Guides · Whitepapers · KB",
+          "fontSize": 10
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0B5563",
+      "icon": "file-text",
+      "containerId": "g_ent",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "e3",
+      "shape": "rectangle",
+      "x": 1920,
+      "y": 362,
+      "width": 230,
+      "height": 62,
+      "texts": [
+        {
+          "text": "V&K Product Information",
+          "fontSize": 13,
+          "color": "#0B5563"
+        },
+        {
+          "text": "Catalog · Specs · Compatibility · Lifecycle",
+          "fontSize": 10
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0B5563",
+      "icon": "package",
+      "containerId": "g_ent",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "e4",
+      "shape": "rectangle",
+      "x": 1920,
+      "y": 449,
+      "width": 230,
+      "height": 62,
+      "texts": [
+        {
+          "text": "VFSD Support System",
+          "fontSize": 13,
+          "color": "#0B5563"
+        },
+        {
+          "text": "Tickets · Status · Articles · Escalations",
+          "fontSize": 10
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0B5563",
+      "icon": "ticket",
+      "containerId": "g_ent",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "e5",
+      "shape": "rectangle",
+      "x": 1920,
+      "y": 536,
+      "width": 230,
+      "height": 60,
+      "texts": [
+        {
+          "text": "eFS / eVDM System",
+          "fontSize": 13,
+          "color": "#0B5563"
+        },
+        {
+          "text": "Mgmt · Policy · Compliance · Actions",
+          "fontSize": 10
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0B5563",
+      "icon": "settings",
+      "containerId": "g_ent",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "e6",
+      "shape": "rectangle",
+      "x": 1920,
+      "y": 611,
+      "width": 230,
+      "height": 62,
+      "texts": [
+        {
+          "text": "Teamspace Documents",
+          "fontSize": 13,
+          "color": "#0B5563"
+        },
+        {
+          "text": "Tech Docs · Eng Notes · Guides",
+          "fontSize": 10
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0B5563",
+      "icon": "folder",
+      "containerId": "g_ent",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "e7",
+      "shape": "rectangle",
+      "x": 1920,
+      "y": 698,
+      "width": 230,
+      "height": 62,
+      "texts": [
+        {
+          "text": "Firmware & eOTA Services",
+          "fontSize": 13,
+          "color": "#0B5563"
+        },
+        {
+          "text": "Releases · Notes · OTA · Known Issues",
+          "fontSize": 10
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0B5563",
+      "icon": "download",
+      "containerId": "g_ent",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "e8",
+      "shape": "rectangle",
+      "x": 1920,
+      "y": 785,
+      "width": 230,
+      "height": 62,
+      "texts": [
+        {
+          "text": "App Licensing & Provisioning",
+          "fontSize": 13,
+          "color": "#0B5563"
+        },
+        {
+          "text": "Entitlements · Feature Access · Deploy",
+          "fontSize": 10
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0B5563",
+      "icon": "layout-grid",
+      "containerId": "g_ent",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "e9",
+      "shape": "rectangle",
+      "x": 1920,
+      "y": 872,
+      "width": 230,
+      "height": 89,
+      "texts": [
+        {
+          "text": "Other Enterprise APIs",
+          "fontSize": 13,
+          "color": "#0B5563"
+        },
+        {
+          "text": "Analytics · Notifications",
+          "fontSize": 10
+        },
+        {
+          "text": "REST APIs · MCP Connected",
+          "fontSize": 10
+        }
+      ],
+      "vAlign": "middle",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#0B5563",
+      "icon": "plug",
+      "containerId": "g_ent",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Group",
+      "id": "g_data",
+      "title": {
+        "text": "Knowledge & Data Sources",
+        "icon": "database",
+        "fontSize": 16,
+        "color": "#6A4FB6",
+        "width": "full",
+        "bgColor": "#E6DFF5",
+        "border": true
+      },
+      "x": 555,
+      "y": 1031,
+      "width": 1290,
+      "height": 170,
+      "bgColor": "#F7F4FC",
+      "borderColor": "#6A4FB6",
+      "cornerRadius": "round",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "k1",
+      "shape": "rectangle",
+      "x": 580,
+      "y": 1091,
+      "width": 133,
+      "height": 85,
+      "texts": [
+        {
+          "text": "Technical Documentation",
+          "fontSize": 11
+        }
+      ],
+      "icon": "file-text",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#6A4FB6",
+      "containerId": "g_data",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "k2",
+      "shape": "rectangle",
+      "x": 720,
+      "y": 1091,
+      "width": 133,
+      "height": 85,
+      "texts": [
+        {
+          "text": "SDK Documentation",
+          "fontSize": 11
+        }
+      ],
+      "icon": "code",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#6A4FB6",
+      "containerId": "g_data",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "k3",
+      "shape": "rectangle",
+      "x": 860,
+      "y": 1091,
+      "width": 130,
+      "height": 85,
+      "texts": [
+        {
+          "text": "Product Release Notes",
+          "fontSize": 11
+        }
+      ],
+      "icon": "clipboard-list",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#6A4FB6",
+      "containerId": "g_data",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "k4",
+      "shape": "rectangle",
+      "x": 1000,
+      "y": 1091,
+      "width": 130,
+      "height": 85,
+      "texts": [
+        {
+          "text": "Teamspace Documents",
+          "fontSize": 11
+        }
+      ],
+      "icon": "folder",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#6A4FB6",
+      "containerId": "g_data",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "k5",
+      "shape": "rectangle",
+      "x": 1140,
+      "y": 1091,
+      "width": 130,
+      "height": 85,
+      "texts": [
+        {
+          "text": "Internal Knowledge Base",
+          "fontSize": 11
+        }
+      ],
+      "icon": "book",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#6A4FB6",
+      "containerId": "g_data",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "k6",
+      "shape": "rectangle",
+      "x": 1280,
+      "y": 1091,
+      "width": 130,
+      "height": 85,
+      "texts": [
+        {
+          "text": "Machine Logs & Diagnostics",
+          "fontSize": 11
+        }
+      ],
+      "icon": "activity",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#6A4FB6",
+      "containerId": "g_data",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "k7",
+      "shape": "rectangle",
+      "x": 1420,
+      "y": 1091,
+      "width": 130,
+      "height": 85,
+      "texts": [
+        {
+          "text": "Security Logs",
+          "fontSize": 11
+        }
+      ],
+      "icon": "shield",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#6A4FB6",
+      "containerId": "g_data",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "k8",
+      "shape": "rectangle",
+      "x": 1560,
+      "y": 1091,
+      "width": 130,
+      "height": 85,
+      "texts": [
+        {
+          "text": "Network Data",
+          "fontSize": 11
+        }
+      ],
+      "icon": "wifi",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#6A4FB6",
+      "containerId": "g_data",
+      "styleMode": "plain"
+    },
+    {
+      "tag": "Shape",
+      "id": "k9",
+      "shape": "rectangle",
+      "x": 1700,
+      "y": 1091,
+      "width": 130,
+      "height": 85,
+      "texts": [
+        {
+          "text": "External APIs",
+          "fontSize": 11
+        }
+      ],
+      "icon": "plug",
+      "bgColor": "#FFFFFF",
+      "borderColor": "#6A4FB6",
+      "containerId": "g_data",
+      "styleMode": "plain"
+    }
+  ],
+  "connections": [
+    {
+      "tag": "Relationship",
+      "id": "r_d1",
+      "from": "d_iface",
+      "to": "d_orch",
+      "fromPort": "right",
+      "toPort": "left",
+      "color": "#0B5563",
+      "x": 850,
+      "y": 236,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 30,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_d2",
+      "from": "d_orch",
+      "to": "d_oem",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "color": "#0B5563",
+      "label": "tool calls",
+      "x": 1007,
+      "y": 330,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 16
+        },
+        {
+          "x": -142,
+          "y": 16
+        },
+        {
+          "x": -142,
+          "y": 175
+        }
+      ],
+      "labelPlacement": {
+        "x": -102,
+        "y": 8,
+        "width": 61,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_d3",
+      "from": "d_orch",
+      "to": "d_llm",
+      "fromPort": "left",
+      "toPort": "top",
+      "color": "#0B5563",
+      "x": 880,
+      "y": 283,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -16,
+          "y": 0
+        },
+        {
+          "x": -16,
+          "y": 51
+        },
+        {
+          "x": -165,
+          "y": 51
+        },
+        {
+          "x": -165,
+          "y": 67
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_d4",
+      "from": "d_orch",
+      "to": "d_mem",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "color": "#0B5563",
+      "x": 1019,
+      "y": 330,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 20
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_d5",
+      "from": "d_oem",
+      "to": "d_know",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "color": "#0B5563",
+      "x": 865,
+      "y": 805,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 25
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_c1",
+      "from": "c_iface",
+      "to": "c_orch",
+      "fromPort": "right",
+      "toPort": "left",
+      "color": "#1565A0",
+      "x": 1520,
+      "y": 236,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 30,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_c2",
+      "from": "c_orch",
+      "to": "c_rag",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "color": "#1565A0",
+      "x": 1685,
+      "y": 330,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 20
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_c3",
+      "from": "c_orch",
+      "to": "c_llm",
+      "fromPort": "left",
+      "toPort": "top",
+      "color": "#1565A0",
+      "x": 1550,
+      "y": 283,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -16,
+          "y": 0
+        },
+        {
+          "x": -16,
+          "y": 51
+        },
+        {
+          "x": -161,
+          "y": 51
+        },
+        {
+          "x": -161,
+          "y": 67
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r_c4",
+      "from": "c_iface",
+      "to": "c_mem",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "color": "#1565A0",
+      "x": 1381,
+      "y": 330,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 16
+        },
+        {
+          "x": -143,
+          "y": 16
+        },
+        {
+          "x": -143,
+          "y": 195
+        },
+        {
+          "x": 4,
+          "y": 195
+        },
+        {
+          "x": 4,
+          "y": 220
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "f1",
+      "from": "g_users",
+      "to": "g_access",
+      "fromPort": "right",
+      "toPort": "left",
+      "color": "#0F6E7A",
+      "label": "access",
+      "x": 245,
+      "y": 325,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 50,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": 0,
+        "y": -21,
+        "width": 49,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "id": "f2",
+      "from": "g_access",
+      "to": "d_iface",
+      "fromPort": "right",
+      "toPort": "left",
+      "color": "#0B5563",
+      "label": "requests",
+      "x": 505,
+      "y": 325,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 26,
+          "y": 0
+        },
+        {
+          "x": 26,
+          "y": -70
+        },
+        {
+          "x": 75,
+          "y": -70
+        }
+      ],
+      "labelPlacement": {
+        "x": -4,
+        "y": -43,
+        "width": 60,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "id": "f3",
+      "from": "g_device",
+      "to": "g_cloud",
+      "fromPort": "right",
+      "toPort": "left",
+      "startArrowhead": "arrow",
+      "endArrowhead": "arrow",
+      "color": "#1565A0",
+      "label": "hybrid sync",
+      "x": 1175,
+      "y": 553,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 50,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": 1,
+        "y": -38,
+        "width": 48,
+        "height": 34
+      }
+    },
+    {
+      "tag": "Relationship",
+      "id": "f4",
+      "from": "c_orch",
+      "to": "g_ent",
+      "fromPort": "right",
+      "toPort": "left",
+      "startArrowhead": "arrow",
+      "endArrowhead": "arrow",
+      "color": "#0B5563",
+      "label": "enterprise integration",
+      "x": 1820,
+      "y": 255,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 50,
+          "y": 0
+        },
+        {
+          "x": 50,
+          "y": 298
+        },
+        {
+          "x": 75,
+          "y": 298
+        }
+      ],
+      "labelPlacement": {
+        "x": 26,
+        "y": 115,
+        "width": 48,
+        "height": 67
+      }
+    },
+    {
+      "tag": "Relationship",
+      "id": "f5",
+      "from": "d_know",
+      "to": "g_data",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "startArrowhead": "arrow",
+      "endArrowhead": "arrow",
+      "color": "#6A4FB6",
+      "x": 865,
+      "y": 960,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 71
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "f6",
+      "from": "c_rag",
+      "to": "g_data",
+      "fromPort": "bottom",
+      "toPort": "top",
+      "startArrowhead": "arrow",
+      "endArrowhead": "arrow",
+      "color": "#6A4FB6",
+      "label": "RAG retrieval",
+      "x": 1685,
+      "y": 530,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 501
+        }
+      ],
+      "labelPlacement": {
+        "x": -44,
+        "y": 242,
+        "width": 88,
+        "height": 17
+      }
+    }
+  ],
+  "scene": {
+    "x": -1,
+    "y": -1,
+    "width": 2192,
+    "height": 1218
+  }
+}

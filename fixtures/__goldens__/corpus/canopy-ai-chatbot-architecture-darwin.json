@@ -1,0 +1,700 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "Textbox",
+      "text": "# Canopy AI Chatbot Architecture",
+      "fontSize": 21,
+      "hAlign": "center",
+      "id": "title",
+      "x": 298,
+      "y": 15,
+      "width": 385,
+      "height": 96
+    },
+    {
+      "tag": "Icon",
+      "icon": "user",
+      "texts": [
+        {
+          "text": "End User",
+          "fontSize": 14
+        },
+        {
+          "text": "Interacts via Chatbot UI",
+          "fontSize": 12,
+          "color": "gray"
+        }
+      ],
+      "id": "user",
+      "x": 298,
+      "y": 85,
+      "width": 50,
+      "height": 50
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Frontend",
+        "icon": "monitor",
+        "color": "#1a6644",
+        "bgColor": "#b8ecd4",
+        "width": "snug"
+      },
+      "bgColor": "#d4f5e9",
+      "borderColor": "#4caf89",
+      "cornerRadius": "round",
+      "styleMode": "plain",
+      "id": "frontend",
+      "x": 55,
+      "y": 225,
+      "width": 600,
+      "height": 288
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "icon": "angular",
+      "texts": [
+        {
+          "text": "Chatbot UI",
+          "fontSize": 16,
+          "color": "#1a6644"
+        },
+        {
+          "text": "Angular",
+          "fontSize": 12,
+          "color": "gray"
+        },
+        {
+          "text": "No direct Canopy API calls",
+          "fontSize": 12,
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "borderColor": "#4caf89",
+      "id": "chatbotUI",
+      "x": 105,
+      "y": 295,
+      "width": 220,
+      "height": 110,
+      "containerId": "frontend"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "icon": "server",
+      "texts": [
+        {
+          "text": "Wrapper APIs",
+          "fontSize": 16,
+          "color": "#1a6644"
+        },
+        {
+          "text": "Middleware",
+          "fontSize": 12,
+          "color": "gray"
+        },
+        {
+          "text": "Abstracts Canopy Platform calls",
+          "fontSize": 12,
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "borderColor": "#4caf89",
+      "id": "wrapperAPI",
+      "x": 395,
+      "y": 295,
+      "width": 220,
+      "height": 110,
+      "containerId": "frontend"
+    },
+    {
+      "tag": "Icon",
+      "icon": "lock",
+      "texts": [
+        {
+          "text": "Secure API Token Auth",
+          "fontSize": 12,
+          "color": "#1a6644"
+        }
+      ],
+      "id": "auth",
+      "x": 335,
+      "y": 435,
+      "width": 40,
+      "height": 40,
+      "containerId": "frontend"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Backend",
+        "icon": "cloud",
+        "color": "#1a4a7a",
+        "bgColor": "#bcd3ed",
+        "width": "snug"
+      },
+      "bgColor": "#dce8f5",
+      "borderColor": "#4a90c4",
+      "cornerRadius": "round",
+      "styleMode": "plain",
+      "id": "backend",
+      "x": 15,
+      "y": 565,
+      "width": 960,
+      "height": 549
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "icon": "settings",
+      "texts": [
+        {
+          "text": "Chatbot APIs",
+          "fontSize": 16,
+          "color": "#1a4a7a"
+        },
+        {
+          "text": "Orchestration &",
+          "fontSize": 12,
+          "color": "gray"
+        },
+        {
+          "text": "Session Management",
+          "fontSize": 12,
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "borderColor": "#4a90c4",
+      "id": "chatbotAPI",
+      "x": 65,
+      "y": 674,
+      "width": 240,
+      "height": 110,
+      "containerId": "backend"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "icon": "cpu",
+      "texts": [
+        {
+          "text": "RAG Implementation",
+          "fontSize": 16,
+          "color": "#1a4a7a"
+        },
+        {
+          "text": "Retrieval-Augmented",
+          "fontSize": 12,
+          "color": "gray"
+        },
+        {
+          "text": "Generation",
+          "fontSize": 12,
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#ffffff",
+      "borderColor": "#4a90c4",
+      "id": "rag",
+      "x": 578,
+      "y": 615,
+      "width": 240,
+      "height": 111,
+      "containerId": "backend"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Canopy AI Platform",
+        "icon": "azure",
+        "color": "#1a4a7a",
+        "bgColor": "#cfe1f4",
+        "width": "snug"
+      },
+      "bgColor": "#eaf2fb",
+      "borderColor": "#2b7fc4",
+      "cornerRadius": "round",
+      "styleMode": "plain",
+      "id": "aiplatform",
+      "x": 45,
+      "y": 854,
+      "width": 900,
+      "height": 230,
+      "containerId": "backend"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "icon": "openai",
+      "texts": [
+        {
+          "text": "Bloom-5 Model",
+          "fontSize": 16,
+          "color": "#0d3d6e"
+        },
+        {
+          "text": "LLM Inference",
+          "fontSize": 12,
+          "color": "gray"
+        },
+        {
+          "text": "Chat Completions",
+          "fontSize": 12,
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#cce4f7",
+      "borderColor": "#2b7fc4",
+      "id": "llm",
+      "x": 85,
+      "y": 924,
+      "width": 240,
+      "height": 130,
+      "containerId": "aiplatform"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "icon": "database",
+      "texts": [
+        {
+          "text": "Embedding Model",
+          "fontSize": 16,
+          "color": "#0d3d6e"
+        },
+        {
+          "text": "plant-embedding-3-large",
+          "fontSize": 12,
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#cce4f7",
+      "borderColor": "#2b7fc4",
+      "id": "embed",
+      "x": 380,
+      "y": 924,
+      "width": 240,
+      "height": 130,
+      "containerId": "aiplatform"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "icon": "search",
+      "texts": [
+        {
+          "text": "Canopy AI Index",
+          "fontSize": 16,
+          "color": "#0d3d6e"
+        },
+        {
+          "text": "Vector Search",
+          "fontSize": 12,
+          "color": "gray"
+        },
+        {
+          "text": "Semantic Ranking",
+          "fontSize": 12,
+          "color": "gray"
+        }
+      ],
+      "bgColor": "#cce4f7",
+      "borderColor": "#2b7fc4",
+      "id": "search",
+      "x": 675,
+      "y": 924,
+      "width": 230,
+      "height": 130,
+      "containerId": "aiplatform"
+    }
+  ],
+  "connections": [
+    {
+      "tag": "Relationship",
+      "from": "user",
+      "fromPort": "bottom",
+      "to": "chatbotUI",
+      "toPort": "top",
+      "label": "opens",
+      "endArrowhead": "triangle",
+      "labelPlacement": {
+        "x": -76,
+        "y": 18,
+        "width": 44,
+        "height": 17
+      },
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r1",
+      "x": 323,
+      "y": 175,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 26
+        },
+        {
+          "x": -108,
+          "y": 26
+        },
+        {
+          "x": -108,
+          "y": 120
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "chatbotUI",
+      "fromPort": "right",
+      "to": "wrapperAPI",
+      "toPort": "left",
+      "label": "HTTP / REST",
+      "endArrowhead": "triangle",
+      "labelPlacement": {
+        "x": 7,
+        "y": -17,
+        "width": 48,
+        "height": 34
+      },
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r2",
+      "x": 325,
+      "y": 350,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 70,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "wrapperAPI",
+      "fromPort": "bottom",
+      "to": "chatbotAPI",
+      "toPort": "top",
+      "label": "Chatbot calls",
+      "startArrowhead": "arrow",
+      "endArrowhead": "arrow",
+      "labelPlacement": {
+        "x": -177,
+        "y": 177,
+        "width": 90,
+        "height": 17
+      },
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r3",
+      "x": 450,
+      "y": 405,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 185
+        },
+        {
+          "x": -265,
+          "y": 185
+        },
+        {
+          "x": -265,
+          "y": 269
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "chatbotAPI",
+      "fromPort": "right",
+      "to": "rag",
+      "toPort": "left",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r5",
+      "x": 305,
+      "y": 734,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 263,
+          "y": 0
+        },
+        {
+          "x": 263,
+          "y": -68
+        },
+        {
+          "x": 273,
+          "y": -68
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "wrapperAPI",
+      "fromPort": "bottom",
+      "to": "llm",
+      "toPort": "top",
+      "label": "LLM calls",
+      "color": "#2b7fc4",
+      "endArrowhead": "triangle",
+      "labelPlacement": {
+        "x": -32,
+        "y": 177,
+        "width": 65,
+        "height": 17
+      },
+      "lineStyle": "solid",
+      "lineWidth": 0.75,
+      "id": "r4",
+      "x": 560,
+      "y": 405,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 402
+        },
+        {
+          "x": -415,
+          "y": 402
+        },
+        {
+          "x": -415,
+          "y": 519
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "rag",
+      "fromPort": "bottom",
+      "to": "llm",
+      "toPort": "top",
+      "label": "4 · LLM call with context",
+      "endArrowhead": "triangle",
+      "labelPlacement": {
+        "x": -434,
+        "y": 135,
+        "width": 162,
+        "height": 17
+      },
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r9",
+      "x": 618,
+      "y": 726,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 89
+        },
+        {
+          "x": -353,
+          "y": 89
+        },
+        {
+          "x": -353,
+          "y": 198
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "llm",
+      "fromPort": "right",
+      "to": "rag",
+      "toPort": "bottom",
+      "label": "5 · Generated response",
+      "endArrowhead": "triangle",
+      "labelPlacement": {
+        "x": -50,
+        "y": -91,
+        "width": 156,
+        "height": 17
+      },
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r10",
+      "x": 325,
+      "y": 989,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 28,
+          "y": 0
+        },
+        {
+          "x": 28,
+          "y": -166
+        },
+        {
+          "x": 373,
+          "y": -166
+        },
+        {
+          "x": 373,
+          "y": -263
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "rag",
+      "fromPort": "bottom",
+      "to": "embed",
+      "toPort": "top",
+      "label": "1 · Embed query",
+      "endArrowhead": "triangle",
+      "labelPlacement": {
+        "x": -193,
+        "y": 144,
+        "width": 108,
+        "height": 17
+      },
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r6",
+      "x": 778,
+      "y": 726,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 152
+        },
+        {
+          "x": -278,
+          "y": 152
+        },
+        {
+          "x": -278,
+          "y": 198
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "embed",
+      "fromPort": "right",
+      "to": "search",
+      "toPort": "left",
+      "label": "2 · Vector search",
+      "endArrowhead": "triangle",
+      "labelPlacement": {
+        "x": 4,
+        "y": 4,
+        "width": 48,
+        "height": 50
+      },
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r7",
+      "x": 620,
+      "y": 989,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 55,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "search",
+      "fromPort": "top",
+      "to": "rag",
+      "toPort": "right",
+      "label": "3 · Retrieved chunks",
+      "endArrowhead": "triangle",
+      "labelPlacement": {
+        "x": 58,
+        "y": -239,
+        "width": 68,
+        "height": 50
+      },
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r8",
+      "x": 790,
+      "y": 924,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": -174
+        },
+        {
+          "x": 92,
+          "y": -174
+        },
+        {
+          "x": 92,
+          "y": -253
+        },
+        {
+          "x": 28,
+          "y": -253
+        }
+      ]
+    }
+  ],
+  "scene": {
+    "x": -1,
+    "y": -1,
+    "width": 992,
+    "height": 1131
+  }
+}

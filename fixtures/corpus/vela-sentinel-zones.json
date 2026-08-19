@@ -1,0 +1,1078 @@
+{
+  "title": "Vela Sentinel Zones",
+  "elements": [
+    {
+      "tag": "Textbox",
+      "text": "# Vela Sentinel Solution Overview",
+      "fontSize": 20,
+      "hAlign": "center",
+      "id": "title",
+      "x": 15,
+      "y": 15,
+      "width": 458,
+      "height": 32
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "1. Physical Estate (Sites)",
+        "icon": "building",
+        "bgColor": "#e5e7eb",
+        "border": true
+      },
+      "bgColor": "#f3f4f6",
+      "borderColor": "#9ca3af",
+      "id": "zone_physical",
+      "x": 15,
+      "y": 75,
+      "width": 265,
+      "height": 760
+    },
+    {
+      "tag": "Icon",
+      "icon": "user",
+      "texts": [
+        {
+          "text": "Reception /\nVisitor Desk",
+          "fontSize": 11
+        }
+      ],
+      "id": "actor_recep",
+      "x": 50,
+      "y": 145,
+      "width": 40,
+      "height": 40,
+      "containerId": "zone_physical"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Doors / Turnstiles / Locks",
+          "fontSize": 12
+        }
+      ],
+      "icon": "door-open",
+      "bgColor": "white",
+      "id": "doors",
+      "x": 35,
+      "y": 235,
+      "width": 220,
+      "height": 60,
+      "containerId": "zone_physical"
+    },
+    {
+      "tag": "Relationship",
+      "from": "actor_recep",
+      "fromPort": "bottom",
+      "to": "doors",
+      "toPort": "top",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r8",
+      "x": 70,
+      "y": 212
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Card Readers",
+          "fontSize": 12
+        }
+      ],
+      "icon": "credit-card",
+      "bgColor": "white",
+      "id": "readers",
+      "x": 35,
+      "y": 325,
+      "width": 220,
+      "height": 60,
+      "containerId": "zone_physical"
+    },
+    {
+      "tag": "Relationship",
+      "from": "readers",
+      "fromPort": "top",
+      "to": "doors",
+      "toPort": "bottom",
+      "label": "unlock/lock",
+      "labelPlacement": {
+        "x": 4,
+        "y": -22
+      },
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r1",
+      "x": 145,
+      "y": 325
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Door Controllers / Panels",
+          "fontSize": 12
+        },
+        {
+          "text": "(edge controllers)",
+          "fontSize": 10,
+          "color": "gray"
+        }
+      ],
+      "icon": "cpu",
+      "bgColor": "white",
+      "id": "controllers",
+      "x": 35,
+      "y": 415,
+      "width": 220,
+      "height": 90,
+      "containerId": "zone_physical"
+    },
+    {
+      "tag": "Relationship",
+      "from": "controllers",
+      "fromPort": "top",
+      "to": "readers",
+      "toPort": "bottom",
+      "label": "credential read",
+      "labelPlacement": {
+        "x": 4,
+        "y": -22
+      },
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r2",
+      "x": 145,
+      "y": 415
+    },
+    {
+      "tag": "Textbox",
+      "text": "_Continues operating locally if WAN lost (site resilience)_",
+      "fontSize": 10,
+      "color": "#b45309",
+      "hAlign": "center",
+      "id": "note_resil",
+      "x": 35,
+      "y": 520,
+      "width": 224,
+      "height": 11,
+      "containerId": "zone_physical"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "\u2699\ufe0f Operational Resilience",
+          "fontSize": 12,
+          "color": "#92400e"
+        },
+        {
+          "text": "Edge controllers continue locally during WAN outage. Define recovery + failover for SQL/App.",
+          "fontSize": 10
+        }
+      ],
+      "bgColor": "#fef3c7",
+      "borderColor": "#f59e0b",
+      "id": "callout_resilience",
+      "x": 35,
+      "y": 655,
+      "width": 220,
+      "height": 150,
+      "containerId": "zone_physical"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "2. SCC / Security Network Zone (Restricted) \ud83d\udd12",
+        "icon": "lock",
+        "bgColor": "#fecaca",
+        "border": true
+      },
+      "bgColor": "#fee2e2",
+      "borderColor": "#dc2626",
+      "id": "zone_scc",
+      "x": 368,
+      "y": 75,
+      "width": 383,
+      "height": 765
+    },
+    {
+      "tag": "Icon",
+      "icon": "user",
+      "texts": [
+        {
+          "text": "Security Operator\n(SCC)",
+          "fontSize": 11
+        }
+      ],
+      "id": "actor_operator",
+      "x": 408,
+      "y": 145,
+      "width": 40,
+      "height": 40,
+      "containerId": "zone_scc"
+    },
+    {
+      "tag": "Icon",
+      "icon": "user",
+      "texts": [
+        {
+          "text": "Estates / Security\nAdministrator",
+          "fontSize": 11
+        }
+      ],
+      "id": "actor_admin",
+      "x": 608,
+      "y": 145,
+      "width": 40,
+      "height": 40,
+      "containerId": "zone_scc"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Sentinel Client Workstations",
+          "fontSize": 12
+        },
+        {
+          "text": "Operator console",
+          "fontSize": 10,
+          "color": "gray"
+        }
+      ],
+      "icon": "monitor",
+      "bgColor": "white",
+      "id": "sym_clients",
+      "x": 393,
+      "y": 235,
+      "width": 280,
+      "height": 80,
+      "containerId": "zone_scc"
+    },
+    {
+      "tag": "Relationship",
+      "from": "actor_operator",
+      "fromPort": "bottom",
+      "to": "sym_clients",
+      "toPort": "top",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r4",
+      "x": 428,
+      "y": 212
+    },
+    {
+      "tag": "Relationship",
+      "from": "actor_admin",
+      "fromPort": "bottom",
+      "to": "sym_clients",
+      "toPort": "top",
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r5",
+      "x": 628,
+      "y": 212
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Vela Sentinel App Server(s)",
+          "fontSize": 12
+        },
+        {
+          "text": "Access control logic, alarms, workflows",
+          "fontSize": 10,
+          "color": "gray"
+        }
+      ],
+      "icon": "server",
+      "bgColor": "white",
+      "id": "sym_app",
+      "x": 393,
+      "y": 335,
+      "width": 280,
+      "height": 90,
+      "containerId": "zone_scc"
+    },
+    {
+      "tag": "Relationship",
+      "from": "controllers",
+      "fromPort": "right",
+      "to": "sym_app",
+      "toPort": "left",
+      "label": "events / alarms (TCP/IP)",
+      "labelPlacement": {
+        "x": -4,
+        "y": -48
+      },
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r3",
+      "x": 255,
+      "y": 460
+    },
+    {
+      "tag": "Relationship",
+      "from": "sym_clients",
+      "fromPort": "bottom",
+      "to": "sym_app",
+      "toPort": "top",
+      "label": "operator UI / C2",
+      "startArrowhead": "arrow",
+      "endArrowhead": "arrow",
+      "labelPlacement": {
+        "x": 4,
+        "y": 2
+      },
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r6",
+      "x": 533,
+      "y": 315
+    },
+    {
+      "tag": "Shape",
+      "shape": "cylinder",
+      "texts": [
+        {
+          "text": "Sentinel SQL Server DB",
+          "fontSize": 12
+        },
+        {
+          "text": "Cardholders, events, alarms, config",
+          "fontSize": 10,
+          "color": "gray"
+        }
+      ],
+      "bgColor": "white",
+      "id": "sym_db",
+      "x": 393,
+      "y": 445,
+      "width": 280,
+      "height": 90,
+      "containerId": "zone_scc"
+    },
+    {
+      "tag": "Relationship",
+      "from": "sym_app",
+      "fromPort": "bottom",
+      "to": "sym_db",
+      "toPort": "top",
+      "label": "read/write",
+      "startArrowhead": "arrow",
+      "endArrowhead": "arrow",
+      "labelPlacement": {
+        "x": 4,
+        "y": 2
+      },
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r7",
+      "x": 533,
+      "y": 425
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Badge/Photo Capture",
+          "fontSize": 11
+        },
+        {
+          "text": "(optional)",
+          "fontSize": 9,
+          "color": "gray"
+        }
+      ],
+      "icon": "camera",
+      "bgColor": "white",
+      "id": "badge_cap",
+      "x": 393,
+      "y": 555,
+      "width": 135,
+      "height": 60,
+      "containerId": "zone_scc"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Local Reporting /",
+          "fontSize": 11
+        },
+        {
+          "text": "Audit Export (opt.)",
+          "fontSize": 11
+        }
+      ],
+      "icon": "file-text",
+      "bgColor": "white",
+      "id": "local_rep",
+      "x": 538,
+      "y": 555,
+      "width": 139,
+      "height": 60,
+      "containerId": "zone_scc"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "\ud83d\udd12 Network Segregation",
+          "fontSize": 12,
+          "color": "#991b1b"
+        },
+        {
+          "text": "SCC zone firewalled from Corporate IT & Internet. Only whitelisted flows.",
+          "fontSize": 10
+        }
+      ],
+      "bgColor": "#fee2e2",
+      "borderColor": "#dc2626",
+      "id": "callout_netseg",
+      "x": 393,
+      "y": 645,
+      "width": 280,
+      "height": 80,
+      "containerId": "zone_scc"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "\ud83d\udccb Personal Data / DPIA",
+          "fontSize": 12,
+          "color": "#991b1b"
+        },
+        {
+          "text": "Cardholder PII: names, photos, badge IDs, access history. Retention + DSAR.",
+          "fontSize": 10
+        }
+      ],
+      "bgColor": "#fee2e2",
+      "borderColor": "#dc2626",
+      "id": "callout_pii",
+      "x": 393,
+      "y": 740,
+      "width": 280,
+      "height": 80,
+      "containerId": "zone_scc"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "3. Arvex Corporate IT Zone",
+        "icon": "building-2",
+        "bgColor": "#bfdbfe",
+        "border": true
+      },
+      "bgColor": "#dbeafe",
+      "borderColor": "#2563eb",
+      "id": "zone_corp",
+      "x": 844,
+      "y": 75,
+      "width": 280,
+      "height": 480
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "AD / Entra ID",
+          "fontSize": 12
+        },
+        {
+          "text": "AuthN/AuthZ integration",
+          "fontSize": 10,
+          "color": "gray"
+        }
+      ],
+      "icon": "key",
+      "bgColor": "white",
+      "id": "idp",
+      "x": 864,
+      "y": 145,
+      "width": 240,
+      "height": 80,
+      "containerId": "zone_corp"
+    },
+    {
+      "tag": "Relationship",
+      "from": "idp",
+      "fromPort": "left",
+      "to": "sym_app",
+      "toPort": "right",
+      "label": "auth",
+      "labelPlacement": {
+        "x": -173,
+        "y": 84
+      },
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r9",
+      "x": 864,
+      "y": 185
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "HR System",
+          "fontSize": 12
+        },
+        {
+          "text": "Joiners/Movers/Leavers feed",
+          "fontSize": 10,
+          "color": "gray"
+        }
+      ],
+      "icon": "users",
+      "bgColor": "white",
+      "id": "hr",
+      "x": 864,
+      "y": 245,
+      "width": 240,
+      "height": 80,
+      "containerId": "zone_corp"
+    },
+    {
+      "tag": "Relationship",
+      "from": "hr",
+      "fromPort": "left",
+      "to": "sym_app",
+      "toPort": "right",
+      "label": "JML feed",
+      "labelPlacement": {
+        "x": -116,
+        "y": -7
+      },
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r10",
+      "x": 862,
+      "y": 285
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Visitor Management System",
+          "fontSize": 12
+        },
+        {
+          "text": "(optional)",
+          "fontSize": 10,
+          "color": "gray"
+        }
+      ],
+      "icon": "clipboard-list",
+      "bgColor": "white",
+      "id": "vms",
+      "x": 864,
+      "y": 345,
+      "width": 240,
+      "height": 80,
+      "containerId": "zone_corp"
+    },
+    {
+      "tag": "Relationship",
+      "from": "vms",
+      "fromPort": "left",
+      "to": "sym_app",
+      "toPort": "right",
+      "label": "visitor pass",
+      "startArrowhead": "arrow",
+      "endArrowhead": "arrow",
+      "labelPlacement": {
+        "x": -113,
+        "y": -7
+      },
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r11",
+      "x": 864,
+      "y": 385
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "\u2705 Assurance",
+          "fontSize": 12,
+          "color": "#1e40af"
+        },
+        {
+          "text": "Digital Design Assurance required for network, remote access, integrations, monitoring changes.",
+          "fontSize": 10
+        }
+      ],
+      "bgColor": "#dbeafe",
+      "borderColor": "#2563eb",
+      "id": "callout_assurance",
+      "x": 864,
+      "y": 445,
+      "width": 240,
+      "height": 90,
+      "containerId": "zone_corp"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "4. CSC Cyber / SOC & Monitoring",
+        "icon": "shield",
+        "bgColor": "#ddd6fe",
+        "border": true
+      },
+      "bgColor": "#ede9fe",
+      "borderColor": "#7c3aed",
+      "id": "zone_soc",
+      "x": 838,
+      "y": 593,
+      "width": 287,
+      "height": 275
+    },
+    {
+      "tag": "Icon",
+      "icon": "user",
+      "texts": [
+        {
+          "text": "SOC Analyst",
+          "fontSize": 11
+        }
+      ],
+      "id": "actor_soc",
+      "x": 868,
+      "y": 643,
+      "width": 40,
+      "height": 40,
+      "containerId": "zone_soc"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "SIEM / Protective Monitoring",
+          "fontSize": 12
+        },
+        {
+          "text": "Ingests security events / audit logs",
+          "fontSize": 10,
+          "color": "gray"
+        }
+      ],
+      "icon": "activity",
+      "bgColor": "white",
+      "id": "siem",
+      "x": 858,
+      "y": 713,
+      "width": 240,
+      "height": 70,
+      "containerId": "zone_soc"
+    },
+    {
+      "tag": "Relationship",
+      "from": "sym_app",
+      "fromPort": "right",
+      "to": "siem",
+      "toPort": "left",
+      "label": "audit logs / events",
+      "labelPlacement": {
+        "x": 86,
+        "y": 204
+      },
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r12",
+      "x": 673,
+      "y": 404
+    },
+    {
+      "tag": "Relationship",
+      "from": "sym_db",
+      "fromPort": "right",
+      "to": "siem",
+      "toPort": "left",
+      "label": "audit logs",
+      "labelPlacement": {
+        "x": -11,
+        "y": 124
+      },
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r13",
+      "x": 673,
+      "y": 490
+    },
+    {
+      "tag": "Relationship",
+      "from": "siem",
+      "fromPort": "top",
+      "to": "actor_soc",
+      "toPort": "bottom",
+      "label": "alerts",
+      "labelPlacement": {
+        "x": -61,
+        "y": -14
+      },
+      "endArrowhead": "triangle",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r14",
+      "x": 978,
+      "y": 713
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Vulnerability / Patch Mgmt",
+          "fontSize": 11
+        },
+        {
+          "text": "(optional)",
+          "fontSize": 10,
+          "color": "gray"
+        }
+      ],
+      "icon": "shield-alert",
+      "bgColor": "white",
+      "id": "vuln",
+      "x": 858,
+      "y": 793,
+      "width": 240,
+      "height": 55,
+      "containerId": "zone_soc"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "5. Supplier / Third-party Support (External)",
+        "icon": "globe",
+        "bgColor": "#fed7aa",
+        "border": true
+      },
+      "bgColor": "#ffedd5",
+      "borderColor": "#ea580c",
+      "id": "zone_supplier",
+      "x": 1218,
+      "y": 85,
+      "width": 348,
+      "height": 760
+    },
+    {
+      "tag": "Icon",
+      "icon": "user",
+      "texts": [
+        {
+          "text": "Supplier Support\nEngineer (Vela)",
+          "fontSize": 11
+        }
+      ],
+      "id": "actor_supplier",
+      "x": 1368,
+      "y": 155,
+      "width": 40,
+      "height": 40,
+      "containerId": "zone_supplier"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Supplier Support Network",
+          "fontSize": 12
+        }
+      ],
+      "icon": "network",
+      "bgColor": "white",
+      "id": "supplier_net",
+      "x": 1238,
+      "y": 245,
+      "width": 300,
+      "height": 60,
+      "containerId": "zone_supplier"
+    },
+    {
+      "tag": "Relationship",
+      "from": "actor_supplier",
+      "fromPort": "bottom",
+      "to": "supplier_net",
+      "toPort": "top",
+      "lineStyle": "dashed",
+      "endArrowhead": "triangle",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r15",
+      "x": 1388,
+      "y": 222
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "CSC Remote Access Gateway / VPN",
+          "fontSize": 12
+        },
+        {
+          "text": "Controlled",
+          "fontSize": 10,
+          "color": "gray"
+        }
+      ],
+      "icon": "shield",
+      "bgColor": "white",
+      "id": "vpn",
+      "x": 1238,
+      "y": 335,
+      "width": 300,
+      "height": 70,
+      "containerId": "zone_supplier"
+    },
+    {
+      "tag": "Relationship",
+      "from": "supplier_net",
+      "fromPort": "bottom",
+      "to": "vpn",
+      "toPort": "top",
+      "lineStyle": "dashed",
+      "endArrowhead": "triangle",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r16",
+      "x": 1388,
+      "y": 305
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Jump Host / Bastion",
+          "fontSize": 12
+        },
+        {
+          "text": "SCC-managed",
+          "fontSize": 10,
+          "color": "gray"
+        }
+      ],
+      "icon": "server",
+      "bgColor": "white",
+      "id": "bastion",
+      "x": 1238,
+      "y": 435,
+      "width": 300,
+      "height": 70,
+      "containerId": "zone_supplier"
+    },
+    {
+      "tag": "Relationship",
+      "from": "vpn",
+      "fromPort": "bottom",
+      "to": "bastion",
+      "toPort": "top",
+      "lineStyle": "dashed",
+      "label": "MFA",
+      "labelPlacement": {
+        "x": 4,
+        "y": 8
+      },
+      "endArrowhead": "triangle",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r17",
+      "x": 1388,
+      "y": 405
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Session Recording / PAM",
+          "fontSize": 12
+        },
+        {
+          "text": "MFA + approval + time-bound + audited",
+          "fontSize": 10,
+          "color": "gray"
+        }
+      ],
+      "icon": "video",
+      "bgColor": "white",
+      "id": "pam",
+      "x": 1238,
+      "y": 535,
+      "width": 300,
+      "height": 80,
+      "containerId": "zone_supplier"
+    },
+    {
+      "tag": "Relationship",
+      "from": "bastion",
+      "fromPort": "bottom",
+      "to": "pam",
+      "toPort": "top",
+      "lineStyle": "dashed",
+      "label": "recorded",
+      "labelPlacement": {
+        "x": 4,
+        "y": 8
+      },
+      "endArrowhead": "triangle",
+      "color": "#1c1c1c",
+      "lineWidth": 0.75,
+      "id": "r18",
+      "x": 1388,
+      "y": 505
+    },
+    {
+      "tag": "Relationship",
+      "from": "pam",
+      "fromPort": "left",
+      "to": "sym_app",
+      "toPort": "right",
+      "lineStyle": "dashed",
+      "label": "approved, time-bound",
+      "color": "#ea580c",
+      "labelPlacement": {
+        "x": -278,
+        "y": -8
+      },
+      "endArrowhead": "triangle",
+      "lineWidth": 0.75,
+      "id": "r19",
+      "x": 1238,
+      "y": 575
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "\ud83d\udd10 Privileged Access Governance",
+          "fontSize": 12,
+          "color": "#9a3412"
+        },
+        {
+          "text": "Supplier access via PAM/bastion. Session logging, least privilege, change control.",
+          "fontSize": 10
+        }
+      ],
+      "bgColor": "#ffedd5",
+      "borderColor": "#ea580c",
+      "id": "callout_pam",
+      "x": 1238,
+      "y": 645,
+      "width": 300,
+      "height": 85,
+      "containerId": "zone_supplier"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "\u26d4 No direct inbound internet",
+          "fontSize": 12,
+          "color": "white"
+        },
+        {
+          "text": "exposure to SCC zone",
+          "fontSize": 11,
+          "color": "white"
+        }
+      ],
+      "bgColor": "#dc2626",
+      "borderColor": "#991b1b",
+      "id": "callout_noexpose",
+      "x": 1238,
+      "y": 745,
+      "width": 300,
+      "height": 75,
+      "containerId": "zone_supplier"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Legend",
+        "bgColor": "#e5e7eb",
+        "border": true
+      },
+      "bgColor": "#f9fafb",
+      "borderColor": "#6b7280",
+      "id": "legend",
+      "x": 15,
+      "y": 905,
+      "width": 773,
+      "height": 100
+    },
+    {
+      "tag": "Textbox",
+      "text": "\u2501\u2501 solid = production data flow     \u2504\u2504 dashed = admin / support access     \ud83d\udd12 lock = restricted zone",
+      "fontSize": 12,
+      "id": "leg1",
+      "x": 55,
+      "y": 955,
+      "width": 501,
+      "height": 13,
+      "containerId": "legend"
+    },
+    {
+      "tag": "Textbox",
+      "text": "\ud83d\udc64 actor   \u25ad system   \u232d database",
+      "fontSize": 12,
+      "id": "leg2",
+      "x": 594,
+      "y": 955,
+      "width": 165,
+      "height": 13,
+      "containerId": "legend"
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "title": "Element family: Relationship — routing styles, labels, arrowheads, line styles",
+  "elements": [
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [{ "text": "A", "fontSize": 18, "hAlign": "center" }],
+      "color": "blue",
+      "id": "conn-a",
+      "x": 40,
+      "y": 40,
+      "width": 110,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [{ "text": "B", "fontSize": 18, "hAlign": "center" }],
+      "color": "blue",
+      "id": "conn-b",
+      "x": 340,
+      "y": 40,
+      "width": 110,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [{ "text": "C", "fontSize": 18, "hAlign": "center" }],
+      "color": "green",
+      "id": "conn-c",
+      "x": 40,
+      "y": 220,
+      "width": 110,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [{ "text": "D", "fontSize": 18, "hAlign": "center" }],
+      "color": "green",
+      "id": "conn-d",
+      "x": 340,
+      "y": 220,
+      "width": 110,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [{ "text": "E", "fontSize": 18, "hAlign": "center" }],
+      "color": "purple",
+      "id": "conn-e",
+      "x": 640,
+      "y": 130,
+      "width": 110,
+      "height": 60
+    },
+    {
+      "tag": "Relationship",
+      "from": "conn-a",
+      "fromPort": "right",
+      "to": "conn-b",
+      "toPort": "left",
+      "cornerStyle": "elbow",
+      "label": "HTTP/REST",
+      "endArrowhead": "arrow",
+      "id": "rel-elbow-label",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "tag": "Relationship",
+      "from": "conn-c",
+      "to": "conn-d",
+      "connectorStyle": "straight",
+      "cornerStyle": "elbow",
+      "label": "gRPC",
+      "endArrowhead": "triangle",
+      "id": "rel-straight-label",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "tag": "Relationship",
+      "from": "conn-b",
+      "fromPort": "right",
+      "to": "conn-e",
+      "toPort": "top",
+      "cornerStyle": "elbow",
+      "lineStyle": "dashed",
+      "endArrowhead": "arrow",
+      "id": "rel-dashed",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "tag": "Relationship",
+      "from": "conn-d",
+      "fromPort": "right",
+      "to": "conn-e",
+      "toPort": "bottom",
+      "cornerStyle": "elbow",
+      "lineStyle": "dotted",
+      "color": "#bd413a",
+      "id": "rel-dotted-noarrow",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "tag": "Relationship",
+      "from": "conn-a",
+      "fromPort": "bottom",
+      "to": "conn-c",
+      "toPort": "top",
+      "cornerStyle": "elbow",
+      "startArrowhead": "arrow",
+      "endArrowhead": "arrow",
+      "label": "sync",
+      "lineWidth": 2,
+      "id": "rel-bidirectional",
+      "x": 0,
+      "y": 0
+    }
+  ]
+}

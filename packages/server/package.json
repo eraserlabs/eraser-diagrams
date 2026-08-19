@@ -1,0 +1,32 @@
+{
+  "name": "@eraserlabs/server",
+  "version": "0.1.0",
+  "description": "Thin Fastify wrapper over @eraserlabs/resolve.",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run --passWithNoTests",
+    "start": "node dist/index.js",
+    "dev": "RENDER_PAGES=${RENDER_PAGES:-0} tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@eraserlabs/diagrams": "workspace:*",
+    "@eraserlabs/resolve": "workspace:*",
+    "fastify": "^5.10.0"
+  },
+  "devDependencies": {
+    "@eraserlabs/render": "workspace:*",
+    "playwright-core": "1.61.1"
+  }
+}

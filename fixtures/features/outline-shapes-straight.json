@@ -1,0 +1,206 @@
+{
+  "title": "Outline attachment gallery — every non-box boundary, straight connectors",
+  "elements": [
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "id": "hub",
+      "texts": [{ "text": "Hub", "hAlign": "center" }],
+      "color": "blue",
+      "x": 430,
+      "y": 350,
+      "width": 140,
+      "height": 90
+    },
+    {
+      "tag": "Shape",
+      "shape": "triangle",
+      "id": "triangle",
+      "texts": [{ "text": "triangle", "hAlign": "center" }],
+      "color": "green",
+      "x": 120,
+      "y": 80,
+      "width": 140,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "shape": "circle",
+      "id": "circle",
+      "texts": [{ "text": "circle", "hAlign": "center" }],
+      "color": "green",
+      "x": 360,
+      "y": 40,
+      "width": 110,
+      "height": 110
+    },
+    {
+      "tag": "Shape",
+      "shape": "star",
+      "id": "star",
+      "texts": [{ "text": "star", "hAlign": "center" }],
+      "color": "green",
+      "x": 600,
+      "y": 40,
+      "width": 120,
+      "height": 120
+    },
+    {
+      "tag": "Shape",
+      "shape": "diamond",
+      "id": "diamond",
+      "texts": [{ "text": "diamond", "hAlign": "center" }],
+      "color": "green",
+      "x": 840,
+      "y": 90,
+      "width": 150,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "shape": "cylinder",
+      "id": "cylinder",
+      "texts": [{ "text": "cylinder", "hAlign": "center" }],
+      "color": "orange",
+      "x": 80,
+      "y": 350,
+      "width": 130,
+      "height": 110
+    },
+    {
+      "tag": "Shape",
+      "shape": "document",
+      "id": "document",
+      "texts": [{ "text": "document", "hAlign": "center" }],
+      "color": "orange",
+      "x": 890,
+      "y": 360,
+      "width": 150,
+      "height": 110
+    },
+    {
+      "tag": "Shape",
+      "shape": "hexagon",
+      "id": "hexagon",
+      "texts": [{ "text": "hexagon", "hAlign": "center" }],
+      "color": "purple",
+      "x": 120,
+      "y": 640,
+      "width": 150,
+      "height": 90
+    },
+    {
+      "tag": "Shape",
+      "shape": "oval",
+      "id": "oval",
+      "texts": [{ "text": "oval", "hAlign": "center" }],
+      "color": "purple",
+      "x": 380,
+      "y": 690,
+      "width": 150,
+      "height": 80
+    },
+    {
+      "tag": "Shape",
+      "shape": "trapezoid",
+      "id": "trapezoid",
+      "texts": [{ "text": "trapezoid", "hAlign": "center" }],
+      "color": "purple",
+      "x": 620,
+      "y": 690,
+      "width": 150,
+      "height": 90
+    },
+    {
+      "tag": "Shape",
+      "shape": "ellipse",
+      "id": "ellipse",
+      "texts": [{ "text": "ellipse", "hAlign": "center" }],
+      "color": "purple",
+      "x": 860,
+      "y": 640,
+      "width": 150,
+      "height": 90
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-triangle",
+      "from": "hub",
+      "to": "triangle",
+      "endArrowhead": "arrow",
+      "connectorStyle": "straight"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-circle",
+      "from": "hub",
+      "to": "circle",
+      "endArrowhead": "arrow",
+      "connectorStyle": "straight"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-star",
+      "from": "hub",
+      "to": "star",
+      "endArrowhead": "arrow",
+      "connectorStyle": "straight"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-diamond",
+      "from": "hub",
+      "to": "diamond",
+      "endArrowhead": "arrow",
+      "connectorStyle": "straight"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-cylinder",
+      "from": "hub",
+      "to": "cylinder",
+      "endArrowhead": "arrow",
+      "connectorStyle": "straight"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-document",
+      "from": "hub",
+      "to": "document",
+      "endArrowhead": "arrow",
+      "connectorStyle": "straight"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-hexagon",
+      "from": "hub",
+      "to": "hexagon",
+      "endArrowhead": "arrow",
+      "connectorStyle": "straight"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-oval",
+      "from": "hub",
+      "to": "oval",
+      "endArrowhead": "arrow",
+      "connectorStyle": "straight"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-trapezoid",
+      "from": "hub",
+      "to": "trapezoid",
+      "endArrowhead": "arrow",
+      "connectorStyle": "straight"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-ellipse",
+      "from": "hub",
+      "to": "ellipse",
+      "endArrowhead": "arrow",
+      "connectorStyle": "straight"
+    }
+  ]
+}

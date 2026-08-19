@@ -1,0 +1,147 @@
+openapi: 3.1.0
+info:
+  title: Eraser resolver API
+  version: '1.0'
+  description: >
+    Validation and discovery for the Eraser rendering pipeline. Rendering itself happens in the
+    private orchestrator (browser-backed); this service validates tagged diagram elements and serves
+    the tag registry. Auth and rate-limiting are handled by an external gateway.
+servers:
+  - url: /
+paths:
+  /validate:
+    post:
+      summary: Validate a diagram without rendering. Always 200.
+      description: >-
+        The body is a diagram document in any of the three accepted forms. Malformed JSON yields
+        400 (E_BAD_JSON); oversized payloads 413 (E_PAYLOAD_TOO_LARGE); an unrecognized document
+        shape comes back as an ok:false result with E_ENVELOPE.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DiagramInput' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ValidationResult' }
+  /render:
+    post:
+      summary: Render elements to a PNG or self-contained HTML artifact. Always 200 for handled input.
+      description: >-
+        The warm-pool product path. Input problems return the same ok:false envelope as /validate;
+        unknown format yields 400 (E_BAD_FORMAT); exhausted render capacity yields 503
+        (E_OVERLOADED, with Retry-After). PNG bytes travel base64 inside the JSON envelope.
+        The body is the render request: a diagram document, optionally carrying an `outputs` key
+        (ignored here — `?format` selects the artifact this endpoint returns).
+      parameters:
+        - name: format
+          in: query
+          required: false
+          schema: { type: string, enum: [png, html], default: png }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DiagramInput' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  format: { type: string, enum: [png, html] }
+                  png:
+                    {
+                      type: string,
+                      format: uri,
+                      description: directly openable data:image/png;base64 URL (format=png,
+                      ok=true),
+                    }
+                  html:
+                    {
+                      type: string,
+                      description: self-contained document (format=html,
+                      ok=true),
+                    }
+                  errors: { type: array, items: { type: object } }
+                  warnings: { type: array, items: { type: object } }
+  /registry:
+    get:
+      summary: Tags and their required props
+      responses: { '200': { description: OK } }
+  /registry/schema/{tag}:
+    get:
+      summary: Full JSON Schema for a tag
+      parameters:
+        - name: tag
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+        '404': { description: Unknown tag }
+  /health:
+    get:
+      summary: Readiness
+      responses:
+        '200': { description: Warm }
+        '503': { description: Starting }
+components:
+  schemas:
+    DiagramInput:
+      description: >-
+        A diagram document, always an object envelope: either an { elements } envelope or a split
+        { entities, connections } envelope in which both keys are required so an empty connection
+        list is stated rather than forgotten. The two forms are mutually exclusive. A bare JSON
+        array is not a document and is rejected with E_ENVELOPE. `title` is recognized and ignored;
+        unknown top-level keys are ignored with a W_UNKNOWN_KEY warning.
+      oneOf:
+        - type: object
+          required: [elements]
+          properties:
+            title: { type: string }
+            elements: { type: array, items: { type: object } }
+        - type: object
+          required: [entities, connections]
+          properties:
+            title: { type: string }
+            entities: { type: array, items: { type: object } }
+            connections: { type: array, items: { type: object } }
+    ResolvedDocument:
+      description: >-
+        The resolved diagram as data, split by the kind the tag registry declares. This is the
+        shape `--json` output and the Node API's `json` output use; it is itself valid input.
+      type: object
+      required: [entities, connections]
+      properties:
+        entities: { type: array, items: { type: object } }
+        connections: { type: array, items: { type: object } }
+    Issue:
+      type: object
+      required: [code, severity, path, message]
+      properties:
+        code: { type: string }
+        severity: { type: string, enum: [error, warning] }
+        path:
+          type: string
+          description: >-
+            JSON pointer into the document as submitted — /elements/N, /entities/N, or
+            /connections/N.
+        elementIndex:
+          type: integer
+          description: Index within the element's own list, not across the document.
+        elementId: { type: string }
+        tag: { type: string }
+        message: { type: string }
+        suggestion: { type: string }
+    ValidationResult:
+      type: object
+      required: [ok, errors, warnings]
+      properties:
+        ok: { type: boolean }
+        errors: { type: array, items: { $ref: '#/components/schemas/Issue' } }
+        warnings: { type: array, items: { $ref: '#/components/schemas/Issue' } }

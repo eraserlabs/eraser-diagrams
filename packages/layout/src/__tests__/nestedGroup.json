@@ -1,0 +1,74 @@
+{
+  "entities": [
+    {
+      "id": "rect0",
+      "x": 0,
+      "y": 0,
+      "width": 100,
+      "height": 100,
+      "containerId": "inner-container"
+    },
+    {
+      "id": "rect200",
+      "x": 0,
+      "y": 200,
+      "width": 100,
+      "height": 100,
+      "containerId": "inner-container"
+    },
+    {
+      "id": "inner-container",
+      "isContainer": true,
+      "containerId": "outer-container",
+      "x": -20,
+      "y": -20,
+      "width": 130,
+      "height": 330
+    },
+    {
+      "id": "rect-outer-below",
+      "containerId": "outer-container",
+      "x": 0,
+      "y": 400,
+      "width": 100,
+      "height": 100
+    },
+    {
+      "id": "rect-outer-right",
+      "containerId": "outer-container",
+      "x": 150,
+      "y": 125,
+      "width": 100,
+      "height": 100
+    },
+    {
+      "id": "rect-outer-left",
+      "containerId": "outer-container",
+      "x": -100,
+      "y": 125,
+      "width": 50,
+      "height": 100
+    },
+    {
+      "id": "rect-outer-above",
+      "containerId": "outer-container",
+      "x": 0,
+      "y": -400,
+      "width": 100,
+      "height": 100
+    },
+    {
+      "id": "outer-container",
+      "isContainer": true,
+      "x": -120,
+      "y": -420,
+      "width": 380,
+      "height": 930
+    },
+    { "id": "rect-below", "x": 0, "y": 600, "width": 100, "height": 100 },
+    { "id": "rect-above", "x": 0, "y": -600, "width": 100, "height": 100 },
+    { "id": "rect-left", "x": -300, "y": 200, "width": 100, "height": 100 },
+    { "id": "rect-right", "x": 300, "y": 200, "width": 100, "height": 100 }
+  ],
+  "connections": []
+}

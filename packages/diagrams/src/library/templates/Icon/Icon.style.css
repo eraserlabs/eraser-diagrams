@@ -1,0 +1,82 @@
+/* Glyph box is width || height || size || default; size presets sm/md/lg/xl are the
+   32/50/72/100 selectors below, 50px is the root default, and authored bounds outrank both
+   through the gated data-sized rule (normalizers.ts writes sizePx only when bounds exist). The
+   caption stack hangs BELOW the box with a 5px gap at 15px, soft-wrapping at ~1.8× the box
+   width. Caption ink stays near-black regardless of the glyph color. */
+/* Text sizing (see CUSTOMIZATION.md): sizes are pixels only. Each slot names its own --er-base;
+   an authored `fontSize` arrives as gated data-font-px + --er-font-px and replaces it. */
+.er-icon {
+  /* Unitless px, so base.style.css can divide by it for the stroke-width formula. */
+  --er-glyph-num: 50;
+  --er-icon-px: calc(var(--er-glyph-num) * 1px);
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  text-align: center;
+}
+.er-icon[data-size='sm'] {
+  --er-glyph-num: 32;
+}
+.er-icon[data-size='md'] {
+  --er-glyph-num: 50;
+}
+.er-icon[data-size='lg'] {
+  --er-glyph-num: 72;
+}
+.er-icon[data-size='xl'] {
+  --er-glyph-num: 100;
+}
+.er-icon[data-sized]:not([data-sized='']) {
+  --er-glyph-num: var(--er-bounds-num);
+}
+.er-icon__glyph {
+  display: block;
+  width: var(--er-icon-px);
+  height: var(--er-icon-px);
+  margin: 0 auto;
+  color: var(--er-glyph-ink, #242424);
+  line-height: 0;
+}
+.er-icon__glyph svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.er-icon__caption {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 180%;
+  margin: 0;
+}
+/* Every caption slot is styled identically at the primary size. */
+.er-icon__caption-line {
+  --er-base: 15px;
+  display: block;
+  font-family: var(--f, var(--font-clean, sans-serif));
+  font-size: var(--er-base);
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--er-ink, #242424);
+}
+.er-icon[data-font-px]:not([data-font-px='']) .er-icon__caption-line {
+  --er-base: var(--er-font-px);
+}
+.er-icon__caption-line[data-run-px]:not([data-run-px='']) {
+  font-size: var(--er-run-px);
+}
+/* Two caption slots = two authored lines; keep each on its own row without re-wrapping. */
+.er-icon__caption-line + .er-icon__caption-line {
+  margin-top: 2px;
+}
+.er-icon__caption:has(.er-icon__caption-line + .er-icon__caption-line) {
+  max-width: none;
+}
+.er-icon__caption:has(.er-icon__caption-line + .er-icon__caption-line)
+  .er-icon__caption-line {
+  white-space: nowrap;
+}

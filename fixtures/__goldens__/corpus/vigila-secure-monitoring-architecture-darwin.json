@@ -1,0 +1,799 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Production Zone (Isolated Networks)",
+        "icon": "shield",
+        "bgColor": "#fde2e2",
+        "border": true
+      },
+      "bgColor": "#fff5f5",
+      "borderColor": "#e57373",
+      "borderStyle": "dashed",
+      "cornerRadius": "round",
+      "id": "prod",
+      "x": 15,
+      "y": 15,
+      "width": 340,
+      "height": 600
+    },
+    {
+      "tag": "Icon",
+      "icon": "activity",
+      "texts": [
+        {
+          "text": "Vigila Server A"
+        }
+      ],
+      "id": "vigA",
+      "x": 110,
+      "y": 115,
+      "width": 50,
+      "height": 50,
+      "containerId": "prod"
+    },
+    {
+      "tag": "Icon",
+      "icon": "activity",
+      "texts": [
+        {
+          "text": "Vigila Server B"
+        }
+      ],
+      "id": "vigB",
+      "x": 110,
+      "y": 295,
+      "width": 50,
+      "height": 50,
+      "containerId": "prod"
+    },
+    {
+      "tag": "Icon",
+      "icon": "activity",
+      "texts": [
+        {
+          "text": "Vigila Server C"
+        }
+      ],
+      "id": "vigC",
+      "x": 110,
+      "y": 475,
+      "width": 50,
+      "height": 50,
+      "containerId": "prod"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Vigila API"
+        }
+      ],
+      "icon": "plug",
+      "bgColor": "#eef2ff",
+      "borderColor": "#6b7fbf",
+      "id": "apiA",
+      "x": 215,
+      "y": 125,
+      "width": 110,
+      "height": 40,
+      "containerId": "prod"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Vigila API"
+        }
+      ],
+      "icon": "plug",
+      "bgColor": "#eef2ff",
+      "borderColor": "#6b7fbf",
+      "id": "apiB",
+      "x": 215,
+      "y": 305,
+      "width": 110,
+      "height": 40,
+      "containerId": "prod"
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Vigila API"
+        }
+      ],
+      "icon": "plug",
+      "bgColor": "#eef2ff",
+      "borderColor": "#6b7fbf",
+      "id": "apiC",
+      "x": 215,
+      "y": 485,
+      "width": 110,
+      "height": 40,
+      "containerId": "prod"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Monitoring Layer (Secure Zone)",
+        "icon": "shield-check",
+        "bgColor": "#dde7f7",
+        "border": true
+      },
+      "bgColor": "#f2f6fc",
+      "borderColor": "#5b8def",
+      "borderStyle": "dashed",
+      "cornerRadius": "round",
+      "id": "monitoring",
+      "x": 435,
+      "y": 15,
+      "width": 420,
+      "height": 600
+    },
+    {
+      "tag": "Icon",
+      "icon": "server-cog",
+      "texts": [
+        {
+          "text": "Data Collector"
+        },
+        {
+          "text": "(VPN/SSH)",
+          "color": "gray"
+        }
+      ],
+      "id": "collector",
+      "x": 485,
+      "y": 295,
+      "width": 60,
+      "height": 60,
+      "containerId": "monitoring"
+    },
+    {
+      "tag": "Icon",
+      "icon": "kafka",
+      "texts": [
+        {
+          "text": "Kafka"
+        },
+        {
+          "text": "(optional)",
+          "color": "gray"
+        }
+      ],
+      "id": "kafka",
+      "x": 655,
+      "y": 115,
+      "width": 50,
+      "height": 50,
+      "containerId": "monitoring"
+    },
+    {
+      "tag": "Icon",
+      "icon": "postgres",
+      "texts": [
+        {
+          "text": "PostgreSQL"
+        },
+        {
+          "text": "+ TimescaleDB",
+          "color": "gray"
+        }
+      ],
+      "id": "pg",
+      "x": 655,
+      "y": 295,
+      "width": 50,
+      "height": 50,
+      "containerId": "monitoring"
+    },
+    {
+      "tag": "Icon",
+      "icon": "bell-ring",
+      "texts": [
+        {
+          "text": "Alert Manager"
+        }
+      ],
+      "id": "alert",
+      "x": 655,
+      "y": 475,
+      "width": 50,
+      "height": 50,
+      "containerId": "monitoring"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "DMZ",
+        "icon": "globe",
+        "bgColor": "#e3f5e1",
+        "border": true
+      },
+      "bgColor": "#f3faf2",
+      "borderColor": "#7bb47b",
+      "borderStyle": "dashed",
+      "cornerRadius": "round",
+      "id": "dmz",
+      "x": 935,
+      "y": 15,
+      "width": 260,
+      "height": 600
+    },
+    {
+      "tag": "Icon",
+      "icon": "grafana",
+      "texts": [
+        {
+          "text": "Grafana"
+        }
+      ],
+      "id": "grafana",
+      "x": 1015,
+      "y": 295,
+      "width": 50,
+      "height": 50,
+      "containerId": "dmz"
+    },
+    {
+      "tag": "Icon",
+      "icon": "nginx",
+      "texts": [
+        {
+          "text": "Nginx"
+        },
+        {
+          "text": "Reverse Proxy",
+          "color": "gray"
+        }
+      ],
+      "id": "nginx",
+      "x": 1015,
+      "y": 115,
+      "width": 50,
+      "height": 50,
+      "containerId": "dmz"
+    },
+    {
+      "tag": "Icon",
+      "icon": "users",
+      "texts": [
+        {
+          "text": "Users"
+        }
+      ],
+      "id": "users",
+      "x": 1025,
+      "y": 495,
+      "width": 40,
+      "height": 40,
+      "containerId": "dmz"
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "ITSM Zone",
+        "icon": "briefcase",
+        "bgColor": "#fde9d2",
+        "border": true
+      },
+      "bgColor": "#fff8ee",
+      "borderColor": "#e0a45c",
+      "borderStyle": "dashed",
+      "cornerRadius": "round",
+      "id": "itsm",
+      "x": 1275,
+      "y": 15,
+      "width": 220,
+      "height": 280
+    },
+    {
+      "tag": "Icon",
+      "icon": "life-buoy",
+      "texts": [
+        {
+          "text": "RYNX ITSM"
+        }
+      ],
+      "id": "rynx",
+      "x": 1355,
+      "y": 135,
+      "width": 50,
+      "height": 50,
+      "containerId": "itsm"
+    },
+    {
+      "tag": "Textbox",
+      "text": "**Legend**",
+      "id": "legend-title",
+      "x": 15,
+      "y": 645,
+      "width": 120,
+      "height": 39
+    },
+    {
+      "tag": "Textbox",
+      "text": "🔴 Secure API (VPN/SSH)",
+      "color": "#c0392b",
+      "id": "legend1",
+      "x": 15,
+      "y": 669,
+      "width": 260,
+      "height": 38
+    },
+    {
+      "tag": "Textbox",
+      "text": "🟠 Alert flow → RYNX",
+      "color": "#d35400",
+      "id": "legend2",
+      "x": 275,
+      "y": 669,
+      "width": 240,
+      "height": 38
+    },
+    {
+      "tag": "Textbox",
+      "text": "⬛ Standard data flow",
+      "id": "legend3",
+      "x": 515,
+      "y": 669,
+      "width": 220,
+      "height": 38
+    },
+    {
+      "tag": "Textbox",
+      "text": "┄ Optional path",
+      "color": "gray",
+      "id": "legend4",
+      "x": 735,
+      "y": 669,
+      "width": 180,
+      "height": 38
+    }
+  ],
+  "connections": [
+    {
+      "tag": "Relationship",
+      "from": "vigA",
+      "fromPort": "right",
+      "to": "apiA",
+      "toPort": "left",
+      "id": "r1",
+      "x": 160,
+      "y": 145,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 55,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "vigB",
+      "fromPort": "right",
+      "to": "apiB",
+      "toPort": "left",
+      "id": "r2",
+      "x": 160,
+      "y": 325,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 55,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "vigC",
+      "fromPort": "right",
+      "to": "apiC",
+      "toPort": "left",
+      "id": "r3",
+      "x": 160,
+      "y": 505,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 55,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "apiA",
+      "fromPort": "right",
+      "to": "collector",
+      "toPort": "left",
+      "label": "VPN/SSH",
+      "lineStyle": "solid",
+      "color": "#c0392b",
+      "labelPlacement": {
+        "x": 37,
+        "y": -8,
+        "width": 65,
+        "height": 17
+      },
+      "id": "r4",
+      "x": 325,
+      "y": 145,
+      "endArrowhead": "arrow",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 135,
+          "y": 0
+        },
+        {
+          "x": 135,
+          "y": 164
+        },
+        {
+          "x": 160,
+          "y": 164
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "apiB",
+      "fromPort": "right",
+      "to": "collector",
+      "toPort": "left",
+      "label": "VPN/SSH",
+      "color": "#c0392b",
+      "labelPlacement": {
+        "x": 37,
+        "y": -8,
+        "width": 65,
+        "height": 17
+      },
+      "id": "r5",
+      "x": 325,
+      "y": 325,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 160,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "apiC",
+      "fromPort": "right",
+      "to": "collector",
+      "toPort": "left",
+      "label": "VPN/SSH",
+      "color": "#c0392b",
+      "labelPlacement": {
+        "x": 37,
+        "y": -8,
+        "width": 65,
+        "height": 17
+      },
+      "id": "r6",
+      "x": 325,
+      "y": 505,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 135,
+          "y": 0
+        },
+        {
+          "x": 135,
+          "y": -164
+        },
+        {
+          "x": 160,
+          "y": -164
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "collector",
+      "fromPort": "top",
+      "to": "kafka",
+      "toPort": "bottom",
+      "lineStyle": "dashed",
+      "label": "optional",
+      "labelPlacement": {
+        "x": 56,
+        "y": -50,
+        "width": 56,
+        "height": 17
+      },
+      "id": "r7",
+      "x": 515,
+      "y": 295,
+      "endArrowhead": "arrow",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": -42
+        },
+        {
+          "x": 165,
+          "y": -42
+        },
+        {
+          "x": 165,
+          "y": -85
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "collector",
+      "fromPort": "right",
+      "to": "pg",
+      "toPort": "left",
+      "label": "write",
+      "labelPlacement": {
+        "x": 36,
+        "y": -8,
+        "width": 36,
+        "height": 17
+      },
+      "id": "r8",
+      "x": 545,
+      "y": 320,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 110,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "pg",
+      "fromPort": "bottom",
+      "to": "alert",
+      "toPort": "top",
+      "label": "triggers",
+      "labelPlacement": {
+        "x": -27,
+        "y": 34,
+        "width": 54,
+        "height": 17
+      },
+      "id": "r9",
+      "x": 680,
+      "y": 390,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 85
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "pg",
+      "fromPort": "right",
+      "to": "grafana",
+      "toPort": "left",
+      "label": "read-only",
+      "labelPlacement": {
+        "x": 157,
+        "y": -8,
+        "width": 67,
+        "height": 17
+      },
+      "id": "r10",
+      "x": 705,
+      "y": 320,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 310,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "nginx",
+      "fromPort": "bottom",
+      "to": "grafana",
+      "toPort": "top",
+      "id": "r12",
+      "x": 1043,
+      "y": 210,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 85
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "users",
+      "fromPort": "top",
+      "to": "nginx",
+      "toPort": "bottom",
+      "label": "HTTPS",
+      "labelPlacement": {
+        "x": -25,
+        "y": -71,
+        "width": 49,
+        "height": 17
+      },
+      "id": "r11",
+      "x": 1045,
+      "y": 495,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": -87
+        },
+        {
+          "x": -54,
+          "y": -87
+        },
+        {
+          "x": -54,
+          "y": -242
+        },
+        {
+          "x": -10,
+          "y": -242
+        },
+        {
+          "x": -10,
+          "y": -285
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "alert",
+      "fromPort": "right",
+      "to": "rynx",
+      "toPort": "left",
+      "label": "REST API",
+      "color": "#d35400",
+      "labelPlacement": {
+        "x": 158,
+        "y": -8,
+        "width": 64,
+        "height": 17
+      },
+      "id": "r13",
+      "x": 705,
+      "y": 500,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 286,
+          "y": 0
+        },
+        {
+          "x": 286,
+          "y": -84
+        },
+        {
+          "x": 610,
+          "y": -84
+        },
+        {
+          "x": 610,
+          "y": -340
+        },
+        {
+          "x": 650,
+          "y": -340
+        }
+      ]
+    }
+  ],
+  "scene": {
+    "x": -1,
+    "y": -1,
+    "width": 1512,
+    "height": 724
+  }
+}

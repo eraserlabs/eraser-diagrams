@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+pnpm-lock.yaml
+*.tsbuildinfo
+packages/diagrams/src/library/generated/
+test-results/
+*.png
+# Template markup is whitespace-significant (pre-wrap text nodes); AUTHORING.md requires tight text
+packages/diagrams/src/library/templates/**/*.html
+
+# Golden baselines are written by Playwright byte-for-byte; never reformat
+fixtures/__goldens__/

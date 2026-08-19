@@ -1,0 +1,22 @@
+name: test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Several vitest suites drive real Chromium (diagrams, cli, server).
+      - run: pnpm --filter @eraserlabs/diagrams exec playwright install chromium --with-deps
+      - run: pnpm build
+      - run: pnpm test

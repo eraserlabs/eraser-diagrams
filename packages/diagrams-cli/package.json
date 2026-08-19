@@ -1,0 +1,41 @@
+{
+  "name": "@eraserlabs/diagrams-cli",
+  "version": "0.1.0",
+  "description": "Command-line interface for Eraser Diagrams: render and validate diagram JSON through @eraserlabs/diagrams.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eraserlabs/eraser-diagrams.git",
+    "directory": "packages/diagrams-cli"
+  },
+  "homepage": "https://github.com/eraserlabs/eraser-diagrams",
+  "bugs": "https://github.com/eraserlabs/eraser-diagrams/issues",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "eraser-diagrams": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -b && node ../../tools/strip-dist-comments.mjs",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@eraserlabs/diagrams": "workspace:*",
+    "@eraserlabs/resolve": "workspace:*"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1",
+    "playwright-core": "1.61.1"
+  }
+}

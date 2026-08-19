@@ -1,0 +1,30 @@
+{
+  "warnings": [
+    "W_UNKNOWN_ICON /elements/0/icon",
+    "W_UNKNOWN_PROP /elements/0/bgColour"
+  ],
+  "entities": [
+    {
+      "tag": "Shape",
+      "id": "s1",
+      "x": 0,
+      "y": 0,
+      "width": 120,
+      "height": 60,
+      "texts": [
+        {
+          "text": "hello"
+        }
+      ],
+      "bgColour": "#eef",
+      "icon": "gcp-cloud-rum"
+    }
+  ],
+  "connections": [],
+  "scene": {
+    "x": -16,
+    "y": -16,
+    "width": 152,
+    "height": 92
+  }
+}

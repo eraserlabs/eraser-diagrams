@@ -1,0 +1,175 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Postgres",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "color": "green",
+      "badge": {
+        "text": "v2",
+        "placement": "top-right"
+      },
+      "id": "badge-on-shape",
+      "x": 40,
+      "y": 50,
+      "width": 150,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Legacy API",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "color": "orange",
+      "badge": {
+        "text": "deprecated",
+        "placement": "top-left",
+        "bgColor": "#bd413a",
+        "color": "white"
+      },
+      "id": "badge-colored",
+      "x": 260,
+      "y": 50,
+      "width": 160,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Queue",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "color": "blue",
+      "badge": {
+        "text": "3",
+        "shape": "circle",
+        "placement": "top-right"
+      },
+      "id": "badge-circle",
+      "x": 500,
+      "y": 50,
+      "width": 130,
+      "height": 70
+    },
+    {
+      "tag": "Icon",
+      "icon": "database",
+      "texts": [
+        {
+          "text": "Replica",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "RO",
+        "placement": "top-right"
+      },
+      "id": "badge-on-icon",
+      "x": 80,
+      "y": 200,
+      "width": 60,
+      "height": 60
+    },
+    {
+      "tag": "Group",
+      "title": {
+        "text": "Data tier"
+      },
+      "color": "purple",
+      "badge": {
+        "text": "beta",
+        "placement": "top-right"
+      },
+      "id": "badge-on-group",
+      "x": 260,
+      "y": 190,
+      "width": 300,
+      "height": 150
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Store",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "color": "purple",
+      "containerId": "badge-on-group",
+      "id": "badge-group-child",
+      "x": 300,
+      "y": 250,
+      "width": 120,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Vault",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "color": "red",
+      "badge": {
+        "icon": "lock",
+        "shape": "circle",
+        "placement": "top-right"
+      },
+      "id": "badge-circle-icon",
+      "x": 40,
+      "y": 380,
+      "width": 150,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Notify",
+          "fontSize": 18,
+          "hAlign": "center"
+        }
+      ],
+      "color": "yellow",
+      "badge": {
+        "icon": "star",
+        "text": "new",
+        "placement": "top-right"
+      },
+      "id": "badge-rect-icon",
+      "x": 260,
+      "y": 380,
+      "width": 150,
+      "height": 70
+    }
+  ],
+  "connections": [],
+  "scene": {
+    "x": 24,
+    "y": 34,
+    "width": 622,
+    "height": 432
+  }
+}

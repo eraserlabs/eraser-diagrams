@@ -1,0 +1,52 @@
+{
+  "name": "@eraserlabs/resolve",
+  "version": "0.1.0",
+  "description": "Pure Eraser resolve engine",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eraserlabs/eraser-diagrams.git",
+    "directory": "packages/resolve"
+  },
+  "homepage": "https://github.com/eraserlabs/eraser-diagrams",
+  "bugs": "https://github.com/eraserlabs/eraser-diagrams/issues",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema/index.d.ts",
+      "default": "./dist/schema/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map"
+  ],
+  "scripts": {
+    "build": "tsc -b && node ../../tools/strip-dist-comments.mjs",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@eraserlabs/protocol": "workspace:*",
+    "@eraserlabs/utils": "workspace:*",
+    "ajv": "^8.20.0",
+    "fastest-levenshtein": "^1.0.16",
+    "marked": "^18.0.6",
+    "parse5": "^8.0.1",
+    "postcss": "^8.5.18",
+    "sanitize-html": "2.17.5"
+  },
+  "devDependencies": {
+    "@types/sanitize-html": "^2.16.1",
+    "fast-check": "^4.9.0"
+  }
+}

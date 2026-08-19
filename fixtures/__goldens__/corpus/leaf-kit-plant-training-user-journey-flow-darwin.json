@@ -1,0 +1,1369 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "Shape",
+      "shape": "oval",
+      "texts": [
+        {
+          "text": "User gets a new plant",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#FFE4B5",
+      "borderColor": "#D2691E",
+      "id": "start",
+      "x": 335,
+      "y": 15,
+      "width": 200,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Learns about LeafKit",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#E6F3FF",
+      "borderColor": "#4A90E2",
+      "id": "learn",
+      "x": 335,
+      "y": 125,
+      "width": 200,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "diamond",
+      "texts": [
+        {
+          "text": "Join LeafKit?",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#FFF4CC",
+      "borderColor": "#E2B84A",
+      "id": "join_decision",
+      "x": 325,
+      "y": 235,
+      "width": 220,
+      "height": 100
+    },
+    {
+      "tag": "Shape",
+      "shape": "oval",
+      "texts": [
+        {
+          "text": "Exit",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#FFD6D6",
+      "borderColor": "#D24A4A",
+      "id": "exit_early",
+      "x": 55,
+      "y": 250,
+      "width": 160,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "diamond",
+      "texts": [
+        {
+          "text": "Select plant age group",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#FFF4CC",
+      "borderColor": "#E2B84A",
+      "id": "age_decision",
+      "x": 325,
+      "y": 375,
+      "width": 220,
+      "height": 110
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Too young — try again later",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#FFD6D6",
+      "borderColor": "#D24A4A",
+      "id": "too_young",
+      "x": 15,
+      "y": 395,
+      "width": 200,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Referred to partner platform",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#FFE4B5",
+      "borderColor": "#D2691E",
+      "id": "partner",
+      "x": 655,
+      "y": 395,
+      "width": 200,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Create plant profile",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#E6F3FF",
+      "borderColor": "#4A90E2",
+      "id": "profile",
+      "x": 335,
+      "y": 535,
+      "width": 200,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Choose training plan",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#E6F3FF",
+      "borderColor": "#4A90E2",
+      "id": "plan",
+      "x": 335,
+      "y": 645,
+      "width": 200,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Starter",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#F0E6FF",
+      "borderColor": "#8A4AE2",
+      "id": "starter",
+      "x": 35,
+      "y": 755,
+      "width": 140,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Plus",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#F0E6FF",
+      "borderColor": "#8A4AE2",
+      "id": "plus",
+      "x": 225,
+      "y": 755,
+      "width": 140,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Premium",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#F0E6FF",
+      "borderColor": "#8A4AE2",
+      "id": "premium",
+      "x": 415,
+      "y": 755,
+      "width": 140,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Custom",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#F0E6FF",
+      "borderColor": "#8A4AE2",
+      "id": "custom",
+      "x": 605,
+      "y": 755,
+      "width": 140,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "shape": "diamond",
+      "texts": [
+        {
+          "text": "Select training path",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#FFF4CC",
+      "borderColor": "#E2B84A",
+      "id": "path_decision",
+      "x": 325,
+      "y": 855,
+      "width": 220,
+      "height": 110
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Self-guided",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#E6FFE6",
+      "borderColor": "#4AC24A",
+      "id": "self_guided",
+      "x": 135,
+      "y": 1005,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Expert-led",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#E6FFE6",
+      "borderColor": "#4AC24A",
+      "id": "trainer_led",
+      "x": 555,
+      "y": 1005,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Begin basic training",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#E6F3FF",
+      "borderColor": "#4A90E2",
+      "id": "basic_training",
+      "x": 335,
+      "y": 1105,
+      "width": 200,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Check plant progress",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#E6F3FF",
+      "borderColor": "#4A90E2",
+      "id": "check_progress",
+      "x": 335,
+      "y": 1215,
+      "width": 200,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "diamond",
+      "texts": [
+        {
+          "text": "Adjust or advance?",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#FFF4CC",
+      "borderColor": "#E2B84A",
+      "id": "progress_decision",
+      "x": 325,
+      "y": 1325,
+      "width": 220,
+      "height": 110
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Adjust training",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#E6F3FF",
+      "borderColor": "#4A90E2",
+      "id": "adjust",
+      "x": 35,
+      "y": 1345,
+      "width": 180,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Advance to next lesson",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#E6F3FF",
+      "borderColor": "#4A90E2",
+      "id": "next_lesson",
+      "x": 655,
+      "y": 1345,
+      "width": 180,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "diamond",
+      "texts": [
+        {
+          "text": "Training complete?",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#FFF4CC",
+      "borderColor": "#E2B84A",
+      "id": "complete_decision",
+      "x": 325,
+      "y": 1485,
+      "width": 220,
+      "height": 110
+    },
+    {
+      "tag": "Shape",
+      "shape": "diamond",
+      "texts": [
+        {
+          "text": "Continue to advanced?",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#FFF4CC",
+      "borderColor": "#E2B84A",
+      "id": "advanced_decision",
+      "x": 325,
+      "y": 1650,
+      "width": 220,
+      "height": 110
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Advanced training",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#E6F3FF",
+      "borderColor": "#4A90E2",
+      "id": "advanced_training",
+      "x": 15,
+      "y": 1675,
+      "width": 200,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "oval",
+      "texts": [
+        {
+          "text": "Well-trained plant 🌱",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#D6F5D6",
+      "borderColor": "#4AC24A",
+      "id": "end",
+      "x": 335,
+      "y": 1815,
+      "width": 200,
+      "height": 70
+    }
+  ],
+  "connections": [
+    {
+      "tag": "Relationship",
+      "from": "start",
+      "fromPort": "bottom",
+      "to": "learn",
+      "toPort": "top",
+      "id": "r1",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 435,
+      "y": 85,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 40
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "learn",
+      "fromPort": "bottom",
+      "to": "join_decision",
+      "toPort": "top",
+      "id": "r2",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 435,
+      "y": 195,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 40.59
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "join_decision",
+      "fromPort": "left",
+      "to": "exit_early",
+      "toPort": "right",
+      "label": "No",
+      "id": "r3",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 333.5,
+      "y": 285,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -118.5,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": -71,
+        "y": -8,
+        "width": 23,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "from": "join_decision",
+      "fromPort": "bottom",
+      "to": "age_decision",
+      "toPort": "top",
+      "label": "Yes",
+      "id": "r4",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 435,
+      "y": 334.41,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 41.3
+        }
+      ],
+      "labelPlacement": {
+        "x": -14,
+        "y": 12,
+        "width": 27,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "from": "age_decision",
+      "fromPort": "left",
+      "to": "too_young",
+      "toPort": "right",
+      "label": "<4 weeks",
+      "id": "r5",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 332.42,
+      "y": 430,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -117.42,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": -92,
+        "y": -8,
+        "width": 67,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "from": "age_decision",
+      "fromPort": "right",
+      "to": "partner",
+      "toPort": "left",
+      "label": "1 year",
+      "id": "r6",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 537.58,
+      "y": 430,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 117.42,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": 38,
+        "y": -8,
+        "width": 42,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "from": "age_decision",
+      "fromPort": "bottom",
+      "to": "profile",
+      "toPort": "top",
+      "label": "4–12 months",
+      "id": "r7",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 435,
+      "y": 484.29,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 50.71
+        }
+      ],
+      "labelPlacement": {
+        "x": -43,
+        "y": 17,
+        "width": 87,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "from": "profile",
+      "fromPort": "bottom",
+      "to": "plan",
+      "toPort": "top",
+      "id": "r8",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 435,
+      "y": 605,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 40
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "plan",
+      "fromPort": "bottom",
+      "to": "starter",
+      "toPort": "top",
+      "id": "r9",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 373,
+      "y": 715,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 16
+        },
+        {
+          "x": -268,
+          "y": 16
+        },
+        {
+          "x": -268,
+          "y": 40
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "plan",
+      "fromPort": "bottom",
+      "to": "plus",
+      "toPort": "top",
+      "id": "r10",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 448,
+      "y": 715,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 24
+        },
+        {
+          "x": -153,
+          "y": 24
+        },
+        {
+          "x": -153,
+          "y": 40
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "plan",
+      "fromPort": "bottom",
+      "to": "premium",
+      "toPort": "top",
+      "id": "r11",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 485,
+      "y": 715,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 40
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "plan",
+      "fromPort": "bottom",
+      "to": "custom",
+      "toPort": "top",
+      "id": "r12",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 510,
+      "y": 715,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 20
+        },
+        {
+          "x": 165,
+          "y": 20
+        },
+        {
+          "x": 165,
+          "y": 40
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "starter",
+      "fromPort": "bottom",
+      "to": "path_decision",
+      "toPort": "top",
+      "id": "r13",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 105,
+      "y": 815,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 24
+        },
+        {
+          "x": 260,
+          "y": 24
+        },
+        {
+          "x": 260,
+          "y": 75
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "plus",
+      "fromPort": "bottom",
+      "to": "path_decision",
+      "toPort": "top",
+      "id": "r14",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 295,
+      "y": 815,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 16
+        },
+        {
+          "x": 150,
+          "y": 16
+        },
+        {
+          "x": 150,
+          "y": 45
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "premium",
+      "fromPort": "bottom",
+      "to": "path_decision",
+      "toPort": "top",
+      "id": "r15",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 485,
+      "y": 815,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 65
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "custom",
+      "fromPort": "bottom",
+      "to": "path_decision",
+      "toPort": "top",
+      "id": "r16",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 675,
+      "y": 815,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 20
+        },
+        {
+          "x": -160,
+          "y": 20
+        },
+        {
+          "x": -160,
+          "y": 80
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "path_decision",
+      "fromPort": "left",
+      "to": "self_guided",
+      "toPort": "top",
+      "id": "r17",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 332.42,
+      "y": 910,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -99.42,
+          "y": 0
+        },
+        {
+          "x": -99.42,
+          "y": 95
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "path_decision",
+      "fromPort": "right",
+      "to": "trainer_led",
+      "toPort": "top",
+      "id": "r18",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 537.58,
+      "y": 910,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 107.42,
+          "y": 0
+        },
+        {
+          "x": 107.42,
+          "y": 95
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "self_guided",
+      "fromPort": "bottom",
+      "to": "basic_training",
+      "toPort": "top",
+      "id": "r19",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 225,
+      "y": 1065,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 20
+        },
+        {
+          "x": 160,
+          "y": 20
+        },
+        {
+          "x": 160,
+          "y": 40
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "trainer_led",
+      "fromPort": "bottom",
+      "to": "basic_training",
+      "toPort": "top",
+      "id": "r20",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 645,
+      "y": 1065,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 20
+        },
+        {
+          "x": -160,
+          "y": 20
+        },
+        {
+          "x": -160,
+          "y": 40
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "basic_training",
+      "fromPort": "bottom",
+      "to": "check_progress",
+      "toPort": "top",
+      "id": "r21",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 435,
+      "y": 1175,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 40
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "check_progress",
+      "fromPort": "bottom",
+      "to": "progress_decision",
+      "toPort": "top",
+      "id": "r22",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 435,
+      "y": 1285,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 40.71
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "progress_decision",
+      "fromPort": "left",
+      "to": "adjust",
+      "toPort": "right",
+      "label": "Adjust",
+      "id": "r23",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 332.42,
+      "y": 1380,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -117.42,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": -81,
+        "y": -8,
+        "width": 45,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "from": "adjust",
+      "fromPort": "top",
+      "to": "basic_training",
+      "toPort": "left",
+      "label": "Retry",
+      "id": "r25",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 125,
+      "y": 1345,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": -205
+        },
+        {
+          "x": 210,
+          "y": -205
+        }
+      ],
+      "labelPlacement": {
+        "x": 83,
+        "y": -213,
+        "width": 39,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "from": "progress_decision",
+      "fromPort": "right",
+      "to": "next_lesson",
+      "toPort": "left",
+      "label": "Advance",
+      "id": "r24",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 537.58,
+      "y": 1380,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 117.42,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": 28,
+        "y": -8,
+        "width": 61,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "from": "next_lesson",
+      "fromPort": "bottom",
+      "to": "complete_decision",
+      "toPort": "top",
+      "id": "r26",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 745,
+      "y": 1415,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 45
+        },
+        {
+          "x": -310,
+          "y": 45
+        },
+        {
+          "x": -310,
+          "y": 70.71
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "complete_decision",
+      "fromPort": "left",
+      "to": "check_progress",
+      "toPort": "left",
+      "label": "No, continue",
+      "id": "r27",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 332.42,
+      "y": 1540,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -31.42,
+          "y": 0
+        },
+        {
+          "x": -31.42,
+          "y": -290
+        },
+        {
+          "x": 2.58,
+          "y": -290
+        }
+      ],
+      "labelPlacement": {
+        "x": -61,
+        "y": -97,
+        "width": 60,
+        "height": 34
+      }
+    },
+    {
+      "tag": "Relationship",
+      "from": "complete_decision",
+      "fromPort": "bottom",
+      "to": "advanced_decision",
+      "toPort": "top",
+      "label": "Yes",
+      "id": "r28",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 435,
+      "y": 1594.29,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 56.42
+        }
+      ],
+      "labelPlacement": {
+        "x": -14,
+        "y": 20,
+        "width": 27,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "from": "advanced_decision",
+      "fromPort": "left",
+      "to": "advanced_training",
+      "toPort": "right",
+      "label": "Yes",
+      "id": "r29",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 335.1,
+      "y": 1710,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -120.1,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": -75,
+        "y": -8,
+        "width": 27,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "from": "advanced_training",
+      "fromPort": "bottom",
+      "to": "end",
+      "toPort": "left",
+      "label": "Done",
+      "id": "r30",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 115,
+      "y": 1745,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 105
+        },
+        {
+          "x": 220,
+          "y": 105
+        }
+      ],
+      "labelPlacement": {
+        "x": 93,
+        "y": 97,
+        "width": 38,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "from": "advanced_decision",
+      "fromPort": "bottom",
+      "to": "end",
+      "toPort": "top",
+      "label": "No",
+      "id": "r31",
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "x": 435,
+      "y": 1759.29,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 55.71
+        }
+      ],
+      "labelPlacement": {
+        "x": -11,
+        "y": 19,
+        "width": 23,
+        "height": 17
+      }
+    }
+  ],
+  "scene": {
+    "x": -1,
+    "y": -1,
+    "width": 872,
+    "height": 1902
+  }
+}

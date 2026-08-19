@@ -1,0 +1,25 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "Shape",
+      "id": "s1",
+      "x": 0,
+      "y": 0,
+      "width": 120,
+      "height": 60,
+      "texts": [
+        {
+          "text": "Hello"
+        }
+      ]
+    }
+  ],
+  "connections": [],
+  "scene": {
+    "x": -16,
+    "y": -16,
+    "width": 152,
+    "height": 92
+  }
+}

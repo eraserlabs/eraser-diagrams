@@ -1,0 +1,267 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Root",
+          "fontSize": 16
+        }
+      ],
+      "bgColor": "#cfe8ff",
+      "borderColor": "#3b82f6",
+      "id": "root",
+      "x": 375,
+      "y": 15,
+      "width": 140,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Node 1",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#e6f4ea",
+      "borderColor": "#34a853",
+      "id": "child1",
+      "x": 15,
+      "y": 195,
+      "width": 140,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Node 2",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#e6f4ea",
+      "borderColor": "#34a853",
+      "id": "child2",
+      "x": 195,
+      "y": 195,
+      "width": 140,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Node 3",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#e6f4ea",
+      "borderColor": "#34a853",
+      "id": "child3",
+      "x": 375,
+      "y": 195,
+      "width": 140,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Node 4",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#e6f4ea",
+      "borderColor": "#34a853",
+      "id": "child4",
+      "x": 555,
+      "y": 195,
+      "width": 140,
+      "height": 70
+    },
+    {
+      "tag": "Shape",
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "Node 5",
+          "fontSize": 14
+        }
+      ],
+      "bgColor": "#e6f4ea",
+      "borderColor": "#34a853",
+      "id": "child5",
+      "x": 735,
+      "y": 195,
+      "width": 140,
+      "height": 70
+    }
+  ],
+  "connections": [
+    {
+      "tag": "Relationship",
+      "from": "root",
+      "fromPort": "bottom",
+      "to": "child1",
+      "toPort": "top",
+      "id": "r1",
+      "x": 393,
+      "y": 85,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 51
+        },
+        {
+          "x": -308,
+          "y": 51
+        },
+        {
+          "x": -308,
+          "y": 110
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "root",
+      "fromPort": "bottom",
+      "to": "child2",
+      "toPort": "top",
+      "id": "r2",
+      "x": 428,
+      "y": 85,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 59
+        },
+        {
+          "x": -163,
+          "y": 59
+        },
+        {
+          "x": -163,
+          "y": 110
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "root",
+      "fromPort": "bottom",
+      "to": "child3",
+      "toPort": "top",
+      "id": "r3",
+      "x": 445,
+      "y": 85,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 110
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "root",
+      "fromPort": "bottom",
+      "to": "child4",
+      "toPort": "top",
+      "id": "r4",
+      "x": 463,
+      "y": 85,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 59
+        },
+        {
+          "x": 162,
+          "y": 59
+        },
+        {
+          "x": 162,
+          "y": 110
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "from": "root",
+      "fromPort": "bottom",
+      "to": "child5",
+      "toPort": "top",
+      "id": "r5",
+      "x": 498,
+      "y": 85,
+      "endArrowhead": "arrow",
+      "lineStyle": "solid",
+      "color": "#1c1c1c",
+      "lineWidth": 1,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 51
+        },
+        {
+          "x": 307,
+          "y": 51
+        },
+        {
+          "x": 307,
+          "y": 110
+        }
+      ]
+    }
+  ],
+  "scene": {
+    "x": -1,
+    "y": -1,
+    "width": 892,
+    "height": 282
+  }
+}
