@@ -76,6 +76,7 @@ declare global {
       setup(config: {
         templates: Record<string, { html: string; css: string }>;
         baseCss: string;
+        washMaster?: string;
       }): void;
       registerFonts(request: { css: string; faces: WireFontFace[] }): Promise<void>;
       run(request: {
