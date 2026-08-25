@@ -58,9 +58,10 @@ async function decodeMaster(master: string): Promise<typeof gray> {
 
   const image = new Image();
 
-  // Not `image.decode()`: Chrome parks decode promises until the page first composites, so on a
-  // page that never does (background tab, hidden embed) it would hang the whole run with no
-  // error. 'load' fires regardless of visibility, and drawImage below forces the decode anyway.
+  // Deliberately not `image.decode()`: it has been seen never settling on pages that load without
+  // compositing (hidden deck embeds), hanging the whole run with no error. For this function the
+  // two are otherwise equivalent — same naturalWidth/Height, same pixels out of the drawImage
+  // below, same rejection on undecodable data — so 'load' costs nothing but the off-thread decode.
   await new Promise<void>((resolve, reject) => {
     image.onload = () => resolve();
     image.onerror = () => reject(new Error('wash master failed to load'));
