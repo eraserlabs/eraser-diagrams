@@ -121,15 +121,34 @@ svg[stroke='currentColor'] {
   content: '';
   position: absolute;
   inset: 0;
-  border: 1px solid
+  border: var(--er-border-width, 1px) solid
     color-mix(
       in srgb,
       var(--er-stroke) var(--er-wc-border-alpha, 45%),
       transparent
     );
   border-radius: inherit;
+  border-style: inherit;
   filter: blur(var(--er-wc-border-blur, 0.7px));
   pointer-events: none;
+}
+/* Default dashed/dotted groups already draw an SVG outline; smudge that outline without
+   adding a solid twin. Authored widths/corners use the native border and its overlay. */
+.er-grouplike[data-style='watercolor'][data-border='dashed']:not(
+    [data-custom-border='true']
+  )::after,
+.er-grouplike[data-style='watercolor'][data-border='dotted']:not(
+    [data-custom-border='true']
+  )::after {
+  content: none;
+}
+.er-grouplike[data-style='watercolor'] .er-grouplike__stroke {
+  color: color-mix(
+    in srgb,
+    var(--er-stroke) var(--er-wc-border-alpha, 45%),
+    transparent
+  );
+  filter: blur(var(--er-wc-border-blur, 0.7px));
 }
 /* Watercolor titles: the wash already runs under the band, so translucent title paint reads as
    pooled pigment — the texture shows through instead of a solid slab. The extra [data-color] /
@@ -137,6 +156,13 @@ svg[stroke='currentColor'] {
    specificity has to do the winning). The full-width band's hairline joins the faint border. */
 .er-grouplike[data-style='watercolor'][data-color]:not([data-color='']) {
   --er-title-surface: hsl(from var(--er-color) h s 85% / 0.6);
+}
+.er-grouplike[data-style='watercolor'][data-bg]:not([data-bg='']) {
+  --er-title-surface: hsl(from var(--er-bg) h s 85% / 0.6);
+}
+.er-grouplike[data-style='watercolor'][data-bg='transparent']:not([data-bg='']),
+.er-grouplike[data-style='watercolor'][data-bg='none']:not([data-bg='']) {
+  --er-title-surface: transparent;
 }
 .er-grouplike[data-style='watercolor'][data-title-bg]:not([data-title-bg='']) {
   --er-title-paint: rgb(from var(--er-title-bg) r g b / 0.65);

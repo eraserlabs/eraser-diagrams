@@ -317,6 +317,16 @@ const normalizeTextbox: ElementNormalizer = (element) => {
 };
 
 const normalizeGroupLike: ElementNormalizer = (element) => {
+  const corners = element.cornerRadius;
+  if (corners === 'sharp' || corners === 'round' || Array.isArray(corners)) {
+    const radii = Array.isArray(corners) ? corners : Array(4).fill(corners === 'sharp' ? 0 : 6);
+    for (const [index, corner] of ['TL', 'TR', 'BR', 'BL'].entries()) {
+      element[`corner${corner}`] = Math.max(0, radii[index]);
+    }
+  }
+  if (corners !== undefined || element.borderWidth !== undefined) {
+    element.customBorder = true;
+  }
   deriveBoxWash(element);
 };
 

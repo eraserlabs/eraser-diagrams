@@ -34,6 +34,12 @@ export const DatabaseField: JsonSchema = {
 /** Group, Lane, Pool share one HTML template but are distinct registry entries. */
 export const groupLike: Record<string, JsonSchema> = {
   title: GroupTitle,
+  /** Derived CSS corner list and native-border switch for authored group geometry. */
+  cornerTL: { type: 'number' },
+  cornerTR: { type: 'number' },
+  cornerBR: { type: 'number' },
+  cornerBL: { type: 'number' },
+  customBorder: { type: 'boolean' },
   ...ShapeStyleProps,
   ...WashTexProps,
   badge: BadgeProperties,
