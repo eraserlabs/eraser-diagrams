@@ -57,8 +57,16 @@ async function decodeMaster(master: string): Promise<typeof gray> {
   }
 
   const image = new Image();
-  image.src = master;
-  await image.decode();
+
+  // Deliberately not `image.decode()`: it has been seen never settling on pages that load without
+  // compositing (hidden deck embeds), hanging the whole run with no error. For this function the
+  // two are otherwise equivalent — same naturalWidth/Height, same pixels out of the drawImage
+  // below, same rejection on undecodable data — so 'load' costs nothing but the off-thread decode.
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () => reject(new Error('wash master failed to load'));
+    image.src = master;
+  });
   const canvas = document.createElement('canvas');
   canvas.width = image.naturalWidth;
   canvas.height = image.naturalHeight;

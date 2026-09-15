@@ -97,6 +97,15 @@ export function isOverlapping(rangeA: LayoutRange, rangeB: LayoutRange): boolean
   );
 }
 
+/** Inclusive intersection; touching edges/points are kept, disjoint ranges return undefined. */
+export function intersectRanges(a: LayoutRange, b: LayoutRange): LayoutRange | undefined {
+  const minX = Math.max(a.minX, b.minX);
+  const maxX = Math.min(a.maxX, b.maxX);
+  const minY = Math.max(a.minY, b.minY);
+  const maxY = Math.min(a.maxY, b.maxY);
+  return minX <= maxX && minY <= maxY ? { minX, maxX, minY, maxY } : undefined;
+}
+
 export function rangeIncludes(maybeOuter: LayoutRange, maybeInner: LayoutRange): boolean {
   return (
     maybeOuter.minX <= maybeInner.minX &&

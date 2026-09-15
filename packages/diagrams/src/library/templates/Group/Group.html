@@ -4,6 +4,9 @@
     data-role="body"
     class="er-grouplike er-group"
     data-border="{{borderStyle}}"
+    data-border-px="{{borderWidth}}"
+    data-corners="{{cornerTL}}"
+    data-custom-border="{{customBorder}}"
     data-style="{{styleMode}}"
     data-color="{{color}}"
     data-bg="{{bgColor}}"
@@ -17,7 +20,7 @@
     data-title-icon-ink="{{title.iconProps.color}}"
     data-title-icon-size="{{title.iconProps.size}}"
     data-font-px="{{title.fontSize}}"
-    style="--er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-title-bg: {{title.bgColor}}; --er-title-ink: {{title.color}}; --er-title-icon-ink: {{title.iconProps.color}}; --er-font-px: {{title.fontSize}}px; --f: var(--font-{{title.typeface}}, var(--font-clean))"
+    style="--er-authored-border-width: {{borderWidth}}px; --er-radius-tl: {{cornerTL}}px; --er-radius-tr: {{cornerTR}}px; --er-radius-br: {{cornerBR}}px; --er-radius-bl: {{cornerBL}}px; --er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-title-bg: {{title.bgColor}}; --er-title-ink: {{title.color}}; --er-title-icon-ink: {{title.iconProps.color}}; --er-font-px: {{title.fontSize}}px; --f: var(--font-{{title.typeface}}, var(--font-clean))"
   >
     <span class="er-washtex" data-if="washTexCss" aria-hidden="true"><svg
         width="100%"

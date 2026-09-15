@@ -5,6 +5,14 @@
  */
 
 export { LayoutManager } from './LayoutManager.js';
+export {
+  addPaddingToRange,
+  combineRanges,
+  intersectRanges,
+  makePropsFromRange,
+  makeRangeFromEntity,
+  shiftRange,
+} from './rangeUtils.js';
 export { createEntityOutline, roundedCornerGeometry } from './outline.js';
 export type { CornerGeometry, EntityOutline } from './outline.js';
 export { routeCorridorConnectionBatch } from './routing/corridorRoutingAdapter.js';
@@ -22,6 +30,7 @@ export type {
   LayoutConnection,
   LayoutConnectionChange,
   LayoutEntity,
+  LayoutRange,
   NewConnection,
   OutlineDescriptor,
   OutlineVertex,
