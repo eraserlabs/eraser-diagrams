@@ -1,6 +1,7 @@
 name: test
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches: [main]
@@ -16,6 +17,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: node tools/release.mjs check
       # Several vitest suites drive real Chromium (diagrams, cli, server).
       - run: pnpm --filter @eraserlabs/diagrams exec playwright install chromium --with-deps
       - run: pnpm build

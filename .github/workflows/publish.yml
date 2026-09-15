@@ -1,0 +1,38 @@
+name: Publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - packages/*/package.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      # Trusted publishing requires npm >= 11.5.1.
+      - run: npm install --global npm@11
+      - run: pnpm install --frozen-lockfile
+      - run: node tools/release.mjs check
+      - run: pnpm --filter @eraserlabs/diagrams exec playwright install chromium --with-deps
+      - run: pnpm build
+      - run: pnpm test
+      - name: Publish missing versions in dependency order
+        run: node tools/release.mjs publish

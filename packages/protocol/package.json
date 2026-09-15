@@ -1,6 +1,6 @@
 {
   "name": "@eraserlabs/protocol",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Reference TypeScript contracts, schema vocabulary, and machine-readable schemas for the Model Diagramming Protocol (MDP).",
   "type": "module",
   "license": "MIT",

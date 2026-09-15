@@ -1,0 +1,62 @@
+name: Prepare release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump for all public packages
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: prepare-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Bump all public packages
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          RELEASE_VERSION=$(node tools/release.mjs bump "$BUMP")
+          echo "version=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+          pnpm install --lockfile-only --ignore-scripts
+      - uses: peter-evans/create-pull-request@v8
+        id: pr
+        with:
+          branch: release/next
+          title: 'Release v${{ steps.version.outputs.version }}'
+          commit-message: 'chore: release v${{ steps.version.outputs.version }}'
+          body: |
+            Bump all seven public packages to ${{ steps.version.outputs.version }}.
+
+            Merging this PR publishes the packages to npm using trusted publishing.
+          add-paths: |
+            packages/*/package.json
+            pnpm-lock.yaml
+      # Dispatch explicitly because GITHUB_TOKEN-created PRs do not automatically run CI.
+      - name: Run release PR checks
+        if: steps.pr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run test.yml --ref release/next
