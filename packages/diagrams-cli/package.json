@@ -1,6 +1,6 @@
 {
   "name": "@eraserlabs/diagrams-cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Command-line interface for Eraser Diagrams: render and validate diagram JSON through @eraserlabs/diagrams.",
   "type": "module",
   "license": "MIT",

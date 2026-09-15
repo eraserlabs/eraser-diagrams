@@ -1,6 +1,6 @@
 {
   "name": "@eraserlabs/diagrams",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The impure conductor: owns Chromium, network, the font lifecycle, and the Eraser template library.",
   "type": "module",
   "license": "MIT",
