@@ -1,3 +1,12 @@
+import {
+  addPaddingToRange,
+  combineRanges,
+  intersectRanges,
+  makePropsFromRange,
+  makeRangeFromEntity,
+  shiftRange,
+  type LayoutRange,
+} from '@eraserlabs/layout';
 import type { Box } from '@eraserlabs/render';
 import type { MountedElement } from './mount.js';
 
@@ -86,12 +95,9 @@ export function measureScene(
 
 /** Union of painted descendant boxes, respecting overflow clips and inert SVG definitions. */
 function measureInk(wrapper: HTMLElement, origin: DOMRect): MeasuredBox {
-  let left = 0;
-  let top = 0;
-  let right = origin.width;
-  let bottom = origin.height;
+  let ink = makeRangeFromEntity(origin);
 
-  const visit = (node: Element, ancestorClip: InkClip) => {
+  const visit = (node: Element, ancestorClip: LayoutRange) => {
     // Definition geometry has DOM bounds but is not painted at its definition site.
     if (node.matches('defs, mask, clipPath, filter, symbol, title, desc')) {
       return;
@@ -102,58 +108,39 @@ function measureInk(wrapper: HTMLElement, origin: DOMRect): MeasuredBox {
       return;
     }
     const clipPath = svgClipBounds(node, style.clipPath);
-    const clip = clipPath ? intersectClip(ancestorClip, clipPath) : ancestorClip;
+    const clip = clipPath ? intersectRanges(ancestorClip, clipPath) : ancestorClip;
+    if (!clip) {
+      return;
+    }
     const rect = node.getBoundingClientRect();
     // SVG groups have no paint of their own; their aggregate bounds include clipped children.
     if (node.localName !== 'g' && style.visibility === 'visible' && (rect.width || rect.height)) {
-      const shadow = shadowExtents(style.boxShadow);
-      const x1 = Math.max(clip.left, rect.left - shadow.left);
-      const y1 = Math.max(clip.top, rect.top - shadow.top);
-      const x2 = Math.min(clip.right, rect.right + shadow.right);
-      const y2 = Math.min(clip.bottom, rect.bottom + shadow.bottom);
-      if (x2 >= x1 && y2 >= y1) {
-        left = Math.min(left, x1 - origin.x);
-        top = Math.min(top, y1 - origin.y);
-        right = Math.max(right, x2 - origin.x);
-        bottom = Math.max(bottom, y2 - origin.y);
+      const painted = addPaddingToRange(makeRangeFromEntity(rect), shadowExtents(style.boxShadow));
+      const visible = intersectRanges(clip, painted);
+      if (visible) {
+        ink = combineRanges(ink, visible);
       }
     }
 
     // A node's overflow clips its descendants, not its own shadow. Keep each axis independent.
-    const childClip = { ...clip };
-    if (style.overflowX !== 'visible') {
-      childClip.left = Math.max(clip.left, rect.left);
-      childClip.right = Math.min(clip.right, rect.right);
-    }
-    if (style.overflowY !== 'visible') {
-      childClip.top = Math.max(clip.top, rect.top);
-      childClip.bottom = Math.min(clip.bottom, rect.bottom);
+    const childClip = intersectRanges(clip, {
+      minX: style.overflowX === 'visible' ? -Infinity : rect.left,
+      maxX: style.overflowX === 'visible' ? Infinity : rect.right,
+      minY: style.overflowY === 'visible' ? -Infinity : rect.top,
+      maxY: style.overflowY === 'visible' ? Infinity : rect.bottom,
+    });
+    if (!childClip) {
+      return;
     }
     for (const child of node.children) {
       visit(child, childClip);
     }
   };
   for (const child of wrapper.children) {
-    visit(child, { left: -Infinity, top: -Infinity, right: Infinity, bottom: Infinity });
+    visit(child, { minX: -Infinity, minY: -Infinity, maxX: Infinity, maxY: Infinity });
   }
 
-  return { x: left, y: top, width: right - left, height: bottom - top };
-}
-
-interface InkClip {
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
-}
-
-function intersectClip(a: InkClip, b: InkClip): InkClip {
-  return {
-    left: Math.max(a.left, b.left),
-    top: Math.max(a.top, b.top),
-    right: Math.min(a.right, b.right),
-    bottom: Math.min(a.bottom, b.bottom),
-  };
+  return makePropsFromRange(shiftRange(ink, { deltaX: -origin.x, deltaY: -origin.y }));
 }
 
 /**
@@ -162,7 +149,7 @@ function intersectClip(a: InkClip, b: InkClip): InkClip {
  * rectangle is conservative for curved/disjoint clips; it never crops the visible silhouette.
  * Other CSS clip forms remain conservative (unclipped) in this geometry-based measurement.
  */
-function svgClipBounds(node: Element, value: string): InkClip | null {
+function svgClipBounds(node: Element, value: string): LayoutRange | null {
   if (!(node instanceof SVGGraphicsElement) || !value.startsWith('url(')) {
     return null;
   }
@@ -179,7 +166,7 @@ function svgClipBounds(node: Element, value: string): InkClip | null {
     matrix = matrix.translate(box.x, box.y).scale(box.width, box.height);
   }
   matrix = matrix.multiply(svgTransform(path.transform.baseVal));
-  let bounds: InkClip | null = null;
+  let bounds: LayoutRange | null = null;
   for (const child of path.children) {
     if (!(child instanceof SVGGraphicsElement)) {
       continue;
@@ -192,20 +179,10 @@ function svgClipBounds(node: Element, value: string): InkClip | null {
       new DOMPoint(box.x, box.y + box.height),
       new DOMPoint(box.x + box.width, box.y + box.height),
     ].map((point) => point.matrixTransform(toScreen));
-    const rect = {
-      left: Math.min(...points.map((point) => point.x)),
-      top: Math.min(...points.map((point) => point.y)),
-      right: Math.max(...points.map((point) => point.x)),
-      bottom: Math.max(...points.map((point) => point.y)),
-    };
-    bounds = bounds
-      ? {
-          left: Math.min(bounds.left, rect.left),
-          top: Math.min(bounds.top, rect.top),
-          right: Math.max(bounds.right, rect.right),
-          bottom: Math.max(bounds.bottom, rect.bottom),
-        }
-      : rect;
+    const rect = combineRanges(
+      ...points.map(({ x, y }) => ({ minX: x, maxX: x, minY: y, maxY: y })),
+    );
+    bounds = bounds ? combineRanges(bounds, rect) : rect;
   }
   return bounds;
 }
