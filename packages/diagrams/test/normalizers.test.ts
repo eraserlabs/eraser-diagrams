@@ -86,6 +86,26 @@ describe('x-palette translation — one identity value, no derived pair', () => 
     expect(badge.padding).toBeUndefined();
   });
 
+  it('Shape: textInk is the primary text run\u2019s colour, found by shape not by field name', async () => {
+    const inked = await resolveProps({
+      tag: 'Shape',
+      id: 's',
+      x: 0,
+      y: 0,
+      texts: [
+        { text: 'a', color: '#e8eefc' },
+        { text: 'b', color: '#000000' },
+      ],
+    });
+    expect(inked.textInk).toBe('#e8eefc');
+
+    const plain = await resolveProps({ tag: 'Shape', id: 's', x: 0, y: 0, texts: [{ text: 'a' }] });
+    expect(plain.textInk).toBeUndefined();
+
+    const none = await resolveProps({ tag: 'Shape', id: 's', x: 0, y: 0 });
+    expect(none.textInk).toBeUndefined();
+  });
+
   it('Relationship: the stroke site translates the token in place', async () => {
     const r = await resolver.resolve({
       elements: [

@@ -49,7 +49,12 @@ export {
   type LintContext,
   type ParsedTemplate,
 } from './library/index.js';
-export type { ElementNormalizer } from './pipeline/derive.js';
+export {
+  isTextRun,
+  primaryTextRun,
+  type ElementNormalizer,
+  type TextRun,
+} from './pipeline/derive.js';
 export { NAMED_COLOR_HEX, colorToHex } from './pipeline/colors.js';
 export { planFontStaging, type FontStagingPlan, type FontFetch } from './fonts/setup.js';
 export { buildFontsHead, fontFaceRule, cssQuoted } from './fonts/head.js';

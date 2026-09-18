@@ -1,0 +1,846 @@
+{
+  "title": "Badge and arrowhead fidelity: top-left per shape, eight placements, paint from the host, fixed heads, label colour",
+  "elements": [
+    {
+      "tag": "Shape",
+      "id": "tl-rectangle",
+      "shape": "rectangle",
+      "x": 40,
+      "y": 40,
+      "width": 160,
+      "height": 90,
+      "color": "blue",
+      "texts": [
+        {
+          "text": "rectangle",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "v2",
+        "icon": "star",
+        "placement": "top-left"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "tl-ellipse",
+      "shape": "ellipse",
+      "x": 230,
+      "y": 40,
+      "width": 160,
+      "height": 90,
+      "color": "blue",
+      "texts": [
+        {
+          "text": "ellipse",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "v2",
+        "icon": "star",
+        "placement": "top-left"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "tl-hexagon",
+      "shape": "hexagon",
+      "x": 420,
+      "y": 40,
+      "width": 160,
+      "height": 90,
+      "color": "blue",
+      "texts": [
+        {
+          "text": "hexagon",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "v2",
+        "icon": "star",
+        "placement": "top-left"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "tl-diamond",
+      "shape": "diamond",
+      "x": 610,
+      "y": 40,
+      "width": 160,
+      "height": 90,
+      "color": "blue",
+      "texts": [
+        {
+          "text": "diamond",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "v2",
+        "icon": "star",
+        "placement": "top-left"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "tl-circle",
+      "shape": "circle",
+      "x": 800,
+      "y": 40,
+      "width": 160,
+      "height": 90,
+      "color": "blue",
+      "texts": [
+        {
+          "text": "circle",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "v2",
+        "icon": "star",
+        "placement": "top-left"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "tl-star",
+      "shape": "star",
+      "x": 990,
+      "y": 40,
+      "width": 160,
+      "height": 90,
+      "color": "blue",
+      "texts": [
+        {
+          "text": "star",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "v2",
+        "icon": "star",
+        "placement": "top-left"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "tl-triangle",
+      "shape": "triangle",
+      "x": 1180,
+      "y": 40,
+      "width": 160,
+      "height": 90,
+      "color": "blue",
+      "texts": [
+        {
+          "text": "triangle",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "v2",
+        "icon": "star",
+        "placement": "top-left"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "tl-oval",
+      "shape": "oval",
+      "x": 1370,
+      "y": 40,
+      "width": 160,
+      "height": 90,
+      "color": "blue",
+      "texts": [
+        {
+          "text": "oval",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "v2",
+        "icon": "star",
+        "placement": "top-left"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "tl-parallelogram",
+      "shape": "parallelogram",
+      "x": 1560,
+      "y": 40,
+      "width": 160,
+      "height": 90,
+      "color": "blue",
+      "texts": [
+        {
+          "text": "parallelogram",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "v2",
+        "icon": "star",
+        "placement": "top-left"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "tl-cylinder",
+      "shape": "cylinder",
+      "x": 1750,
+      "y": 40,
+      "width": 160,
+      "height": 90,
+      "color": "blue",
+      "texts": [
+        {
+          "text": "cylinder",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "v2",
+        "icon": "star",
+        "placement": "top-left"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "pl-top-left",
+      "x": 40,
+      "y": 200,
+      "width": 180,
+      "height": 90,
+      "color": "green",
+      "texts": [
+        {
+          "text": "top-left",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "top-left",
+        "placement": "top-left"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "pl-top",
+      "x": 270,
+      "y": 200,
+      "width": 180,
+      "height": 90,
+      "color": "green",
+      "texts": [
+        {
+          "text": "top",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "top",
+        "placement": "top"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "pl-top-right",
+      "x": 500,
+      "y": 200,
+      "width": 180,
+      "height": 90,
+      "color": "green",
+      "texts": [
+        {
+          "text": "top-right",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "top-right",
+        "placement": "top-right"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "pl-right",
+      "x": 730,
+      "y": 200,
+      "width": 180,
+      "height": 90,
+      "color": "green",
+      "texts": [
+        {
+          "text": "right",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "right",
+        "placement": "right"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "pl-bottom-right",
+      "x": 960,
+      "y": 200,
+      "width": 180,
+      "height": 90,
+      "color": "green",
+      "texts": [
+        {
+          "text": "bottom-right",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "bottom-right",
+        "placement": "bottom-right"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "pl-bottom",
+      "x": 1190,
+      "y": 200,
+      "width": 180,
+      "height": 90,
+      "color": "green",
+      "texts": [
+        {
+          "text": "bottom",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "bottom",
+        "placement": "bottom"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "pl-bottom-left",
+      "x": 1420,
+      "y": 200,
+      "width": 180,
+      "height": 90,
+      "color": "green",
+      "texts": [
+        {
+          "text": "bottom-left",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "bottom-left",
+        "placement": "bottom-left"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "pl-left",
+      "x": 1650,
+      "y": 200,
+      "width": 180,
+      "height": 90,
+      "color": "green",
+      "texts": [
+        {
+          "text": "left",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "left",
+        "placement": "left"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "paint-plain",
+      "x": 40,
+      "y": 360,
+      "width": 200,
+      "height": 90,
+      "texts": [
+        {
+          "text": "no colour",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "plain",
+        "placement": "top-right"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "paint-color",
+      "x": 280,
+      "y": 360,
+      "width": 200,
+      "height": 90,
+      "color": "purple",
+      "texts": [
+        {
+          "text": "color purple",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "tint",
+        "placement": "top-right"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "paint-dark",
+      "x": 520,
+      "y": 360,
+      "width": 200,
+      "height": 90,
+      "bgColor": "#1e2a3a",
+      "borderColor": "#8fb3ff",
+      "texts": [
+        {
+          "text": "dark body, light text",
+          "hAlign": "center",
+          "color": "#e8eefc"
+        }
+      ],
+      "badge": {
+        "text": "ink",
+        "icon": "star",
+        "placement": "top-right"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "paint-authored",
+      "x": 760,
+      "y": 360,
+      "width": 200,
+      "height": 90,
+      "color": "orange",
+      "texts": [
+        {
+          "text": "authored badge paint",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "set",
+        "placement": "top-right",
+        "bgColor": "#bd413a",
+        "color": "white"
+      }
+    },
+    {
+      "tag": "Group",
+      "id": "paint-group",
+      "x": 1000,
+      "y": 330,
+      "width": 260,
+      "height": 150,
+      "color": "red",
+      "title": {
+        "text": "Group",
+        "color": "#7a1f1f"
+      },
+      "badge": {
+        "text": "grp",
+        "placement": "top-right"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "in-group",
+      "x": 1030,
+      "y": 390,
+      "width": 120,
+      "height": 60,
+      "containerId": "paint-group",
+      "color": "red",
+      "texts": [
+        {
+          "text": "member",
+          "hAlign": "center"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "a0",
+      "x": 40,
+      "y": 540,
+      "width": 120,
+      "height": 60,
+      "texts": [
+        {
+          "text": "lineWidth 1",
+          "hAlign": "center"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "b0",
+      "x": 360,
+      "y": 540,
+      "width": 120,
+      "height": 60,
+      "texts": [
+        {
+          "text": "arrow",
+          "hAlign": "center"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "c0",
+      "x": 680,
+      "y": 540,
+      "width": 120,
+      "height": 60,
+      "texts": [
+        {
+          "text": "triangle",
+          "hAlign": "center"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "a1",
+      "x": 40,
+      "y": 650,
+      "width": 120,
+      "height": 60,
+      "texts": [
+        {
+          "text": "lineWidth 2",
+          "hAlign": "center"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "b1",
+      "x": 360,
+      "y": 650,
+      "width": 120,
+      "height": 60,
+      "texts": [
+        {
+          "text": "arrow",
+          "hAlign": "center"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "c1",
+      "x": 680,
+      "y": 650,
+      "width": 120,
+      "height": 60,
+      "texts": [
+        {
+          "text": "triangle",
+          "hAlign": "center"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "a2",
+      "x": 40,
+      "y": 760,
+      "width": 120,
+      "height": 60,
+      "texts": [
+        {
+          "text": "lineWidth 4",
+          "hAlign": "center"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "b2",
+      "x": 360,
+      "y": 760,
+      "width": 120,
+      "height": 60,
+      "texts": [
+        {
+          "text": "arrow",
+          "hAlign": "center"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "c2",
+      "x": 680,
+      "y": 760,
+      "width": 120,
+      "height": 60,
+      "texts": [
+        {
+          "text": "triangle",
+          "hAlign": "center"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "l0",
+      "x": 40,
+      "y": 900,
+      "width": 120,
+      "height": 60,
+      "texts": [
+        {
+          "text": "label",
+          "hAlign": "center"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "l1",
+      "x": 420,
+      "y": 900,
+      "width": 120,
+      "height": 60,
+      "texts": [
+        {
+          "text": "follows line",
+          "hAlign": "center"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "l2",
+      "x": 800,
+      "y": 900,
+      "width": 120,
+      "height": 60,
+      "texts": [
+        {
+          "text": "own colour",
+          "hAlign": "center"
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-arrow-1",
+      "from": "a0",
+      "to": "b0",
+      "lineWidth": 1,
+      "endArrowhead": "arrow",
+      "startArrowhead": "arrow",
+      "color": "#1c1c1c"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-tri-1",
+      "from": "b0",
+      "to": "c0",
+      "lineWidth": 1,
+      "endArrowhead": "triangle",
+      "startArrowhead": null,
+      "color": "#1c1c1c"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-arrow-2",
+      "from": "a1",
+      "to": "b1",
+      "lineWidth": 2,
+      "endArrowhead": "arrow",
+      "startArrowhead": "arrow",
+      "color": "#1c1c1c"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-tri-2",
+      "from": "b1",
+      "to": "c1",
+      "lineWidth": 2,
+      "endArrowhead": "triangle",
+      "startArrowhead": null,
+      "color": "#1c1c1c"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-arrow-4",
+      "from": "a2",
+      "to": "b2",
+      "lineWidth": 4,
+      "endArrowhead": "arrow",
+      "startArrowhead": "arrow",
+      "color": "#1c1c1c"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-tri-4",
+      "from": "b2",
+      "to": "c2",
+      "lineWidth": 4,
+      "endArrowhead": "triangle",
+      "startArrowhead": null,
+      "color": "#1c1c1c"
+    },
+    {
+      "tag": "Relationship",
+      "id": "lab-inherit",
+      "from": "l0",
+      "to": "l1",
+      "color": "#c0392b",
+      "label": "red line, red label",
+      "endArrowhead": "arrow"
+    },
+    {
+      "tag": "Relationship",
+      "id": "lab-own",
+      "from": "l1",
+      "to": "l2",
+      "color": "#c0392b",
+      "labelColor": "#1f6feb",
+      "label": "red line, blue label",
+      "endArrowhead": "arrow"
+    },
+    {
+      "tag": "Shape",
+      "id": "tl-trapezoid",
+      "shape": "trapezoid",
+      "x": 40,
+      "y": 1000,
+      "width": 160,
+      "height": 90,
+      "color": "blue",
+      "texts": [
+        {
+          "text": "trapezoid",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "v2",
+        "placement": "top-left"
+      }
+    },
+    {
+      "tag": "Shape",
+      "id": "tl-document",
+      "shape": "document",
+      "x": 230,
+      "y": 1000,
+      "width": 160,
+      "height": 90,
+      "color": "blue",
+      "texts": [
+        {
+          "text": "document",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "v2",
+        "placement": "top-left"
+      }
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "erd-a",
+      "label": "users",
+      "x": 460,
+      "y": 1000,
+      "width": 160,
+      "fields": [
+        {
+          "name": "id",
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "erd-b",
+      "label": "orders",
+      "x": 760,
+      "y": 1000,
+      "width": 160,
+      "fields": [
+        {
+          "name": "id",
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "erd-c",
+      "label": "items",
+      "x": 1060,
+      "y": 1000,
+      "width": 160,
+      "fields": [
+        {
+          "name": "id",
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "erd-inherit",
+      "from": "erd-a",
+      "to": "erd-b",
+      "color": "#c0392b",
+      "label": "red line, red label"
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "erd-own",
+      "from": "erd-b",
+      "to": "erd-c",
+      "color": "#c0392b",
+      "labelColor": "#1f6feb",
+      "label": "red line, blue label"
+    },
+    {
+      "tag": "Shape",
+      "id": "paint-dashed",
+      "x": 1300,
+      "y": 360,
+      "width": 200,
+      "height": 90,
+      "color": "blue",
+      "borderStyle": "dashed",
+      "texts": [
+        {
+          "text": "dashed border",
+          "hAlign": "center"
+        }
+      ],
+      "badge": {
+        "text": "dash",
+        "placement": "top-right"
+      }
+    }
+  ]
+}

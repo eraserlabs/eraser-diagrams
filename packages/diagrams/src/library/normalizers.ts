@@ -1,4 +1,4 @@
-import { colorToHex, type ElementNormalizer } from '@eraserlabs/resolve';
+import { colorToHex, primaryTextRun, type ElementNormalizer } from '@eraserlabs/resolve';
 import { washTextureProps } from './watercolorTexture.js';
 import { roundedShapePath } from './roundedPolygon.js';
 import { curvedShapePath } from './curvedShapePaths.js';
@@ -52,10 +52,17 @@ function deriveShapeIconColor(element: Record<string, unknown>): void {
     element.iconProps !== null && typeof element.iconProps === 'object'
       ? (element.iconProps as Record<string, unknown>)
       : undefined;
-  const runs = Array.isArray(element.texts) ? element.texts : [];
-  const primary = runs[0] as Record<string, unknown> | undefined;
 
-  element.iconColor = iconProps?.color ?? primary?.color ?? '#242424';
+  element.iconColor = iconProps?.color ?? primaryTextRun(element)?.color ?? '#242424';
+}
+
+/** The primary run's colour, published to nested mounts (a Badge takes it as its default ink). */
+function deriveShapeTextInk(element: Record<string, unknown>): void {
+  const color = primaryTextRun(element)?.color;
+
+  if (typeof color === 'string') {
+    element.textInk = color;
+  }
 }
 
 // Watercolor texture recolors a grayscale master via an SVG luminance LUT. LUT stops are
@@ -241,6 +248,7 @@ const normalizeShape: ElementNormalizer = (element) => {
   deriveWatercolor(element);
   deriveOutline(element);
   deriveShapeIconColor(element);
+  deriveShapeTextInk(element);
 };
 
 /**

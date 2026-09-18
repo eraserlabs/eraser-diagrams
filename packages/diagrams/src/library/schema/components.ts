@@ -131,6 +131,8 @@ export const ConnectionBase: Record<string, JsonSchema> = {
   typeface: { type: 'string', enum: [...TYPEFACES] },
   fontSize: FontSizePx,
   label: { type: 'string', 'x-content': 'inline-markdown' },
+  /** Label text colour. Absent, the label follows `color` (the line). */
+  labelColor: CssColor,
   labelPlacement: LabelPlacement,
   lineStyle: { type: 'string', enum: [...BORDER_STYLES] },
   /** Paint-only corner treatment for the route stage. Absent is `'straight'`. */

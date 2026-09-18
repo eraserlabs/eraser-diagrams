@@ -1,9 +1,10 @@
 /* Default stroke #1c1c1c at ~1.3px; labels are transparent centered 14px text with 2px of
    horizontal breathing room. The browser apply stage cuts the corresponding gap from the SVG
-   line. Arrowheads ride SVG markers with markerUnits="strokeWidth", so a head scales with the
-   line. markerWidth/markerHeight are the intended arrow pixel sizes divided by the 1.3px
-   default stroke, which keeps the default render pixel-identical; refX/refY and each marker's
-   own `d` are in viewBox units, which absorb that scale, so they take no divisor. */
+   line. Arrowheads ride SVG markers. `arrow` is a fixed 12px chevron (markerUnits
+   userSpaceOnUse, stroked with the line's own width); the others use markerUnits="strokeWidth",
+   so they scale with the line: `triangle` is 10 x lineWidth long (the canvas rule, 5.71 stroke
+   widths at 1.75px per lineWidth), bar / dot / crow-foot are their intended pixel sizes divided
+   by the 1.3px default stroke. refX/refY and each marker's own `d` are in viewBox units. */
 /* Text sizing (see CUSTOMIZATION.md): sizes are pixels only — this slot's literal default, or
    an authored `fontSize` through the gated data-font-px + --er-font-px idiom. */
 .er-rel__line {
@@ -30,9 +31,16 @@
   white-space: normal;
   overflow-wrap: break-word;
   word-break: normal;
-  color: #242424;
+  /* The label follows the line colour unless `labelColor` is authored. */
+  color: var(--er-stroke, #1c1c1c);
   background: transparent;
   padding: 0 2px;
+}
+.er-rel[data-label-color]:not([data-label-color='']) .er-rel__label {
+  color: var(--er-label-ink);
+}
+.er-rel__head-arrow {
+  stroke-width: var(--er-line-w, 1.3px);
 }
 .er-rel[data-font-px]:not([data-font-px='']) .er-rel__label {
   font-size: var(--er-font-px);

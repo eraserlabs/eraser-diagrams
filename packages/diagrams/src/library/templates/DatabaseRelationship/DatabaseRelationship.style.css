@@ -25,10 +25,14 @@
   white-space: normal;
   overflow-wrap: break-word;
   word-break: normal;
-  color: #242424;
+  /* The label follows the line colour unless `labelColor` is authored. */
+  color: var(--er-stroke, #1c1c1c);
   background: transparent;
   padding: 0 2px;
 }
 .er-dbrel[data-font-px]:not([data-font-px='']) .er-dbrel__label {
   font-size: var(--er-font-px);
+}
+.er-dbrel[data-label-color]:not([data-label-color='']) .er-dbrel__label {
+  color: var(--er-label-ink);
 }

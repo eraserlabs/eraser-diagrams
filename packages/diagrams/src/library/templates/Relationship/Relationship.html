@@ -5,37 +5,44 @@
     class="er-rel"
     data-line-style="{{lineStyle}}"
     data-font-px="{{fontSize}}"
-    style="--er-stroke: {{color}}; --er-line-w: {{lineWidthPx}}px; --er-font-px: {{fontSize}}px"
+    data-label-color="{{labelColor}}"
+    style="--er-stroke: {{color}}; --er-line-w: {{lineWidthPx}}px; --er-font-px: {{fontSize}}px; --er-label-ink: {{labelColor}}"
   >
     <svg class="er-rel__svg">
       <defs>
+        <!-- triangle: 10 x lineWidth long, 9 x lineWidth wide (the canvas rule). Stroke px is
+             lineWidth x 1.75, so in stroke-width units the head is 10 / 1.75 = 5.71 long. -->
         <marker
           id="er-ah-triangle"
           markerUnits="strokeWidth"
-          markerWidth="7.69"
-          markerHeight="9.23"
-          viewBox="0 0 10 12"
+          markerWidth="5.71"
+          markerHeight="5.14"
+          viewBox="0 0 10 9"
           refX="10"
-          refY="6"
+          refY="4.5"
           orient="auto-start-reverse"
         >
-          <path d="M 0,0 L 10,6 L 0,12 Z" fill="context-stroke"></path>
+          <path d="M 0,0 L 10,4.5 L 0,9 Z" fill="context-stroke"></path>
         </marker>
+        <!-- arrow: a fixed 12 px chevron at every line width (the canvas rule); its stroke is
+             the line's own stroke, read from --er-line-w on the template root, and overflows
+             the 12 x 11 viewport so a thick stroke is not clipped at the tip and arms. -->
         <marker
           id="er-ah-arrow"
-          markerUnits="strokeWidth"
-          markerWidth="9.23"
-          markerHeight="10.77"
-          viewBox="0 0 12 14"
+          markerUnits="userSpaceOnUse"
+          overflow="visible"
+          markerWidth="12"
+          markerHeight="11"
+          viewBox="0 0 12 11"
           refX="12"
-          refY="7"
+          refY="5.5"
           orient="auto-start-reverse"
         >
           <path
-            d="M 0,0 L 12,7 L 0,14"
+            class="er-rel__head-arrow"
+            d="M 0,0 L 12,5.5 L 0,11"
             fill="none"
             stroke="context-stroke"
-            stroke-width="1.3"
           ></path>
         </marker>
         <marker
