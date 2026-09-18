@@ -259,7 +259,7 @@ Entity properties shared across stock tags:
 | `icon` | string | Icon by catalog name (see [Icons](#icons)); `iconProps` (`{ color, size }`) styles it. |
 | `fontSize` | number (px) | Exact pixels, re-basing every text run on the element. Omit it and each slot keeps its own default (primary text 15, secondary 12, group title 16, `DatabaseTable` 17). |
 | `typeface` | string | `rough`, `clean`, or `mono`. On `Icon`, `Textbox`, `DatabaseTable`, and `Divider`. Not on `Shape` — set `texts[].typeface` per run instead. |
-| `badge` | object | Badge mounted on the element. |
+| `badge` | object | Badge mounted on the element: `{ text, icon, shape, placement, color, bgColor, fontSize, padding }`. `placement` is a corner (`top-left`, `top-right`, `bottom-left`, `bottom-right`) or an edge middle (`top`, `right`, `bottom`, `left`); the top-left badge sits on the outline per shape. Unset, `bgColor` is the element's body one step lighter (the page ground, `--er-ground`, when the body is transparent), `color` is the element's text colour and the border is the element's stroke, so a badge follows its element through a theme change. |
 
 On `Lane` and `Pool` the title renders as a vertical band on the container's left edge, reading bottom-up — the standard BPMN pool/lane form; `Group` keeps its horizontal chip. `Group`, `Lane`, and `Pool` carry their text in a `title` object (`{ text, icon, iconProps, width, bgColor, border, color, fontSize, hAlign, typeface }`), so the title's size and typeface are authored as `title.fontSize` and `title.typeface` rather than at the element root. A present `title` that omits `width` defaults per tag: `Group` gets the snug chip (`width: "snug"`), `Lane` and `Pool` get the full-height band (`width: "full"`); `border` defaults to `true` everywhere. Set `width` explicitly for the other treatments — `"snug"` hugs the text, `"full"` spans the container, `"none"` is plain text (no chrome) — or `border: false` to keep the slot without a line. An omitted `title` object is not invented.
 
@@ -274,7 +274,8 @@ Connection (`Relationship`) properties:
 | `fromPort`, `toPort` | string | Pin an endpoint to a side: `top`, `right`, `bottom`, `left`. |
 | `connectorStyle` | string | How the route travels: `elbow` (orthogonal segments, default) or `straight` (one direct line between the shapes). |
 | `cornerStyle` | string | How route corners are painted: `elbow` (rounded, default) or `straight` (square). |
-| `lineStyle`, `lineWidth`, `color` | string / number / string | `solid`/`dashed`/`dotted`, stroke width, stroke color (a palette token or any CSS color, as above). |
+| `lineStyle`, `lineWidth`, `color` | string / number / string | `solid`/`dashed`/`dotted`, stroke width, stroke color (a palette token or any CSS color, as above). The label follows `color` too. |
+| `labelColor` | string | Label text colour on its own. Unset, the label follows `color`. |
 | `fontSize`, `typeface` | number (px) / string | Label size in exact pixels (omitted, the label renders at its 14px default) and `rough`/`clean`/`mono`. |
 | `badge` | object | Badge mounted on the line; `placement` additionally accepts `start`, `middle`, and `end`. |
 | `points` | array | Explicit route as at least two `{x, y}` waypoints, when you want to author the path instead of using the router. |

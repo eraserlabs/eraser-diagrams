@@ -1,6 +1,7 @@
-/* Rectangle badges: fixed 5px corners; circle badges are true circles. Placements straddle the
-   top/bottom edge with right/bottom corners inset 12px; start/middle/end alias top-left /
-   top-center / top-right. */
+/* Rectangle badges: fixed 5px corners; circle badges are true circles. Corner placements
+   straddle the top/bottom edge inset 12px; top / right / bottom / left sit on the middle of
+   that edge; start/middle/end alias top-left / top / top-right. The top-left placement takes
+   its offset from the host (--er-badge-tl-x / -y), which moves it onto the outline per shape. */
 /* Text sizing (see CUSTOMIZATION.md): sizes are pixels only — this slot's literal default, or
    an authored `fontSize` through the gated data-font-px + --er-font-px idiom. */
 .er-badge {
@@ -18,16 +19,21 @@
   /* One-letter chips stay a readable stamp, not a tight wrap around the glyph. 1.2em is the
      line-box; 8px + 2px is the default padding and hairline. Authored padding retunes it. */
   min-width: calc(1.2em + 8px + 2px);
-  /* Tint from the host: every stock host publishes --er-tint (near-white step of its body
-     colour); inheritance crosses the mount boundary even though the host's stylesheet cannot.
-     A host with no body colour (Icon, Textbox, an uncolored Shape) never sets it, so the white
-     fallback stands. */
-  background: var(--er-tint, #ffffff);
-  color: #000000;
+  /* Paint from the host (the canvas badge.ts): Shape and Group publish --er-badge-tint (their
+     body at 98% lightness, the ground when transparent), --er-host-ink (their text colour) and
+     their stroke as --er-stroke / --er-host-border-width / --er-host-border-style; inheritance
+     crosses the mount boundary even though the host's stylesheet cannot. Other hosts fall back
+     to --er-tint (near-white), dark ink and the default 1px hairline. */
+  background: var(--er-badge-tint, var(--er-tint, #ffffff));
+  color: var(--er-host-ink, #242424);
   /* Watercolor hosts publish --er-wc-ink-alpha (inherited across the mount boundary, same as
-     --er-tint above); everywhere else the fallback keeps the ink at full strength. */
-  border: 1px solid
-    color-mix(in srgb, #242424 var(--er-wc-ink-alpha, 100%), transparent);
+     the tint above); everywhere else the fallback keeps the ink at full strength. */
+  border: var(--er-host-border-width, 1px) var(--er-host-border-style, solid)
+    color-mix(
+      in srgb,
+      var(--er-stroke, #242424) var(--er-wc-ink-alpha, 100%),
+      transparent
+    );
   font-family: var(--font-clean, sans-serif);
   font-size: 15px;
   line-height: 1.2;
@@ -66,12 +72,32 @@
 .er-badge[data-placement='top-left'],
 .er-badge[data-placement='start'] {
   right: auto;
-  left: 12px;
+  left: var(--er-badge-tl-x, 12px);
+  top: var(--er-badge-tl-y, 0px);
 }
+.er-badge[data-placement='top'],
 .er-badge[data-placement='middle'] {
   right: auto;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+.er-badge[data-placement='bottom'] {
+  top: auto;
+  right: auto;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 50%);
+}
+.er-badge[data-placement='left'] {
+  right: auto;
+  left: 0;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.er-badge[data-placement='right'] {
+  right: 0;
+  top: 50%;
+  transform: translate(50%, -50%);
 }
 .er-badge[data-placement='bottom-left'] {
   top: auto;

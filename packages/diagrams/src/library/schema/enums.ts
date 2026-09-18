@@ -52,12 +52,16 @@ export const ORIENTATIONS = ['horizontal', 'vertical'] as const;
 
 export const BADGE_SHAPES = ['circle', 'rectangle'] as const;
 
-/** Corner placements for node badges; start/middle/end for connection badges. */
+/** The four corners and the four edge middles for node badges; start/middle/end for connection badges. */
 export const BADGE_PLACEMENTS = [
   'top-left',
   'top-right',
   'bottom-left',
   'bottom-right',
+  'top',
+  'right',
+  'bottom',
+  'left',
   'start',
   'middle',
   'end',

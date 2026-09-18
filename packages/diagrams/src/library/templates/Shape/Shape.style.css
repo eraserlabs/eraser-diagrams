@@ -12,8 +12,21 @@
      attribute instead. */
   --er-fill: transparent;
   --er-stroke: #242424;
-  /* Near-white tint a mounted Badge inherits as its background. */
+  /* Near-white tint published to nested mounts. */
   --er-tint: #ffffff;
+  /* What a mounted Badge inherits (the canvas badge.ts): background = the body at 98% lightness
+     (getColorAtLightScale(bg, 1)), the ground itself when the body is transparent (--er-ground
+     is the embedder's page colour, white when unset); text = the primary run's colour
+     (--er-host-ink, gated below; this box's own colour until then, so a nested host never
+     inherits its container's ink); border = this box's stroke: --er-stroke, the hairline width
+     and the border style. The top-left badge sits on the outline per shape
+     (getIconBadgePosition): --er-badge-tl-x / -y are its left edge and vertical centre. */
+  --er-badge-tint: var(--er-ground, #ffffff);
+  --er-host-ink: currentColor;
+  --er-host-border-width: 1.2px;
+  --er-host-border-style: solid;
+  --er-badge-tl-x: 12px;
+  --er-badge-tl-y: 0px;
   /* Embedded-icon default (20px) and preset buckets; the compound grows the glyph with the
      element's authored text size. Unitless px so base.style.css can divide by the resolved box
      for the stroke-width formula. */
@@ -35,6 +48,7 @@
   --er-fill: hsl(from var(--er-color) h s 85%);
   --er-stroke: var(--er-color);
   --er-tint: hsl(from var(--er-color) h s 98%);
+  --er-badge-tint: hsl(from var(--er-color) h s 98%);
 }
 /* Authored paint outranks the identity formulas. Every rule in this cascade is written
    `[attr]:not([attr=''])` and, in watercolor, with the mode qualifier as well, so within a mode
@@ -43,13 +57,60 @@
 .er-shape[data-bg]:not([data-bg='']) {
   --er-fill: var(--er-bg);
   --er-tint: hsl(from var(--er-bg) h s 98%);
+  --er-badge-tint: hsl(from var(--er-bg) h s 98%);
 }
 .er-shape[data-bg='transparent']:not([data-bg='']),
 .er-shape[data-bg='none']:not([data-bg='']) {
   --er-tint: #ffffff;
+  --er-badge-tint: var(--er-ground, #ffffff);
 }
 .er-shape[data-border-color]:not([data-border-color='']) {
   --er-stroke: var(--er-border);
+}
+/* Two names: the raw binding (--er-text-ink, empty when no run has a colour) and the published
+   token a nested mount reads, set only when the binding is non-empty. */
+.er-shape[data-text-ink]:not([data-text-ink='']) {
+  --er-host-ink: var(--er-text-ink);
+}
+.er-shape[data-border='dashed'] {
+  --er-host-border-style: dashed;
+}
+.er-shape[data-border='dotted'] {
+  --er-host-border-style: dotted;
+}
+/* Top-left badge per shape, from the canvas getIconBadgePosition: the top-left of a 24px
+   square the badge is centred on, so y = the square's y + 12px. Triangle drops the canvas's
+   extra 0.05 x height on x (CSS cannot mix the two axes here). */
+.er-shape[data-shape='ellipse'] {
+  --er-badge-tl-x: 30px;
+  --er-badge-tl-y: 5%;
+}
+.er-shape[data-shape='hexagon'] {
+  --er-badge-tl-x: 15%;
+  --er-badge-tl-y: calc(5% + 12px);
+}
+.er-shape[data-shape='diamond'] {
+  --er-badge-tl-x: 21.5%;
+  --er-badge-tl-y: calc(10% + 12px);
+}
+.er-shape[data-shape='parallelogram'],
+.er-shape[data-shape='trapezoid'] {
+  --er-badge-tl-x: 30%;
+}
+.er-shape[data-shape='oval'] {
+  --er-badge-tl-x: 10%;
+}
+.er-shape[data-shape='triangle'] {
+  --er-badge-tl-x: 25%;
+  --er-badge-tl-y: calc(15% + 12px);
+}
+.er-shape[data-shape='circle'] {
+  --er-badge-tl-x: 1.5%;
+  --er-badge-tl-y: calc(8.5% + 12px);
+}
+.er-shape[data-shape='star'] {
+  --er-badge-tl-x: 15%;
+  --er-badge-tl-y: calc(25% + 12px);
 }
 /* Watercolor body fill: the authored paint fades to FILL_FADE 0.65. Pigments the texture
    cannot serve (white, non-hex) get no wash decoration — the faded fill alone is the look. */

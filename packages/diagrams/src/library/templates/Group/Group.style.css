@@ -12,6 +12,16 @@
   --er-fill: transparent;
   --er-stroke: #242424;
   --er-tint: #ffffff;
+  /* What a mounted Badge inherits: the body at 98% lightness (the ground when transparent),
+     the title's colour as ink (--er-host-ink, gated below; this box's own colour until then),
+     this box's stroke as border (colour, width, style), and the rectangle's top-left offset.
+     Each is reset here so a group nested in another host never inherits that host's values. */
+  --er-badge-tint: var(--er-ground, #ffffff);
+  --er-host-ink: currentColor;
+  --er-host-border-width: var(--er-border-width);
+  --er-host-border-style: solid;
+  --er-badge-tl-x: 12px;
+  --er-badge-tl-y: 0px;
   --er-title-surface: transparent;
   --er-title-paint: transparent;
   /* Title-band icon buckets; unitless px so base.style.css can divide for the stroke-width
@@ -31,12 +41,14 @@
   --er-fill: hsl(from var(--er-color) h s 98%);
   --er-stroke: var(--er-color);
   --er-tint: hsl(from var(--er-color) h s 98%);
+  --er-badge-tint: hsl(from var(--er-color) h s 98%);
   --er-title-surface: hsl(from var(--er-color) h s 85%);
 }
 /* Authored paint outranks the identity formulas — same specificity, later in source order. */
 .er-grouplike[data-bg]:not([data-bg='']) {
   --er-fill: var(--er-bg);
   --er-tint: hsl(from var(--er-bg) h s 98%);
+  --er-badge-tint: hsl(from var(--er-bg) h s 98%);
   --er-title-surface: hsl(from var(--er-bg) h s 85%);
 }
 .er-grouplike[data-border-color]:not([data-border-color='']) {
@@ -48,7 +60,17 @@
 .er-grouplike[data-bg='none']:not([data-bg='']) {
   --er-fill: transparent;
   --er-tint: #ffffff;
+  --er-badge-tint: var(--er-ground, #ffffff);
   --er-title-surface: transparent;
+}
+.er-grouplike[data-title-ink]:not([data-title-ink='']) {
+  --er-host-ink: var(--er-title-ink);
+}
+.er-grouplike[data-border='dashed'] {
+  --er-host-border-style: dashed;
+}
+.er-grouplike[data-border='dotted'] {
+  --er-host-border-style: dotted;
 }
 .er-grouplike[data-style='shadow'] {
   box-shadow: 4px 4px 0 0 #e8e8e8;

@@ -58,6 +58,16 @@ function deriveShapeIconColor(element: Record<string, unknown>): void {
   element.iconColor = iconProps?.color ?? primary?.color ?? '#242424';
 }
 
+/** Find the "default" color of the text runs using the element's texts array. */
+function deriveShapeTextInk(element: Record<string, unknown>): void {
+  const runs = Array.isArray(element.texts) ? element.texts : [];
+  const primary = runs[0] as Record<string, unknown> | undefined;
+
+  if (typeof primary?.color === 'string') {
+    element.textInk = primary.color;
+  }
+}
+
 // Watercolor texture recolors a grayscale master via an SVG luminance LUT. LUT stops are
 // concrete `#rrggbb` attribute values, so relative-color CSS cannot reach them — pigment must
 // be resolved here before the browser prephase (render masters.ts).
@@ -241,6 +251,7 @@ const normalizeShape: ElementNormalizer = (element) => {
   deriveWatercolor(element);
   deriveOutline(element);
   deriveShapeIconColor(element);
+  deriveShapeTextInk(element);
 };
 
 /**
