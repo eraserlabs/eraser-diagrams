@@ -248,6 +248,19 @@ describe.skipIf(!existsSync(CLI))(
       expect(bad.stderr).toContain('Unknown config key "chromium"');
     });
 
+    it('render: transparency defaults off, respects config, and can be enabled by a flag', () => {
+      const cwd = mkdtempSync(join(tmpdir(), 'eraser-cli-transparent-'));
+      const printed = () => run(['render', '--print-config'], { cwd });
+      expect(JSON.parse(printed().stdout).transparent).toBe(false);
+      const path = join(cwd, 'eraser-diagrams.config.json');
+      writeFileSync(path, JSON.stringify({ transparent: true }));
+      expect(JSON.parse(printed().stdout).transparent).toBe(true);
+      writeFileSync(path, JSON.stringify({ transparent: false }));
+      const enabled = run(['render', '--transparent', '--print-config'], { cwd });
+      expect(enabled.status, enabled.stderr).toBe(0);
+      expect(JSON.parse(enabled.stdout).transparent).toBe(true);
+    });
+
     it('init writes a config once, --force overwrites', () => {
       const cwd = mkdtempSync(join(tmpdir(), 'eraser-cli-init-'));
       const first = run(['init', '--chromium-path', '/opt/chrome'], { cwd });
@@ -291,6 +304,25 @@ describe.skipIf(!existsSync(CLI))(
         expect(r.status, r.stderr).toBe(0);
         expect(r.stderr).toMatch(/^ok {4}.*connections\.json {2}→ connections\.png {2}\d+ ms/);
         expect(readFileSync(join(cwd, 'connections.png')).subarray(0, 4)).toEqual(PNG_MAGIC);
+      });
+
+      it('render: --transparent produces an RGBA PNG at the requested scale', () => {
+        const opaque = runBuffer(['render', FIXTURE, '--scale', '2', '-o', '-']);
+        const transparent = runBuffer([
+          'render',
+          FIXTURE,
+          '--transparent',
+          '--scale',
+          '2',
+          '-o',
+          '-',
+        ]);
+        expect(opaque.status, opaque.stderr.toString()).toBe(0);
+        expect(transparent.status, transparent.stderr.toString()).toBe(0);
+        // PNG IHDR: width/height at bytes 16–23, color type at byte 25 (2 = RGB, 6 = RGBA).
+        expect(opaque.stdout[25]).toBe(2);
+        expect(transparent.stdout[25]).toBe(6);
+        expect(transparent.stdout.subarray(16, 24)).toEqual(opaque.stdout.subarray(16, 24));
       });
 
       it('render: -o path and --format html', () => {

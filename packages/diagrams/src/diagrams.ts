@@ -57,6 +57,8 @@ interface CommonRendererOptions {
   pages?: number;
   /** Pixel density used for Chromium screenshots. */
   deviceScaleFactor?: number;
+  /** Omit the default white background in PNG output. Defaults to false; HTML is unaffected. */
+  transparent?: boolean;
   /**
    * The outputs a request that omits `outputs` should produce. Defaults to `{ png: true }`. A
    * request's own `outputs` replaces this wholesale — the two are never merged flag by flag.
@@ -394,7 +396,10 @@ export async function createRenderer(options: RendererOptions): Promise<Renderer
         }
 
         if (requested.png) {
-          outcome['png'] = await page.locator('#eraser-scene').screenshot({ type: 'png' });
+          outcome['png'] = await page.locator('#eraser-scene').screenshot({
+            type: 'png',
+            omitBackground: options.transparent ?? false,
+          });
           tracker.mark('screenshot');
         }
 

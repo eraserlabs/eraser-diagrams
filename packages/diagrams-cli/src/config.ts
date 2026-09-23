@@ -27,6 +27,7 @@ export interface FileConfig {
   format?: OutputFormat;
   outDir?: string;
   deviceScaleFactor?: number;
+  transparent?: boolean;
   pages?: number;
   icons?: IconsConfig;
   fonts?: FontsConfig | string;
@@ -41,6 +42,7 @@ export interface ConfigOverrides {
   format?: OutputFormat;
   outDir?: string;
   deviceScaleFactor?: number;
+  transparent?: boolean;
   pages?: number;
   icons?: IconsConfig;
   /** Path to a fonts JSON file. */
@@ -58,6 +60,7 @@ export interface EffectiveConfig {
   format: OutputFormat;
   outDir: string;
   deviceScaleFactor: number;
+  transparent: boolean;
   pages: number;
   icons: IconsConfig & { onUnknown: UnknownIconPolicy };
   fonts?: FontsConfig;
@@ -195,6 +198,7 @@ const FILE_CHECKS: Record<string, Check> = {
   format: isOneOf(OUTPUT_FORMATS),
   outDir: isString,
   deviceScaleFactor: isPositiveNumber,
+  transparent: isBoolean,
   pages: isPositiveNumber,
   icons: isIconsObject,
   fonts: isFontsSpec,
@@ -321,6 +325,7 @@ export function resolveConfig(input: ResolveConfigInput): EffectiveConfig {
         ? resolve(baseDir, file.outDir)
         : input.cwd,
     deviceScaleFactor: flags.deviceScaleFactor ?? file.deviceScaleFactor ?? 1,
+    transparent: flags.transparent ?? file.transparent ?? false,
     pages: flags.pages ?? file.pages ?? 1,
     icons: { ...icons, onUnknown: icons.onUnknown ?? 'placeholder' },
     ...(fonts ? { fonts } : {}),

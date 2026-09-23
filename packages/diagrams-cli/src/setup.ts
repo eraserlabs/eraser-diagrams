@@ -116,6 +116,7 @@ export async function rendererOptionsFrom(
     chromiumPath,
     pages: config.pages,
     deviceScaleFactor: config.deviceScaleFactor,
+    transparent: config.transparent,
     ...(config.fonts ? { fonts: config.fonts } : {}),
   };
 }

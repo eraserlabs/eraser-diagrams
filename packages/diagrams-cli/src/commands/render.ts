@@ -51,6 +51,7 @@ function renderOverrides(flags: Flags): ConfigOverrides {
 
   return {
     ...commonOverrides(flags),
+    ...(booleanFlag(flags, 'transparent') ? { transparent: true } : {}),
     ...(chromiumPath !== undefined ? { chromiumPath } : {}),
     ...(format !== undefined ? { format } : {}),
     ...(outDir !== undefined ? { outDir } : {}),

@@ -35,6 +35,7 @@ const RENDER_OPTIONS: OptionTable = {
   'out-dir': { type: 'string' },
   format: { type: 'string', short: 'f' },
   scale: { type: 'string' },
+  transparent: { type: 'boolean' },
   pages: { type: 'string' },
   'chromium-path': { type: 'string' },
   fonts: { type: 'string' },
@@ -78,6 +79,7 @@ Options:
       --out-dir <dir>         Output directory (default: current directory); files are named <input>.<format>
   -f, --format png|html       Output format (default: png)
       --scale <n>             Pixel density for PNG (deviceScaleFactor, default: 1)
+      --transparent           Preserve PNG background transparency (default: off)
       --pages <n>             Warm Chromium page pool size (default: 1)
       --chromium-path <path>  Chromium executable (default: $CHROMIUM_PATH, config, then auto-detect)
       --fonts <path>          Fonts config JSON file

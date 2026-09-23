@@ -74,6 +74,9 @@ describe('loadFileConfig', () => {
     expect(() => loadFileConfig(writeConfig(root, { pages: '2' }))).toThrow(
       /"pages" must be a positive number/,
     );
+    expect(() => loadFileConfig(writeConfig(root, { transparent: 'true' }))).toThrow(
+      /"transparent" must be a boolean/,
+    );
     expect(() => loadFileConfig(writeConfig(root, { format: 'svg' }))).toThrow(/png \| html/);
     expect(() => loadFileConfig(writeConfig(root, { icons: { onUnknown: 'warn' } }))).toThrow(
       /"icons.onUnknown"/,
@@ -106,6 +109,7 @@ describe('resolveConfig', () => {
       format: 'png',
       outDir: root,
       deviceScaleFactor: 1,
+      transparent: false,
       pages: 1,
       icons: { onUnknown: 'placeholder' },
       failOnWarning: false,

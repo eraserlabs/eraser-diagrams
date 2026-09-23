@@ -28,4 +28,6 @@ await renderer.close();
 
 Chromium is caller-owned: pass a local `chromiumPath`, or a `browser` provider for caller-managed and remote browsers (`chromium.connectOverCDP(...)`). A provider owns its browser's flags — if you use `url` font faces served from localhost or a private network, launch with `--disable-features=LocalNetworkAccessChecks,BlockInsecurePrivateNetworkRequests`, since the origin-less render page otherwise has its font fetches silently blocked by Chromium's Local Network Access checks (the `chromiumPath` path applies these flags for you). Everything else defaults to stock: the Eraser component library, the vendored fonts (Shantell Sans, Inter, JetBrains Mono — all SIL OFL 1.1, under `fonts/`), and Eraser's hosted icon catalog (which needs network access; supply `iconLoader` for offline or custom icons).
 
+PNG output has a white background by default. Pass `transparent: true` to `createRenderer` to preserve background transparency; authored fills remain visible and HTML output is unaffected.
+
 `renderer.validate` runs the same validation as `render` without touching the browser. Rendering guides live in the repo root: `GETTING_STARTED.md` for authoring and `CUSTOMIZATION.md` for bringing your own component library, palette, and fonts.
