@@ -20,6 +20,7 @@ import {
 
 export type { WireFontFace, UrlFontFace, RegisterFontsRequest } from './fonts.js';
 export type { ElementMeasure, MeasuredBox } from './measure.js';
+export { cutLabelGap, clearLabelGap, type LabelGapOptions } from './labelGap.js';
 
 /** Page-lifetime configuration: injected once per page by the orchestrator, reused per request. */
 export interface PageSetup {

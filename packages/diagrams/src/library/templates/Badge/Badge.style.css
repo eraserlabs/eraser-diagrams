@@ -69,6 +69,8 @@
   width: 100%;
   height: 100%;
 }
+/* No placement is top-left, as the canvas (freeform/badge.ts getBadgePosition: `default` falls to top-left). */
+.er-badge[data-placement=''],
 .er-badge[data-placement='top-left'],
 .er-badge[data-placement='start'] {
   right: auto;
