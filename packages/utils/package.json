@@ -1,6 +1,6 @@
 {
   "name": "@eraserlabs/utils",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Dependency-free helpers shared across the Eraser packages: phase timing, set helpers, and type guards.",
   "type": "module",
   "license": "MIT",

@@ -50,6 +50,9 @@ importers:
 
   packages/diagrams:
     dependencies:
+      '@eraserlabs/diagram-templates':
+        specifier: workspace:*
+        version: link:../templates
       '@eraserlabs/layout':
         specifier: workspace:*
         version: link:../layout
@@ -62,9 +65,6 @@ importers:
       '@eraserlabs/resolve':
         specifier: workspace:*
         version: link:../resolve
-      '@eraserlabs/diagram-templates':
-        specifier: workspace:*
-        version: link:../templates
       '@eraserlabs/utils':
         specifier: workspace:*
         version: link:../utils
@@ -106,6 +106,9 @@ importers:
 
   packages/playground:
     devDependencies:
+      '@eraserlabs/diagram-templates':
+        specifier: workspace:*
+        version: link:../templates
       '@eraserlabs/diagrams':
         specifier: workspace:*
         version: link:../diagrams
@@ -115,9 +118,6 @@ importers:
       '@eraserlabs/resolve':
         specifier: workspace:*
         version: link:../resolve
-      '@eraserlabs/diagram-templates':
-        specifier: workspace:*
-        version: link:../templates
       '@types/react':
         specifier: ^19.0.0
         version: 19.2.17
