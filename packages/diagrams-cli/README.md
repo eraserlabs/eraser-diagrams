@@ -31,6 +31,7 @@ eraser-diagrams init                  Write eraser-diagrams.config.json in the c
 | `--out-dir <dir>` | current directory | Where outputs go; created if missing. |
 | `-f, --format png\|html` | `png` | Output format. HTML references each font's source (`inline: true` embeds file faces). |
 | `--scale <n>` | `1` | PNG pixel density (`deviceScaleFactor`; `2` for retina). Ignored for HTML. |
+| `--transparent` | off | Preserve PNG background transparency. Ignored for HTML; authored fills remain visible. |
 | `--pages <n>` | `1` | Warm Chromium page pool; more pages render more inputs concurrently. |
 | `--chromium-path <path>` | see below | Chromium executable. |
 | `--fonts <path>` | stock fonts | Fonts config JSON file. |
@@ -41,6 +42,12 @@ eraser-diagrams init                  Write eraser-diagrams.config.json in the c
 | `--fail-on-warning` | off | Exit 1 when any warning is reported (including degraded fonts). |
 | `-q, --quiet` | off | No per-input status lines; failures still print. |
 | `--debug` | off | Stage timings and config/Chromium provenance on stderr. |
+
+For a PNG with a transparent background:
+
+```bash
+eraser-diagrams render diagram.json --transparent --scale 2 -o diagram.png
+```
 
 `validate` accepts `--json`, `--fail-on-warning`, `--quiet`, `--debug`.
 
@@ -88,6 +95,7 @@ Precedence: `--chromium-path` > `CHROMIUM_PATH` > `chromiumPath` in the config f
 | `format` | `"png"` \| `"html"` | Default `--format`. |
 | `outDir` | string | Default `--out-dir`. |
 | `deviceScaleFactor` | number | Default `--scale`. |
+| `transparent` | boolean | Default `--transparent` (false). |
 | `pages` | number | Default `--pages`. |
 | `icons.baseUrl`, `icons.cacheDir`, `icons.timeoutMs`, `icons.cacheTtlMs` |  | Icon loader settings (`createEraserIconLoader`). |
 | `icons.onUnknown` | `"placeholder"` \| `"error"` | Unknown icon policy. |

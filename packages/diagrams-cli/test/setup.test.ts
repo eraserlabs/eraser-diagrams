@@ -33,6 +33,7 @@ function config(overrides: Partial<EffectiveConfig> = {}): EffectiveConfig {
     format: 'png',
     outDir: dir,
     deviceScaleFactor: 1,
+    transparent: false,
     pages: 1,
     icons: { onUnknown: 'placeholder' },
     failOnWarning: false,
@@ -101,13 +102,14 @@ describe('option shaping', () => {
   it('rendererOptionsFrom adds the browser and boot-time render knobs', async () => {
     const fonts = { roles: { clean: 'Inter' }, faces: [] };
     const options = await rendererOptionsFrom(
-      config({ pages: 3, deviceScaleFactor: 2, fonts }),
+      config({ pages: 3, deviceScaleFactor: 2, transparent: true, fonts }),
       '/path/to/chrome',
     );
     expect(options).toMatchObject({
       chromiumPath: '/path/to/chrome',
       pages: 3,
       deviceScaleFactor: 2,
+      transparent: true,
       fonts,
       library: stockLibrary,
     });
