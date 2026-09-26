@@ -3,7 +3,8 @@
 // only via package names, resolving through declared dependencies. server and playground are
 // private (deployment and dev UI, never published) and nothing may import them. Layering runs
 // contracts and helpers (protocol, utils) at the bottom, engines (resolve, render, layout) above
-// them, and the diagrams orchestrator plus its CLI on top — lower layers never import upward.
+// them, the template library (templates) over the engines, and the diagrams orchestrator plus its CLI on top —
+// lower layers never import upward.
 // diagrams-cli depends on diagrams and resolve only.
 
 /** @type {import('dependency-cruiser').IConfiguration} */
@@ -56,13 +57,37 @@ module.exports = {
       to: { path: '^packages/(server|playground|diagrams|diagrams-cli)/' },
     },
     {
+      name: 'engines-no-templates',
+      comment:
+        'The template library is data over the engines: protocol, resolve, render, layout and utils never import it.',
+      severity: 'error',
+      from: { path: '^packages/(protocol|resolve|render|layout|utils)/src' },
+      to: { path: '^packages/templates/' },
+    },
+    {
+      name: 'templates-imports-contracts-and-engines-only',
+      comment:
+        'templates is the stock library as data: it imports protocol, resolve, layout geometry and render types; ' +
+        'never the orchestrator, the CLI, the server or the dev UI, and no node:* builtins (it runs in the browser).',
+      severity: 'error',
+      from: { path: '^packages/templates/src' },
+      to: { path: '^packages/(diagrams|diagrams-cli|server|playground|utils)/' },
+    },
+    {
+      name: 'templates-no-node-builtins',
+      comment: 'The template library is platform-pure, like resolve.',
+      severity: 'error',
+      from: { path: '^packages/templates/src' },
+      to: { dependencyTypes: ['core'] },
+    },
+    {
       name: 'cli-imports-diagrams-and-resolve-only',
       comment:
         'The CLI package imports @eraserlabs/diagrams and @eraserlabs/resolve; no engine or dev packages.',
       severity: 'error',
       from: { path: '^packages/diagrams-cli/src' },
       to: {
-        path: '^packages/(render|layout|server|playground|utils)/',
+        path: '^packages/(render|layout|server|playground|utils|templates)/',
       },
     },
     {
@@ -72,7 +97,7 @@ module.exports = {
       severity: 'error',
       from: { path: '^packages/protocol/src' },
       to: {
-        path: '^packages/(resolve|render|layout|server|playground|diagrams|utils)/',
+        path: '^packages/(resolve|render|layout|server|playground|diagrams|utils|templates)/',
       },
     },
     {
@@ -114,7 +139,7 @@ module.exports = {
         'other implementation package.',
       severity: 'error',
       from: { path: '^packages/render/src' },
-      to: { path: '^packages/(resolve|server|playground)/' },
+      to: { path: '^packages/(resolve|server|playground|templates)/' },
     },
   ],
   options: {

@@ -6,9 +6,9 @@ import {
 } from '@eraserlabs/resolve';
 // Deep imports: the package root re-exports the Chromium conductor, which cannot enter a browser
 // bundle. The normalizer table and library data are pure derivation + data.
-import { stockNormalizers } from '@eraserlabs/diagrams/normalizers';
-import { normalizeFetchedIcon } from '@eraserlabs/diagrams/svg-transforms';
-import { buildRenderPageSetup, stockLibrary } from '@eraserlabs/diagrams/library';
+import { stockNormalizers } from '@eraserlabs/templates/normalizers';
+import { normalizeFetchedIcon } from '@eraserlabs/templates/svg-transforms';
+import { buildRenderPageSetup, stockLibrary } from '@eraserlabs/templates';
 
 // The public bucket has no CORS config, so the browser cannot fetch it cross-origin — the dev
 // server proxies /icon-assets to it (vite.config.ts). Same store the product and docs use.

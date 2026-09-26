@@ -11,6 +11,7 @@
     { "path": "../protocol" },
     { "path": "../render" },
     { "path": "../resolve" },
+    { "path": "../templates" },
     { "path": "../utils" }
   ]
 }

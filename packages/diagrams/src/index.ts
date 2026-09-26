@@ -4,9 +4,9 @@ export {
   tagSchemas,
   subTemplateSchemas,
   templateProps,
-} from './library/index.js';
-export { stockNormalizers } from './library/normalizers.js';
-export { buildRenderPageSetup } from './library/pageSetup.js';
+  buildRenderPageSetup,
+} from '@eraserlabs/templates';
+export { stockNormalizers } from '@eraserlabs/templates/normalizers';
 export {
   createEraserIconLoader,
   ERASER_ICON_BASE_URL,

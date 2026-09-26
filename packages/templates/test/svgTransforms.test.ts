@@ -6,7 +6,7 @@ import {
   inlineStyleClasses,
   uniquifyIds,
   normalizeFetchedIcon,
-} from '../src/icons/svgTransforms.js';
+} from '../src/svgTransforms.js';
 
 describe('icon svg transforms (icon-service build-time normalization)', () => {
   it('sanitize strips scripts, handlers and external refs; fragment refs survive', () => {

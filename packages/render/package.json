@@ -26,6 +26,10 @@
       "types": "./dist/browser/index.d.ts",
       "default": "./dist/browser/index.js"
     },
+    "./fill": {
+      "types": "./dist/browser/fillApi.d.ts",
+      "default": "./dist/browser/fillApi.js"
+    },
     "./browser/iife": "./dist/browser/eraser-render.iife.js"
   },
   "files": [

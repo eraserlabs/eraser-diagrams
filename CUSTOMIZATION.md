@@ -15,7 +15,7 @@ Component markup contains no JavaScript. It is validated before use, and the fil
 
 Reference material:
 
-- The stock tags are the best examples: [`packages/diagrams/src/library/templates/`](./packages/diagrams/src/library/templates/) contains each tag's schema, HTML, and CSS side by side.
+- The stock tags are the best examples: [`packages/templates/src/templates/`](./packages/templates/src/templates/) contains each tag's schema, HTML, and CSS side by side.
 - [`@eraserlabs/protocol`](./packages/protocol/README.md) and the [MDP spec](./packages/protocol/SPEC.md) define the underlying contracts a library implements.
 
 ## The three levels of customization
@@ -318,4 +318,4 @@ Text properties should declare an `x-content` policy so the resolver can sanitiz
 
 ## Going further
 
-The stock components in [`packages/diagrams/src/library/templates/`](./packages/diagrams/src/library/templates/) exercise everything above — schemas, roles, sub-template composition, normalizer-fed bindings — and the [MDP spec](./packages/protocol/SPEC.md) and [render contract](./packages/render/SPEC.md) define the underlying protocol these conventions implement.
+The stock components in [`packages/templates/src/templates/`](./packages/templates/src/templates/) exercise everything above — schemas, roles, sub-template composition, normalizer-fed bindings — and the [MDP spec](./packages/protocol/SPEC.md) and [render contract](./packages/render/SPEC.md) define the underlying protocol these conventions implement.

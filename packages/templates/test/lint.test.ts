@@ -7,7 +7,7 @@ import {
   type AuthoredLibrary,
   type LintRule,
 } from '@eraserlabs/resolve';
-import { stockLibrary } from '../src/library/index.js';
+import { stockLibrary } from '../src/index.js';
 
 /** Build a library whose Shape template is replaced by a deliberately broken one. */
 function withBrokenShape(html: string, css = '.x{}'): AuthoredLibrary {

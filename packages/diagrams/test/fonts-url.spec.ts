@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stubIconLoader } from './support/stubIcons.js';
 import { createRenderer, type OutputRequest, type RenderOutcome } from '../src/index.js';
-import { stockLibrary } from '../src/library/index.js';
+import { stockLibrary } from '@eraserlabs/templates';
 import { startFontServer } from './support/font-server.js';
 import { CHROMIUM_PATH } from './support/browser.js';
 
