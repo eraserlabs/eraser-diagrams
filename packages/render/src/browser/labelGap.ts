@@ -16,21 +16,40 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 const LABEL_MASK_CLEARANCE = 2;
 
 export interface LabelGapOptions {
-  /** The connection's id: marks the generated resources, so the next call can find and replace them. */
+  /** The connection's identity, stored as metadata but never used as an SVG id or CSS selector. */
   readonly connectionId: string;
   /** The user-space box the mask must cover: every point the stroke can paint (the scene box in `applyLayout`). */
   readonly field: Box;
-  /** The mask / clip id (or a maker, asked only when a gap is cut); left out, one is made from the connection id. */
-  readonly id?: string | (() => string);
 }
+
+interface InstalledGap {
+  readonly svg: SVGSVGElement;
+  readonly connectionId: string;
+  readonly resource: SVGMaskElement | SVGClipPathElement;
+  readonly attribute: 'mask' | 'clip-path';
+  readonly previousValue: string | null;
+  readonly host?: SVGGElement;
+}
+
+// Ownership follows the actual anchor, including while it is detached or its connection id changes.
+const installedGaps = new WeakMap<Element, InstalledGap>();
+const nextResourceOrdinal = new WeakMap<Document, number>();
 
 /**
  * Cut the label's box (grown by LABEL_MASK_CLEARANCE) out of the anchor's stroke, in the anchor's
  * user space. Nothing is cut when the box does not touch the route (a label the router kept clear
  * of the line), and the arrowheads are kept whole. Returns whether a gap was cut.
  */
-export function cutLabelGap(svg: SVGSVGElement, anchor: Element, labelBox: Box, options: LabelGapOptions): boolean {
-  clearLabelGap(svg, anchor, options.connectionId);
+export function cutLabelGap(
+  svg: SVGSVGElement,
+  anchor: Element,
+  labelBox: Box,
+  options: LabelGapOptions,
+): boolean {
+  const previous = installedGaps.get(anchor);
+  if (previous) {
+    clearLabelGap(previous.svg, anchor, previous.connectionId);
+  }
   const cutout = {
     x: labelBox.x - LABEL_MASK_CLEARANCE,
     y: labelBox.y - LABEL_MASK_CLEARANCE,
@@ -46,12 +65,15 @@ export function cutLabelGap(svg: SVGSVGElement, anchor: Element, labelBox: Box, 
     return false;
   }
 
-  const hasAuthoredMask = anchor.hasAttribute('mask') && anchor.getAttribute('mask')?.trim() !== 'none';
-  const hasAuthoredClip = anchor.hasAttribute('clip-path') && anchor.getAttribute('clip-path')?.trim() !== 'none';
-  const id =
-    typeof options.id === 'function'
-      ? options.id()
-      : (options.id ?? uniqueResourceId(svg, `${labelGapIdPrefix(anchor)}-${options.connectionId}`, 0));
+  const hasAuthoredMask =
+    anchor.hasAttribute('mask') && anchor.getAttribute('mask')?.trim() !== 'none';
+  const hasAuthoredClip =
+    anchor.hasAttribute('clip-path') && anchor.getAttribute('clip-path')?.trim() !== 'none';
+  const prefix =
+    hasAuthoredMask && !hasAuthoredClip
+      ? 'eraser-connection-label-clip'
+      : 'eraser-connection-label-mask';
+  const id = uniqueResourceId(svg, prefix);
   installLabelGap(
     svg,
     anchor,
@@ -74,32 +96,28 @@ export function cutLabelGap(svg: SVGSVGElement, anchor: Element, labelBox: Box, 
  * authored is left as it was.
  */
 export function clearLabelGap(svg: SVGSVGElement, anchor: Element, connectionId: string): void {
-  for (const resource of svg.querySelectorAll(
-    `[data-mdp-connection-mask="${cssString(connectionId)}"], [data-mdp-connection-clip="${cssString(connectionId)}"]`,
-  )) {
-    const reference = `url(#${resource.id})`;
-    for (const attribute of ['mask', 'clip-path']) {
-      if (anchor.getAttribute(attribute)?.trim() === reference) {
-        anchor.removeAttribute(attribute);
-      }
-    }
-    const host = anchor.parentElement;
-    if (host?.getAttribute('data-mdp-label-gap-host') === connectionId && host.getAttribute('mask')?.trim() === reference) {
-      host.parentNode?.insertBefore(anchor, host);
-      host.remove();
-    }
-    resource.remove();
+  const gap = installedGaps.get(anchor);
+  if (!gap || gap.svg !== svg || gap.connectionId !== connectionId) {
+    return;
   }
-}
 
-/** The id prefix `applyLayout` has always used: a clip when the template already masks the anchor. */
-export function labelGapIdPrefix(anchor: Element): string {
-  const hasAuthoredMask = anchor.hasAttribute('mask') && anchor.getAttribute('mask')?.trim() !== 'none';
-  const hasAuthoredClip = anchor.hasAttribute('clip-path') && anchor.getAttribute('clip-path')?.trim() !== 'none';
-  return hasAuthoredMask && !hasAuthoredClip ? 'eraser-connection-label-clip' : 'eraser-connection-label-mask';
+  const target = gap.host ?? anchor;
+  if (target.getAttribute(gap.attribute)?.trim() === `url(#${gap.resource.id})`) {
+    if (gap.previousValue === null) {
+      target.removeAttribute(gap.attribute);
+    } else {
+      target.setAttribute(gap.attribute, gap.previousValue);
+    }
+  }
+  if (gap.host) {
+    if (anchor.parentNode === gap.host) {
+      gap.host.parentNode?.insertBefore(anchor, gap.host);
+    }
+    gap.host.remove();
+  }
+  gap.resource.remove();
+  installedGaps.delete(anchor);
 }
-
-const cssString = (value: string): string => value.replace(/["\\]/g, '\\$&');
 
 type Point = [number, number];
 
@@ -180,8 +198,12 @@ function markerReach(svg: SVGSVGElement, reference: string | null, strokeWidth: 
 
   // The animated values where the DOM has them; the attributes otherwise (a DOM without SVG
   // geometry, such as jsdom), with the SVG defaults: a 3 × 3 box at (0, 0), in stroke widths.
-  const length = (name: 'markerWidth' | 'markerHeight' | 'refX' | 'refY', fallback: number): number =>
-    marker[name]?.baseVal?.value ?? (Number.parseFloat(marker.getAttribute(name) ?? '') || fallback);
+  const length = (
+    name: 'markerWidth' | 'markerHeight' | 'refX' | 'refY',
+    fallback: number,
+  ): number =>
+    marker[name]?.baseVal?.value ??
+    (Number.parseFloat(marker.getAttribute(name) ?? '') || fallback);
   const width = length('markerWidth', 3);
   const height = length('markerHeight', 3);
   const refX = length('refX', 0);
@@ -225,7 +247,15 @@ function installLabelGap(
     directDefsOf(svg) ?? svg.insertBefore(document.createElementNS(SVG_NS, 'defs'), svg.firstChild);
 
   if (hasAuthoredMask && !hasAuthoredClip) {
-    installLabelClip(defs, anchor, id, connectionId, sceneBox, cutoutBox, guards);
+    const clip = installLabelClip(defs, id, connectionId, sceneBox, cutoutBox, guards);
+    installedGaps.set(anchor, {
+      svg,
+      connectionId,
+      resource: clip,
+      attribute: 'clip-path',
+      previousValue: anchor.getAttribute('clip-path'),
+    });
+    anchor.setAttribute('clip-path', `url(#${id})`);
     return;
   }
 
@@ -280,9 +310,24 @@ function installLabelGap(
     host.setAttribute('mask', `url(#${id})`);
     anchor.parentNode?.insertBefore(host, anchor);
     host.appendChild(anchor);
+    installedGaps.set(anchor, {
+      svg,
+      connectionId,
+      resource: mask,
+      attribute: 'mask',
+      previousValue: null,
+      host,
+    });
     return;
   }
 
+  installedGaps.set(anchor, {
+    svg,
+    connectionId,
+    resource: mask,
+    attribute: 'mask',
+    previousValue: anchor.getAttribute('mask'),
+  });
   anchor.setAttribute('mask', `url(#${id})`);
 }
 
@@ -294,13 +339,12 @@ function installLabelGap(
  */
 function installLabelClip(
   defs: SVGDefsElement,
-  anchor: Element,
   id: string,
   connectionId: string,
   sceneBox: Box,
   cutoutBox: Box,
   guards: Box[],
-): void {
+): SVGClipPathElement {
   const clip = document.createElementNS(SVG_NS, 'clipPath');
   clip.id = id;
   clip.setAttribute('data-mdp-connection-clip', connectionId);
@@ -318,7 +362,7 @@ function installLabelClip(
   shape.setAttribute('d', [sceneBox, cutoutBox, ...guards].map(rect).join(''));
   clip.appendChild(shape);
   defs.appendChild(clip);
-  anchor.setAttribute('clip-path', `url(#${id})`);
+  return clip;
 }
 
 function directDefsOf(svg: SVGSVGElement): SVGDefsElement | undefined {
@@ -327,15 +371,19 @@ function directDefsOf(svg: SVGSVGElement): SVGDefsElement | undefined {
   );
 }
 
-/** Avoid both sibling-connection collisions and a template-authored id with the same prefix. */
-export function uniqueResourceId(scene: Element, prefix: string, ordinal: number): string {
-  let suffix = ordinal;
-  let id = `${prefix}-${suffix}`;
-
-  while (scene.ownerDocument.getElementById(id)) {
-    suffix += 1;
-    id = `${prefix}-${suffix}`;
-  }
-
+/** Reserve safe ids across SVGs, including resources created before their SVG is mounted. */
+function uniqueResourceId(svg: SVGSVGElement, prefix: string): string {
+  const document = svg.ownerDocument;
+  const root = svg.getRootNode() as Document | DocumentFragment | Element;
+  let ordinal = nextResourceOrdinal.get(document) ?? 0;
+  let id: string;
+  do {
+    id = `${prefix}-${ordinal++}`;
+  } while (
+    document.getElementById(id) ||
+    ('id' in root && root.id === id) ||
+    root.querySelector(`[id="${id}"]`)
+  );
+  nextResourceOrdinal.set(document, ordinal);
   return id;
 }

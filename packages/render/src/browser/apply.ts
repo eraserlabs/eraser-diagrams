@@ -1,7 +1,7 @@
 import type { Box, SceneLayout } from '@eraserlabs/render';
 import type { MountedElement } from './mount.js';
 import type { ElementMeasure } from './measure.js';
-import { cutLabelGap, labelGapIdPrefix, uniqueResourceId } from './labelGap.js';
+import { cutLabelGap } from './labelGap.js';
 
 /**
  * Write layout geometry into the mounted DOM. Positions and path data are numeric,
@@ -30,7 +30,6 @@ export function applyLayout(
   const topNodeZIndex = Math.max(0, ...(zIndexById?.values() ?? []));
   const connectionZIndex = topNodeZIndex + 1;
   const labelZIndex = topNodeZIndex + 2;
-  let maskOrdinal = 0;
   scene.style.position = 'relative';
   scene.style.width = `${sceneBox.width}px`;
   scene.style.height = `${sceneBox.height}px`;
@@ -110,14 +109,11 @@ export function applyLayout(
         cutLabelGap(svg, anchor, labelBox, {
           connectionId: element.id,
           field: sceneBox,
-          id: () => uniqueResourceId(scene, labelGapIdPrefix(anchor), maskOrdinal++),
         });
       }
     }
   }
 }
-
-
 
 /** The midpoint pin used by apply projected through the label's measured border-box size. */
 function fallbackLabelBox(
@@ -137,7 +133,6 @@ function fallbackLabelBox(
     height: measured.height,
   };
 }
-
 
 /**
  * The layout scene box (layout union + padding) grown to contain all paint: node ink translated
