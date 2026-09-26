@@ -6,6 +6,7 @@
     { "path": "packages/render" },
     { "path": "packages/layout" },
     { "path": "packages/resolve" },
+    { "path": "packages/templates" },
     { "path": "packages/diagrams" },
     { "path": "packages/diagrams-cli" },
     { "path": "packages/server" }

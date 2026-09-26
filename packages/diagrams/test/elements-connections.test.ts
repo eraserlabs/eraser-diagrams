@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import type { AuthoredElement } from '@eraserlabs/resolve';
 import { stubIconLoader } from './support/stubIcons.js';
 import { createRenderer, type Renderer } from '../src/diagrams.js';
-import { stockLibrary } from '../src/library/index.js';
+import { stockLibrary } from '@eraserlabs/diagram-templates';
 import { CHROMIUM_PATH } from './support/browser.js';
 
 const fixture = JSON.parse(

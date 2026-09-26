@@ -16,8 +16,8 @@ Resolution has to run in Node, in the CLI, and in the browser playground with th
 
 ```ts
 import { createResolver } from '@eraserlabs/resolve';
-import { stockLibrary } from '@eraserlabs/diagrams/library';
-import { stockNormalizers } from '@eraserlabs/diagrams/normalizers';
+import { stockLibrary } from '@eraserlabs/diagram-templates';
+import { stockNormalizers } from '@eraserlabs/diagram-templates/normalizers';
 
 const resolver = await createResolver({
   library: stockLibrary,

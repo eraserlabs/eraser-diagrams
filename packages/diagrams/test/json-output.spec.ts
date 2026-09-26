@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { stubIconLoader } from './support/stubIcons.js';
 import { createRenderer, type AuthoredLibrary, type Renderer } from '../src/index.js';
-import { stockLibrary, STOCK_PALETTE } from '../src/library/index.js';
+import { stockLibrary, STOCK_PALETTE } from '@eraserlabs/diagram-templates';
 import { CHROMIUM_PATH } from './support/browser.js';
 
 /**

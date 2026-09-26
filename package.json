@@ -14,7 +14,7 @@
     "lint": "biome check .",
     "lint:fix": "biome check --apply-unsafe .",
     "depcruise": "depcruise packages/*/src --config .dependency-cruiser.cjs",
-    "lint:templates": "pnpm --filter @eraserlabs/diagrams exec vitest run test/lint.test.ts",
+    "lint:templates": "pnpm --filter @eraserlabs/diagram-templates exec vitest run test/lint.test.ts",
     "typecheck": "tsc -b",
     "start": "pnpm --filter @eraserlabs/server build && pnpm --filter @eraserlabs/server start",
     "dev:server": "pnpm --filter @eraserlabs/server dev",

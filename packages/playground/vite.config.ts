@@ -20,14 +20,14 @@ const fixturesDir = resolve(here, '../../fixtures');
 const srcOf = (pkg: string, file: string): string => resolve(here, `../${pkg}/src/${file}`);
 const workspaceSourceAliases = [
   {
-    find: /^@eraserlabs\/diagrams\/normalizers$/,
-    replacement: srcOf('diagrams', 'library/normalizers.ts'),
+    find: /^@eraserlabs\/diagram-templates\/normalizers$/,
+    replacement: srcOf('templates', 'normalizers.ts'),
   },
   {
-    find: /^@eraserlabs\/diagrams\/svg-transforms$/,
-    replacement: srcOf('diagrams', 'icons/svgTransforms.ts'),
+    find: /^@eraserlabs\/diagram-templates\/svg-transforms$/,
+    replacement: srcOf('templates', 'svgTransforms.ts'),
   },
-  { find: /^@eraserlabs\/diagrams\/library$/, replacement: srcOf('diagrams', 'library/index.ts') },
+  { find: /^@eraserlabs\/diagram-templates$/, replacement: srcOf('templates', 'index.ts') },
   { find: /^@eraserlabs\/render\/browser$/, replacement: srcOf('render', 'browser/index.ts') },
   { find: /^@eraserlabs\/render$/, replacement: srcOf('render', 'index.ts') },
   { find: /^@eraserlabs\/resolve\/schema$/, replacement: srcOf('resolve', 'schema/index.ts') },
@@ -68,9 +68,9 @@ const SCENARIOS = [
 function eraserSources(): Plugin {
   const VS = 'virtual:scenarios';
   const VO = 'virtual:openapi';
-  const templatesDir = resolve(here, '../diagrams/src/library/templates');
-  const baseCssFile = resolve(here, '../diagrams/src/library/base.style.css');
-  const generateScript = resolve(here, '../diagrams/scripts/generate.mjs');
+  const templatesDir = resolve(here, '../templates/src/templates');
+  const baseCssFile = resolve(here, '../templates/src/base.style.css');
+  const generateScript = resolve(here, '../templates/scripts/generate.mjs');
 
   return {
     name: 'eraser-sources',

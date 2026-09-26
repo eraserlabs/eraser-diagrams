@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { IconLoader } from '@eraserlabs/resolve';
 import { createRenderer, type Renderer } from '../src/index.js';
-import { stockLibrary } from '../src/library/index.js';
+import { stockLibrary } from '@eraserlabs/diagram-templates';
 import { buildPayload, runPayload, stageAhem } from './support/payload.js';
 import { allTagsDocument, connectionsDocument } from './support/documents.js';
 import { CHROMIUM_PATH } from './support/browser.js';
