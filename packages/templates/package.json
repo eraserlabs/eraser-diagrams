@@ -1,5 +1,5 @@
 {
-  "name": "@eraserlabs/templates",
+  "name": "@eraserlabs/diagram-templates",
   "version": "0.1.1",
   "description": "The Eraser stock template library as data: per-tag schemas, markup and CSS, the palette, the normalizers and the page setup, with no browser or Chromium code.",
   "type": "module",

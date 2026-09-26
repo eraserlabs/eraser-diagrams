@@ -62,7 +62,7 @@ importers:
       '@eraserlabs/resolve':
         specifier: workspace:*
         version: link:../resolve
-      '@eraserlabs/templates':
+      '@eraserlabs/diagram-templates':
         specifier: workspace:*
         version: link:../templates
       '@eraserlabs/utils':
@@ -115,7 +115,7 @@ importers:
       '@eraserlabs/resolve':
         specifier: workspace:*
         version: link:../resolve
-      '@eraserlabs/templates':
+      '@eraserlabs/diagram-templates':
         specifier: workspace:*
         version: link:../templates
       '@types/react':

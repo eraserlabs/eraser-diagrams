@@ -3,7 +3,7 @@ import { createRenderer, type Renderer } from '../src/index.js';
 import { AHEM_PATH } from './support/payload.js';
 import { CHROMIUM_PATH } from './support/browser.js';
 import { stubIconLoader } from './support/stubIcons.js';
-import { ALLOWED_SHAPES } from '@eraserlabs/templates';
+import { ALLOWED_SHAPES } from '@eraserlabs/diagram-templates';
 
 let renderer: Renderer;
 test.beforeAll(async () => {

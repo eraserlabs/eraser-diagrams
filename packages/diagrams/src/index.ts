@@ -5,8 +5,8 @@ export {
   subTemplateSchemas,
   templateProps,
   buildRenderPageSetup,
-} from '@eraserlabs/templates';
-export { stockNormalizers } from '@eraserlabs/templates/normalizers';
+} from '@eraserlabs/diagram-templates';
+export { stockNormalizers } from '@eraserlabs/diagram-templates/normalizers';
 export {
   createEraserIconLoader,
   ERASER_ICON_BASE_URL,

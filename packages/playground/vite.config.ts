@@ -19,9 +19,15 @@ const fixturesDir = resolve(here, '../../fixtures');
  */
 const srcOf = (pkg: string, file: string): string => resolve(here, `../${pkg}/src/${file}`);
 const workspaceSourceAliases = [
-  { find: /^@eraserlabs\/templates\/normalizers$/, replacement: srcOf('templates', 'normalizers.ts') },
-  { find: /^@eraserlabs\/templates\/svg-transforms$/, replacement: srcOf('templates', 'svgTransforms.ts') },
-  { find: /^@eraserlabs\/templates$/, replacement: srcOf('templates', 'index.ts') },
+  {
+    find: /^@eraserlabs\/diagram-templates\/normalizers$/,
+    replacement: srcOf('templates', 'normalizers.ts'),
+  },
+  {
+    find: /^@eraserlabs\/diagram-templates\/svg-transforms$/,
+    replacement: srcOf('templates', 'svgTransforms.ts'),
+  },
+  { find: /^@eraserlabs\/diagram-templates$/, replacement: srcOf('templates', 'index.ts') },
   { find: /^@eraserlabs\/render\/browser$/, replacement: srcOf('render', 'browser/index.ts') },
   { find: /^@eraserlabs\/render$/, replacement: srcOf('render', 'index.ts') },
   { find: /^@eraserlabs\/resolve\/schema$/, replacement: srcOf('resolve', 'schema/index.ts') },

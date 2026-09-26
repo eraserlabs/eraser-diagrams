@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { tagSchemas } from '@eraserlabs/templates';
+import { tagSchemas } from '@eraserlabs/diagram-templates';
 import type { Resolver } from '@eraserlabs/resolve';
 import { buildTestResolver } from './helper.js';
 import { allTagsDocument } from './support/documents.js';

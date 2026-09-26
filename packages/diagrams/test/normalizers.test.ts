@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import type { Resolver } from '@eraserlabs/resolve';
 import { allElements, buildTestResolver } from './helper.js';
-import { STOCK_PALETTE, STOCK_PALETTE_TOKENS } from '@eraserlabs/templates';
+import { STOCK_PALETTE, STOCK_PALETTE_TOKENS } from '@eraserlabs/diagram-templates';
 
 let resolver: Resolver;
 beforeAll(async () => {

@@ -20,8 +20,8 @@ import {
   type TemplateOverrides,
   type ValidationResult,
 } from '@eraserlabs/resolve';
-import { buildRenderPageSetup, stockLibrary } from '@eraserlabs/templates';
-import { stockNormalizers } from '@eraserlabs/templates/normalizers';
+import { buildRenderPageSetup, stockLibrary } from '@eraserlabs/diagram-templates';
+import { stockNormalizers } from '@eraserlabs/diagram-templates/normalizers';
 import { createEraserIconLoader } from './icons/eraserLoader.js';
 import { stageFonts, type StagedFonts } from './fonts/staging.js';
 import { injectFonts, prepareFontsRequest } from './fonts/inject.js';

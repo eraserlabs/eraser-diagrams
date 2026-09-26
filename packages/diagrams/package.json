@@ -56,7 +56,7 @@
     "@eraserlabs/protocol": "workspace:*",
     "@eraserlabs/render": "workspace:*",
     "@eraserlabs/resolve": "workspace:*",
-    "@eraserlabs/templates": "workspace:*",
+    "@eraserlabs/diagram-templates": "workspace:*",
     "@eraserlabs/utils": "workspace:*",
     "playwright-core": "1.61.1"
   },

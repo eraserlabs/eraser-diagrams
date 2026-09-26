@@ -1,15 +1,15 @@
-# @eraserlabs/templates
+# @eraserlabs/diagram-templates
 
 ## Introduction
 
-`@eraserlabs/templates` is the Eraser stock template library as data: for each tag (Shape, Icon, Group, Relationship, …) its JSON Schema, its HTML template and its CSS, plus the shared base CSS, the palette, the normalizers that derive template props from authored fields, and the page-setup builder that turns the library into the renderer's page registry. It has no browser or Chromium code, so a host that draws elements itself can import it next to `@eraserlabs/resolve` and `@eraserlabs/render/fill`.
+`@eraserlabs/diagram-templates` is the Eraser stock template library as data: for each tag (Shape, Icon, Group, Relationship, …) its JSON Schema, its HTML template and its CSS, plus the shared base CSS, the palette, the normalizers that derive template props from authored fields, and the page-setup builder that turns the library into the renderer's page registry. It has no browser or Chromium code, so a host that draws elements itself can import it next to `@eraserlabs/resolve` and `@eraserlabs/render/fill`.
 
 ## Usage
 
 ```ts
-import { buildRenderPageSetup, stockLibrary, tagSchemas } from '@eraserlabs/templates';
-import { stockNormalizers } from '@eraserlabs/templates/normalizers';
-import { normalizeFetchedIcon } from '@eraserlabs/templates/svg-transforms';
+import { buildRenderPageSetup, stockLibrary, tagSchemas } from '@eraserlabs/diagram-templates';
+import { stockNormalizers } from '@eraserlabs/diagram-templates/normalizers';
+import { normalizeFetchedIcon } from '@eraserlabs/diagram-templates/svg-transforms';
 import { createResolver } from '@eraserlabs/resolve';
 import { createFillEngine } from '@eraserlabs/render/fill';
 

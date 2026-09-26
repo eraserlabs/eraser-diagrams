@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { stubIconLoader } from './support/stubIcons.js';
 import { createRenderer, type Renderer } from '../src/index.js';
-import { stockLibrary } from '@eraserlabs/templates';
+import { stockLibrary } from '@eraserlabs/diagram-templates';
 import { AHEM_PATH } from './support/payload.js';
 import { connectionsDocument } from './support/documents.js';
 import { CHROMIUM_PATH } from './support/browser.js';
