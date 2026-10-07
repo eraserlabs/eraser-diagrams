@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { createEraserIconLoader } from '../src/icons/eraserLoader.js';
 
 const SVG = '<svg viewBox="0 0 1 1"><path d="M0 0"/></svg>';
+const NORMALIZED_SVG = '<svg viewBox="0 0 1 1"><path d="M0 0"></path></svg>';
 
 let server: Server;
 let baseUrl: string;
@@ -41,7 +42,7 @@ afterAll(async () => {
 describe('createEraserIconLoader', () => {
   it('fetches <baseUrl>/<name>.svg', async () => {
     const load = createEraserIconLoader({ baseUrl });
-    expect(await load('db')).toBe(SVG);
+    expect(await load('db')).toBe(NORMALIZED_SVG);
   });
 
   it('rejects on a missing icon', async () => {
@@ -82,10 +83,10 @@ describe('createEraserIconLoader', () => {
     const load = createEraserIconLoader({ baseUrl, cacheDir });
 
     await load('db');
-    expect(await readFile(join(cacheDir, 'db.svg'), 'utf8')).toBe(SVG);
+    expect(await readFile(join(cacheDir, 'db.svg'), 'utf8')).toBe(NORMALIZED_SVG);
 
     const before = hits.length;
-    expect(await load('db')).toBe(SVG);
+    expect(await load('db')).toBe(NORMALIZED_SVG);
     expect(hits.length).toBe(before);
   });
 
@@ -100,7 +101,7 @@ describe('createEraserIconLoader', () => {
     await utimes(path, past, past);
 
     const before = hits.length;
-    expect(await load('db')).toBe(SVG);
+    expect(await load('db')).toBe(NORMALIZED_SVG);
     expect(hits.length).toBe(before + 1);
     expect((await stat(path)).mtimeMs).toBeGreaterThan(Date.now() - 60_000);
   });
@@ -116,7 +117,7 @@ describe('createEraserIconLoader', () => {
 
     // Same cache dir, but an origin that always fails.
     const broken = createEraserIconLoader({ baseUrl: `${baseUrl}missing/`, cacheDir });
-    expect(await broken('db')).toBe(SVG);
+    expect(await broken('db')).toBe(NORMALIZED_SVG);
   });
 
   it('a custom cacheTtlMs controls expiry', async () => {

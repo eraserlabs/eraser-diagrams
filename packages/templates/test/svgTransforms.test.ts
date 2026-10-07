@@ -78,3 +78,20 @@ describe('icon svg transforms (icon-service build-time normalization)', () => {
     expect(out).toContain('url(#er-aws-s3-a)');
   });
 });
+
+describe('SVG normalization security', () => {
+  it.each([
+    '<svg xmlns="http://www.w3.org/2000/svg"><svg/onload=document.body.setAttribute("data-poc","executed")></svg></svg>',
+    '<svg/onload=alert(1)></svg>',
+    '<svg><g onload=alert(1)></g></svg>',
+    '<svg><animate attributeName="href" values="javascript:alert(1)"/></svg>',
+    '<svg><path fill="url(https://example.com/x)"/></svg>',
+  ])('fails closed on %s', (svg) => {
+    expect(sanitizeSvgString(svg)).toBe('');
+    expect(normalizeFetchedIcon(svg, 'test')).toBe('');
+  });
+
+  it('validates after id rewriting as well', () => {
+    expect(normalizeFetchedIcon('<svg><path id="p"/></svg>', 'x" onload="alert(1)')).toBe('');
+  });
+});

@@ -1,3 +1,5 @@
+import { sanitizeSvg } from '@eraserlabs/resolve/svg-sanitize';
+
 /**
  * Icon SVG normalization for assets fetched from the public bucket (docs/icon-service.md).
  * Environment-free string work — usable in Node and browser.
@@ -12,7 +14,11 @@
  * CSS-scaled inline SVG.
  */
 export function normalizeFetchedIcon(svg: string, name: string): string {
-  return uniquifyIds(ensureViewBox(sanitizeSvgString(inlineStyleClasses(svg))), `er-${name}`);
+  const normalized = uniquifyIds(
+    ensureViewBox(sanitizeSvgString(inlineStyleClasses(svg))),
+    `er-${name}`,
+  );
+  return sanitizeSvg(normalized).svg ?? '';
 }
 
 /**
@@ -74,7 +80,8 @@ function stripExternalRefs(svg: string): string {
 }
 
 export function sanitizeSvgString(svg: string): string {
-  return stripExternalRefs(stripEventHandlerAttrs(stripForbiddenTags(svg)));
+  const stripped = stripExternalRefs(stripEventHandlerAttrs(stripForbiddenTags(svg)));
+  return sanitizeSvg(stripped).svg ?? '';
 }
 
 function shouldPreservePaint(paint: string): boolean {
