@@ -4,30 +4,118 @@ const MAX_SVG_BYTES = 64 * 1024;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 // Static drawing primitives only: no animation, foreign content, scripts, or images.
-const TAGS = new Set(
-  'svg g defs path rect circle ellipse line polyline polygon text tspan title desc a use symbol clipPath mask pattern marker linearGradient radialGradient stop'.split(
-    ' ',
-  ),
-);
-const ATTRS = new Set(
-  (
-    'id class role aria-label aria-hidden aria-labelledby aria-describedby data-name version ' +
-    'viewBox preserveAspectRatio width height x y x1 y1 x2 y2 cx cy r rx ry d points ' +
-    'transform gradientTransform gradientUnits spreadMethod offset fx fy fr ' +
-    'clipPathUnits maskUnits maskContentUnits patternUnits patternContentUnits patternTransform ' +
-    'markerWidth markerHeight markerUnits refX refY orient ' +
-    'textLength lengthAdjust dx dy rotate'
-  ).split(' '),
-);
-const PRESENTATION = new Set(
-  (
-    'fill fill-rule fill-opacity stroke stroke-width stroke-linecap stroke-linejoin ' +
-    'stroke-miterlimit stroke-dasharray stroke-dashoffset stroke-opacity opacity color ' +
-    'stop-color stop-opacity clip-path clip-rule mask vector-effect paint-order ' +
-    'font-family font-size font-weight font-style text-anchor dominant-baseline ' +
-    'visibility display overflow shape-rendering color-interpolation'
-  ).split(' '),
-);
+const TAGS = new Set([
+  'svg',
+  'g',
+  'defs',
+  'path',
+  'rect',
+  'circle',
+  'ellipse',
+  'line',
+  'polyline',
+  'polygon',
+  'text',
+  'tspan',
+  'title',
+  'desc',
+  'a',
+  'use',
+  'symbol',
+  'clipPath',
+  'mask',
+  'pattern',
+  'marker',
+  'linearGradient',
+  'radialGradient',
+  'stop',
+]);
+const ATTRS = new Set([
+  'id',
+  'class',
+  'role',
+  'aria-label',
+  'aria-hidden',
+  'aria-labelledby',
+  'aria-describedby',
+  'data-name',
+  'version',
+  'viewBox',
+  'preserveAspectRatio',
+  'width',
+  'height',
+  'x',
+  'y',
+  'x1',
+  'y1',
+  'x2',
+  'y2',
+  'cx',
+  'cy',
+  'r',
+  'rx',
+  'ry',
+  'd',
+  'points',
+  'transform',
+  'gradientTransform',
+  'gradientUnits',
+  'spreadMethod',
+  'offset',
+  'fx',
+  'fy',
+  'fr',
+  'clipPathUnits',
+  'maskUnits',
+  'maskContentUnits',
+  'patternUnits',
+  'patternContentUnits',
+  'patternTransform',
+  'markerWidth',
+  'markerHeight',
+  'markerUnits',
+  'refX',
+  'refY',
+  'orient',
+  'textLength',
+  'lengthAdjust',
+  'dx',
+  'dy',
+  'rotate',
+]);
+const PRESENTATION = new Set([
+  'fill',
+  'fill-rule',
+  'fill-opacity',
+  'stroke',
+  'stroke-width',
+  'stroke-linecap',
+  'stroke-linejoin',
+  'stroke-miterlimit',
+  'stroke-dasharray',
+  'stroke-dashoffset',
+  'stroke-opacity',
+  'opacity',
+  'color',
+  'stop-color',
+  'stop-opacity',
+  'clip-path',
+  'clip-rule',
+  'mask',
+  'vector-effect',
+  'paint-order',
+  'font-family',
+  'font-size',
+  'font-weight',
+  'font-style',
+  'text-anchor',
+  'dominant-baseline',
+  'visibility',
+  'display',
+  'overflow',
+  'shape-rendering',
+  'color-interpolation',
+]);
 const FRAGMENT = /^#[A-Za-z_][\w.:-]*$/;
 
 // A deliberately small CSS value language. Reject escapes/comments and all nonlocal URLs;
