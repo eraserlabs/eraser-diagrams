@@ -33,7 +33,7 @@ describe('icon stage (loader + cache model)', () => {
       'resolve',
       'placeholder',
     );
-    expect(first.icons['db']).toBe(CLEAN_SVG);
+    expect(first.icons['db']).toBe('<svg viewBox="0 0 1 1"><path d="M0 0"></path></svg>');
     expect(first.inlined).toBe(1);
     expect(calls).toEqual(['db']);
 
@@ -131,4 +131,73 @@ describe('svg sanitizer (fail-closed)', () => {
     expect(sanitizeSvg('<svg></svg><svg></svg>').ok).toBe(false);
     expect(sanitizeSvg('<div>not svg</div>').ok).toBe(false);
   });
+});
+
+const SVG_BYPASSES = [
+  '<svg xmlns="http://www.w3.org/2000/svg"><svg/onload=document.body.setAttribute("data-poc","executed")></svg></svg>',
+  '<svg/onload=alert(1)></svg>',
+  '<svg><g/onload="alert(1)"></g></svg>',
+  '<svg><g ONCLICK=alert(1)></g></svg>',
+  '<svg><svg></svg></svg>',
+  '<svg><use href=javascript:alert(1) /></svg>',
+  '<svg><use href="&#106;avascript:alert(1)"/></svg>',
+  '<svg><use href="https://example.com/icon.svg#x"/></svg>',
+  '<svg><path fill="url(https://example.com/x)"/></svg>',
+  '<svg><path style="fill:u\\72l(https://example.com/x)"/></svg>',
+  '<svg><path style="fill:URL(&#104;ttps://example.com/x)"/></svg>',
+  '<svg><animate attributeName="href" values="javascript:alert(1)"/></svg>',
+  '<svg><set attributeName="onload" to="alert(1)"/></svg>',
+  '<svg><foreignObject><div>HTML</div></foreignObject></svg>',
+  '<svg><style>body{display:none}</style></svg>',
+  '<svg><image href="data:image/svg+xml,evil"/></svg>',
+  '<svg><a target="_top" href="https://example.com">link</a></svg>',
+  '<svg></svg><img src=x onerror=alert(1)>',
+  '<!DOCTYPE svg><svg></svg>',
+];
+
+describe('parsed SVG security policy', () => {
+  it.each(SVG_BYPASSES)('rejects %s', (svg) => {
+    expect(sanitizeSvg(svg).ok).toBe(false);
+  });
+
+  it('preserves static drawing features and local references', () => {
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24"><defs><linearGradient id="g"><stop offset="0" stop-color="#fff"/></linearGradient><clipPath id="c"><rect width="24" height="24"/></clipPath></defs><path id="p" d="M0 0" fill="url(#g)" clip-path="url(#c)" style="stroke:rgb(0, 0, 0);stroke-width:2"/><use xlink:href="#p"/></svg>';
+    const result = sanitizeSvg(svg);
+    expect(result.ok).toBe(true);
+    expect(result.svg).toContain('url(#g)');
+    expect(result.svg).toContain('xlink:href="#p"');
+    expect(sanitizeSvg(result.svg!).svg).toBe(result.svg);
+  });
+
+  it('enforces the size limit in UTF-8 bytes', () => {
+    expect(sanitizeSvg(`<svg><title>${'é'.repeat(33 * 1024)}</title></svg>`).ok).toBe(false);
+  });
+
+  it('negative-caches rejected icons and uses the placeholder', async () => {
+    const cache: IconCache = new Map();
+    let calls = 0;
+    const loader = async () => {
+      calls++;
+      return SVG_BYPASSES[0]!;
+    };
+    for (let i = 0; i < 2; i++) {
+      const result = await stageIcons(
+        [iconElement('evil')],
+        ICON_POLICY,
+        cache,
+        loader,
+        'resolve',
+        'placeholder',
+      );
+      expect(result.icons['evil']).toBe(PLACEHOLDER_GLYPH);
+      expect(result.warnings[0]?.code).toBe('W_UNKNOWN_ICON');
+    }
+    expect(cache.get('evil')).toBeNull();
+    expect(calls).toBe(1);
+  });
+});
+
+it('rejects excessive nesting before serialization', () => {
+  expect(sanitizeSvg(`<svg>${'<g>'.repeat(100)}${'</g>'.repeat(100)}</svg>`).ok).toBe(false);
 });
