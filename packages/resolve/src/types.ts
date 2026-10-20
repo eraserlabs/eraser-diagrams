@@ -1,6 +1,11 @@
 import type { TemplateFile } from '@eraserlabs/protocol';
 import type { ElementKind } from '@eraserlabs/protocol/schema';
-import type { ValidationResult, ResolveResult, RegistryInfo } from './result-types.js';
+import type {
+  ValidationResult,
+  ResolveResult,
+  ResolveElementResult,
+  RegistryInfo,
+} from './result-types.js';
 import type { PolicyKind, ContentPolicy } from './schema/keywords.js';
 import type { ElementNormalizer } from './pipeline/derive.js';
 
@@ -134,6 +139,11 @@ export interface Resolver {
    */
   validate(input: unknown): Promise<ValidationResult>;
   resolve(input: unknown): Promise<ResolveResult>;
+  /**
+   * One element through the pipeline, with no graph checks: for a host that renders elements one at a time (an
+   * editor redrawing the element that changed). Issue paths start at `/elements/0`.
+   */
+  resolveElement(element: unknown): Promise<ResolveElementResult>;
   registryInfo(): RegistryInfo;
   tagSchema(tag: string): object | undefined;
 }
