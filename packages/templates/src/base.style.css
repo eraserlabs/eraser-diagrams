@@ -51,6 +51,8 @@ svg[stroke='currentColor'] {
 .er-md ol {
   margin: 0;
   padding-left: 20px;
+  /* the marker in the 20px, the text after it: a line break inside an item continues under the text */
+  list-style-position: outside;
 }
 .er-md li {
   margin-top: 4px;

@@ -28,7 +28,19 @@ const BLANK = /^[\s>]*$/;
 /** The blocks whose newlines are line breaks; a heading, a code block or a table keeps its own. */
 const BROKEN_BLOCKS = new Set(['paragraph', 'list', 'blockquote']);
 
-const lexer = new Marked({ gfm: true });
+/**
+ * Four leading spaces are text, not a code block: on the canvas only a fence makes code, and a text run's leading
+ * spaces count for layout (pre-wrap). Shared by the lexer here and the parser in sanitize.ts.
+ */
+export const NO_INDENTED_CODE = {
+  tokenizer: {
+    code(): undefined {
+      return undefined;
+    },
+  },
+};
+
+const lexer = new Marked({ gfm: true }).use(NO_INDENTED_CODE);
 
 /** Block markdown (a text run, a text box) with the canvas line breaks and empty lines written in. */
 export function canvasBlockMarkdown(markdown: string): string {

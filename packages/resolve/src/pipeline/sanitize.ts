@@ -6,7 +6,7 @@ import type { PolicyEntry } from '../types.js';
 import type { ContentPolicy } from '../schema/keywords.js';
 import type { PipelineElement } from './element.js';
 import { resolvePointer } from './pointer.js';
-import { canvasBlockMarkdown, canvasInlineMarkdown } from './canvasMarkdown.js';
+import { canvasBlockMarkdown, canvasInlineMarkdown, NO_INDENTED_CODE } from './canvasMarkdown.js';
 
 const SAFE_SCHEMES = ['http', 'https', 'mailto'];
 
@@ -68,7 +68,7 @@ export interface Sanitizers {
 }
 
 export function buildSanitizers(): Sanitizers {
-  const marked = new Marked({ async: false, gfm: true });
+  const marked = new Marked({ async: false, gfm: true }).use(NO_INDENTED_CODE);
 
   marked.use({
     renderer: {

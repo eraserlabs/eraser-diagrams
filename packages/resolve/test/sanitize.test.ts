@@ -121,6 +121,11 @@ describe('canvas text contract', () => {
     expect(s.markdown('```js injected\nx\n```').html).toContain('<code class="language-js">');
   });
 
+  it('four leading spaces are text, not an indented code block', () => {
+    expect(s.markdown('    four leading spaces').html).toBe('<p>    four leading spaces</p>\n');
+    expect(s.markdown('a\n\n    b').html).toBe('<p>a</p>\n<p>    b</p>\n');
+  });
+
   it('still discards what the contract rejects', () => {
     const table = s.markdown('| a | b |\n| - | - |\n| 1 | 2 |');
     expect(table.html).not.toContain('<table');
