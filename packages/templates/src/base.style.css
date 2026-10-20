@@ -121,20 +121,21 @@ svg[stroke='currentColor'] {
 .er-md pre code {
   font-size: 1em;
 }
-/* The link icon, drawn here as presentation: the host attaches hover and click on `data-md="link"`
-   and edits no markup. */
+/* The link icon, drawn here as presentation: the canvas's external-link mark (a rounded square on a tinted
+   ground, an arrow out of it), 16px, 4px before the text, as the Eraser canvas draws before a link. The host
+   attaches hover and click on `data-md="link"` and edits no markup. */
 .er-md a[data-md='link']::before {
   content: '';
   display: inline-block;
-  width: 0.85em;
-  height: 0.85em;
-  margin-right: 0.25em;
-  vertical-align: -0.1em;
-  background-color: currentColor;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.5-1.5'/%3E%3C/svg%3E")
-    center / contain no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.5-1.5'/%3E%3C/svg%3E")
-    center / contain no-repeat;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  vertical-align: middle;
+  border-radius: 3px;
+  background-color: color-mix(in srgb, currentColor 10%, transparent);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect x='0.5' y='0.5' width='15' height='15' rx='2.5' fill='none' stroke='%23888' stroke-width='1.2'/%3E%3Cpath d='M7 5h4v4M5 11l6-6' fill='none' stroke='%23888' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
 }
 
 /* Texture-stain wash, shared by every boxy watercolor body — Shape's CSS-geometry kinds,
