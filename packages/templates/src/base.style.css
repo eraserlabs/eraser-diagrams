@@ -67,6 +67,74 @@ svg[stroke='currentColor'] {
   text-decoration: none;
 }
 
+/* The canvas text contract, beyond the markup above: the metrics the Eraser canvas text editor
+   draws (textMeasurer.scss and slateEditorStyles.scss there), so a text measures the same in the
+   editor and here. One newline is a line break and an empty line is an empty paragraph (resolve
+   writes them in: canvasMarkdown.ts), so spaces count for layout in a paragraph: pre-wrap. A list
+   item stays normal: the newline marked writes before a nested list is layout, not text. */
+.er-md p {
+  white-space: pre-wrap;
+}
+.er-md blockquote {
+  margin: 13px 0 0;
+  padding-inline-start: 15px;
+  border-inline-start: 3px solid
+    color-mix(in srgb, currentColor 30%, transparent);
+  opacity: 0.8;
+}
+.er-md blockquote:first-child {
+  margin-top: 0;
+}
+.er-md hr {
+  width: 100%;
+  height: 1px;
+  margin: 30px 0 30px;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+}
+.er-md hr:first-child {
+  margin-top: 0;
+}
+.er-md hr:last-child {
+  margin-bottom: 0;
+}
+.er-md del {
+  text-decoration: line-through;
+}
+/* A code block: wraps as the editor wraps it, keeps its own newlines and spaces. */
+.er-md pre {
+  margin: 0;
+  padding: 8px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  font-size: 85%;
+  white-space: pre-wrap;
+  overflow-wrap: normal;
+  word-break: normal;
+  tab-size: 2;
+}
+.er-md pre code {
+  font-size: 1em;
+}
+/* The link icon, drawn here as presentation: the host attaches hover and click on `data-md="link"`
+   and edits no markup. */
+.er-md a[data-md='link']::before {
+  content: '';
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  margin-right: 0.25em;
+  vertical-align: -0.1em;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.5-1.5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.5-1.5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
 /* Texture-stain wash, shared by every boxy watercolor body — Shape's CSS-geometry kinds,
    Group/Lane/Pool, DatabaseTable. A span hosts the recolored scan master; a blurred (and
    dilated) rect mask fades the pigment out past the body edge so it bleeds slightly over.
