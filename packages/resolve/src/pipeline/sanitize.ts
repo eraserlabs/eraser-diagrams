@@ -101,7 +101,7 @@ export function buildSanitizers(): Sanitizers {
   const sanitizeParsed = (parsed: string): SanitizedMarkdown => {
     const html = sanitizeHtml(parsed, SANITIZE_OPTIONS);
 
-    return { html, stripped: html !== parsed };
+    return { html: withoutLayoutNewlines(html), stripped: html !== parsed };
   };
 
   return {
@@ -112,6 +112,15 @@ export function buildSanitizers(): Sanitizers {
     inlineMarkdown: (md) => sanitizeParsed(marked.parseInline(canvasInlineMarkdown(md)) as string),
     plain: escapePlain,
   };
+}
+
+/**
+ * The newlines marked writes between and after its blocks (`<p>a</p>\n<p>b</p>\n`) are layout, not text: a run drawn
+ * with `white-space: pre` (a text box with no fixed width) would draw each as an empty line. A code block's own
+ * newlines stay: they sit inside `<pre>`, never between a closing and an opening tag.
+ */
+function withoutLayoutNewlines(html: string): string {
+  return html.replace(/>\n+(?=<)/g, '>').replace(/\n+$/, '');
 }
 
 function escapePlain(text: string): string {

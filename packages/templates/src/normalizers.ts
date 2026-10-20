@@ -319,8 +319,9 @@ const normalizeBpmnNode: ElementNormalizer = (element) => {
 };
 
 const normalizeTextbox: ElementNormalizer = (element) => {
-  // Render supplies a preferred width even when none is authored.
-  element.wrapMode = 'wrap';
+  // An authored wrap mode stays (a text box with no fixed width draws on one line per line, `nowrap`); with none,
+  // render supplies a preferred width, so the text wraps.
+  element.wrapMode ??= 'wrap';
   element.color ??= '#242424';
 };
 

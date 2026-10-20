@@ -349,6 +349,30 @@ describe('derive stage — sizing', () => {
     expect(props.wrapMode).toBe('wrap');
   });
 
+  it('Divider: the label is inline markdown, as a connection label (the Labels group of the text contract)', async () => {
+    const props = await resolveProps({
+      tag: 'Divider',
+      id: 'd',
+      x: 0,
+      y: 0,
+      orientation: 'horizontal',
+      label: '# not a heading, **bold**\nline two',
+    });
+    expect(props.label).toBe('# not a heading, <strong>bold</strong><br />line two');
+  });
+
+  it('Textbox: an authored nowrap stays (a text box with no fixed width draws one line per line)', async () => {
+    const props = await resolveProps({
+      tag: 'Textbox',
+      id: 't',
+      x: 0,
+      y: 0,
+      text: 'x',
+      wrapMode: 'nowrap',
+    });
+    expect(props.wrapMode).toBe('nowrap');
+  });
+
   it('Textbox: without fixedWidth still accepts the renderer fallback width', async () => {
     const props = await resolveProps({ tag: 'Textbox', id: 't', x: 0, y: 0, text: 'x' });
     expect(props.wrapMode).toBe('wrap');
