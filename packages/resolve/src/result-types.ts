@@ -105,6 +105,23 @@ export interface ResolveResult {
   meta: ResolveMeta;
 }
 
+/**
+ * Result of `resolveElement()`: one entity, connection or divider through the same pipeline as `resolve()`
+ * (schema, normalization, sanitization, icons, colours), with no graph checks. The element's references
+ * (`from`, `to`, `containerId`) pass through as authored: an element on its own has no neighbours to check
+ * them against, and the whole-document `resolve()` is where an invalid reference is an error.
+ */
+export interface ResolveElementResult {
+  ok: boolean;
+  errors: Issue[];
+  warnings: Issue[];
+  /** The resolved element, a node or an edge by its tag's kind; present only when `ok`. */
+  element?: ResolvedEntity | ResolvedConnection;
+  /** Icon-name → sanitized SVG sidecar for the names this element references. */
+  icons?: Record<string, string>;
+  meta: ResolveMeta;
+}
+
 /** Result of `validate()` — the full pipeline minus icon loading, never a payload. */
 export interface ValidationResult {
   ok: boolean;

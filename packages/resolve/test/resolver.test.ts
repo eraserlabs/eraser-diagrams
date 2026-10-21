@@ -397,3 +397,65 @@ describe('partial document resolution', () => {
     ).toBe(false);
   });
 });
+
+describe('resolveElement', () => {
+  it('resolves one element through the same pipeline, with no graph checks', async () => {
+    const resolver = await createResolver({ library: LIBRARY });
+    const result = await resolver.resolveElement({
+      tag: 'Wire',
+      id: 'w',
+      from: 'nowhere',
+      to: 'nowhere-else',
+    });
+
+    // the references pass through as authored: an element on its own has no neighbours to check them against
+    expect(result.ok).toBe(true);
+    expect(result.errors).toEqual([]);
+    expect(result.element).toMatchObject({
+      tag: 'Wire',
+      id: 'w',
+      props: { from: 'nowhere', to: 'nowhere-else' },
+    });
+    expect(result.icons).toEqual({});
+    expect(result.meta.elementCount).toBe(1);
+
+    const node = await resolver.resolveElement({
+      tag: 'Node',
+      id: 'a',
+      x: 10,
+      y: 10,
+      containerId: 'nowhere',
+      label: '<b>&"hi"</b>',
+    });
+    expect(node.ok).toBe(true);
+    expect(node.element).toMatchObject({
+      tag: 'Node',
+      id: 'a',
+      x: 10,
+      y: 10,
+      containerId: 'nowhere',
+    });
+    expect((node.element as { props: { label: string } }).props.label).toBe(
+      '&lt;b&gt;&amp;&quot;hi&quot;&lt;/b&gt;',
+    );
+  });
+
+  it('reports a schema error at /elements/0 and emits no element', async () => {
+    const resolver = await createResolver({ library: LIBRARY });
+    const result = await resolver.resolveElement({ tag: 'Node', id: 'a', label: 7 });
+
+    expect(result.ok).toBe(false);
+    expect(result.element).toBeUndefined();
+    expect(result.errors[0]?.path.startsWith('/elements/0')).toBe(true);
+  });
+
+  it('the whole-document resolve still rejects an invalid graph reference', async () => {
+    const resolver = await createResolver({ library: LIBRARY });
+    const result = await resolver.resolve({
+      elements: [{ tag: 'Wire', id: 'w', from: 'nowhere', to: 'nowhere-else' }],
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.errors.map((e) => e.code)).toContain(ERROR_CODE.MISSING_REF);
+  });
+});

@@ -1,0 +1,102 @@
+{
+  "title": "Canvas text contract: every Body feature in a textbox and a shape, every Labels feature on a line, a title and a badge",
+  "elements": [
+    {
+      "tag": "Textbox",
+      "id": "body-structure",
+      "x": 20,
+      "y": 20,
+      "width": 360,
+      "text": "# Heading one\n## Heading two\n### Heading three\n#### Drawn as three\n\nLine one\nline two of the same paragraph\n\n\nAfter one empty line\n\n- item one\nstill item one\n- item two\n  - nested\n\n> A quote\n> on two lines\n\n---\n\nAfter the rule\n"
+    },
+    {
+      "tag": "Textbox",
+      "id": "body-inline",
+      "x": 420,
+      "y": 20,
+      "width": 360,
+      "text": "**Bold**, _italic_, ~~struck~~ and `inline code`.\n\nA [link](https://eraser.io) with its icon, and `POST /sync` in a sentence.\n\n```ts\nconst retry = 3\nfunction run() {\n  return retry\n}\n```\n\n    four leading spaces stay\nTwo  spaces  stay"
+    },
+    {
+      "tag": "Shape",
+      "id": "body-shape",
+      "shape": "rectangle",
+      "x": 20,
+      "y": 560,
+      "width": 360,
+      "height": 150,
+      "color": "blue",
+      "texts": [
+        { "text": "## Service\nowns **billing** and `invoices`" },
+        { "text": "- reads [docs](https://eraser.io/docs)\n- ~~writes~~ never writes" }
+      ],
+      "badge": { "text": "**v2** `beta` ~~v1~~", "placement": "top-right" }
+    },
+    {
+      "tag": "Shape",
+      "id": "body-shape-rejects",
+      "shape": "rectangle",
+      "x": 420,
+      "y": 560,
+      "width": 360,
+      "height": 150,
+      "color": "blue",
+      "texts": [
+        { "text": "| a | b |\n| - | - |\n| 1 | 2 |" },
+        { "text": "![alt](https://eraser.io/x.png) and <u>underline</u> and +wiki" }
+      ]
+    },
+    {
+      "tag": "Group",
+      "id": "labels-group",
+      "x": 20,
+      "y": 760,
+      "width": 760,
+      "height": 220,
+      "title": { "text": "# not a heading, **bold** _italic_ `code` [link](https://eraser.io)" }
+    },
+    {
+      "tag": "Shape",
+      "id": "labels-a",
+      "shape": "rectangle",
+      "x": 60,
+      "y": 820,
+      "width": 160,
+      "height": 70,
+      "texts": [{ "text": "A" }]
+    },
+    {
+      "tag": "Shape",
+      "id": "labels-b",
+      "shape": "rectangle",
+      "x": 580,
+      "y": 820,
+      "width": 160,
+      "height": 70,
+      "texts": [{ "text": "B" }]
+    },
+    {
+      "tag": "Relationship",
+      "id": "labels-line",
+      "from": "labels-a",
+      "fromPort": "right",
+      "to": "labels-b",
+      "toPort": "left",
+      "endArrowhead": "arrow",
+      "label": "calls\n**twice** on `retry`\n\n- not a list\n\n\n> not a quote\n",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "tag": "Shape",
+      "id": "labels-badge",
+      "shape": "rectangle",
+      "x": 300,
+      "y": 900,
+      "width": 200,
+      "height": 60,
+      "texts": [{ "text": "badge below" }],
+      "badge": { "text": "1. not a list ```no fence```", "placement": "bottom" }
+    }
+  ]
+}

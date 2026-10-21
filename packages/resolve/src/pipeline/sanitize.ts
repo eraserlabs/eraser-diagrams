@@ -6,8 +6,15 @@ import type { PolicyEntry } from '../types.js';
 import type { ContentPolicy } from '../schema/keywords.js';
 import type { PipelineElement } from './element.js';
 import { resolvePointer } from './pointer.js';
+import { canvasBlockMarkdown, canvasInlineMarkdown, NO_INDENTED_CODE } from './canvasMarkdown.js';
 
 const SAFE_SCHEMES = ['http', 'https', 'mailto'];
+
+/** The deepest heading drawn; `####` and below are drawn as this level (the canvas text contract). */
+const MAX_HEADING_DEPTH = 3;
+
+/** The hook the host may listen on; the markup itself is never edited. */
+const MD_HOOK = 'data-md';
 
 const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   allowedTags: [
@@ -17,10 +24,14 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
     'i',
     'em',
     'strong',
+    'del',
     'code',
+    'pre',
     'ul',
     'ol',
     'li',
+    'blockquote',
+    'hr',
     'a',
     'span',
     'h1',
@@ -30,7 +41,9 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   // `ol.start` keeps ordered lists numbered as authored: each text run parses as its own
   // single-item list, so dropping `start` renumbered every one of them to "1." — and made
   // sanitized output differ from parser output, firing a spurious W_CONTENT_SANITIZED.
-  allowedAttributes: { a: ['href'], ol: ['start'] },
+  // `data-md` is the host's hook on a link and a code block; `code.language-*` is the fence's language.
+  allowedAttributes: { a: ['href', MD_HOOK], pre: [MD_HOOK], ol: ['start'], code: ['class'] },
+  allowedClasses: { code: ['language-*'] },
   allowedSchemes: SAFE_SCHEMES,
   allowProtocolRelative: false,
   disallowedTagsMode: 'discard',
@@ -55,37 +68,59 @@ export interface Sanitizers {
 }
 
 export function buildSanitizers(): Sanitizers {
-  const marked = new Marked({ async: false, gfm: true });
+  const marked = new Marked({ async: false, gfm: true }).use(NO_INDENTED_CODE);
 
-  // Raw HTML in markdown source renders as literal text, never as markup.
   marked.use({
     renderer: {
+      // Raw HTML in markdown source renders as literal text, never as markup.
       html: (token: { text: string } | string) =>
         escapePlain(typeof token === 'string' ? token : token.text),
+      // A heading past h3 is drawn as h3: the editor shows six levels, the canvas draws three.
+      heading({ tokens, depth }) {
+        const level = Math.min(depth, MAX_HEADING_DEPTH);
+
+        return `<h${level}>${this.parser.parseInline(tokens)}</h${level}>\n`;
+      },
+      // A link carries the host's hook; the host attaches hover and click there and edits nothing.
+      link({ href, tokens }) {
+        return `<a href="${escapePlain(href)}" ${MD_HOOK}="link">${this.parser.parseInline(tokens)}</a>`;
+      },
+      // Written as the sanitizer writes them, so a benign parse never reads as stripped.
+      br: () => '<br />',
+      hr: () => '<hr />\n',
+      // A fenced block keeps its language as a class and carries the hook.
+      code({ text, lang }) {
+        const language = (lang ?? '').trim().split(/\s+/)[0];
+        const cls = language ? ` class="language-${escapePlain(language)}"` : '';
+
+        return `<pre ${MD_HOOK}="code-block"><code${cls}>${escapePlain(text)}</code></pre>\n`;
+      },
     },
   });
 
   const sanitizeParsed = (parsed: string): SanitizedMarkdown => {
     const html = sanitizeHtml(parsed, SANITIZE_OPTIONS);
 
-    return { html, stripped: html !== parsed };
+    return { html: withoutLayoutNewlines(html), stripped: html !== parsed };
   };
 
   return {
     html: (dirty) => sanitizeHtml(dirty, SANITIZE_OPTIONS),
-    markdown: (md) => sanitizeParsed(marked.parse(unescapeNewlines(md)) as string),
+    // The canvas newline rule is written into the text first (canvasMarkdown.ts).
+    markdown: (md) => sanitizeParsed(marked.parse(canvasBlockMarkdown(md)) as string),
     // Inline marks only; block starters like `#` / `1.` stay literal.
-    inlineMarkdown: (md) => sanitizeParsed(marked.parseInline(unescapeNewlines(md)) as string),
+    inlineMarkdown: (md) => sanitizeParsed(marked.parseInline(canvasInlineMarkdown(md)) as string),
     plain: escapePlain,
   };
 }
 
 /**
- * Authored text often carries newlines as the two-character `\n` escape; treat them as real
- * line breaks for both markdown policies.
+ * The newlines marked writes between and after its blocks (`<p>a</p>\n<p>b</p>\n`) are layout, not text: a run drawn
+ * with `white-space: pre` (a text box with no fixed width) would draw each as an empty line. A code block's own
+ * newlines stay: they sit inside `<pre>`, never between a closing and an opening tag.
  */
-function unescapeNewlines(md: string): string {
-  return md.replace(/\\n/g, '\n');
+function withoutLayoutNewlines(html: string): string {
+  return html.replace(/>\n+(?=<)/g, '>').replace(/\n+$/, '');
 }
 
 function escapePlain(text: string): string {

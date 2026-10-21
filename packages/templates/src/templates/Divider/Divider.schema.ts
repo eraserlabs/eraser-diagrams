@@ -6,13 +6,13 @@ import {
   ORIENTATIONS,
   BORDER_STYLES,
 } from '../../schema/index.js';
-import { PlainText } from '../_shared/schema-parts.js';
 
 export const Divider = entitySchema(
   'Divider',
   {
     orientation: { type: 'string', enum: [...ORIENTATIONS] },
-    label: PlainText,
+    /** The label, in the Labels group of the canvas text contract: inline markdown, as a connection's label. */
+    label: { type: 'string', 'x-content': 'inline-markdown' },
     typeface: { type: 'string', enum: [...TYPEFACES] },
     fontSize: FontSizePx,
     /** Identity/stroke site: a palette token or a raw CSS color. */

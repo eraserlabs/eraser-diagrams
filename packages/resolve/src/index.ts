@@ -1,6 +1,7 @@
 import type {
   ValidationResult,
   ResolveResult,
+  ResolveElementResult,
   RegistryInfo,
   Issue,
   TagInfo,
@@ -71,6 +72,7 @@ export {
   type Issue,
   type ResolveMeta,
   type ResolveResult,
+  type ResolveElementResult,
   type ValidationResult,
   type TagInfo,
   type RegistryInfo,
@@ -115,6 +117,7 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
     input: unknown,
     mode: IconMode,
     options: ResolveOptions = {},
+    graph: 'checked' | 'unchecked' = 'checked',
   ): Promise<PipelineOutput> {
     const errors: Issue[] = [];
     const warnings: Issue[] = [];
@@ -146,10 +149,13 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
     }
     tracker.mark('schema');
 
-    const crossref = stageCrossref(elements, compiled.policyTables, compiled.containers, options);
-    errors.push(...crossref.errors);
-    warnings.push(...crossref.warnings);
-    tracker.mark('crossref');
+    // Single-element resolution has no graph; partial documents still check included targets.
+    if (graph === 'checked') {
+      const crossref = stageCrossref(elements, compiled.policyTables, compiled.containers, options);
+      errors.push(...crossref.errors);
+      warnings.push(...crossref.warnings);
+      tracker.mark('crossref');
+    }
 
     // Sanitize mutates the clones in place.
     const sanitize = stageSanitize(elements, compiled.policyTables, sanitizers);
@@ -221,6 +227,35 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
           kind,
           source,
         }));
+        tracker.mark('emit');
+      }
+
+      return result;
+    },
+
+    async resolveElement(element: unknown): Promise<ResolveElementResult> {
+      const { errors, warnings, elements, iconsInlined, icons, tracker } = await runPipeline(
+        { elements: [element] },
+        'resolve',
+        {},
+        'unchecked',
+      );
+      const ok = errors.length === 0 && elements.length === 1;
+      const result: ResolveElementResult = {
+        ok,
+        errors,
+        warnings,
+        meta: { elementCount: elements.length, iconsInlined, timingsMs: tracker.timings },
+      };
+
+      if (ok) {
+        tracker.reset();
+        const payload = buildResolvedPayload(elements, compiled.containers);
+        const element = payload.connections[0] ?? payload.entities[0];
+        if (element) {
+          result.element = element;
+        }
+        result.icons = icons;
         tracker.mark('emit');
       }
 
