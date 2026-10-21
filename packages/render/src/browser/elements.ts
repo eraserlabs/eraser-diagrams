@@ -1,4 +1,5 @@
 import type { ResolvedEntity } from '@eraserlabs/protocol';
+import { renderIdPrefix } from './domIds.js';
 import { createFillEngine } from './fill.js';
 import { prepareWashMasters } from './masters.js';
 import { measureIntrinsics, measureScene, type ElementMeasure } from './measure.js';
@@ -27,8 +28,6 @@ export interface RenderedElements {
   defs: string;
 }
 
-let fragments = 0;
-
 /**
  * Prepare and fill any subset of resolved elements. No layout, reference lookup, global setup,
  * stylesheet injection or DOM mounting. Connections retain the template's anchor for the host
@@ -36,13 +35,13 @@ let fragments = 0;
  */
 export function createElementRenderer(setup: PageSetup): {
   css: string;
-  render(request: RunRequest): Promise<RenderedElements>;
+  render(request: RunRequest, options?: { idPrefix?: string }): Promise<RenderedElements>;
 } {
   const registry = templateRegistry(setup);
   return {
     css: registry.css,
-    async render(request) {
-      const prefix = `er-fragment-${++fragments}`;
+    async render(request, options = {}) {
+      const prefix = renderIdPrefix(options.idPrefix);
       const elements = [...request.entities, ...request.connections].map((element, index) => ({
         ...element,
         props: {
@@ -52,7 +51,7 @@ export function createElementRenderer(setup: PageSetup): {
             : {}),
         },
       }));
-      const defs = await prepareWashMasters(setup.washMaster, elements);
+      const defs = await prepareWashMasters(setup.washMaster, elements, { idPrefix: prefix });
       const fill = createFillEngine({ templates: registry.templates, icons: request.icons });
       return {
         defs,
@@ -66,6 +65,7 @@ export function createElementRenderer(setup: PageSetup): {
  * Measure mounted hosts after their fonts load, without routing or touching #eraser-scene.
  * With entities, run the same intrinsic/text sizing policy as run(); without them, measure the
  * current DOM as-is. Temporary wrapper sizing is restored even if measurement throws.
+ * Descendant width probes also restore the original styles and priorities, including on errors.
  * Hosts must be connected, untransformed, and laid out (not display:none) in this document.
  */
 export async function measureElements(

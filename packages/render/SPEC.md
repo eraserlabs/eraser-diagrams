@@ -70,14 +70,14 @@ This side-effect-free browser export complements the page API:
 ```ts
 createElementRenderer(setup: PageSetup): {
   css: string;
-  render(request: RunRequest): Promise<{ elements: { id: string; tag: string; html: string }[]; defs: string }>;
+  render(request: RunRequest, options?: { idPrefix?: string }): Promise<{ elements: { id: string; tag: string; html: string }[]; defs: string }>;
 }
 measureElements(mounted: MountedElement[], entities?: ResolvedEntity[]): Promise<ElementMeasure[]>
 measureText(root: HTMLElement): Promise<{ fragments: Box[]; bounds: Box | null }>
-prepareWashMasters(master: string | undefined, elements: readonly WashElement[]): Promise<string>
+prepareWashMasters(master: string | undefined, elements: readonly WashElement[], options?: { idPrefix?: string }): Promise<string>
 applyLayout(scene, mounted, layout, zIndexById?, measures?): void
 ```
 
-Subset rendering fills every supplied template without reference checks or routing. Resolve with `{ partial: true }` first when references may be outside the subset. Missing geometry stays the host's responsibility. The renderer returns, but never mounts, the stylesheet, HTML and wash defs; it clones props and gives watercolor masks a unique prefix per render. The standalone preparer instead stamps `washSym` on the supplied props. Its texture cache is keyed by master and pigments, and shared decoding cannot mix dimensions or pixels between concurrent masters.
+Subset rendering fills every supplied template without reference checks or routing. Resolve with `{ partial: true }` first when references may be outside the subset. Missing geometry stays the host's responsibility. The renderer returns, but never mounts, the stylesheet, HTML and wash defs; it clones props and gives watercolor masks and texture symbols a unique prefix per render, including across independent bundles. An optional caller prefix must be document-unique among mounted fragments. The standalone preparer instead stamps `washSym` on the supplied props. Its texture cache is keyed by master and pigments, and shared decoding cannot mix dimensions or pixels between concurrent masters.
 
-Measurement uses the caller's mounted, untransformed DOM and loaded fonts. Entity-aware measurement runs the page pipeline's intrinsic/text policy passes and restores wrapper styles afterward; current-layout measurement only reads rectangles. Text measurement reports text range fragments relative to the root, rather than padded element dimensions. Neither API runs layout or touches `#eraser-scene`. See the README for mounting, font and cleanup requirements.
+Measurement uses the caller's mounted, untransformed DOM and loaded fonts. Entity-aware measurement runs the page pipeline's intrinsic/text policy passes and restores wrapper styles and descendant probe styles afterward, including priorities and on errors; current-layout measurement only reads rectangles. Text measurement reports text range fragments relative to the root, rather than padded element dimensions. Neither API runs layout or touches `#eraser-scene`. See the README for mounting, font and cleanup requirements.

@@ -212,12 +212,7 @@ function templateWidthFloor(wrapper: HTMLElement): number {
     return 0;
   }
 
-  const previousWidth = wrapper.style.width;
-  wrapper.style.width = '0px';
-  const width = body.getBoundingClientRect().width;
-  wrapper.style.width = previousWidth;
-
-  return width;
+  return withProbeWidth(wrapper, '0px', () => body.getBoundingClientRect().width);
 }
 
 /**
@@ -249,12 +244,22 @@ function wordIntegrityWidth(policies: TextPolicyNode[], width: number): number {
 }
 
 function minContentWidth(node: HTMLElement): number {
-  const previous = node.style.width;
-  node.style.width = 'min-content';
-  const width = node.getBoundingClientRect().width;
-  node.style.width = previous;
+  return withProbeWidth(node, 'min-content', () => node.getBoundingClientRect().width);
+}
 
-  return width;
+/** Probe in the real CSS context, preserving template inline styles even if layout measurement fails. */
+function withProbeWidth(node: HTMLElement, width: string, measure: () => number): number {
+  const style = node.getAttribute('style');
+  try {
+    node.style.setProperty('width', width, 'important');
+    return measure();
+  } finally {
+    if (style === null) {
+      node.removeAttribute('style');
+    } else {
+      node.setAttribute('style', style);
+    }
+  }
 }
 
 function internalPolicies(wrapper: HTMLElement): TextPolicyNode[] {

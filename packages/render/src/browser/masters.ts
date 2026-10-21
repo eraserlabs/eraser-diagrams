@@ -10,6 +10,8 @@
  * paper toward white, with alpha = AMPLITUDE * (1 - luminance)^GAMMA so paper drops transparent.
  */
 
+import { renderIdPrefix } from './domIds.js';
+
 /** Density curve of the recolored stain (the filter's feFuncA gamma exponent). */
 const GAMMA = 0.78;
 /** Alpha ceiling (the filter's feFuncA gamma amplitude). */
@@ -18,13 +20,11 @@ const AMPLITUDE = 0.95;
 /** Tinted masters survive across runs on the same page; distinct pairs are few. */
 const MAX_CACHE = 128;
 interface TintedMaster {
-  symbolId: string;
   href: string;
   width: number;
   height: number;
 }
 const tintCache = new Map<string, TintedMaster>();
-let symbolSeq = 0;
 
 /** Grayscale source pixels, decoded once per master data URI. */
 interface GrayMaster {
@@ -131,13 +131,15 @@ function tint(
 /**
  * Stamp `washSym` (the shared symbol reference) on every element carrying a wash pigment pair,
  * tinting each distinct (washShade, washMid) once, and return the `<defs>` markup registering the
- * symbols used by this scene. No-ops (returns '') without a master or wash elements. On tint
- * failure the symbol wraps the grayscale master itself, so the wash still paints (uncolored)
+ * symbols used by this scene. Cached image bytes are shared; IDs belong to this call. An optional
+ * idPrefix must be unique among mounted fragments in the document. No-ops (returns '') without
+ * a master or wash elements. On tint failure the symbol wraps the grayscale master itself, so the wash still paints (uncolored)
  * rather than vanishing.
  */
 export async function prepareWashMasters(
   master: string | undefined,
   elements: readonly WashElement[],
+  options: { idPrefix?: string } = {},
 ): Promise<string> {
   if (master === undefined || master === '') {
     return '';
@@ -154,8 +156,9 @@ export async function prepareWashMasters(
     return '';
   }
 
+  const prefix = renderIdPrefix(options.idPrefix);
   const source = await decodeMaster(master).catch(() => null);
-  const used = new Map<string, TintedMaster>();
+  const used = new Map<string, TintedMaster & { symbolId: string }>();
 
   for (const props of washes) {
     const shade = parseRgb(props.washShade);
@@ -165,9 +168,7 @@ export async function prepareWashMasters(
     let entry = used.get(key) ?? tintCache.get(key);
 
     if (entry === undefined) {
-      symbolSeq += 1;
       entry = {
-        symbolId: `er-wash-${symbolSeq}`,
         href: source === null || shade === null || mid === null ? master : tint(source, shade, mid),
         width: source?.width ?? 448,
         height: source?.height ?? 346,
@@ -182,8 +183,12 @@ export async function prepareWashMasters(
       }
     }
 
-    used.set(key, entry);
-    props.washSym = entry.symbolId;
+    let symbol = used.get(key);
+    if (symbol === undefined) {
+      symbol = { ...entry, symbolId: `${prefix}-wash-${used.size}` };
+      used.set(key, symbol);
+    }
+    props.washSym = symbol.symbolId;
   }
 
   // slice inside the symbol: any use-site box gets a centered cover-crop of the master.

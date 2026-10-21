@@ -68,7 +68,7 @@ export interface Sanitizers {
 }
 
 export function buildSanitizers(): Sanitizers {
-  const marked = new Marked({ async: false, gfm: true }).use(NO_INDENTED_CODE);
+  const marked = new Marked({ async: false, gfm: true, breaks: true }).use(NO_INDENTED_CODE);
 
   marked.use({
     renderer: {
@@ -106,7 +106,7 @@ export function buildSanitizers(): Sanitizers {
 
   return {
     html: (dirty) => sanitizeHtml(dirty, SANITIZE_OPTIONS),
-    // The canvas newline rule is written into the text first (canvasMarkdown.ts).
+    // Preserve empty paragraphs, then let Marked handle line breaks without rewriting code or links.
     markdown: (md) => sanitizeParsed(marked.parse(canvasBlockMarkdown(md)) as string),
     // Inline marks only; block starters like `#` / `1.` stay literal.
     inlineMarkdown: (md) => sanitizeParsed(marked.parseInline(canvasInlineMarkdown(md)) as string),

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { build } from 'esbuild';
-import { TEMPLATES } from './support/harness.js';
+import { IIFE_PATH, TEMPLATES } from './support/harness.js';
 import type * as Elements from '@eraserlabs/render/elements';
 
 declare global {
@@ -303,8 +303,134 @@ test('standalone watercolor preparation separates concurrent masters and reuses 
   expect(result.first!.box).toBe('0 0 8 4');
   expect(result.second!.box).toBe('0 0 2 6');
   expect(result.first!.href).not.toBe(result.second!.href);
-  expect(result.again.defs).toBe(result.first!.defs);
+  expect(result.again.href).toBe(result.first!.href);
+  expect(result.again.defs).not.toBe(result.first!.defs);
   expect(result.first!.count).toBe(1);
   expect(result.first!.sameSymbol).toBe(true);
   expect(result.empty).toBe('');
+});
+
+test('measurement restores template styles and priorities, including on failure', async ({
+  page,
+}) => {
+  const results = await page.evaluate(async () => {
+    const stylesheet = document.createElement('style');
+    stylesheet.textContent = '[data-role="internal-text"] { width: 200px !important; }';
+    document.head.append(stylesheet);
+    const results = [];
+    for (const fail of [false, true]) {
+      const wrapper = document.createElement('div');
+      wrapper.dataset.mdpTag = 'Test';
+      wrapper.style.cssText = 'width: 200px; height: 40px';
+      wrapper.innerHTML =
+        '<div data-role="body"><span data-role="internal-text" style="display:block;width:80px!important">Alpha beta gamma delta</span></div>';
+      document.body.append(wrapper);
+      const node = wrapper.querySelector('span')!;
+      const original = wrapper.outerHTML;
+      const readRect = node.getBoundingClientRect.bind(node);
+      if (fail) {
+        node.getBoundingClientRect = () => {
+          if (node.style.width === 'min-content') {
+            throw new Error('probe failed');
+          }
+          return readRect();
+        };
+      }
+      let error: string | undefined;
+      try {
+        await window.elementApi.measureElements(
+          [{ id: 'a', tag: 'Test', wrapper }],
+          [{ id: 'a', tag: 'Test', width: 200, props: {} }],
+        );
+      } catch (e) {
+        error = (e as Error).message;
+      }
+      stylesheet.sheet!.insertRule('[data-role="internal-text"] { color: red; }');
+      results.push({
+        fail,
+        error,
+        unchanged: wrapper.outerHTML === original,
+        width: readRect().width,
+        priority: node.style.getPropertyPriority('width'),
+      });
+      wrapper.remove();
+    }
+    return results;
+  });
+  for (const result of results) {
+    expect(result.unchanged).toBe(true);
+    expect(result.priority).toBe('important');
+    expect(result.width).toBe(80);
+    expect(result.error).toBe(result.fail ? 'probe failed' : undefined);
+  }
+});
+
+test('independent full-scene and element bundles cannot collide on watercolor definitions', async ({
+  page,
+}) => {
+  await page.addScriptTag({ path: IIFE_PATH });
+  const result = await page.evaluate(async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 4;
+    canvas.height = 4;
+    const ctx = canvas.getContext('2d')!;
+    ctx.fillStyle = '#808080';
+    ctx.fillRect(0, 0, 4, 4);
+    const setup = {
+      washMaster: canvas.toDataURL(),
+      baseCss: '',
+      templates: {
+        Wash: {
+          css: '',
+          html: '<template name="Wash"><svg data-tpl="Wash" data-role="body" width="4" height="4"><use href="#{{washSym}}" width="4" height="4"/></svg></template>',
+        },
+      },
+    };
+    const request = (color: string) => ({
+      entities: [
+        {
+          id: 'same-element',
+          tag: 'Wash',
+          x: 0,
+          y: 0,
+          props: { washTexCss: true, washShade: color, washMid: color },
+        },
+      ],
+      connections: [],
+      icons: {},
+    });
+    window.__eraser.setup(setup);
+    await window.__eraser.run(request('#ff0000'));
+    const renderer = window.elementApi.createElementRenderer(setup);
+    const automatic = await renderer.render(request('#00ff00'));
+    const explicit = await renderer.render(request('#0000ff'), {
+      idPrefix: 'preview-same-element',
+    });
+    const hosts = [automatic, explicit].map((fragment) => {
+      const host = document.createElement('div');
+      host.innerHTML = fragment.defs + fragment.elements[0]!.html;
+      document.body.append(host);
+      return host;
+    });
+    const ids = [...document.querySelectorAll('symbol')].map((node) => node.id);
+    const correctTargets = hosts.every((host) => {
+      const ref = host.querySelector('use')!.getAttribute('href')!.slice(1);
+      return host.contains(document.getElementById(ref));
+    });
+    const image = new Image();
+    image.src = hosts[0]!.querySelector('symbol image')!.getAttribute('href')!;
+    await image.decode();
+    ctx.clearRect(0, 0, 4, 4);
+    ctx.drawImage(image, 0, 0);
+    return {
+      ids,
+      correctTargets,
+      pixel: [...ctx.getImageData(2, 2, 1, 1).data],
+      explicit: explicit.defs,
+    };
+  });
+  expect(new Set(result.ids).size).toBe(result.ids.length);
+  expect(result.correctTargets).toBe(true);
+  expect(result.explicit).toContain('id="preview-same-element-wash-0"');
+  expect(result.pixel[1]).toBeGreaterThan(result.pixel[0]! + 100);
 });

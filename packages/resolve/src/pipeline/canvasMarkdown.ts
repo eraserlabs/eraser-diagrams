@@ -1,11 +1,12 @@
 /**
- * The canvas newline rule, applied to stored markdown before it is parsed.
+ * Preserve diagram paragraph spacing before Markdown parsing.
  *
  * Eraser's canvas text editor reads a newline inside a paragraph, a list item or a quote as a line
  * break; two newlines as a paragraph break with no blank line; each newline past two as one empty
  * paragraph; and each newline at the end as one trailing empty paragraph. GFM alone reads one
- * newline as a space and draws no empty lines, so without this rule the library draws fewer lines
- * than the editor shows. What is stored never changes: this rewrites the text the parser is given.
+ * newline as a space and draws no empty lines, so paragraph gaps are made explicit here.
+ * Marked handles soft breaks with its `breaks` option, which recognizes code spans and links
+ * before breaking prose. Stored text never changes.
  *
  * A literal `\n` (two characters, as AI-written JSON carries it) is a newline.
  */
@@ -13,20 +14,6 @@ import { Marked } from 'marked';
 
 /** Holds an empty line open (a paragraph with nothing in it is not drawn): zero-width, so it adds no width. */
 export const EMPTY_LINE = '​';
-
-/** A markdown hard break: two spaces before the newline. */
-const BREAK_SPACES = '  ';
-const HARD_BREAK = `${BREAK_SPACES}\n`;
-
-/** A line that already ends in a hard break (two spaces, a backslash). */
-const ENDS_IN_BREAK = /(?: {2,}|\\)$/;
-/** In a list or a quote: a line that starts a list item, a code fence, or has nothing on it. */
-const LIST_ITEM = /^[\s>]*(?:[-+*]|\d{1,9}[.)])(?:\s|$)/;
-const FENCE = /^[\s>]*(?:(?:[-+*]|\d{1,9}[.)])\s+)?(?:`{3,}|~{3,})/;
-const BLANK = /^[\s>]*$/;
-
-/** The blocks whose newlines are line breaks; a heading, a code block or a table keeps its own. */
-const BROKEN_BLOCKS = new Set(['paragraph', 'list', 'blockquote']);
 
 /**
  * Four leading spaces are text, not a code block: on the canvas only a fence makes code, and a text run's leading
@@ -42,7 +29,7 @@ export const NO_INDENTED_CODE = {
 
 const lexer = new Marked({ gfm: true }).use(NO_INDENTED_CODE);
 
-/** Block markdown (a text run, a text box) with the canvas line breaks and empty lines written in. */
+/** Block markdown (a text run, a text box) with empty paragraphs preserved; Marked handles soft line breaks. */
 export function canvasBlockMarkdown(markdown: string): string {
   const text = unescapeNewlines(markdown).replace(/\r\n?/g, '\n');
   let out = '';
@@ -58,7 +45,7 @@ export function canvasBlockMarkdown(markdown: string): string {
     if (blocks > 0) {
       out += separator(gap);
     }
-    out += BROKEN_BLOCKS.has(token.type) ? hardBreaks(body, token.type === 'paragraph') : body;
+    out += body;
     gap = token.raw.length - body.length;
     blocks += 1;
   }
@@ -67,7 +54,7 @@ export function canvasBlockMarkdown(markdown: string): string {
 
 /**
  * One paragraph of inline markdown (a label, a title, a badge): its lines as the canvas breaks them,
- * joined by hard breaks. An empty text stays empty.
+ * joined by newlines; Marked recognizes code spans and links before line breaks. An empty text stays empty.
  */
 export function canvasInlineMarkdown(markdown: string): string {
   if (markdown === '') {
@@ -75,7 +62,7 @@ export function canvasInlineMarkdown(markdown: string): string {
   }
   return inlineLines(markdown)
     .map((line) => line || EMPTY_LINE)
-    .join(HARD_BREAK);
+    .join('\n');
 }
 
 /**
@@ -132,34 +119,4 @@ function separator(gap: number): string {
     return '\n'.repeat(gap);
   }
   return `\n\n${`${EMPTY_LINE}\n\n`.repeat(gap - 2)}`;
-}
-
-/**
- * A block's newlines as hard breaks. In a paragraph, every one; in a list or a quote, those inside
- * an item's own paragraph: not before a new item, round an empty line, or in a fenced code block.
- */
-function hardBreaks(body: string, paragraph: boolean): string {
-  const lines = body.split('\n');
-  let fenced = false;
-  return lines
-    .map((line, i) => {
-      const next = lines[i + 1];
-      const fence = !paragraph && FENCE.test(line);
-      if (fence) {
-        fenced = !fenced;
-      }
-      if (next === undefined || ENDS_IN_BREAK.test(line)) {
-        return line;
-      }
-      const breaks =
-        paragraph ||
-        (!fence &&
-          !fenced &&
-          !BLANK.test(line) &&
-          !BLANK.test(next) &&
-          !LIST_ITEM.test(next) &&
-          !FENCE.test(next));
-      return breaks ? line + BREAK_SPACES : line;
-    })
-    .join('\n');
 }

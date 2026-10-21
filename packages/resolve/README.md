@@ -33,7 +33,7 @@ const result = await resolver.resolve({
 });
 ```
 
-`createResolver` compiles the library once. `resolve` returns `{ ok, entities, connections, icons, warnings, errors }`; `validate` runs the same pipeline without inlining icon bytes. `resolveElement(element)` runs one entity, connection or divider through the same pipeline with no graph checks and returns `{ ok, element, icons, warnings, errors }`: for a host that redraws one element at a time, where `from`, `to` and `containerId` pass through as authored. Supply `iconLoader` to fetch SVGs by name; `onUnknownIcon` is `'placeholder'` or `'error'`.
+`createResolver` compiles the library once. `resolve` returns `{ ok, entities, connections, icons, warnings, errors }`; `validate` runs the same pipeline without inlining icon bytes. Supply `iconLoader` to fetch SVGs by name; `onUnknownIcon` is `'placeholder'` or `'error'`.
 
 Portable document, component, font, and schema-vocabulary contracts live in `@eraserlabs/protocol`. Compatibility re-exports remain at `@eraserlabs/resolve/schema`. Component authoring is documented in [CUSTOMIZATION.md](../../CUSTOMIZATION.md).
 
@@ -45,7 +45,13 @@ Editors can resolve a selection without submitting its container or connection e
 const result = await resolver.resolve(
   {
     elements: [
-      { tag: 'Shape', id: 'a', containerId: 'group-outside-selection' },
+      {
+        tag: 'Shape',
+        id: 'a',
+        x: 0,
+        y: 0,
+        containerId: 'group-outside-selection',
+      },
       {
         tag: 'Relationship',
         id: 'edge',
@@ -59,3 +65,9 @@ const result = await resolver.resolve(
 ```
 
 The same per-call option is available on `validate`. Only missing-reference errors are suppressed; reference values are preserved. Duplicate IDs, invalid schemas, references to included connections, references to included non-containers, containment cycles, sanitization and icon policy still apply. A subsequent call without the option remains strict. Partial results are for an editor's fragment renderer; they do not supply the missing geometry needed to route a complete scene.
+
+## Diagram text
+
+Markdown is a small diagram-text surface: headings (drawn through level three), paragraphs, flat lists, simple blockquotes containing paragraph text and inline marks, horizontal rules, and top-level fenced code blocks. Inline marks include emphasis, strikethrough, code spans, and links. Nested block structures (such as headings, lists, or code fences inside quotes) are outside the supported contract; parser acceptance does not guarantee their presentation.
+
+A prose newline draws a line break; two newlines separate paragraphs; additional blank lines and trailing newlines retain empty lines. Code spans and link syntax are interpreted by the Markdown parser, without injecting hard-break spaces into their source. Fenced code keeps its internal lines and spaces and wraps long tokens to the available width. Four-space indentation stays paragraph text. Labels use inline Markdown, so block starters remain literal. Tables, images, and raw HTML in Markdown are not supported. These output rules also apply to existing documents rendered through Node, CLI, and server entry points.

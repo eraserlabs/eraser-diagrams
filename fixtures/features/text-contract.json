@@ -7,7 +7,7 @@
       "x": 20,
       "y": 20,
       "width": 360,
-      "text": "# Heading one\n## Heading two\n### Heading three\n#### Drawn as three\n\nLine one\nline two of the same paragraph\n\n\nAfter one empty line\n\n- item one\nstill item one\n- item two\n  - nested\n\n> A quote\n> on two lines\n\n---\n\nAfter the rule\n"
+      "text": "# Heading one\n## Heading two\n### Heading three\n#### Drawn as three\n\nLine one\nline two of the same paragraph\n\n\nAfter one empty line\n\n- item one\nstill item one\n- item two\n\n> A quote\n> on two lines\n\n---\n\nAfter the rule\n"
     },
     {
       "tag": "Textbox",
@@ -28,7 +28,9 @@
       "color": "blue",
       "texts": [
         { "text": "## Service\nowns **billing** and `invoices`" },
-        { "text": "- reads [docs](https://eraser.io/docs)\n- ~~writes~~ never writes" }
+        {
+          "text": "- reads [docs](https://eraser.io/docs)\n- ~~writes~~ never writes"
+        }
       ],
       "badge": { "text": "**v2** `beta` ~~v1~~", "placement": "top-right" }
     },
@@ -43,7 +45,9 @@
       "color": "blue",
       "texts": [
         { "text": "| a | b |\n| - | - |\n| 1 | 2 |" },
-        { "text": "![alt](https://eraser.io/x.png) and <u>underline</u> and +wiki" }
+        {
+          "text": "![alt](https://eraser.io/x.png) and <u>underline</u> and +wiki"
+        }
       ]
     },
     {
@@ -53,7 +57,9 @@
       "y": 760,
       "width": 760,
       "height": 220,
-      "title": { "text": "# not a heading, **bold** _italic_ `code` [link](https://eraser.io)" }
+      "title": {
+        "text": "# not a heading, **bold** _italic_ `code` [link](https://eraser.io)"
+      }
     },
     {
       "tag": "Shape",

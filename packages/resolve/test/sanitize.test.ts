@@ -143,3 +143,29 @@ describe('canvas text contract', () => {
     expect(s.markdown('[x](javascript:alert(1))').html).not.toContain('javascript:');
   });
 });
+
+describe('complete inline syntax', () => {
+  for (const policy of ['markdown', 'inlineMarkdown'] as const) {
+    it(`${policy}: preserves code-span whitespace while breaking surrounding prose`, () => {
+      const out = s[policy](
+        'Run `git commit -m "Update customer\nbilling settings"`\nthen continue.',
+      );
+      expect(out.html).toContain('<code>git commit -m "Update customer billing settings"</code>');
+      expect(out.html).toContain('</code><br />then continue.');
+    });
+
+    it(`${policy}: leaves link destinations and titles to the Markdown parser`, () => {
+      const out = s[policy](
+        'Read [the docs](\nhttps://example.com/docs\n"Documentation"\n)\nthen continue.',
+      );
+      expect(out.html).toContain('<a href="https://example.com/docs" data-md="link">the docs</a>');
+      expect(out.html).toContain('</a><br />then continue.');
+    });
+  }
+
+  it('preserves ordinary multiline blockquotes and their inline marks', () => {
+    expect(s.markdown('> **Warning**\n> Retry the request.').html).toBe(
+      '<blockquote><p><strong>Warning</strong><br />Retry the request.</p></blockquote>',
+    );
+  });
+});
