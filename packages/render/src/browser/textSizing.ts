@@ -1,3 +1,4 @@
+import { textRects } from './textMeasure.js';
 import { TEXT_SIZE_POLICIES, type TextSizePolicy } from '@eraserlabs/protocol';
 import type { ResolvedConnection, ResolvedEntity } from '@eraserlabs/protocol';
 import type { Box, SceneLayout } from '@eraserlabs/render';
@@ -486,24 +487,6 @@ function mergedLineCount(rects: DOMRect[]): number {
   }
 
   return bands.length;
-}
-
-function textRects(root: HTMLElement): DOMRect[] {
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  const rects: DOMRect[] = [];
-  let current = walker.nextNode();
-
-  while (current) {
-    if (current.textContent?.trim()) {
-      const range = document.createRange();
-      range.selectNodeContents(current);
-      rects.push(...range.getClientRects());
-    }
-
-    current = walker.nextNode();
-  }
-
-  return rects;
 }
 
 function connectionLabelWidth(

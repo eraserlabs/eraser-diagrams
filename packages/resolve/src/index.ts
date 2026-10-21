@@ -5,7 +5,7 @@ import type {
   Issue,
   TagInfo,
 } from './result-types.js';
-import type { Resolver, ResolverSetup } from './types.js';
+import type { Resolver, ResolverSetup, ResolveOptions } from './types.js';
 import { compileSchemas } from './schema/compile.js';
 import { prepareLibrary } from './library/prepare.js';
 import { normalizeInput } from './pipeline/input.js';
@@ -23,6 +23,7 @@ import { TimeTracker } from '@eraserlabs/utils';
 export type {
   Resolver,
   ResolverSetup,
+  ResolveOptions,
   AuthoredLibrary,
   AuthoredRecord,
   TemplateOverrides,
@@ -110,7 +111,11 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
       : {}),
   };
 
-  async function runPipeline(input: unknown, mode: IconMode): Promise<PipelineOutput> {
+  async function runPipeline(
+    input: unknown,
+    mode: IconMode,
+    options: ResolveOptions = {},
+  ): Promise<PipelineOutput> {
     const errors: Issue[] = [];
     const warnings: Issue[] = [];
     const tracker = new TimeTracker();
@@ -141,7 +146,7 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
     }
     tracker.mark('schema');
 
-    const crossref = stageCrossref(elements, compiled.policyTables, compiled.containers);
+    const crossref = stageCrossref(elements, compiled.policyTables, compiled.containers, options);
     errors.push(...crossref.errors);
     warnings.push(...crossref.warnings);
     tracker.mark('crossref');
@@ -180,16 +185,17 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
   const resolver: Resolver = {
     library,
 
-    async validate(input: unknown): Promise<ValidationResult> {
-      const { errors, warnings } = await runPipeline(input, 'validate');
+    async validate(input: unknown, options?: ResolveOptions): Promise<ValidationResult> {
+      const { errors, warnings } = await runPipeline(input, 'validate', options);
 
       return { ok: errors.length === 0, errors, warnings };
     },
 
-    async resolve(input: unknown): Promise<ResolveResult> {
+    async resolve(input: unknown, options?: ResolveOptions): Promise<ResolveResult> {
       const { errors, warnings, elements, iconsInlined, icons, tracker } = await runPipeline(
         input,
         'resolve',
+        options,
       );
       const ok = errors.length === 0;
       const result: ResolveResult = {

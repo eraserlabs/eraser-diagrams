@@ -335,3 +335,65 @@ describe('createResolver end-to-end', () => {
     expect(entityEndpoints.entities).toBeUndefined();
   });
 });
+
+describe('partial document resolution', () => {
+  it('preserves absent container/endpoints, sanitizes content, and leaves full resolution strict', async () => {
+    const resolver = await createResolver({ library: LIBRARY });
+    const input = {
+      elements: [
+        { tag: 'Node', id: 'a', containerId: 'outside', label: '<script>bad()</script>' },
+        { tag: 'Wire', id: 'w', from: 'missing-from', to: 'missing-to' },
+      ],
+    };
+    const result = await resolver.resolve(input, { partial: true });
+    expect(result.ok).toBe(true);
+    expect(result.entities![0]).toMatchObject({ id: 'a', containerId: 'outside' });
+    expect(result.entities![0]!.props['label']).toBe('&lt;script&gt;bad()&lt;/script&gt;');
+    expect(result.connections![0]!.props).toMatchObject({ from: 'missing-from', to: 'missing-to' });
+    expect((await resolver.validate(input, { partial: true })).ok).toBe(true);
+    expect((await resolver.resolve(input)).errors.map((e) => e.code)).toEqual([
+      ERROR_CODE.MISSING_REF,
+      ERROR_CODE.MISSING_REF,
+      ERROR_CODE.MISSING_REF,
+    ]);
+    expect((await resolver.validate(input)).ok).toBe(false);
+    expect(input.elements[0]!.label).toBe('<script>bad()</script>');
+  });
+
+  it('still rejects duplicate IDs, containment cycles, and references to included connections', async () => {
+    const resolver = await createResolver({ library: LIBRARY });
+    const result = await resolver.resolve(
+      {
+        elements: [
+          { tag: 'Node', id: 'a', containerId: 'b' },
+          { tag: 'Node', id: 'b', containerId: 'a' },
+          { tag: 'Node', id: 'a' },
+          { tag: 'Wire', id: 'w', from: 'w', to: 'external' },
+        ],
+      },
+      { partial: true },
+    );
+    expect(result.ok).toBe(false);
+    expect(result.entities).toBeUndefined();
+    expect(result.errors.map((e) => e.code)).toEqual(
+      expect.arrayContaining([
+        ERROR_CODE.DUPLICATE_ID,
+        ERROR_CODE.CONTAINER_CYCLE,
+        ERROR_CODE.REF_TO_CONNECTION,
+      ]),
+    );
+    expect(result.errors.some((e) => e.code === ERROR_CODE.MISSING_REF)).toBe(false);
+  });
+
+  it('still requires valid element schemas in partial mode', async () => {
+    const resolver = await createResolver({ library: LIBRARY });
+    expect(
+      (
+        await resolver.resolve(
+          { elements: [{ tag: 'Wire', id: 'w', from: 42, to: 'external' }] },
+          { partial: true },
+        )
+      ).ok,
+    ).toBe(false);
+  });
+});

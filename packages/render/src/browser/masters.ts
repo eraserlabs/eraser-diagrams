@@ -17,14 +17,24 @@ const AMPLITUDE = 0.95;
 
 /** Tinted masters survive across runs on the same page; distinct pairs are few. */
 const MAX_CACHE = 128;
-const tintCache = new Map<string, { symbolId: string; href: string }>();
+interface TintedMaster {
+  symbolId: string;
+  href: string;
+  width: number;
+  height: number;
+}
+const tintCache = new Map<string, TintedMaster>();
 let symbolSeq = 0;
 
 /** Grayscale source pixels, decoded once per master data URI. */
-let grayFor: string | null = null;
-let gray: { data: Uint8ClampedArray; width: number; height: number } | null = null;
+interface GrayMaster {
+  data: Uint8ClampedArray;
+  width: number;
+  height: number;
+}
+let decoded: { master: string; promise: Promise<GrayMaster> } | undefined;
 
-interface WashElement {
+export interface WashElement {
   props?: Record<string, unknown>;
 }
 
@@ -51,11 +61,20 @@ function stop3(t: number, shade: number, mid: number): number {
   return x < 1 ? shade + x * (mid - shade) : mid + (x - 1) * (255 - mid);
 }
 
-async function decodeMaster(master: string): Promise<typeof gray> {
-  if (gray && grayFor === master) {
-    return gray;
+function decodeMaster(master: string): Promise<GrayMaster> {
+  if (!decoded || decoded.master !== master) {
+    const promise = loadMaster(master);
+    decoded = { master, promise };
+    promise.catch(() => {
+      if (decoded?.promise === promise) {
+        decoded = undefined;
+      }
+    });
   }
+  return decoded.promise;
+}
 
+async function loadMaster(master: string): Promise<GrayMaster> {
   const image = new Image();
 
   // Deliberately not `image.decode()`: it has been seen never settling on pages that load without
@@ -73,14 +92,11 @@ async function decodeMaster(master: string): Promise<typeof gray> {
   const context = canvas.getContext('2d', { willReadFrequently: true })!;
   context.drawImage(image, 0, 0);
   const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
-  gray = { data: pixels.data, width: canvas.width, height: canvas.height };
-  grayFor = master;
-
-  return gray;
+  return { data: pixels.data, width: canvas.width, height: canvas.height };
 }
 
 function tint(
-  source: NonNullable<typeof gray>,
+  source: GrayMaster,
   shade: [number, number, number],
   mid: [number, number, number],
 ): string {
@@ -139,32 +155,31 @@ export async function prepareWashMasters(
   }
 
   const source = await decodeMaster(master).catch(() => null);
-  const used = new Map<string, { symbolId: string; href: string }>();
+  const used = new Map<string, TintedMaster>();
 
   for (const props of washes) {
     const shade = parseRgb(props.washShade);
     const mid = parseRgb(props.washMid);
-    const key =
-      source === null || shade === null || mid === null
-        ? 'gray'
-        : `${props.washShade}:${props.washMid}`;
-    let entry = tintCache.get(key);
+    const fallback = source === null || shade === null || mid === null;
+    const key = JSON.stringify([master, fallback ? 'gray' : `${props.washShade}:${props.washMid}`]);
+    let entry = used.get(key) ?? tintCache.get(key);
 
     if (entry === undefined) {
       symbolSeq += 1;
       entry = {
         symbolId: `er-wash-${symbolSeq}`,
-        href:
-          key === 'gray' || source === null || shade === null || mid === null
-            ? master
-            : tint(source, shade, mid),
+        href: source === null || shade === null || mid === null ? master : tint(source, shade, mid),
+        width: source?.width ?? 448,
+        height: source?.height ?? 346,
       };
 
       if (tintCache.size >= MAX_CACHE) {
         tintCache.clear();
       }
 
-      tintCache.set(key, entry);
+      if (source !== null) {
+        tintCache.set(key, entry);
+      }
     }
 
     used.set(key, entry);
@@ -175,7 +190,7 @@ export async function prepareWashMasters(
   const symbols = [...used.values()]
     .map(
       (entry) =>
-        `<symbol id="${entry.symbolId}" viewBox="0 0 ${gray?.width ?? 448} ${gray?.height ?? 346}" preserveAspectRatio="xMidYMid slice"><image href="${entry.href}" width="${gray?.width ?? 448}" height="${gray?.height ?? 346}"></image></symbol>`,
+        `<symbol id="${entry.symbolId}" viewBox="0 0 ${entry.width} ${entry.height}" preserveAspectRatio="xMidYMid slice"><image href="${entry.href}" width="${entry.width}" height="${entry.height}"></image></symbol>`,
     )
     .join('');
 

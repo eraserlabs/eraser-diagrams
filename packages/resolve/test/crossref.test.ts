@@ -144,3 +144,11 @@ describe('crossref stage', () => {
     expect(errors).toEqual([]);
   });
 });
+
+it('partial mode still rejects an included containerId target that is not a container', () => {
+  const result = stageCrossref([node('a', 0, 'b'), node('b', 1)], POLICIES, new Set(), {
+    partial: true,
+  });
+  expect(result.errors).toHaveLength(1);
+  expect(result.errors[0]!.code).toBe(ERROR_CODE.NOT_CONTAINER);
+});

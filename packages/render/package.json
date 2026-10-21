@@ -30,7 +30,11 @@
       "types": "./dist/browser/fillApi.d.ts",
       "default": "./dist/browser/fillApi.js"
     },
-    "./browser/iife": "./dist/browser/eraser-render.iife.js"
+    "./browser/iife": "./dist/browser/eraser-render.iife.js",
+    "./elements": {
+      "types": "./dist/browser/elements.d.ts",
+      "default": "./dist/browser/elements.js"
+    }
   },
   "files": [
     "dist",

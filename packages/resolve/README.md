@@ -36,3 +36,26 @@ const result = await resolver.resolve({
 `createResolver` compiles the library once. `resolve` returns `{ ok, entities, connections, icons, warnings, errors }`; `validate` runs the same pipeline without inlining icon bytes. Supply `iconLoader` to fetch SVGs by name; `onUnknownIcon` is `'placeholder'` or `'error'`.
 
 Portable document, component, font, and schema-vocabulary contracts live in `@eraserlabs/protocol`. Compatibility re-exports remain at `@eraserlabs/resolve/schema`. Component authoring is documented in [CUSTOMIZATION.md](../../CUSTOMIZATION.md).
+
+## Partial documents
+
+Editors can resolve a selection without submitting its container or connection endpoints:
+
+```ts
+const result = await resolver.resolve(
+  {
+    elements: [
+      { tag: 'Shape', id: 'a', containerId: 'group-outside-selection' },
+      {
+        tag: 'Relationship',
+        id: 'edge',
+        from: 'a',
+        to: 'node-outside-selection',
+      },
+    ],
+  },
+  { partial: true },
+);
+```
+
+The same per-call option is available on `validate`. Only missing-reference errors are suppressed; reference values are preserved. Duplicate IDs, invalid schemas, references to included connections, references to included non-containers, containment cycles, sanitization and icon policy still apply. A subsequent call without the option remains strict. Partial results are for an editor's fragment renderer; they do not supply the missing geometry needed to route a complete scene.

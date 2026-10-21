@@ -124,6 +124,12 @@ export interface AuthoredRecord {
   source: Record<string, unknown>;
 }
 
+/** Per-call policy for resolving an editor selection or other incomplete document. */
+export interface ResolveOptions {
+  /** Allow references to elements outside this input; present targets and all other validation still apply. */
+  partial?: boolean;
+}
+
 export interface Resolver {
   /** The checked library, in the shape the render stage's page setup consumes. */
   readonly library: TemplateLibrary;
@@ -132,8 +138,8 @@ export interface Resolver {
    * proof that turns it into typed output. `validate` never calls the icon loader (icon existence
    * is checked against the cache only).
    */
-  validate(input: unknown): Promise<ValidationResult>;
-  resolve(input: unknown): Promise<ResolveResult>;
+  validate(input: unknown, options?: ResolveOptions): Promise<ValidationResult>;
+  resolve(input: unknown, options?: ResolveOptions): Promise<ResolveResult>;
   registryInfo(): RegistryInfo;
   tagSchema(tag: string): object | undefined;
 }
