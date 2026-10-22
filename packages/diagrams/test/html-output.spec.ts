@@ -13,8 +13,27 @@ import { CHROMIUM_PATH } from './support/browser.js';
 /**
  * The HTML format contract for `inline: true` file faces: a self-contained artifact — fonts
  * embedded as data-URI @font-face, icons inline, styles inline — that renders pixel-identical
- * to the PNG the same instance produces, with zero network access.
+ * to the PNG the same instance produces, with zero network access, under its own content policy.
  */
+
+/** Opens a written artifact and collects what its content policy refused. */
+async function openArtifact(page: Page, html: string): Promise<string[]> {
+  const dir = await mkdtemp(join(tmpdir(), 'eraser-html-'));
+  const file = join(dir, 'diagram.html');
+  await writeFile(file, html);
+
+  const refused: string[] = [];
+  page.on('console', (message) => {
+    if (message.text().includes('Content Security Policy')) {
+      refused.push(message.text());
+    }
+  });
+
+  await page.goto(pathToFileURL(file).href);
+  await page.evaluate(() => document.fonts.ready);
+
+  return refused;
+}
 
 const FAMILY = 'AhemTest';
 
@@ -114,10 +133,9 @@ test('html artifact loads standalone, airgapped, and matches the PNG render', as
   expect(asHtml.html).toContain('@font-face');
   expect(asHtml.html).toContain('data:font/ttf;base64,');
   expect(asHtml.html).toContain('id="eraser-scene"');
-
-  const dir = await mkdtemp(join(tmpdir(), 'eraser-html-'));
-  const file = join(dir, 'diagram.html');
-  await writeFile(file, asHtml.html);
+  expect(asHtml.html).toContain(
+    `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; base-uri 'none'; form-action 'none'">`,
+  );
 
   const requests: string[] = [];
   page.on('request', (request) => {
@@ -126,11 +144,12 @@ test('html artifact loads standalone, airgapped, and matches the PNG render', as
     }
   });
 
-  await page.goto(pathToFileURL(file).href);
-  await page.evaluate(() => document.fonts.ready);
-
+  const refused = await openArtifact(page, asHtml.html);
   const screenshot = await page.locator('#eraser-scene').screenshot({ type: 'png' });
   expect(requests).toEqual([]);
+  expect(refused).toEqual([]);
+  // The artifact's policy refuses the fetch that decodes the PNGs; compare on a blank page.
+  await page.goto('about:blank');
   const diff = await pixelDiff(page, screenshot, asPng.png);
   expect(diff.sameSize).toBe(true);
   // Measured baseline: ~1.6% of channels touched by AA phase, ~0.6% beyond delta 8. Hairline
@@ -140,6 +159,53 @@ test('html artifact loads standalone, airgapped, and matches the PNG render', as
   expect(diff.largeDeltaFraction, 'artifact deviates structurally, beyond AA phase').toBeLessThan(
     0.01,
   );
+});
+
+test('the stock fonts and the watercolor texture load under the artifact policy', async ({
+  page,
+}) => {
+  const stock = await createRenderer({
+    library: stockLibrary,
+    chromiumPath: CHROMIUM_PATH,
+    iconLoader: stubIconLoader,
+  });
+
+  try {
+    const outcome = await stock.render({
+      elements: [
+        {
+          tag: 'Shape',
+          id: 'wash',
+          x: 40,
+          y: 40,
+          width: 200,
+          height: 80,
+          color: 'blue',
+          styleMode: 'watercolor',
+          texts: [{ text: 'Rough **bold** `mono`' }],
+        },
+      ],
+      outputs: { html: true },
+    });
+    expect(outcome.ok).toBe(true);
+
+    if (!outcome.ok) {
+      return;
+    }
+
+    // Stock faces are local files, referenced rather than inlined.
+    expect(outcome.html).toContain('font-src data: file:;');
+    expect(outcome.html).toContain('data:image/webp');
+
+    const refused = await openArtifact(page, outcome.html);
+    expect(refused).toEqual([]);
+    // Faces load on use: whatever the text used loaded, and no face was refused.
+    const statuses = await page.evaluate(() => [...document.fonts].map((face) => face.status));
+    expect(statuses).not.toContain('error');
+    expect(statuses).toContain('loaded');
+  } finally {
+    await stock.close();
+  }
 });
 
 test('render failures return the error envelope regardless of format', async () => {

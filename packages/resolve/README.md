@@ -33,6 +33,6 @@ const result = await resolver.resolve({
 });
 ```
 
-`createResolver` compiles the library once. `resolve` returns `{ ok, entities, connections, icons, warnings, errors }`; `validate` runs the same pipeline without inlining icon bytes. Supply `iconLoader` to fetch SVGs by name; `onUnknownIcon` is `'placeholder'` or `'error'`.
+`createResolver` compiles the library once. `resolve` returns `{ ok, entities, connections, icons, warnings, errors }`; `validate` runs the same pipeline without inlining icon bytes. Supply `iconLoader` to fetch SVGs by name; `onUnknownIcon` is `'placeholder'` or `'error'`. Loaded SVGs pass an allowlist sanitizer that parses them by the browser's HTML rules: static drawing elements and local references only. Anything else rejects the icon, which then falls under `onUnknownIcon`, except editor metadata (Inkscape/Sodipodi, `<metadata>`, extra namespace declarations), filter effects, and style properties outside the allowlist, which are removed.
 
 Portable document, component, font, and schema-vocabulary contracts live in `@eraserlabs/protocol`. Compatibility re-exports remain at `@eraserlabs/resolve/schema`. Component authoring is documented in [CUSTOMIZATION.md](../../CUSTOMIZATION.md).
