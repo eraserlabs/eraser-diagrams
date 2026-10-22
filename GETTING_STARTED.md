@@ -347,6 +347,8 @@ Eraser's stock fonts are used by default. Custom fonts are supplied through the 
 - `url` — Chromium loads the font over the network at render time, and HTML output references the same URL. Requires network.
 - `system` — the host-installed family; metrics may differ across machines.
 
+Standalone HTML allows network fonts only from the origins of the configured font URLs. Redirects to another origin are not supported: configure the final font URL directly, or use `file-from-url` with `inline: true` to embed the font. Redirects within the same origin are supported.
+
 Font metrics affect text wrapping, measured element dimensions, and therefore routing. For reproducible output, use `file` or `file-from-url`. `url` means network at render time and a URL in the output. `system` may differ across machines.
 
 ## Using the Node API
