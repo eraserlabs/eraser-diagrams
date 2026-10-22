@@ -58,11 +58,11 @@
     "@eraserlabs/resolve": "workspace:*",
     "@eraserlabs/diagram-templates": "workspace:*",
     "@eraserlabs/utils": "workspace:*",
-    "playwright-core": "1.61.1"
+    "playwright-core": "1.64.1"
   },
   "devDependencies": {
     "@eraserlabs/server": "workspace:*",
-    "@playwright/test": "1.61.1",
+    "@playwright/test": "1.64.1",
     "fast-check": "^4.9.0"
   }
 }
