@@ -34,6 +34,10 @@
     "./elements": {
       "types": "./dist/browser/elements.d.ts",
       "default": "./dist/browser/elements.js"
+    },
+    "./fit": {
+      "types": "./dist/browser/fitApi.d.ts",
+      "default": "./dist/browser/fitApi.js"
     }
   },
   "files": [

@@ -20,6 +20,7 @@ import {
 
 export type { WireFontFace, UrlFontFace, RegisterFontsRequest } from './fonts.js';
 export type { ElementMeasure, MeasuredBox } from './measure.js';
+export type { ElementFit, FitConstraints, FitPolicy, Overflow, TextRegionMeasure } from './textSizing.js';
 export { cutLabelGap, clearLabelGap, type LabelGapOptions } from './labelGap.js';
 
 export type { PageSetup, RunRequest } from './types.js';
@@ -76,7 +77,7 @@ async function run(request: RunRequest): Promise<RunResult> {
   }
   await document.fonts.ready;
   const intrinsics = measureIntrinsics(mounted);
-  const resolvedSizes = resolveTextSizedElements(entities, mounted, intrinsics);
+  const resolvedSizes = resolveTextSizedElements(entities, mounted);
   let measures = measureScene(mounted, intrinsics);
   let finalExternalText = externalTextOf(measures);
   const provisional = deferConstrainedConnectionLabels(connections, mounted, finalExternalText);
