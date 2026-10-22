@@ -123,3 +123,7 @@ export { ALLOWED_SHAPES, BADGE_PLACEMENTS } from './schema/enums.js';
 
 // The page-setup builder: the library as the renderer's page-lifetime registry (markup, CSS, the wash master).
 export { buildRenderPageSetup } from './pageSetup.js';
+// The shape outlines at a size, for a host that resizes a drawn element while it cannot fill it again (a box
+// grows as its text is typed): the same paths the normalizer stamps at fill (deriveGeo).
+export { roundedShapePath } from './roundedPolygon.js';
+export { curvedShapePath, type CurvedShapePath } from './curvedShapePaths.js';

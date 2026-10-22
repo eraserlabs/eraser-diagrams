@@ -44,13 +44,21 @@
   width: 100%;
   height: 100%;
 }
+/* A glyph with no paint of its own (a tech logo ships bare paths, and an SVG path with no fill paints black)
+   takes the glyph's ink, as the Eraser canvas gives such an icon its colour (recolorIconSvgStringForRendering adds
+   the fill to the root <svg>). An outline icon states fill="none", so it keeps its outline. */
+.er-icon__glyph svg:not([fill]) {
+  fill: currentColor;
+}
+/* A caption wraps at 1.8 × the glyph's size (the canvas's icon label rule), not at a share of the element's box:
+   a host may give the element a box wider than its glyph (the map canvas's icon bounds take in the caption). */
 .er-icon__caption {
   position: absolute;
   top: calc(100% + 5px);
   left: 50%;
   transform: translateX(-50%);
   width: max-content;
-  max-width: 180%;
+  max-width: calc(var(--er-icon-px) * 1.8);
   margin: 0;
 }
 /* Every caption slot is styled identically at the primary size. */
@@ -62,6 +70,9 @@
   letter-spacing: -0.01em;
   line-height: 1.25;
   color: var(--er-ink, #242424);
+  /* a word wider than the caption breaks, as the canvas breaks a long icon label */
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 .er-icon[data-font-px]:not([data-font-px='']) .er-icon__caption-line {
   --er-base: var(--er-font-px);
@@ -69,14 +80,8 @@
 .er-icon__caption-line[data-run-px]:not([data-run-px='']) {
   font-size: var(--er-run-px);
 }
-/* Two caption slots = two authored lines; keep each on its own row without re-wrapping. */
+/* Two caption slots = two authored lines, each on its own row; each wraps at the caption's width (180% of the
+   icon, as the canvas wraps every icon label at 1.8 × the icon size), as one caption does. */
 .er-icon__caption-line + .er-icon__caption-line {
   margin-top: 2px;
-}
-.er-icon__caption:has(.er-icon__caption-line + .er-icon__caption-line) {
-  max-width: none;
-}
-.er-icon__caption:has(.er-icon__caption-line + .er-icon__caption-line)
-  .er-icon__caption-line {
-  white-space: nowrap;
 }

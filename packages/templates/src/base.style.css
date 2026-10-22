@@ -53,6 +53,23 @@ svg[stroke='currentColor'] {
   padding-left: 20px;
   /* the marker in the 20px, the text after it: a line break inside an item continues under the text */
   list-style-position: outside;
+  /* a list is one shrink-to-fit block placed by the text's alignment (left, centre or right, as the text is), and
+     inside it the items are left-aligned, so every marker stays beside its own item */
+  display: inline-block;
+  max-width: 100%;
+  box-sizing: border-box;
+  vertical-align: top;
+  text-align: left;
+}
+/* the marker types stated here, so a host page's list reset (`list-style: none`) cannot take them away */
+.er-md ul {
+  list-style-type: disc;
+}
+.er-md ol {
+  list-style-type: decimal;
+}
+.er-md ul > li::marker {
+  content: '• ';
 }
 .er-md li {
   margin-top: 4px;
@@ -118,23 +135,108 @@ svg[stroke='currentColor'] {
   word-break: normal;
   tab-size: 2;
 }
+/* The code inside a block draws as plain text in the block. A host page's own `code` style (the Eraser app gives
+   every `code` a bordered pill with side padding) must not reach it: the pill draws once per line, and its padding
+   moves where the lines wrap. The canvas draws a block's code with no `code` element at all. */
 .er-md pre code {
+  display: inline;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
   font-size: 1em;
 }
+/* A code block's tokens, coloured as the Eraser canvas colours them. resolve writes the highlight.js classes
+   (codeHighlight.ts); the colours are highlight.js's GitHub theme (styles/github.css, BSD-3-Clause), the canvas's
+   light theme. Zero specificity: a host's own highlight.js theme wins, as the canvas's GitHub Dark Dimmed does in
+   dark mode. */
+:where(
+    .er-md .hljs-doctag,
+    .er-md .hljs-keyword,
+    .er-md .hljs-meta .hljs-keyword,
+    .er-md .hljs-template-tag,
+    .er-md .hljs-template-variable,
+    .er-md .hljs-type,
+    .er-md .hljs-variable.language_
+  ) {
+  color: #d73a49;
+}
+:where(
+    .er-md .hljs-title,
+    .er-md .hljs-title.class_,
+    .er-md .hljs-title.class_.inherited__,
+    .er-md .hljs-title.function_
+  ) {
+  color: #6f42c1;
+}
+:where(
+    .er-md .hljs-attr,
+    .er-md .hljs-attribute,
+    .er-md .hljs-literal,
+    .er-md .hljs-meta,
+    .er-md .hljs-number,
+    .er-md .hljs-operator,
+    .er-md .hljs-variable,
+    .er-md .hljs-selector-attr,
+    .er-md .hljs-selector-class,
+    .er-md .hljs-selector-id
+  ) {
+  color: #005cc5;
+}
+:where(.er-md .hljs-regexp, .er-md .hljs-string, .er-md .hljs-meta .hljs-string) {
+  color: #032f62;
+}
+:where(.er-md .hljs-built_in, .er-md .hljs-symbol) {
+  color: #e36209;
+}
+:where(.er-md .hljs-comment, .er-md .hljs-code, .er-md .hljs-formula) {
+  color: #6a737d;
+}
+:where(
+    .er-md .hljs-name,
+    .er-md .hljs-quote,
+    .er-md .hljs-selector-tag,
+    .er-md .hljs-selector-pseudo
+  ) {
+  color: #22863a;
+}
+:where(.er-md .hljs-subst) {
+  color: #24292e;
+}
+:where(.er-md .hljs-section) {
+  color: #005cc5;
+  font-weight: bold;
+}
+:where(.er-md .hljs-bullet) {
+  color: #735c0f;
+}
+:where(.er-md .hljs-emphasis) {
+  color: #24292e;
+  font-style: italic;
+}
+:where(.er-md .hljs-strong) {
+  color: #24292e;
+  font-weight: bold;
+}
+:where(.er-md .hljs-addition) {
+  color: #22863a;
+  background-color: #f0fff4;
+}
+:where(.er-md .hljs-deletion) {
+  color: #b31d28;
+  background-color: #ffeef0;
+}
 /* The link icon, drawn here as presentation: the canvas's external-link mark (a rounded square on a tinted
-   ground, an arrow out of it), 16px, 4px before the text, as the Eraser canvas draws before a link. The host
-   attaches hover and click on `data-md="link"` and edits no markup. */
-.er-md a[data-md='link']::before {
-  content: '';
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  margin-right: 4px;
-  vertical-align: middle;
-  border-radius: 3px;
-  background-color: color-mix(in srgb, currentColor 10%, transparent);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect x='0.5' y='0.5' width='15' height='15' rx='2.5' fill='none' stroke='%23888' stroke-width='1.2'/%3E%3Cpath d='M7 5h4v4M5 11l6-6' fill='none' stroke='%23888' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+   ground, an arrow out of it), 16px, 4px before the text, as the Eraser canvas draws before a link. The icon is a
+   background in the link's own left padding, not a ::before box: a line cannot wrap inside padding, so the icon
+   always stays on the line of the link's first word (an inline-block lets the line wrap after it). The tint is in
+   the SVG at the link colour (#457fe5, `.er-md a`), because a background image has no corner radius of its own.
+   The host attaches hover and click on `data-md="link"` and edits no markup. */
+.er-md a[data-md='link'] {
+  padding-left: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23457fe5' fill-opacity='0.1'/%3E%3Crect x='0.5' y='0.5' width='15' height='15' rx='2.5' fill='none' stroke='%23888' stroke-width='1.2'/%3E%3Cpath d='M7 5h4v4M5 11l6-6' fill='none' stroke='%23888' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
+  background-position: left center;
   background-size: 16px 16px;
 }
 

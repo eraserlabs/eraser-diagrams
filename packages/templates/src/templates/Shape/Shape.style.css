@@ -391,6 +391,12 @@
   width: 100%;
   height: 100%;
 }
+/* A glyph with no paint of its own (a tech logo ships bare paths, and an SVG path with no fill paints black)
+   takes the glyph's ink, as the Eraser canvas gives such an icon its colour (recolorIconSvgStringForRendering adds
+   the fill to the root <svg>). An outline icon states fill="none", so it keeps its outline. */
+.er-shape__icon svg:not([fill]) {
+  fill: currentColor;
+}
 .er-shape__texts {
   margin: 0;
   padding: 0;
