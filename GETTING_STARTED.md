@@ -6,7 +6,7 @@ The fastest way to try it is the CLI. For application integrations, the same fun
 
 ## Requirements
 
-- **Node.js 22.12 or newer.**
+- **Node.js 22.23.4+, 24.22.1+, or 26.12.1+** — the releases with the latest Node.js security fixes.
 - **A Chromium-family browser.** Eraser Diagrams does not install or bundle one. Locally, an installed Google Chrome works. In containers, CI, or serverless environments, use the Chromium distribution appropriate for that environment (or the one your app already ships with Puppeteer or Playwright).
 - **Network access** at render time if you use Eraser's hosted icon catalog or remotely hosted fonts.
 

@@ -11,7 +11,7 @@ npm install -D @eraserlabs/diagrams-cli
 npx eraser-diagrams render diagram.json -o diagram.png
 ```
 
-Requires Node.js 22.12+ and a Chromium-family browser on the machine (not bundled).
+Requires Node.js 22.23.4+, 24.22.1+, or 26.12.1+ and a Chromium-family browser on the machine (not bundled).
 
 ```text
 eraser-diagrams render <input...>     Render diagram JSON to PNG or HTML (needs Chromium)
