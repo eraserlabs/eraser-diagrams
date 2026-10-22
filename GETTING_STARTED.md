@@ -149,6 +149,8 @@ npx eraser-diagrams render diagram.json -o diagram.png
 
 `--format html` produces a standalone HTML document — the browser-native representation of the diagram. Fonts are referenced by their configured source; set `inline: true` on a `file` or `file-from-url` face to embed bytes.
 
+The document is static and carries its own Content-Security-Policy: no script runs, and it loads only its inline styles, `data:` images, and its fonts (`data:`, plus `file:` or the origin of each referenced font). Links in labels still work. The policy applies when the document is opened as a page or in a frame; markup inserted into another page follows that page's policy.
+
 ```bash
 npx eraser-diagrams render diagram.json --format html -o diagram.html
 ```
