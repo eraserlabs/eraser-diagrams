@@ -441,3 +441,17 @@
 .er-shape__text[data-h-align='right'] {
   text-align: right;
 }
+/* A run is as wide as its widest line, placed in the shape by its alignment, as the Eraser canvas shrinks its text box
+   to the text (textMeasurer.ts fitToText): a block inside the run (a list) then starts at the left edge of the run's
+   text, not at the shape's. The run still wraps at the shape's width. */
+.er-shape__text {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+.er-shape__text[data-h-align='left'] {
+  margin-inline: 0 auto;
+}
+.er-shape__text[data-h-align='right'] {
+  margin-inline: auto 0;
+}

@@ -53,12 +53,10 @@ svg[stroke='currentColor'] {
   padding-left: 20px;
   /* the marker in the 20px, the text after it: a line break inside an item continues under the text */
   list-style-position: outside;
-  /* a list is one shrink-to-fit block placed by the text's alignment (left, centre or right, as the text is), and
-     inside it the items are left-aligned, so every marker stays beside its own item */
-  display: inline-block;
-  max-width: 100%;
-  box-sizing: border-box;
-  vertical-align: top;
+  /* a list is a block as wide as its text run, its items left-aligned, as the Eraser canvas draws one
+     (textMeasurer.scss): the run itself is as wide as its widest line and placed by the text's alignment
+     (Shape.style.css `.er-shape__text`), so a list starts at the left edge of the text it sits in */
+  display: block;
   text-align: left;
 }
 /* the marker types stated here, so a host page's list reset (`list-style: none`) cannot take them away */
@@ -70,12 +68,6 @@ svg[stroke='currentColor'] {
 }
 .er-md ul > li::marker {
   content: '• ';
-}
-.er-md li {
-  margin-top: 4px;
-}
-.er-md li:first-child {
-  margin-top: 0;
 }
 .er-md code {
   font-family: var(--font-mono, monospace);
