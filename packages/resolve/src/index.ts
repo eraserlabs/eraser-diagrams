@@ -11,7 +11,7 @@ import { prepareLibrary } from './library/prepare.js';
 import { normalizeInput } from './pipeline/input.js';
 import { processElements, type PipelineElement } from './pipeline/element.js';
 import { normalizeAnnotatedProps, roundAuthoredGeometry } from './pipeline/normalize.js';
-import { deriveProps } from './pipeline/derive.js';
+import { deriveProps, normalizerContext } from './pipeline/derive.js';
 import { assignMissingConnectionIds } from './pipeline/identity.js';
 import { stageCrossref } from './pipeline/crossref.js';
 import { buildSanitizers, stageSanitize } from './pipeline/sanitize.js';
@@ -62,6 +62,8 @@ export {
   isTextRun,
   primaryTextRun,
   type ElementNormalizer,
+  type NormalizerContext,
+  type Theme,
   type TextRun,
 } from './pipeline/derive.js';
 export { NAMED_COLOR_HEX, colorToHex } from './pipeline/colors.js';
@@ -151,12 +153,19 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
 
     assignMissingConnectionIds(elements);
 
+    const theme = options.theme ?? 'light';
+
     for (const item of elements) {
       roundAuthoredGeometry(item.element);
       errors.push(
         ...normalizeAnnotatedProps(item, compiled.policyTables[item.tag] ?? [], library.palette),
       );
-      deriveProps(item.element, item.tag, setup.normalizers);
+      deriveProps(
+        item.element,
+        item.tag,
+        setup.normalizers,
+        normalizerContext(item.source, library.palette, theme),
+      );
     }
     tracker.mark('schema');
 

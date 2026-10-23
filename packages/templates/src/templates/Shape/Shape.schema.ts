@@ -23,8 +23,14 @@ export const Shape = entitySchema(
     iconPadding: { type: 'number' },
     /** Derived: glyph ink — iconProps.color, else the primary run's color. */
     iconColor: CssColor,
-    /** Derived: the primary run's color, published to nested mounts (the Badge's default ink). */
+    /** Derived: the primary run's color, else the default ink, published to nested mounts (the Badge's ink). */
     textInk: CssColor,
+    /** Derived: the ink of a run with no color of its own (the primary run's, else the ink that reads on the fill). */
+    bodyInk: CssColor,
+    /** Derived: the fill's near-white tint, published to nested mounts (the Badge's ground). */
+    tintColor: CssColor,
+    /** Derived (dark theme): the hard shadow's colour, scaled. */
+    shadowColor: CssColor,
     vAlign: { type: 'string', enum: [...V_ALIGNS], default: 'middle' },
     /** Extra px clearance for top/bottom-aligned content. */
     vMargin: { type: 'number' },

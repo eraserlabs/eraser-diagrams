@@ -15,18 +15,20 @@ async function resolveProps(element: Record<string, unknown>): Promise<Record<st
   return allElements(r)[0]!.props;
 }
 
-describe('x-palette translation — one identity value, no derived pair', () => {
-  it('Shape: a palette token becomes its palette color, in place, on `color` alone', async () => {
+describe('x-palette translation — one identity value; a Shape fill as the Eraser canvas paints it', () => {
+  it('Shape: a palette token becomes its palette color, in place; the body is the canvas pastel', async () => {
     const props = await resolveProps({ tag: 'Shape', id: 's', x: 0, y: 0, color: 'blue' });
     expect(props.color).toBe('#2866c4');
-    // The pastel body, the hairline and the badge tint are CSS formulas over that one value now.
-    expect(props.fillColor).toBeUndefined();
+    // The canvas fills a palette Shape with its pastel swatch, not the 85% tint of the identity; the hairline stays
+    // the stylesheet's formula over the identity.
+    expect(props.bgColor).toBe('#c7dcfc');
     expect(props.borderColor).toBeUndefined();
   });
 
-  it('a raw CSS color passes through, and now gets the identity treatment tokens used to get', async () => {
+  it('a raw CSS color passes through, and a Shape is filled with it solid, as the canvas fills a hex shape', async () => {
     const props = await resolveProps({ tag: 'Shape', id: 's', x: 0, y: 0, color: 'peachpuff' });
     expect(props.color).toBe('peachpuff');
+    expect(props.bgColor).toBe('peachpuff');
   });
 
   it('a string that is neither errors, with a did-you-mean over the token names', async () => {

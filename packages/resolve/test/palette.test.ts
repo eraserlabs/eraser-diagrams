@@ -262,3 +262,35 @@ describe('x-palette — resolution', () => {
     expect(result.errors[0]!.code).toBe('E_INVALID_COLOR');
   });
 });
+
+describe('normalizer context — the authored token and the theme', () => {
+  it('a normalizer sees the token the author wrote (swapped on the clone) and the theme of the call', async () => {
+    const seen: Array<{ color: unknown; token: string | undefined; raw: string | undefined; theme: string }> =
+      [];
+    const resolver = await createResolver({
+      library: library(),
+      normalizers: {
+        Node: (element, context) => {
+          seen.push({
+            color: element.color,
+            token: context.paletteToken('color'),
+            raw: context.paletteToken('id'),
+            theme: context.theme,
+          });
+        },
+      },
+    });
+    await resolver.resolve({ elements: [{ tag: 'Node', id: 'n', x: 0, y: 0, color: 'blue' }] });
+    await resolver.resolve(
+      { elements: [{ tag: 'Node', id: 'n', x: 0, y: 0, color: '#2866c4' }] },
+      { theme: 'dark' },
+    );
+
+    expect(seen).toEqual([
+      // the clone holds the identity; the context still knows it was written as `blue`
+      { color: '#2866c4', token: 'blue', raw: undefined, theme: 'light' },
+      // the same colour written as hex is no token
+      { color: '#2866c4', token: undefined, raw: undefined, theme: 'dark' },
+    ]);
+  });
+});

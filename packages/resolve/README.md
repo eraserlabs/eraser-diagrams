@@ -66,6 +66,10 @@ const result = await resolver.resolve(
 
 The same per-call option is available on `validate`. Only missing-reference errors are suppressed; reference values are preserved. Duplicate IDs, invalid schemas, references to included connections, references to included non-containers, containment cycles, sanitization and icon policy still apply. A subsequent call without the option remains strict. Partial results are for an editor's fragment renderer; they do not supply the missing geometry needed to route a complete scene.
 
+## Themes
+
+`resolve(input, { theme: 'dark' })` resolves for a dark page: the normalizers receive the theme (`context.theme`, `light` by default) and write the colours a template binds for it. The stock `Shape` scales each of its colours, its default ink, stroke and shadow among them, the way the Eraser canvas draws them in dark mode; the other stock tags, and the colours authored on a `Badge` inside a Shape, do not read the theme yet. A normalizer also receives `context.paletteToken(key)`: the palette token the author wrote at a top-level key, which the `x-palette` step has already swapped for its colour on the clone.
+
 ## Diagram text
 
 Markdown is a small diagram-text surface: headings (drawn through level three), paragraphs, flat lists, simple blockquotes containing paragraph text and inline marks, horizontal rules, and top-level fenced code blocks. Inline marks include emphasis, strikethrough, code spans, and links. Nested block structures (such as headings, lists, or code fences inside quotes) are outside the supported contract; parser acceptance does not guarantee their presentation.
