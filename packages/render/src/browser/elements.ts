@@ -90,7 +90,7 @@ export async function measureElements(
       wrapper.style.height = '';
     }
     const intrinsics = measureIntrinsics(mounted);
-    resolveTextSizedElements(entities, mounted, intrinsics);
+    resolveTextSizedElements(entities, mounted);
     return measureScene(mounted, intrinsics);
   } finally {
     for (const [index, { wrapper }] of mounted.entries()) {
