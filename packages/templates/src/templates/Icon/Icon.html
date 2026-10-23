@@ -24,7 +24,12 @@
       <div
         class="er-icon__caption-line er-md"
         data-run-px="{{t.fontSize}}"
-        style="--f: var(--font-{{t.typeface}}, var(--font-clean)); --er-ink: {{t.color}}; --er-run-px: {{t.fontSize}}px"
+        data-text-grow-policy="balanced"
+        data-text-max-lines="2"
+        data-text-aspect="1.8"
+        data-text-aspect-allowance="1.2"
+        data-wrap-px="{{t.wrapWidth}}"
+        style="--f: var(--font-{{t.typeface}}, var(--font-clean)); --er-ink: {{t.color}}; --er-run-px: {{t.fontSize}}px; --er-wrap-px: {{t.wrapWidth}}px"
       >{{t.text}}</div
       >
     </figcaption>
