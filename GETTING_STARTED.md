@@ -6,7 +6,7 @@ The fastest way to try it is the CLI. For application integrations, the same fun
 
 ## Requirements
 
-- **Node.js 22.12 or newer.**
+- **Node.js 22.23.4+, 24.22.1+, or 26.12.1+** — the releases with the latest Node.js security fixes.
 - **A Chromium-family browser.** Eraser Diagrams does not install or bundle one. Locally, an installed Google Chrome works. In containers, CI, or serverless environments, use the Chromium distribution appropriate for that environment (or the one your app already ships with Puppeteer or Playwright).
 - **Network access** at render time if you use Eraser's hosted icon catalog or remotely hosted fonts.
 
@@ -148,6 +148,8 @@ npx eraser-diagrams render diagram.json -o diagram.png
 ### HTML
 
 `--format html` produces a standalone HTML document — the browser-native representation of the diagram. Fonts are referenced by their configured source; set `inline: true` on a `file` or `file-from-url` face to embed bytes.
+
+The document is static and carries its own Content-Security-Policy: no script runs, and it loads only its inline styles, `data:` images, and its fonts (`data:`, plus `file:` or the origin of each referenced font). Links in labels still work. The policy applies when the document is opened as a page or in a frame; markup inserted into another page follows that page's policy.
 
 ```bash
 npx eraser-diagrams render diagram.json --format html -o diagram.html
@@ -344,6 +346,8 @@ Eraser's stock fonts are used by default. Custom fonts are supplied through the 
 - `file` and `file-from-url` — read from disk (after a one-time fetch into `cachePath` for `file-from-url`) for measurement and PNG. HTML output references the file path or the original URL unless you set `inline: true` to embed bytes as a data URI.
 - `url` — Chromium loads the font over the network at render time, and HTML output references the same URL. Requires network.
 - `system` — the host-installed family; metrics may differ across machines.
+
+Standalone HTML allows network fonts only from the origins of the configured font URLs. Redirects to another origin are not supported: configure the final font URL directly, or use `file-from-url` with `inline: true` to embed the font. Redirects within the same origin are supported.
 
 Font metrics affect text wrapping, measured element dimensions, and therefore routing. For reproducible output, use `file` or `file-from-url`. `url` means network at render time and a URL in the output. `system` may differ across machines.
 

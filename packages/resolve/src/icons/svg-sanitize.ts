@@ -1,4 +1,4 @@
-import { parseFragment, serialize, type DefaultTreeAdapterMap } from 'parse5';
+import { parseFragment, serialize, type DefaultTreeAdapterMap, type Token } from 'parse5';
 
 const MAX_SVG_BYTES = 64 * 1024;
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -102,6 +102,7 @@ const PRESENTATION = new Set([
   'clip-path',
   'clip-rule',
   'mask',
+  'mask-type',
   'vector-effect',
   'paint-order',
   'font-family',
@@ -118,6 +119,29 @@ const PRESENTATION = new Set([
 ]);
 const FRAGMENT = /^#[A-Za-z_][\w.:-]*$/;
 
+// Editor metadata and filter effects that exported icon sets carry. None of it can load or run
+// anything, and a flat glyph draws without it, so it is removed from the tree (with everything
+// inside it) rather than rejecting the icon.
+const STRIPPED_TAGS = new Set(['filter', 'metadata']);
+const STRIPPED_ATTRS = new Set([
+  'baseProfile',
+  'enable-background',
+  'filter',
+  'isolation',
+  'pointer-events',
+]);
+const EDITOR_NAME = /^(?:inkscape|sodipodi):/;
+
+function strippedAttribute({ name, prefix }: Token.Attribute): boolean {
+  return (
+    STRIPPED_ATTRS.has(name) ||
+    EDITOR_NAME.test(name) ||
+    // Namespace declarations other than SVG's and xlink's do nothing under HTML parsing.
+    (!prefix && name.startsWith('xmlns:')) ||
+    (prefix === 'xml' && name === 'space')
+  );
+}
+
 // A deliberately small CSS value language. Reject escapes/comments and all nonlocal URLs;
 // the property allowlist prevents positioning, imports, animation, and custom properties.
 function safePresentation(value: string): boolean {
@@ -129,18 +153,32 @@ function safePresentation(value: string): boolean {
   );
 }
 
-function safeStyle(value: string): boolean {
-  return value.split(';').every((declaration) => {
+/**
+ * The style with declarations outside the property allowlist dropped, or `undefined` when a
+ * declaration is malformed or an allowed property has an unsafe value. Each kept declaration
+ * passes the value language on its own, so rejoining them cannot form anything new.
+ */
+function cleanStyle(value: string): string | undefined {
+  const kept: string[] = [];
+
+  for (const declaration of value.split(';')) {
     if (declaration.trim() === '') {
-      return true;
+      continue;
     }
     const colon = declaration.indexOf(':');
-    return (
-      colon > 0 &&
-      PRESENTATION.has(declaration.slice(0, colon).trim().toLowerCase()) &&
-      safePresentation(declaration.slice(colon + 1).trim())
-    );
-  });
+    if (colon <= 0) {
+      return undefined;
+    }
+    if (!PRESENTATION.has(declaration.slice(0, colon).trim().toLowerCase())) {
+      continue;
+    }
+    if (!safePresentation(declaration.slice(colon + 1).trim())) {
+      return undefined;
+    }
+    kept.push(declaration.trim());
+  }
+
+  return kept.join(';');
 }
 
 export interface SvgSanitizeResult {
@@ -149,7 +187,11 @@ export interface SvgSanitizeResult {
   reason?: string;
 }
 
-/** Validate using the same HTML parsing rules as the renderer's innerHTML sink. */
+/**
+ * Validate using the same HTML parsing rules as the renderer's innerHTML sink. Anything outside the
+ * allowlist rejects the icon, except editor metadata, filter effects, and style properties outside
+ * the property allowlist, which are removed from the parsed tree before it is serialized.
+ */
 export function sanitizeSvg(raw: string): SvgSanitizeResult {
   const reject = (reason: string): SvgSanitizeResult => ({ ok: false, reason });
   if (new TextEncoder().encode(raw).length > MAX_SVG_BYTES) {
@@ -168,11 +210,15 @@ export function sanitizeSvg(raw: string): SvgSanitizeResult {
   if (malformed) {
     return reject('malformed SVG markup');
   }
-  const roots = fragment.childNodes.filter((node) => node.nodeName !== '#comment');
+  // Comments and whitespace around the root (an editor's "Created with" banner) are not roots.
+  const roots = fragment.childNodes.filter(
+    (node) => node.nodeName !== '#comment' && !('value' in node && node.value.trim() === ''),
+  );
   const root = roots[0];
   if (roots.length !== 1 || !root || !('tagName' in root) || root.tagName !== 'svg') {
     return reject('must be a single <svg> root element');
   }
+  fragment.childNodes = [root];
 
   const pending: { node: DefaultTreeAdapterMap['childNode']; depth: number }[] = [
     { node: root, depth: 0 },
@@ -185,18 +231,34 @@ export function sanitizeSvg(raw: string): SvgSanitizeResult {
     if (node.nodeName === '#text' || node.nodeName === '#comment') {
       continue;
     }
+    if (
+      'tagName' in node &&
+      node !== root &&
+      node.namespaceURI === SVG_NS &&
+      (STRIPPED_TAGS.has(node.tagName) || EDITOR_NAME.test(node.tagName))
+    ) {
+      const siblings = node.parentNode!.childNodes;
+      siblings.splice(siblings.indexOf(node), 1);
+      continue;
+    }
     if (!('tagName' in node) || node.namespaceURI !== SVG_NS || !TAGS.has(node.tagName)) {
       return reject('forbidden SVG element');
     }
     if (node !== root && node.tagName === 'svg') {
       return reject('nested SVG is forbidden');
     }
+    const kept: Token.Attribute[] = [];
     for (const attr of node.attrs) {
       const { name, value, namespace, prefix } = attr;
+      if (strippedAttribute(attr)) {
+        continue;
+      }
       if (name === 'xmlns' && !prefix && value === SVG_NS) {
+        kept.push(attr);
         continue;
       }
       if (prefix === 'xmlns' && name === 'xlink' && value === 'http://www.w3.org/1999/xlink') {
+        kept.push(attr);
         continue;
       }
       if (
@@ -204,22 +266,29 @@ export function sanitizeSvg(raw: string): SvgSanitizeResult {
         (!namespace || namespace === 'http://www.w3.org/1999/xlink') &&
         FRAGMENT.test(value)
       ) {
+        kept.push(attr);
         continue;
       }
       if (namespace || prefix) {
         return reject('forbidden attribute namespace');
       }
-      if (name === 'style' && safeStyle(value)) {
+      if (name === 'style') {
+        const style = cleanStyle(value);
+        if (style === undefined) {
+          return reject('forbidden SVG attribute: style');
+        }
+        if (style !== '') {
+          kept.push({ ...attr, value: style });
+        }
         continue;
       }
-      if (PRESENTATION.has(name) && safePresentation(value)) {
-        continue;
-      }
-      if (ATTRS.has(name)) {
+      if ((PRESENTATION.has(name) && safePresentation(value)) || ATTRS.has(name)) {
+        kept.push(attr);
         continue;
       }
       return reject(`forbidden SVG attribute: ${name}`);
     }
+    node.attrs = kept;
     pending.push(...node.childNodes.map((child) => ({ node: child, depth: depth + 1 })));
   }
   // Emit the parsed tree, so browser consumers never reinterpret unchecked source syntax.

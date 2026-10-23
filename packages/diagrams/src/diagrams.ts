@@ -26,7 +26,7 @@ import { stockNormalizers } from '@eraserlabs/diagram-templates/normalizers';
 import { createEraserIconLoader } from './icons/eraserLoader.js';
 import { stageFonts, type StagedFonts } from './fonts/staging.js';
 import { injectFonts, prepareFontsRequest } from './fonts/inject.js';
-import { buildEmbeddedFontCss } from './fonts/embed.js';
+import { buildEmbeddedFontCss, htmlFontSources } from './fonts/embed.js';
 import { eraserFonts } from './fonts/eraserFonts.js';
 
 /**
@@ -339,6 +339,7 @@ export async function createRenderer(options: RendererOptions): Promise<Renderer
   }
 
   let embeddedFontCss: string | undefined;
+  let fontSources: string[] | undefined;
 
   return {
     degradedFonts: staged?.degraded ?? [],
@@ -388,12 +389,14 @@ export async function createRenderer(options: RendererOptions): Promise<Renderer
 
         if (requested.html) {
           embeddedFontCss ??= staged ? buildEmbeddedFontCss(staged) : '';
+          fontSources ??= staged ? htmlFontSources(staged) : [];
           const serialized = await page.evaluate(() => window.__eraser.serialize());
           outcome['html'] = buildHtmlDocument({
             title: 'Eraser diagram',
             // Embedded @font-face first, so the role vars that follow resolve against real faces.
             styles: [embeddedFontCss, serialized.css],
             body: serialized.scene,
+            fontSources,
           });
           tracker.mark('serialize');
         }

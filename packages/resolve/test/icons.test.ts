@@ -198,6 +198,74 @@ describe('parsed SVG security policy', () => {
   });
 });
 
+describe('extras that exported icon sets carry are removed, not rejected', () => {
+  it('removes filter effects and the references to them', () => {
+    const result = sanitizeSvg(
+      '<svg viewBox="0 0 24 24"><defs><filter id="f" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="b"/><feBlend mode="normal" in="SourceGraphic" in2="b"/><feGaussianBlur stdDeviation="2"/><feImage href="https://example.com/x.png"/></filter></defs><g filter="url(#f)" style="filter:url(#f);fill:red"><path d="M0 0"/></g></svg>',
+    );
+
+    expect(result.ok).toBe(true);
+    expect(result.svg).toBe(
+      '<svg viewBox="0 0 24 24"><defs></defs><g style="fill:red"><path d="M0 0"></path></g></svg>',
+    );
+  });
+
+  it('removes editor metadata and inert namespace declarations', () => {
+    const result = sanitizeSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xml:space="preserve" baseProfile="tiny" inkscape:version="1.1" sodipodi:docname="x.svg" viewBox="0 0 24 24"><metadata><rdf:RDF><cc:Work></cc:Work></rdf:RDF></metadata><sodipodi:namedview pagecolor="#fff" inkscape:zoom="2"></sodipodi:namedview><g inkscape:label="Layer" inkscape:groupmode="layer" isolation="isolate" pointer-events="none" style="enable-background:new 0 0 24 24;isolation:isolate"><path d="M0 0"/></g></svg>',
+    );
+
+    expect(result.ok).toBe(true);
+    expect(result.svg).toBe(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M0 0"></path></g></svg>',
+    );
+  });
+
+  it('drops style properties outside the allowlist and keeps the rest', () => {
+    const result = sanitizeSvg(
+      '<svg><text style="font-size:12px;line-height:1.25;-inkscape-font-specification:Sans;letter-spacing:0;fill:#000;writing-mode:lr-tb">x</text></svg>',
+    );
+
+    expect(result.svg).toBe('<svg><text style="font-size:12px;fill:#000">x</text></svg>');
+  });
+
+  it('keeps mask-type, which changes how a mask draws', () => {
+    const result = sanitizeSvg(
+      '<svg><mask id="m" mask-type="alpha" style="mask-type:alpha"><rect width="1" height="1"/></mask></svg>',
+    );
+
+    expect(result.svg).toContain('mask-type="alpha" style="mask-type:alpha"');
+  });
+
+  it('still rejects what is not on the removal list', () => {
+    for (const svg of [
+      '<svg><path style="fill:url(https://example.com/x)"/></svg>',
+      '<svg><path style="no-colon"/></svg>',
+      '<svg><feGaussianBlur stdDeviation="2"/></svg>',
+      '<svg><g mix-blend-mode="multiply"/></svg>',
+      '<svg><g data-x="1"/></svg>',
+    ]) {
+      expect(sanitizeSvg(svg).ok, svg).toBe(false);
+    }
+  });
+
+  it('keeps only the root, past an editor banner comment and blank lines', () => {
+    const result = sanitizeSvg(
+      '<?xml version="1.0"?>\n<!-- Created with Inkscape -->\n\n<svg viewBox="0 0 1 1"><path d="M0 0"/></svg>\n',
+    );
+
+    expect(result.svg).toBe('<svg viewBox="0 0 1 1"><path d="M0 0"></path></svg>');
+  });
+
+  it('is stable under a second pass', () => {
+    const once = sanitizeSvg(
+      '<svg baseProfile="tiny"><filter id="f"/><g filter="url(#f)" style="isolation:isolate;fill:red"/></svg>',
+    ).svg!;
+
+    expect(sanitizeSvg(once).svg).toBe(once);
+  });
+});
+
 it('rejects excessive nesting before serialization', () => {
   expect(sanitizeSvg(`<svg>${'<g>'.repeat(100)}${'</g>'.repeat(100)}</svg>`).ok).toBe(false);
 });
