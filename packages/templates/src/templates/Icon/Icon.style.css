@@ -70,11 +70,10 @@
   letter-spacing: -0.01em;
   line-height: 1.25;
   color: var(--er-ink, #242424);
-  /* wraps at 1.8 × the glyph, but never inside a word: a word wider than that widens its line (the canvas splits it) */
+  /* wraps at 1.8 × the glyph between words, and a word wider than that breaks at 1.8 × too, as the canvas splits it */
   max-width: calc(var(--er-icon-px) * 1.8);
-  min-width: min-content;
   margin-inline: auto;
-  overflow-wrap: normal;
+  overflow-wrap: anywhere;
   word-break: normal;
 }
 .er-icon[data-font-px]:not([data-font-px='']) .er-icon__caption-line {
