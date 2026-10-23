@@ -70,17 +70,13 @@
   letter-spacing: -0.01em;
   line-height: 1.25;
   color: var(--er-ink, #242424);
-  /* starts at 1.8 × the glyph (--er-wrap-ratio), wrapping between words, and a word wider than that breaks; a host's
-     fit chooses the line's own width (data-wrap-px, the run's wrapWidth: the canvas's balanced caption rule) */
-  --er-wrap-ratio: 1.8;
-  max-width: calc(var(--er-icon-px) * var(--er-wrap-ratio));
+  /* wraps at 1.8 × the glyph, between words, with the lines balanced (about even); a word wider than that breaks.
+     Nothing is stored or measured for it: the same text, font and glyph size always draw the same caption */
+  max-width: calc(var(--er-icon-px) * 1.8);
   margin-inline: auto;
   overflow-wrap: anywhere;
   word-break: normal;
-}
-/* a saved wrap width (the fit's choice) draws as chosen: no sizing at render */
-.er-icon__caption-line[data-wrap-px]:not([data-wrap-px='']) {
-  max-width: var(--er-wrap-px);
+  text-wrap: balance;
 }
 .er-icon[data-font-px]:not([data-font-px='']) .er-icon__caption-line {
   --er-base: var(--er-font-px);

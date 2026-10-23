@@ -5,18 +5,12 @@ import type { Box, SceneLayout } from '@eraserlabs/render';
 import { isRecord } from '@eraserlabs/utils';
 import type { MeasuredBox } from './measure.js';
 import type { MountedElement } from './mount.js';
-import { evenLetterRuns, externalRunWrapWidth } from './externalRunWrap.js';
 
 const POLICY_ATTRIBUTE = 'data-text-grow-policy';
 const MAX_LINES_ATTRIBUTE = 'data-text-max-lines';
 const ASPECT_ATTRIBUTE = 'data-text-aspect';
 const WORD_GROWTH_ATTRIBUTE = 'data-text-word-growth';
 const WORD_HEADROOM_ATTRIBUTE = 'data-text-word-headroom';
-const ASPECT_ALLOWANCE_ATTRIBUTE = 'data-text-aspect-allowance';
-/** A saved wrap width on an external run (the host's `wrapWidth`): the fit reads past it to the start. */
-const WRAP_PX_ATTRIBUTE = 'data-wrap-px';
-/** The custom property a template's external run takes its start width from (`× the glyph`). */
-const WRAP_RATIO_PROPERTY = '--er-wrap-ratio';
 const DEFAULT_MAX_LINES = 3;
 const DEFAULT_ASPECT = 0.8;
 const MAIN_APP_ASPECT_MAGIC = 1.2;
@@ -113,31 +107,6 @@ export interface FitConstraints {
     slackPx?: number;
     slackRatio?: number;
   };
-  /**
-   * External runs with a balanced policy (an icon's caption lines): each is fitted on its own, and
-   * the body never changes for them. Defaults: the run's template attributes (`data-text-max-lines`,
-   * `data-text-aspect`, `data-text-aspect-allowance`) and its start width (`--er-wrap-ratio` in the
-   * template's CSS).
-   */
-  externalRuns?: {
-    maxLines?: number;
-    aspect?: number;
-    allowance?: number;
-    /** The start width's ratio to the template's base (an icon caption: × the glyph). */
-    startRatio?: number;
-  };
-}
-
-/** An external run the fit chose a wrap width for (an icon's caption line). */
-export interface ExternalRunFit {
-  /** The run's place among the element's fitted external runs, in document order (`texts` order). */
-  index: number;
-  /** The template's `data-part` of the run's region, when it carries one. */
-  part?: string;
-  /** The chosen wrap width, in px: the host saves it and renders it (`wrapWidth`). */
-  wrapWidth: number;
-  /** The run's box at that width, relative to the wrapper origin. */
-  box: MeasuredBox;
 }
 
 /** A text region of the element, as laid out at the proposed size. */
@@ -161,8 +130,6 @@ export interface ElementFit {
   textRegions: TextRegionMeasure[];
   /** Content that still runs past the body at that size, in px per side, and the text's scroll overflow. */
   overflow: Overflow;
-  /** The external runs fitted on their own, with the wrap width chosen for each (Fit only). */
-  externalRuns?: ExternalRunFit[];
 }
 
 /**
@@ -284,99 +251,8 @@ export function fitElement(wrapper: HTMLElement, constraints: FitConstraints): E
   }
 
   setWrapperSize(wrapper, width, height);
-  const runs = fitExternalRuns(wrapper, constraints.externalRuns);
 
-  return { ...measureElement(wrapper), ...(runs.length > 0 ? { externalRuns: runs } : {}) };
-}
-
-let runMeasurer: CanvasRenderingContext2D | null | undefined;
-
-/**
- * Each external run with a balanced policy, fitted on its own (externalRunWrap.ts): read from its
- * start width, never from a width saved on it, so a refit depends only on the text, the font and
- * the base it is sized by. The chosen width is set on the run in the wrapper and reported.
- */
-function fitExternalRuns(
-  wrapper: HTMLElement,
-  overrides: FitConstraints['externalRuns'] = {},
-): ExternalRunFit[] {
-  const origin = wrapper.getBoundingClientRect();
-  const fitted: ExternalRunFit[] = [];
-  let index = 0;
-
-  for (const region of ownRoleNodes(wrapper, 'external-text')) {
-    const part = region.getAttribute('data-part');
-
-    for (const run of region.querySelectorAll<HTMLElement>(`[${POLICY_ATTRIBUTE}="balanced"]`)) {
-      const at = index;
-      index += 1;
-      run.removeAttribute(WRAP_PX_ATTRIBUTE);
-      run.style.removeProperty('max-width');
-      if (overrides.startRatio !== undefined) {
-        run.style.setProperty(WRAP_RATIO_PROPERTY, String(overrides.startRatio));
-      }
-      const style = getComputedStyle(run);
-      const start = parseFloat(style.maxWidth);
-      const fontPx = parseFloat(style.fontSize);
-      const lineHeight = parseFloat(style.lineHeight) || fontPx * 1.25;
-      const atStart = run.getBoundingClientRect();
-      if (!(start > 0) || !(fontPx > 0) || !(atStart.height > 0)) {
-        continue;
-      }
-      run.style.maxWidth = 'none';
-      const natural = withProbeWidth(run, 'max-content', () => run.getBoundingClientRect().width);
-      run.style.removeProperty('max-width');
-      const text = (run.textContent ?? '').trim();
-      const font = style.font;
-      const wrapWidth = externalRunWrapWidth({
-        start,
-        natural,
-        fontBox: fontBoxHeight(font, fontPx),
-        linesAtStart: Math.round(atStart.height / lineHeight),
-        oneWord: text !== '' && !/\s/.test(text),
-        widestPart: (parts) =>
-          Math.max(...evenLetterRuns(text, parts).map((piece) => textWidth(piece, font))) + 1,
-        maxLines:
-          overrides.maxLines ??
-          positiveNumber(run.getAttribute(MAX_LINES_ATTRIBUTE)) ??
-          DEFAULT_MAX_LINES,
-        aspect: overrides.aspect ?? positiveNumber(run.getAttribute(ASPECT_ATTRIBUTE)) ?? DEFAULT_ASPECT,
-        allowance:
-          overrides.allowance ??
-          positiveNumber(run.getAttribute(ASPECT_ALLOWANCE_ATTRIBUTE)) ??
-          MAIN_APP_ASPECT_MAGIC,
-      });
-      run.style.maxWidth = `${wrapWidth}px`;
-      const box = run.getBoundingClientRect();
-      fitted.push({
-        index: at,
-        ...(part !== null ? { part } : {}),
-        wrapWidth,
-        box: { x: box.x - origin.x, y: box.y - origin.y, width: box.width, height: box.height },
-      });
-    }
-  }
-
-  return fitted;
-}
-
-function runContext(font: string): CanvasRenderingContext2D | null {
-  runMeasurer ??= document.createElement('canvas').getContext('2d');
-  if (runMeasurer) {
-    runMeasurer.font = font;
-  }
-  return runMeasurer;
-}
-
-/** The font's box height (ascent + descent), as the canvas widens by it. */
-function fontBoxHeight(font: string, fontPx: number): number {
-  const metrics = runContext(font)?.measureText('M');
-  const box = metrics ? metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent : 0;
-  return box > 0 ? box : fontPx * 1.2;
-}
-
-function textWidth(text: string, font: string): number {
-  return runContext(font)?.measureText(text).width ?? 0;
+  return measureElement(wrapper);
 }
 
 /**
