@@ -50,7 +50,7 @@ type DocumentCurve = {
 };
 type DocumentStep = DocumentCurve | { line: OutlineVertex };
 
-/** The document path's anchors and cubics, transcribed from Shape.html. */
+/** The document path's anchors and cubics, as the Canvas DocumentShape draws them (excalidraw pathShape.ts). */
 const DOCUMENT_START: OutlineVertex = [0.87, 6.67];
 const DOCUMENT_STEPS: ReadonlyArray<DocumentStep> = [
   { control1: [0.87, 3.47], control2: [3.41, 1], to: [6.53, 1], segments: CORNER_SEGMENTS },
@@ -59,7 +59,7 @@ const DOCUMENT_STEPS: ReadonlyArray<DocumentStep> = [
   { line: [99, 77.7] },
   { control1: [98.9, 86.3], control2: [95.1, 89.9], to: [91.3, 88.8], segments: CURVE_SEGMENTS },
   { control1: [85.1, 87.1], control2: [76.1, 85.1], to: [68.5, 85.1], segments: CURVE_SEGMENTS },
-  { control1: [55.4, 98.1], control2: [44.3, 98.1], to: [28, 98.1], segments: CURVE_SEGMENTS },
+  { control1: [55.4, 85.1], control2: [44.3, 98.1], to: [28, 98.1], segments: CURVE_SEGMENTS },
   { control1: [15.2, 98.1], control2: [5.9, 90.8], to: [2.45, 87.6], segments: CURVE_SEGMENTS },
   { control1: [0.87, 86.7], control2: [0.87, 85.2], to: [0.87, 83.9], segments: CORNER_SEGMENTS },
 ];

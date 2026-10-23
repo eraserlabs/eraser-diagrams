@@ -38,6 +38,10 @@
   font-size: 15px;
   line-height: 1.2;
   white-space: nowrap;
+  /* As wide as its text, on one line, whatever the host's width (the canvas badge.ts gives the
+     badge text no max width). An absolute box is otherwise capped at the room left in the host,
+     so a run that can wrap (a text editor on the run sets pre-wrap) breaks onto two lines. */
+  width: max-content;
   box-sizing: border-box;
 }
 .er-badge[data-font-px]:not([data-font-px='']) {

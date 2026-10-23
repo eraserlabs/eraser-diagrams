@@ -1,8 +1,8 @@
 /* Glyph box is width || height || size || default; size presets sm/md/lg/xl are the
    32/50/72/100 selectors below, 50px is the root default, and authored bounds outrank both
    through the gated data-sized rule (normalizers.ts writes sizePx only when bounds exist). The
-   caption stack hangs BELOW the box with a 5px gap at 15px, soft-wrapping at ~1.8× the box
-   width. Caption ink stays near-black regardless of the glyph color. */
+   caption stack hangs BELOW the box with a 5px gap at 15px, each line soft-wrapping at ~1.8× the
+   box width between words. Caption ink stays near-black regardless of the glyph color. */
 /* Text sizing (see CUSTOMIZATION.md): sizes are pixels only. Each slot names its own --er-base;
    an authored `fontSize` arrives as gated data-font-px + --er-font-px and replaces it. */
 .er-icon {
@@ -50,15 +50,15 @@
 .er-icon__glyph svg:not([fill]) {
   fill: currentColor;
 }
-/* A caption wraps at 1.8 × the glyph's size (the canvas's icon label rule), not at a share of the element's box:
-   a host may give the element a box wider than its glyph (the map canvas's icon bounds take in the caption). */
+/* The caption is as wide as its widest line. Each line wraps at 1.8 × the glyph's size (the canvas's icon label
+   rule), not at a share of the element's box: a host may give the element a box wider than its glyph (the map
+   canvas's icon bounds take in the caption). */
 .er-icon__caption {
   position: absolute;
   top: calc(100% + 5px);
   left: 50%;
   transform: translateX(-50%);
   width: max-content;
-  max-width: calc(var(--er-icon-px) * 1.8);
   margin: 0;
 }
 /* Every caption slot is styled identically at the primary size. */
@@ -70,8 +70,11 @@
   letter-spacing: -0.01em;
   line-height: 1.25;
   color: var(--er-ink, #242424);
-  /* a word wider than the caption breaks, as the canvas breaks a long icon label */
-  overflow-wrap: break-word;
+  /* wraps at 1.8 × the glyph, but never inside a word: a word wider than that widens its line (the canvas splits it) */
+  max-width: calc(var(--er-icon-px) * 1.8);
+  min-width: min-content;
+  margin-inline: auto;
+  overflow-wrap: normal;
   word-break: normal;
 }
 .er-icon[data-font-px]:not([data-font-px='']) .er-icon__caption-line {
@@ -80,8 +83,8 @@
 .er-icon__caption-line[data-run-px]:not([data-run-px='']) {
   font-size: var(--er-run-px);
 }
-/* Two caption slots = two authored lines, each on its own row; each wraps at the caption's width (180% of the
-   icon, as the canvas wraps every icon label at 1.8 × the icon size), as one caption does. */
+/* Two caption slots = two authored lines, each on its own row; each wraps on its own at 1.8 × the icon size, as the
+   canvas wraps every icon label, and is centred under the icon. */
 .er-icon__caption-line + .er-icon__caption-line {
   margin-top: 2px;
 }
