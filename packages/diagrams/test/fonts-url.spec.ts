@@ -57,6 +57,8 @@ test('url face: the render page loads the font and HTML references the URL', asy
     expect(loaded.html).toContain(`src:url('${url}')`);
     expect(loaded.html).toContain("format('woff2')");
     expect(loaded.html).not.toContain('base64');
+    // The artifact's content policy lets the face load from its server and nowhere else.
+    expect(loaded.html).toContain(`font-src data: ${new URL(url).origin};`);
     expect(server.requests).toContain('/Inter.var.woff2');
 
     expect(loaded.json.entities[0]?.width).toEqual(expect.any(Number));

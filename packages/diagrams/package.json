@@ -1,11 +1,11 @@
 {
   "name": "@eraserlabs/diagrams",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The impure conductor: owns Chromium, network, the font lifecycle, and the Eraser template library.",
   "type": "module",
   "license": "MIT",
   "engines": {
-    "node": ">=22.12"
+    "node": "^22.23.4 || ^24.22.1 || >=26.12.1"
   },
   "repository": {
     "type": "git",
@@ -58,11 +58,11 @@
     "@eraserlabs/resolve": "workspace:*",
     "@eraserlabs/diagram-templates": "workspace:*",
     "@eraserlabs/utils": "workspace:*",
-    "playwright-core": "1.61.1"
+    "playwright-core": "1.64.1"
   },
   "devDependencies": {
     "@eraserlabs/server": "workspace:*",
-    "@playwright/test": "1.61.1",
+    "@playwright/test": "1.64.1",
     "fast-check": "^4.9.0"
   }
 }

@@ -1,11 +1,11 @@
 {
   "name": "@eraserlabs/diagrams-cli",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Command-line interface for Eraser Diagrams: render and validate diagram JSON through @eraserlabs/diagrams.",
   "type": "module",
   "license": "MIT",
   "engines": {
-    "node": ">=22.12"
+    "node": "^22.23.4 || ^24.22.1 || >=26.12.1"
   },
   "repository": {
     "type": "git",
@@ -35,7 +35,7 @@
     "@eraserlabs/resolve": "workspace:*"
   },
   "devDependencies": {
-    "@playwright/test": "1.61.1",
-    "playwright-core": "1.61.1"
+    "@playwright/test": "1.64.1",
+    "playwright-core": "1.64.1"
   }
 }

@@ -1,12 +1,12 @@
 {
   "name": "@eraserlabs/diagram-templates",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The Eraser stock template library as data: per-tag schemas, markup and CSS, the palette, the normalizers and the page setup, with no browser or Chromium code.",
   "type": "module",
   "license": "MIT",
   "sideEffects": false,
   "engines": {
-    "node": ">=22.12"
+    "node": "^22.23.4 || ^24.22.1 || >=26.12.1"
   },
   "repository": {
     "type": "git",

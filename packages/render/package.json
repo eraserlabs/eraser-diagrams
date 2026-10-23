@@ -1,11 +1,11 @@
 {
   "name": "@eraserlabs/render",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "In-browser fill, measure, layout, and apply implementation for the Eraser diagram protocol.",
   "type": "module",
   "license": "MIT",
   "engines": {
-    "node": ">=22.12"
+    "node": "^22.23.4 || ^24.22.1 || >=26.12.1"
   },
   "repository": {
     "type": "git",
@@ -58,7 +58,7 @@
     "@eraserlabs/utils": "workspace:*"
   },
   "devDependencies": {
-    "@playwright/test": "1.61.1",
+    "@playwright/test": "1.64.1",
     "esbuild": "0.25.12"
   }
 }
