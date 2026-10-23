@@ -159,6 +159,12 @@ export interface Resolver {
    */
   validate(input: unknown, options?: ResolveOptions): Promise<ValidationResult>;
   resolve(input: unknown, options?: ResolveOptions): Promise<ResolveResult>;
+  /**
+   * `resolve` for layout only, with no waiting: no icon is loaded, and every glyph is the placeholder (no issue for
+   * it). For a caller that must lay text out in the same step, such as measuring a label's size for a synchronous
+   * router: a glyph's box is its element's size, not its SVG's, so the text is the size it is drawn at.
+   */
+  resolveForLayout(input: unknown, options?: ResolveOptions): ResolveResult;
   registryInfo(): RegistryInfo;
   tagSchema(tag: string): object | undefined;
 }

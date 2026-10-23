@@ -397,3 +397,24 @@ describe('partial document resolution', () => {
     ).toBe(false);
   });
 });
+
+describe('resolveForLayout', () => {
+  it('gives what resolve gives, with no waiting', async () => {
+    const resolver = await createResolver({ library: LIBRARY });
+    const input = {
+      elements: [
+        { tag: 'Node', id: 'g', x: 0, y: 0, width: 200, height: 100 },
+        { tag: 'Node', id: 'a', x: 10, y: 10, containerId: 'g', label: '<b>&"hi"</b>' },
+        { tag: 'Wire', id: 'w', from: 'a', to: 'g' },
+      ],
+    };
+    const now = resolver.resolveForLayout(input);
+    const later = await resolver.resolve(input);
+    expect(now.ok).toBe(true);
+    expect(now.entities).toEqual(later.entities);
+    expect(now.connections).toEqual(later.connections);
+    expect(now.errors).toEqual(later.errors);
+    // a partial document, as one element is resolved on its own
+    expect(resolver.resolveForLayout({ elements: [{ tag: 'Wire', id: 'w', from: 'a', to: 'b' }] }, { partial: true }).ok).toBe(true);
+  });
+});
