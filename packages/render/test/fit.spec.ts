@@ -42,13 +42,14 @@ async function fit(
   text: string,
   constraints: FitConstraints,
   caption?: string,
+  textAttributes = '',
 ): Promise<ElementFit> {
   return page.evaluate(
-    ({ text, constraints, caption }) => {
+    ({ text, constraints, caption, textAttributes }) => {
       document.querySelector('[data-mdp-tag]')?.remove();
       const wrapper = document.createElement('div');
       wrapper.setAttribute('data-mdp-tag', 'Fit');
-      wrapper.innerHTML = `<div class="fit" data-tpl="Fit" data-role="body"><span class="fit-text" data-role="internal-text" data-text-grow-policy="balanced" data-text-max-lines="3" data-text-aspect="0.8">${text}</span>${
+      wrapper.innerHTML = `<div class="fit" data-tpl="Fit" data-role="body"><span class="fit-text" data-role="internal-text" data-text-grow-policy="balanced" data-text-max-lines="3" data-text-aspect="0.8" ${textAttributes}>${text}</span>${
         caption === undefined
           ? ''
           : `<span class="fit-caption" data-role="external-text" data-part="caption">${caption}</span>`
@@ -57,7 +58,7 @@ async function fit(
 
       return window.fitTest.fitElement(wrapper, constraints);
     },
-    { text, constraints, caption },
+    { text, constraints, caption, textAttributes },
   );
 }
 
@@ -190,6 +191,46 @@ test('balanced: a word wider than the lane widens the element within wordGrowth;
   });
   expect(grown.body.width).toBeGreaterThanOrEqual(word + 2);
   expect(region(grown).lines).toBe(1);
+});
+
+test('fixed never widens for a word, even asked to keep words; balanced does', async ({ page }) => {
+  const word = (await fit(page, WORD, { policy: 'natural' })).body.width;
+  const fixed = await fit(page, WORD, {
+    policy: 'fixed',
+    width: word - 30,
+    height: 16,
+    keepWords: true,
+  });
+  expect(fixed.body.width).toBe(word - 30);
+  const balanced = await fit(page, WORD, { policy: 'balanced', width: word - 30, height: 16 });
+  expect(balanced.body.width).toBeGreaterThanOrEqual(word);
+});
+
+test("balanced: the template's word growth and headroom (data-text-word-growth, -headroom), under the caller's", async ({
+  page,
+}) => {
+  const word = (await fit(page, WORD, { policy: 'natural' })).body.width;
+  const lane = word / 2 + 10;
+  // the default 1.5× lane is too little for the word, so it breaks; the template allows 3×
+  const breaks = await fit(page, WORD, { policy: 'balanced', width: lane, height: 16, balanced: { maxLines: 50 } });
+  expect(breaks.body.width).toBe(lane);
+  const template = await fit(
+    page,
+    WORD,
+    { policy: 'balanced', width: lane, height: 16, balanced: { maxLines: 50 } },
+    undefined,
+    'data-text-word-growth="3" data-text-word-headroom="4"',
+  );
+  expect(template.body.width).toBeGreaterThanOrEqual(word + 4);
+  // a caller's own value wins over the template's
+  const caller = await fit(
+    page,
+    WORD,
+    { policy: 'balanced', width: lane, height: 16, balanced: { maxLines: 50, wordGrowth: 1.5 } },
+    undefined,
+    'data-text-word-growth="3"',
+  );
+  expect(caller.body.width).toBe(lane);
 });
 
 test('measureElement: every text region at the proposed size, a caption by its part, and the overflow', async ({

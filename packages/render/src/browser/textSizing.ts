@@ -9,6 +9,8 @@ import type { MountedElement } from './mount.js';
 const POLICY_ATTRIBUTE = 'data-text-grow-policy';
 const MAX_LINES_ATTRIBUTE = 'data-text-max-lines';
 const ASPECT_ATTRIBUTE = 'data-text-aspect';
+const WORD_GROWTH_ATTRIBUTE = 'data-text-word-growth';
+const WORD_HEADROOM_ATTRIBUTE = 'data-text-word-headroom';
 const DEFAULT_MAX_LINES = 3;
 const DEFAULT_ASPECT = 0.8;
 const MAIN_APP_ASPECT_MAGIC = 1.2;
@@ -33,6 +35,8 @@ interface TextPolicyNode {
   policy: TextSizePolicy;
   maxLines: number;
   aspect: number;
+  wordGrowth: number;
+  wordHeadroom: number;
   naturalTextWidth: number;
   lineHeight: number;
 }
@@ -76,8 +80,8 @@ export interface FitConstraints {
   /** `grow`: the height never goes below the authored one (a shape). `fit`: the text's height (a text box). */
   heightMode?: 'grow' | 'fit';
   /**
-   * Keep a word whole by widening the element within `balanced.wordGrowth` (true for `balanced`;
-   * a `fixed` element may ask for it, as the document path does for `height-only` text).
+   * `balanced` only: keep a word whole by widening the element within its word growth (default
+   * true), or break the word inside the lane (false). A `fixed` width never widens for a word.
    */
   keepWords?: boolean;
   balanced?: {
@@ -85,9 +89,15 @@ export interface FitConstraints {
     maxLines?: number;
     /** The width : height the text block widens toward; default: the template's `data-text-aspect`, else 0.8. */
     aspect?: number;
-    /** How far a word may widen the element, as a multiple of its text lane; default 1.5. */
+    /**
+     * How far a word may widen the element, as a multiple of its text lane; default: the template's
+     * `data-text-word-growth`, else 1.5.
+     */
     wordGrowth?: number;
-    /** Slack left beside a word the lane was widened to; default 0. */
+    /**
+     * Slack left beside a word the lane was widened to; default: the template's
+     * `data-text-word-headroom`, else 0.
+     */
     wordHeadroom?: number;
     /** A word past `wordGrowth`: `break` it where it is (default), or `clamp` the lane to the limit and break it there. */
     wordPastGrowth?: 'break' | 'clamp';
@@ -204,7 +214,8 @@ export function fitElement(wrapper: HTMLElement, constraints: FitConstraints): E
         : Math.max(heightFloor, intrinsic.height, naturalContentHeight(wrapper));
     setWrapperSize(wrapper, width, height);
 
-    if (constraints.keepWords ?? constraints.policy === 'balanced') {
+    // a fixed width is kept whatever the text does: only balanced keeps a word whole by widening
+    if (constraints.policy === 'balanced' && (constraints.keepWords ?? true)) {
       width = Math.max(width, wordIntegrityWidth(policies, width, constraints.balanced));
       setWrapperSize(wrapper, width, height);
     }
@@ -264,8 +275,8 @@ function documentConstraints(element: ResolvedEntity, wrapper: HTMLElement): Fit
     return { policy: 'balanced', ...authored };
   }
 
-  // height-only: the width is kept, but a word is still kept whole within the tolerance
-  return { policy: 'fixed', keepWords: true, ...authored };
+  // height-only: the width is kept, and a word wider than it breaks (a fixed width never widens)
+  return { policy: 'fixed', ...authored };
 }
 
 /**
@@ -407,14 +418,15 @@ function wordIntegrityWidth(
   width: number,
   options: FitConstraints['balanced'] = {},
 ): number {
-  const growth = options.wordGrowth ?? WORD_FIT_TOLERANCE;
-  const headroom = options.wordHeadroom ?? 0;
   let floor = 0;
 
   for (const spec of policies) {
     if (spec.policy === 'width-only') {
       continue;
     }
+    // the template's word growth and headroom (data-text-word-growth, -headroom), or the caller's
+    const growth = spec.wordGrowth;
+    const headroom = spec.wordHeadroom;
 
     const textWidth = spec.node.getBoundingClientRect().width;
     const minimum = minContentWidth(spec.node);
@@ -476,6 +488,14 @@ function internalPolicies(
         DEFAULT_MAX_LINES,
       aspect:
         overrides.aspect ?? positiveNumber(node.getAttribute(ASPECT_ATTRIBUTE)) ?? DEFAULT_ASPECT,
+      wordGrowth:
+        overrides.wordGrowth ??
+        positiveNumber(node.getAttribute(WORD_GROWTH_ATTRIBUTE)) ??
+        WORD_FIT_TOLERANCE,
+      wordHeadroom:
+        overrides.wordHeadroom ??
+        nonNegativeNumber(node.getAttribute(WORD_HEADROOM_ATTRIBUTE)) ??
+        0,
       naturalTextWidth: naturalTextWidth(node, rects),
       lineHeight: Math.max(0, ...rects.map((textRect) => textRect.height)),
     };
@@ -761,6 +781,14 @@ function setWrapperSize(wrapper: HTMLElement, width: number, height: number): vo
 
 function rect(width: number, height: number): MeasuredBox {
   return { x: 0, y: 0, width, height };
+}
+
+function nonNegativeNumber(value: string | null): number | undefined {
+  if (value === null || value.trim() === '') {
+    return undefined;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
 }
 
 function positiveNumber(value: unknown): number | undefined {
