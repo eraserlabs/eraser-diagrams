@@ -2,7 +2,7 @@ import sanitizeHtml from 'sanitize-html';
 import { Marked } from 'marked';
 import type { Issue } from '../result-types.js';
 import { WARNING_CODE, SEVERITY } from '../result-types.js';
-import type { PolicyEntry } from '../types.js';
+import type { CodeHighlighter, PolicyEntry } from '../types.js';
 import type { ContentPolicy } from '../schema/keywords.js';
 import type { PipelineElement } from './element.js';
 import { resolvePointer } from './pointer.js';
@@ -41,9 +41,16 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   // `ol.start` keeps ordered lists numbered as authored: each text run parses as its own
   // single-item list, so dropping `start` renumbered every one of them to "1." — and made
   // sanitized output differ from parser output, firing a spurious W_CONTENT_SANITIZED.
-  // `data-md` is the host's hook on a link and a code block; `code.language-*` is the fence's language.
-  allowedAttributes: { a: ['href', MD_HOOK], pre: [MD_HOOK], ol: ['start'], code: ['class'] },
-  allowedClasses: { code: ['language-*'] },
+  // `data-md` is the host's hook on a link and a code block; `code.language-*` is the fence's language;
+  // `span.hljs-*` is a highlighted run in a code block (the host's `highlightCode`).
+  allowedAttributes: {
+    a: ['href', MD_HOOK],
+    pre: [MD_HOOK],
+    ol: ['start'],
+    code: ['class'],
+    span: ['class'],
+  },
+  allowedClasses: { code: ['language-*'], span: ['hljs-*'] },
   allowedSchemes: SAFE_SCHEMES,
   allowProtocolRelative: false,
   disallowedTagsMode: 'discard',
@@ -67,7 +74,32 @@ export interface Sanitizers {
   plain(text: string): string;
 }
 
-export function buildSanitizers(): Sanitizers {
+/**
+ * A code block's text as HTML: escaped, with a span on each run the host's highlighter coloured. Plain when there is
+ * no highlighter, it throws, or its runs do not join back to the text (the text is never changed).
+ */
+function codeHtml(text: string, language: string, highlight: CodeHighlighter | undefined): string {
+  if (!highlight || text === '') {
+    return escapePlain(text);
+  }
+  let runs: readonly { text: string; className?: string }[];
+  try {
+    runs = highlight(text, language);
+  } catch {
+    return escapePlain(text);
+  }
+  if (!Array.isArray(runs) || runs.map((run) => run.text).join('') !== text) {
+    return escapePlain(text);
+  }
+  return runs
+    .map(({ text: run, className }) =>
+      className ? `<span class="${escapePlain(className)}">${escapePlain(run)}</span>` : escapePlain(run),
+    )
+    .join('');
+}
+
+/** `highlightCode`: the host's syntax highlighting for fenced code blocks (ResolverSetup); none, plain code. */
+export function buildSanitizers(highlightCode?: CodeHighlighter): Sanitizers {
   const marked = new Marked({ async: false, gfm: true, breaks: true }).use(NO_INDENTED_CODE);
 
   marked.use({
@@ -88,12 +120,12 @@ export function buildSanitizers(): Sanitizers {
       // Written as the sanitizer writes them, so a benign parse never reads as stripped.
       br: () => '<br />',
       hr: () => '<hr />\n',
-      // A fenced block keeps its language as a class and carries the hook.
+      // A fenced block keeps its language as a class, carries the hook, and is highlighted by the host's highlighter.
       code({ text, lang }) {
-        const language = (lang ?? '').trim().split(/\s+/)[0];
+        const language = (lang ?? '').trim().split(/\s+/)[0] ?? '';
         const cls = language ? ` class="language-${escapePlain(language)}"` : '';
 
-        return `<pre ${MD_HOOK}="code-block"><code${cls}>${escapePlain(text)}</code></pre>\n`;
+        return `<pre ${MD_HOOK}="code-block"><code${cls}>${codeHtml(text, language, highlightCode)}</code></pre>\n`;
       },
     },
   });
@@ -117,10 +149,17 @@ export function buildSanitizers(): Sanitizers {
 /**
  * The newlines marked writes between and after its blocks (`<p>a</p>\n<p>b</p>\n`) are layout, not text: a run drawn
  * with `white-space: pre` (a text box with no fixed width) would draw each as an empty line. A code block's own
- * newlines stay: they sit inside `<pre>`, never between a closing and an opening tag.
+ * newlines stay, even between two highlighted tokens (`</span>\n<span>`): nothing inside `<pre>` is touched. The
+ * newlines at the ends of a part outside a code block are layout too: they sit right before a `<pre>` or right after a
+ * `</pre>` (`<p>a</p>\n<pre>…</pre>\n<p>b</p>`), and a run drawn with `white-space: pre-wrap` drew each as an empty line.
  */
 function withoutLayoutNewlines(html: string): string {
-  return html.replace(/>\n+(?=<)/g, '>').replace(/\n+$/, '');
+  return html
+    .split(/(<pre[\s>][\s\S]*?<\/pre>)/)
+    .map((part, i) =>
+      i % 2 === 1 ? part : part.replace(/>\n+(?=<)/g, '>').replace(/^\n+/, '').replace(/\n+$/, ''),
+    )
+    .join('');
 }
 
 function escapePlain(text: string): string {

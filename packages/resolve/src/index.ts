@@ -24,6 +24,8 @@ export type {
   Resolver,
   ResolverSetup,
   ResolveOptions,
+  CodeHighlighter,
+  HighlightedRun,
   AuthoredLibrary,
   AuthoredRecord,
   TemplateOverrides,
@@ -98,7 +100,7 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
   const knownTags = Object.keys(compiled.validators);
   const onUnknownIcon = setup.onUnknownIcon ?? 'placeholder';
 
-  const sanitizers = buildSanitizers();
+  const sanitizers = buildSanitizers(setup.highlightCode);
   const iconCache: IconCache = new Map();
 
   const registry = {

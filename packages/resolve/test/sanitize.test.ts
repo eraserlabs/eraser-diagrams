@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildSanitizers } from '../src/pipeline/sanitize.js';
+import type { CodeHighlighter } from '../src/types.js';
 
 const s = buildSanitizers();
 
@@ -82,6 +83,12 @@ describe('canvas newline rule', () => {
     const out = s.markdown('- a\nstill a\n- b').html;
     expect(out).toContain('a<br />still a');
     expect(out.match(/<li>/g)).toHaveLength(2);
+  });
+
+  it('writes no newline before or after a code block: the block sits right under the text before it', () => {
+    expect(s.markdown('a\n\n```\nx\n```\n\nb').html).toBe(
+      '<p>a</p><pre data-md="code-block"><code>x</code></pre><p>b</p>',
+    );
   });
 
   it("block: a fenced code block's lines are its own", () => {
@@ -167,5 +174,67 @@ describe('complete inline syntax', () => {
     expect(s.markdown('> **Warning**\n> Retry the request.').html).toBe(
       '<blockquote><p><strong>Warning</strong><br />Retry the request.</p></blockquote>',
     );
+  });
+});
+
+describe("code block highlighting: the host's highlighter", () => {
+  // A stand-in for the host's highlight.js: `const` is a keyword, a digit a number, the rest plain.
+  const keywords: CodeHighlighter = (code) =>
+    code.split(/(const|\d)/).filter(Boolean).map((text) =>
+      text === 'const'
+        ? { text, className: 'hljs-keyword' }
+        : /\d/.test(text)
+          ? { text, className: 'hljs-number' }
+          : { text },
+    );
+  const code = (sanitizers: ReturnType<typeof buildSanitizers>, md: string) =>
+    sanitizers.markdown(md).html.replace(/^<pre data-md="code-block"><code[^>]*>|<\/code><\/pre>$/g, '');
+
+  it('wraps each coloured run, keeps the newlines between runs, and never reads as stripped', () => {
+    const hl = buildSanitizers(keywords);
+    const out = hl.markdown('```ts\nconst a = 1\nconst b = 2\n```');
+    expect(out.html).toBe(
+      '<pre data-md="code-block"><code class="language-ts">' +
+        '<span class="hljs-keyword">const</span> a = <span class="hljs-number">1</span>\n' +
+        '<span class="hljs-keyword">const</span> b = <span class="hljs-number">2</span></code></pre>',
+    );
+    expect(out.stripped).toBe(false);
+  });
+
+  it('passes the fence language, and an empty one for a bare fence', () => {
+    const seen: string[] = [];
+    const hl = buildSanitizers((text, language) => {
+      seen.push(language);
+      return [{ text }];
+    });
+    hl.markdown('```python extra\nx\n```');
+    hl.markdown('```\nx\n```');
+    expect(seen).toEqual(['python', '']);
+  });
+
+  it('escapes the runs', () => {
+    const hl = buildSanitizers((text) => [{ text, className: 'hljs-tag' }]);
+    const out = hl.markdown('```xml\n<script>alert(1)</script>\n```');
+    expect(out.html).not.toContain('<script');
+    expect(out.html).toContain('<span class="hljs-tag">&lt;script&gt;');
+  });
+
+  it('draws the plain text when the highlighter throws or its runs change the text', () => {
+    const throws = buildSanitizers(() => {
+      throw new Error('no');
+    });
+    expect(code(throws, '```\nconst a\n```')).toBe('const a');
+    const changes = buildSanitizers(() => [{ text: 'other', className: 'hljs-keyword' }]);
+    expect(code(changes, '```\nconst a\n```')).toBe('const a');
+  });
+
+  it('drops a class outside the highlight.js family, and that reads as stripped', () => {
+    const out = buildSanitizers((text) => [{ text, className: 'evil' }]).markdown('```\nx\n```');
+    expect(out.html).toBe('<pre data-md="code-block"><code><span>x</span></code></pre>');
+    expect(out.stripped).toBe(true);
+  });
+
+  it('leaves inline code alone', () => {
+    expect(buildSanitizers(keywords).inlineMarkdown('`const a`').html).toBe('<code>const a</code>');
   });
 });
