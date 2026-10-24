@@ -119,8 +119,6 @@ export interface TextRegionMeasure {
   box: MeasuredBox;
   /** The lines the text wrapped to. */
   lines: number;
-  /** The text's unwrapped (max-content) width. */
-  naturalWidth: number;
 }
 
 export interface ElementFit {
@@ -159,7 +157,6 @@ export function measureElement(wrapper: HTMLElement): ElementFit {
           height: box.height,
         },
         lines: maxLineCount(node),
-        naturalWidth: unwrappedTextWidth(node),
       });
     }
   }
@@ -516,11 +513,6 @@ function internalPolicies(
 /** The text's unwrapped width, read at max-content: its scroll width, or the widest of its line rects. */
 function naturalTextWidth(node: HTMLElement, rects: DOMRect[] = textRects(node)): number {
   return Math.max(node.scrollWidth, ...rects.map((textRect) => textRect.width));
-}
-
-/** The text's unwrapped width at any state: laid out on one line for the read, then put back as written. */
-function unwrappedTextWidth(node: HTMLElement): number {
-  return withProbeStyle(node, 'white-space', 'nowrap', () => naturalTextWidth(node));
 }
 
 function parsePolicy(value: string | null, fallback: TextSizePolicy): TextSizePolicy {

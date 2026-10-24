@@ -257,7 +257,6 @@ test('measureElement: every text region at the proposed size, a caption by its p
   expect(caption.part).toBe('caption');
   expect(caption.box.width).toBeLessThanOrEqual(40 * 1.8 + 1);
   expect(caption.lines).toBeGreaterThan(1);
-  expect(caption.naturalWidth).toBeGreaterThan(caption.box.width);
   const measured = await page.evaluate(() =>
     window.fitTest.measureElement(document.querySelector<HTMLElement>('[data-mdp-tag]')!),
   );
