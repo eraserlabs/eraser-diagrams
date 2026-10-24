@@ -84,9 +84,19 @@ test('fixed: the authored width is kept whatever the text does; the height follo
   const word = await fit(page, WORD, { policy: 'fixed', width: 80, height: 16 });
   expect(word.body.width).toBe(80);
   // the height fits the text (a text box), or grows only from the authored floor (a shape)
-  const fitted = await fit(page, 'A', { policy: 'fixed', width: 80, height: 60, heightMode: 'fit' });
+  const fitted = await fit(page, 'A', {
+    policy: 'fixed',
+    width: 80,
+    height: 60,
+    heightMode: 'fit',
+  });
   expect(fitted.body.height).toBeLessThan(60);
-  const grown = await fit(page, 'A', { policy: 'fixed', width: 80, height: 60, heightMode: 'grow' });
+  const grown = await fit(page, 'A', {
+    policy: 'fixed',
+    width: 80,
+    height: 60,
+    heightMode: 'grow',
+  });
   expect(grown.body.height).toBe(60);
 });
 
@@ -212,7 +222,12 @@ test("balanced: the template's word growth and headroom (data-text-word-growth, 
   const word = (await fit(page, WORD, { policy: 'natural' })).body.width;
   const lane = word / 2 + 10;
   // the default 1.5× lane is too little for the word, so it breaks; the template allows 3×
-  const breaks = await fit(page, WORD, { policy: 'balanced', width: lane, height: 16, balanced: { maxLines: 50 } });
+  const breaks = await fit(page, WORD, {
+    policy: 'balanced',
+    width: lane,
+    height: 16,
+    balanced: { maxLines: 50 },
+  });
   expect(breaks.body.width).toBe(lane);
   const template = await fit(
     page,
@@ -247,4 +262,30 @@ test('measureElement: every text region at the proposed size, a caption by its p
     window.fitTest.measureElement(document.querySelector<HTMLElement>('[data-mdp-tag]')!),
   );
   expect(measured).toEqual(result);
+});
+
+test('measureElement leaves the text as it was: its inline style, every priority, its lines', async ({
+  page,
+}) => {
+  const result = await page.evaluate((text) => {
+    // a sheet rule that wraps, outranked only by the text's own `!important`: a probe that drops the priority wraps it
+    const sheet = document.createElement('style');
+    sheet.textContent = '.fit-text { white-space: normal !important }';
+    document.head.append(sheet);
+    const wrapper = document.createElement('div');
+    wrapper.setAttribute('data-mdp-tag', 'Fit');
+    wrapper.style.width = '80px';
+    wrapper.innerHTML = `<div class="fit" data-tpl="Fit" data-role="body"><span class="fit-text" data-role="internal-text" style="white-space:nowrap!important">${text}</span></div>`;
+    document.body.appendChild(wrapper);
+    const node = wrapper.querySelector<HTMLElement>('.fit-text')!;
+    const style = node.getAttribute('style');
+    const height = node.getBoundingClientRect().height;
+    window.fitTest.measureElement(wrapper);
+    return {
+      style: node.getAttribute('style') === style,
+      priority: node.style.getPropertyPriority('white-space'),
+      height: node.getBoundingClientRect().height === height,
+    };
+  }, LONG);
+  expect(result).toEqual({ style: true, priority: 'important', height: true });
 });

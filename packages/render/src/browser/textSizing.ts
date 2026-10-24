@@ -297,7 +297,10 @@ export function resolveTextSizedElements(
       continue;
     }
 
-    const fit = fitElement(mountedElement.wrapper, documentConstraints(element, mountedElement.wrapper));
+    const fit = fitElement(
+      mountedElement.wrapper,
+      documentConstraints(element, mountedElement.wrapper),
+    );
     resolved.set(element.id, rect(fit.body.width, fit.body.height));
   }
 
@@ -403,7 +406,7 @@ function templateWidthFloor(wrapper: HTMLElement): number {
     return 0;
   }
 
-  return withProbeWidth(wrapper, '0px', () => body.getBoundingClientRect().width);
+  return withProbeStyle(wrapper, 'width', '0px', () => body.getBoundingClientRect().width);
 }
 
 /**
@@ -449,14 +452,22 @@ function wordIntegrityWidth(
 }
 
 function minContentWidth(node: HTMLElement): number {
-  return withProbeWidth(node, 'min-content', () => node.getBoundingClientRect().width);
+  return withProbeStyle(node, 'width', 'min-content', () => node.getBoundingClientRect().width);
 }
 
-/** Probe in the real CSS context, preserving template inline styles even if layout measurement fails. */
-function withProbeWidth(node: HTMLElement, width: string, measure: () => number): number {
+/**
+ * Probe in the real CSS context with one property set for the read, then put the node's inline style back as it was
+ * written (its text, every priority), even if layout measurement fails.
+ */
+function withProbeStyle(
+  node: HTMLElement,
+  property: string,
+  value: string,
+  measure: () => number,
+): number {
   const style = node.getAttribute('style');
   try {
-    node.style.setProperty('width', width, 'important');
+    node.style.setProperty(property, value, 'important');
     return measure();
   } finally {
     if (style === null) {
@@ -507,14 +518,9 @@ function naturalTextWidth(node: HTMLElement, rects: DOMRect[] = textRects(node))
   return Math.max(node.scrollWidth, ...rects.map((textRect) => textRect.width));
 }
 
-/** The text's unwrapped width at any state: laid out on one line for the read, then put back. */
+/** The text's unwrapped width at any state: laid out on one line for the read, then put back as written. */
 function unwrappedTextWidth(node: HTMLElement): number {
-  const previous = node.style.whiteSpace;
-  node.style.whiteSpace = 'nowrap';
-  const width = naturalTextWidth(node);
-  node.style.whiteSpace = previous;
-
-  return width;
+  return withProbeStyle(node, 'white-space', 'nowrap', () => naturalTextWidth(node));
 }
 
 function parsePolicy(value: string | null, fallback: TextSizePolicy): TextSizePolicy {
