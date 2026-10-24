@@ -13,7 +13,7 @@ import {
   scaleForTheme,
   tintOf,
 } from './canvasColors.js';
-import { STOCK_PASTEL } from './schema/palette.js';
+import { STOCK_PALETTE, STOCK_PASTEL } from './schema/palette.js';
 import { washTextureProps } from './watercolorTexture.js';
 import { roundedShapePath } from './roundedPolygon.js';
 import { curvedShapePath } from './curvedShapePaths.js';
@@ -85,8 +85,9 @@ const isPaint = (value: string | undefined): value is string =>
  * A Shape's colours as the Eraser canvas paints them (freeform getFreeformShapeProperties, shape.ts), written for the
  * theme as the final values the template binds:
  *
- * - `bgColor`: the authored fill (raw CSS, as the schema reads it), else a palette `color`'s pastel (STOCK_PASTEL),
- *   else a raw `color` itself: a hex shape is solid, not the 85% tint of the identity formulas;
+ * - `bgColor`: the authored fill (raw CSS, as the schema reads it), else a palette `color`'s pastel (paletteFill: the
+ *   library's palette colour, the stock swatch only while that colour is the stock one), else a raw `color` itself: a
+ *   hex shape is solid, not the 85% tint of the identity formulas;
  * - `borderColor`: the authored border, else a border in a raw `color`'s hue; a palette `color` keeps the identity
  *   hairline of the stylesheet (written out only in dark mode, to scale it);
  * - `bodyInk`: the ink of a run with no colour of its own: the primary run's colour, else white on a dark fill and the
@@ -98,13 +99,27 @@ const isPaint = (value: string | undefined): value is string =>
  * identity colour, which alone cannot tell `blue` from `#2866c4`. Dark: every colour, the defaults (ink, stroke, the
  * shadow, the ground) among them, is scaled as the canvas scales it in dark mode (scaleForTheme).
  */
+/**
+ * A palette `color`'s fill, from the library's palette (`color` is the palette's colour for the token: the `x-palette`
+ * step swapped it in). The stock token at its stock colour keeps the stock swatch (STOCK_PASTEL); a colour the library
+ * changed is lightened to the pastel lightness, its hue kept. A colour that is no hex is its own fill.
+ */
+function paletteFill(token: string, color: string | undefined): string | undefined {
+  if (color === undefined || color === STOCK_PALETTE[token]) {
+    return STOCK_PASTEL[token] ?? color;
+  }
+
+  return atLightness(colorToHex(color) ?? color, PASTEL_LIGHTNESS) ?? color;
+}
+
 function deriveShapePaint(element: Record<string, unknown>, context: NormalizerContext): void {
   const { theme } = context;
   const color = stringOr(element.color);
   const colorToken = context.paletteToken('color');
   const solid = colorToken === undefined && isPaint(color) ? color : undefined;
   const fill =
-    stringOr(element.bgColor) ?? (colorToken !== undefined ? STOCK_PASTEL[colorToken] : solid);
+    stringOr(element.bgColor) ??
+    (colorToken !== undefined ? paletteFill(colorToken, color) : solid);
   const border =
     stringOr(element.borderColor) ?? (solid !== undefined ? borderFromFill(solid) : undefined);
   const runInk = stringOr(primaryTextRun(element)?.color);

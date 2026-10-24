@@ -8,7 +8,11 @@ import { scaleForTheme } from '../src/canvasColors.js';
  * A Shape as the resolver hands it to the normalizer: `x-palette` has swapped an authored token for its identity
  * colour on the clone, and the context still knows the token from the authored source.
  */
-function shape(authored: Record<string, unknown>, theme: Theme = 'light'): Record<string, unknown> {
+function shape(
+  authored: Record<string, unknown>,
+  theme: Theme = 'light',
+  palette: Record<string, string> = STOCK_PALETTE,
+): Record<string, unknown> {
   const element: Record<string, unknown> = {
     tag: 'Shape',
     id: 's',
@@ -19,14 +23,14 @@ function shape(authored: Record<string, unknown>, theme: Theme = 'light'): Recor
     texts: [{ text: 'API' }],
     ...structuredClone(authored),
   };
-  if (typeof authored.color === 'string' && authored.color in STOCK_PALETTE) {
-    element.color = STOCK_PALETTE[authored.color];
+  if (typeof authored.color === 'string' && authored.color in palette) {
+    element.color = palette[authored.color];
   }
   const context: NormalizerContext = {
     theme,
     paletteToken: (key) => {
       const value = authored[key];
-      return typeof value === 'string' && value in STOCK_PALETTE ? value : undefined;
+      return typeof value === 'string' && value in palette ? value : undefined;
     },
   };
   stockNormalizers.Shape!(element, context);
@@ -52,6 +56,17 @@ describe('Shape paint, as the Eraser canvas paints a shape', () => {
       undefined,
       '#242424',
     ]);
+  });
+
+  it("a palette colour the library changed is filled from the library's palette, not the stock swatch", () => {
+    const red = shape({ color: 'blue' }, 'light', { ...STOCK_PALETTE, blue: '#bd413a' });
+    expect(red.color).toBe('#bd413a');
+    expect(red.bgColor).not.toBe('#c7dcfc');
+    // the pastel of the library's colour: its hue (red), at the pastel lightness
+    const [r, g, b] = [1, 3, 5].map((i) => Number.parseInt(String(red.bgColor).slice(i, i + 2), 16));
+    expect(r).toBeGreaterThan(g!);
+    expect(r).toBeGreaterThan(b!);
+    expect(Math.min(r!, g!, b!)).toBeGreaterThan(180);
   });
 
   it('the same colour written as hex is solid: the token, not the value, makes the pastel', () => {
