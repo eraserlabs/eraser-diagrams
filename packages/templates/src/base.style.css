@@ -51,20 +51,201 @@ svg[stroke='currentColor'] {
 .er-md ol {
   margin: 0;
   padding-left: 20px;
+  /* the marker in the 20px, the text after it: a line break inside an item continues under the text */
+  list-style-position: outside;
+  /* a list is a block as wide as its text run, its items left-aligned, as the Eraser canvas draws one
+     (textMeasurer.scss): the run itself is as wide as its widest line and placed by the text's alignment
+     (Shape.style.css `.er-shape__text`), so a list starts at the left edge of the text it sits in */
+  display: block;
+  text-align: left;
 }
-.er-md li {
-  margin-top: 4px;
+/* the marker types stated here, so a host page's list reset (`list-style: none`) cannot take them away */
+.er-md ul {
+  list-style-type: disc;
 }
-.er-md li:first-child {
-  margin-top: 0;
+.er-md ol {
+  list-style-type: decimal;
 }
+.er-md ul > li::marker {
+  content: '• ';
+}
+/* Inline code as the Eraser canvas draws it: a pill with side padding, a hairline edge and a ground of its own
+   (the app's typography `code` and its notepad's inline code: grey-400 edge, grey-200 ground). The padding and the
+   edge take room, so a text measures as it draws. A block's code takes none of it (`.er-md pre code` below). A host
+   in a dark theme marks a container `data-er-theme="dark"`; a host can also set the two colours itself. */
 .er-md code {
+  padding: 0 5px;
+  border: 1px solid var(--er-code-edge, #f1f1f1);
+  border-radius: 5px;
+  background: var(--er-code-ground, #fafafa);
   font-family: var(--font-mono, monospace);
   font-size: calc(1em * 13 / 15);
+}
+[data-er-theme='dark'] {
+  --er-code-edge: #3a3a3a;
+  --er-code-ground: #242424;
 }
 .er-md a {
   color: #457fe5;
   text-decoration: none;
+}
+
+/* The canvas text contract, beyond the markup above: the metrics the Eraser canvas text editor
+   draws (textMeasurer.scss and slateEditorStyles.scss there), so a text measures the same in the
+   editor and here. One newline is a line break and an empty line is an empty paragraph (resolve
+   writes them in: canvasMarkdown.ts), so spaces count for layout in a paragraph: pre-wrap. A list
+   item stays normal: the newline marked writes before a nested list is layout, not text. */
+.er-md p {
+  white-space: pre-wrap;
+}
+.er-md blockquote {
+  margin: 13px 0 0;
+  padding-inline-start: 15px;
+  border-inline-start: 3px solid
+    color-mix(in srgb, currentColor 30%, transparent);
+  opacity: 0.8;
+}
+.er-md blockquote:first-child {
+  margin-top: 0;
+}
+.er-md hr {
+  width: 100%;
+  height: 1px;
+  margin: 30px 0 30px;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+}
+.er-md hr:first-child {
+  margin-top: 0;
+}
+.er-md hr:last-child {
+  margin-bottom: 0;
+}
+.er-md del {
+  text-decoration: line-through;
+}
+/* A code block: wraps as the editor wraps it, keeps its own newlines and spaces. */
+.er-md pre {
+  margin: 0;
+  padding: 8px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  font-size: 85%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  tab-size: 2;
+}
+/* The code inside a block draws as plain text in the block. A host page's own `code` style (the Eraser app gives
+   every `code` a bordered pill with side padding) must not reach it: the pill draws once per line, and its padding
+   moves where the lines wrap. The canvas draws a block's code with no `code` element at all. */
+.er-md pre code {
+  display: inline;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 1em;
+}
+/* A code block's tokens, coloured as the Eraser canvas colours them. resolve writes the highlight.js classes
+   (codeHighlight.ts); the colours are highlight.js's GitHub theme (styles/github.css, BSD-3-Clause), the canvas's
+   light theme. Zero specificity: a host's own highlight.js theme wins, as the canvas's GitHub Dark Dimmed does in
+   dark mode. */
+:where(
+  .er-md .hljs-doctag,
+  .er-md .hljs-keyword,
+  .er-md .hljs-meta .hljs-keyword,
+  .er-md .hljs-template-tag,
+  .er-md .hljs-template-variable,
+  .er-md .hljs-type,
+  .er-md .hljs-variable.language_
+) {
+  color: #d73a49;
+}
+:where(
+  .er-md .hljs-title,
+  .er-md .hljs-title.class_,
+  .er-md .hljs-title.class_.inherited__,
+  .er-md .hljs-title.function_
+) {
+  color: #6f42c1;
+}
+:where(
+  .er-md .hljs-attr,
+  .er-md .hljs-attribute,
+  .er-md .hljs-literal,
+  .er-md .hljs-meta,
+  .er-md .hljs-number,
+  .er-md .hljs-operator,
+  .er-md .hljs-variable,
+  .er-md .hljs-selector-attr,
+  .er-md .hljs-selector-class,
+  .er-md .hljs-selector-id
+) {
+  color: #005cc5;
+}
+:where(
+  .er-md .hljs-regexp,
+  .er-md .hljs-string,
+  .er-md .hljs-meta .hljs-string
+) {
+  color: #032f62;
+}
+:where(.er-md .hljs-built_in, .er-md .hljs-symbol) {
+  color: #e36209;
+}
+:where(.er-md .hljs-comment, .er-md .hljs-code, .er-md .hljs-formula) {
+  color: #6a737d;
+}
+:where(
+  .er-md .hljs-name,
+  .er-md .hljs-quote,
+  .er-md .hljs-selector-tag,
+  .er-md .hljs-selector-pseudo
+) {
+  color: #22863a;
+}
+:where(.er-md .hljs-subst) {
+  color: #24292e;
+}
+:where(.er-md .hljs-section) {
+  color: #005cc5;
+  font-weight: bold;
+}
+:where(.er-md .hljs-bullet) {
+  color: #735c0f;
+}
+:where(.er-md .hljs-emphasis) {
+  color: #24292e;
+  font-style: italic;
+}
+:where(.er-md .hljs-strong) {
+  color: #24292e;
+  font-weight: bold;
+}
+:where(.er-md .hljs-addition) {
+  color: #22863a;
+  background-color: #f0fff4;
+}
+:where(.er-md .hljs-deletion) {
+  color: #b31d28;
+  background-color: #ffeef0;
+}
+/* The link icon, drawn here as presentation: the canvas's external-link mark (a rounded square on a tinted
+   ground, an arrow out of it), 16px, 4px before the text, as the Eraser canvas draws before a link. The icon is a
+   background in the link's own left padding, not a ::before box: a line cannot wrap inside padding, so the icon
+   always stays on the line of the link's first word (an inline-block lets the line wrap after it). The tint is in
+   the SVG at the link colour (#457fe5, `.er-md a`), because a background image has no corner radius of its own.
+   The host attaches hover and click on `data-md="link"` and edits no markup. */
+.er-md a[data-md='link'] {
+  padding-left: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23457fe5' fill-opacity='0.1'/%3E%3Crect x='0.5' y='0.5' width='15' height='15' rx='2.5' fill='none' stroke='%23888' stroke-width='1.2'/%3E%3Cpath d='M7 5h4v4M5 11l6-6' fill='none' stroke='%23888' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 16px 16px;
 }
 
 /* Texture-stain wash, shared by every boxy watercolor body — Shape's CSS-geometry kinds,

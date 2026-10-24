@@ -1,12 +1,10 @@
 /**
- * Real-size paths for the curved kinds (document, cylinder), scaled from the same 0–100 command
- * strings the static template svg draws. With a real-coordinate path these kinds ride the dynamic
+ * Real-size paths for the curved kinds (document, cylinder). The cylinder scales the same 0–100
+ * command strings the static template svg draws; the document follows the Canvas path. With a real-coordinate path these kinds ride the dynamic
  * geo route: uniform (meet) scaling like the polygon kinds, and a clip target for the watercolor
  * texture stain — the static 0–100 layer stretches non-uniformly and offers neither.
  */
 
-const DOCUMENT_BODY =
-  'M 0.87,6.67 C 0.87,3.47 3.41,1 6.53,1 H 93.3 C 96.4,1 99,3.51 99,7 V 77.7 C 98.9,86.3 95.1,89.9 91.3,88.8 C 85.1,87.1 76.1,85.1 68.5,85.1 C 55.4,98.1 44.3,98.1 28,98.1 C 15.2,98.1 5.9,90.8 2.45,87.6 C 0.87,86.7 0.87,85.2 0.87,83.9 V 6.67 Z';
 const CYLINDER_BODY = 'M 0,11 L 0,89 A 50,11 0 0 0 100,89 L 100,11 A 50,11 0 0 0 0,11';
 const CYLINDER_CAP = 'M 0,11 A 50,11 0 0 0 100,11';
 // The base dish: the region between the bottom chord and the front bottom arc, grown one rim
@@ -64,6 +62,32 @@ function scalePath(d: string, w: number, h: number): string {
   return out.join(' ');
 }
 
+/**
+ * The document outline at w×h, as the Canvas draws it (excalidraw `renderer/shapes/pathShape.ts`
+ * DocumentShape): each coordinate a share of the width or height, except the top edge, which
+ * sits at y = 1px and meets the right side at y = 7px whatever the height.
+ */
+function documentBody(w: number, h: number): string {
+  const fmt = (value: number): string => String(Math.round(value * 100) / 100);
+  const x = (share: number): string => fmt(w * share);
+  const y = (share: number): string => fmt(h * share);
+
+  return [
+    `M ${x(0.0087)} ${y(0.0667)}`,
+    `C ${x(0.0087)} ${y(0.0347)} ${x(0.0341)} 1 ${x(0.0653)} 1`,
+    `H ${x(0.933)}`,
+    `C ${x(0.964)} 1 ${x(0.99)} ${y(0.0351)} ${x(0.99)} 7`,
+    `V ${y(0.777)}`,
+    `C ${x(0.989)} ${y(0.863)} ${x(0.951)} ${y(0.899)} ${x(0.913)} ${y(0.888)}`,
+    `C ${x(0.851)} ${y(0.871)} ${x(0.761)} ${y(0.851)} ${x(0.685)} ${y(0.851)}`,
+    `C ${x(0.554)} ${y(0.851)} ${x(0.443)} ${y(0.981)} ${x(0.28)} ${y(0.981)}`,
+    `C ${x(0.152)} ${y(0.981)} ${x(0.059)} ${y(0.908)} ${x(0.0245)} ${y(0.876)}`,
+    `C ${x(0.0087)} ${y(0.867)} ${x(0.0087)} ${y(0.852)} ${x(0.0087)} ${y(0.839)}`,
+    `V ${y(0.066)}`,
+    'Z',
+  ].join(' ');
+}
+
 export interface CurvedShapePath {
   body: string;
   /** Stroke-only overlay (the cylinder's front rim). */
@@ -74,7 +98,7 @@ export interface CurvedShapePath {
 
 export function curvedShapePath(kind: string, w: number, h: number): CurvedShapePath | null {
   if (kind === 'document') {
-    return { body: scalePath(DOCUMENT_BODY, w, h) };
+    return { body: documentBody(w, h) };
   }
 
   if (kind === 'cylinder') {

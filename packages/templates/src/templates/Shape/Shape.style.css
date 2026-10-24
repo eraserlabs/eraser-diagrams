@@ -23,6 +23,8 @@
      (getIconBadgePosition): --er-badge-tl-x / -y are its left edge and vertical centre. */
   --er-badge-tint: var(--er-ground, #ffffff);
   --er-host-ink: currentColor;
+  /* The hard shadow; a dark theme writes its scaled colour (data-shadow). */
+  --er-shadow: #e8e8e8;
   --er-host-border-width: 1.2px;
   --er-host-border-style: solid;
   --er-badge-tl-x: 12px;
@@ -71,6 +73,19 @@
    token a nested mount reads, set only when the binding is non-empty. */
 .er-shape[data-text-ink]:not([data-text-ink='']) {
   --er-host-ink: var(--er-text-ink);
+}
+/* The colours the normalizer wrote for the fill and the theme: the ink of a run with no colour of
+   its own (white on a dark fill), the fill's near-white tint, the shadow. Later in source than the
+   identity and paint formulas above, at the same specificity, so they win. */
+.er-shape[data-body-ink]:not([data-body-ink='']) {
+  color: var(--er-body-ink);
+}
+.er-shape[data-tint]:not([data-tint='']) {
+  --er-tint: var(--er-tint-color);
+  --er-badge-tint: var(--er-tint-color);
+}
+.er-shape[data-shadow]:not([data-shadow='']) {
+  --er-shadow: var(--er-shadow-color);
 }
 .er-shape[data-border='dashed'] {
   --er-host-border-style: dashed;
@@ -205,7 +220,7 @@
 }
 /* styleMode default is 'shadow' — the hard offset silhouette; plain and watercolor drop it. */
 .er-shape[data-style='shadow'] .er-shape__inner {
-  box-shadow: 4px 4px 0 0 #e8e8e8;
+  box-shadow: 4px 4px 0 0 var(--er-shadow);
 }
 /* Texture stain body for CSS-geometry kinds: the shared er-washtex span (base.style.css) fills
    the inner box with the recolored scan master. Only the per-kind mask rounding lives here. */
@@ -320,7 +335,7 @@
   display: block;
 }
 .er-shape[data-style='shadow'] .er-shape__geo {
-  filter: drop-shadow(4px 4px 0 #e8e8e8);
+  filter: drop-shadow(4px 4px 0 var(--er-shadow));
 }
 /* Per-kind text insets (horizontal padding per side). */
 .er-shape[data-shape='triangle'] .er-shape__inner {
@@ -391,6 +406,12 @@
   width: 100%;
   height: 100%;
 }
+/* A glyph with no paint of its own (a tech logo ships bare paths, and an SVG path with no fill paints black)
+   takes the glyph's ink, as the Eraser canvas gives such an icon its colour (recolorIconSvgStringForRendering adds
+   the fill to the root <svg>). An outline icon states fill="none", so it keeps its outline. */
+.er-shape__icon svg:not([fill]) {
+  fill: currentColor;
+}
 .er-shape__texts {
   margin: 0;
   padding: 0;
@@ -412,7 +433,8 @@
   line-height: 1.25;
   overflow-wrap: break-word;
   word-break: normal;
-  color: var(--er-ink, #242424);
+  /* a run's own colour, else the body's ink (bodyInk: white on a dark fill) */
+  color: var(--er-ink, var(--er-body-ink, #242424));
 }
 /* texts[1+] are the muted sub slot (2px gap). */
 .er-shape__text + .er-shape__text {
@@ -434,4 +456,18 @@
 }
 .er-shape__text[data-h-align='right'] {
   text-align: right;
+}
+/* A run is as wide as its widest line, placed in the shape by its alignment, as the Eraser canvas shrinks its text box
+   to the text (textMeasurer.ts fitToText): a block inside the run (a list) then starts at the left edge of the run's
+   text, not at the shape's. The run still wraps at the shape's width. */
+.er-shape__text {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+.er-shape__text[data-h-align='left'] {
+  margin-inline: 0 auto;
+}
+.er-shape__text[data-h-align='right'] {
+  margin-inline: auto 0;
 }

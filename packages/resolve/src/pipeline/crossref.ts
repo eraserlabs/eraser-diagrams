@@ -1,6 +1,6 @@
 import type { Issue } from '../result-types.js';
 import { ERROR_CODE, SEVERITY } from '../result-types.js';
-import type { PolicyEntry } from '../types.js';
+import type { PolicyEntry, ResolveOptions } from '../types.js';
 import { quote } from '../schema/errors.js';
 import type { PipelineElement } from './element.js';
 import { entityIsContainer } from './container.js';
@@ -20,6 +20,7 @@ export function stageCrossref(
   items: readonly PipelineElement[],
   policyTables: Record<string, PolicyEntry[]>,
   containers: ReadonlySet<string>,
+  options: ResolveOptions = {},
 ): CrossrefResult {
   const errors: Issue[] = [];
   const warnings: Issue[] = [];
@@ -65,6 +66,10 @@ export function stageCrossref(
 
         const targetKind = idToKind.get(value);
         const fullPath = `${elementPath}${path}`;
+
+        if (targetKind === undefined && options.partial) {
+          continue;
+        }
 
         if (targetKind === undefined) {
           errors.push({

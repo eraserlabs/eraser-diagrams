@@ -1,6 +1,7 @@
 import { anchorFromStored, resolveManualLabel } from '@eraserlabs/layout';
 import { describe, expect, it } from 'vitest';
-import type { Box, ResolvedConnection, ResolvedEntity } from '../src/index.js';
+import type { Box } from '../src/index.js';
+import type { ResolvedConnection, ResolvedEntity } from '@eraserlabs/protocol';
 import { routeScene } from '../src/browser/route.js';
 
 /**

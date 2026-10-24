@@ -2,7 +2,7 @@ import type { TemplateFile } from '@eraserlabs/protocol';
 import type { ElementKind } from '@eraserlabs/protocol/schema';
 import type { ValidationResult, ResolveResult, RegistryInfo } from './result-types.js';
 import type { PolicyKind, ContentPolicy } from './schema/keywords.js';
-import type { ElementNormalizer } from './pipeline/derive.js';
+import type { ElementNormalizer, Theme } from './pipeline/derive.js';
 
 /**
  * Loads one icon's raw SVG source by name. Rejects (or throws) when the icon does not exist or
@@ -100,6 +100,25 @@ export interface ResolverSetup {
    * cross-ref / sanitize / icon / color stages (see derive.ts for the authoring contract).
    */
   normalizers?: Record<string, ElementNormalizer>;
+  /**
+   * Syntax highlighting for fenced code blocks, supplied by the host (the Eraser app passes its own highlight.js, so a
+   * code block is coloured as its canvas colours it). Without it a code block is plain text. See {@link CodeHighlighter}.
+   */
+  highlightCode?: CodeHighlighter;
+}
+
+/**
+ * Splits a fenced code block's text into runs, each with the class that colours it. `language` is the fence's first
+ * word (`''` for none). The runs must join back to `code` exactly; a run's `className` is one or more highlight.js
+ * classes (`hljs-*`, the classes the stock theme and a host's highlight.js theme colour). Anything else is dropped by
+ * the sanitizer. Runs that do not join back to `code`, or a highlighter that throws, give the plain text.
+ */
+export type CodeHighlighter = (code: string, language: string) => readonly HighlightedRun[];
+
+/** One run of a highlighted code block: its text, and the class that colours it (none: plain). */
+export interface HighlightedRun {
+  readonly text: string;
+  readonly className?: string;
 }
 
 /** One resolved per-prop policy, produced by the boot-time schema walk. */
@@ -124,6 +143,14 @@ export interface AuthoredRecord {
   source: Record<string, unknown>;
 }
 
+/** Per-call policy for resolving an editor selection or other incomplete document. */
+export interface ResolveOptions {
+  /** Allow references to elements outside this input; present targets and all other validation still apply. */
+  partial?: boolean;
+  /** The theme the normalizers write colours for (see {@link Theme}). Default `light`. */
+  theme?: Theme;
+}
+
 export interface Resolver {
   /** The checked library, in the shape the render stage's page setup consumes. */
   readonly library: TemplateLibrary;
@@ -132,8 +159,14 @@ export interface Resolver {
    * proof that turns it into typed output. `validate` never calls the icon loader (icon existence
    * is checked against the cache only).
    */
-  validate(input: unknown): Promise<ValidationResult>;
-  resolve(input: unknown): Promise<ResolveResult>;
+  validate(input: unknown, options?: ResolveOptions): Promise<ValidationResult>;
+  resolve(input: unknown, options?: ResolveOptions): Promise<ResolveResult>;
+  /**
+   * `resolve` for layout only, with no waiting: no icon is loaded, and every glyph is the placeholder (no issue for
+   * it). For a caller that must lay text out in the same step, such as measuring a label's size for a synchronous
+   * router: a glyph's box is its element's size, not its SVG's, so the text is the size it is drawn at.
+   */
+  resolveForLayout(input: unknown, options?: ResolveOptions): ResolveResult;
   registryInfo(): RegistryInfo;
   tagSchema(tag: string): object | undefined;
 }

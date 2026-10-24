@@ -36,3 +36,42 @@ const result = await resolver.resolve({
 `createResolver` compiles the library once. `resolve` returns `{ ok, entities, connections, icons, warnings, errors }`; `validate` runs the same pipeline without inlining icon bytes. Supply `iconLoader` to fetch SVGs by name; `onUnknownIcon` is `'placeholder'` or `'error'`. Loaded SVGs pass an allowlist sanitizer that parses them by the browser's HTML rules: static drawing elements and local references only. Anything else rejects the icon, which then falls under `onUnknownIcon`, except editor metadata (Inkscape/Sodipodi, `<metadata>`, extra namespace declarations), filter effects, and style properties outside the allowlist, which are removed.
 
 Portable document, component, font, and schema-vocabulary contracts live in `@eraserlabs/protocol`. Compatibility re-exports remain at `@eraserlabs/resolve/schema`. Component authoring is documented in [CUSTOMIZATION.md](../../CUSTOMIZATION.md).
+
+## Partial documents
+
+Editors can resolve a selection without submitting its container or connection endpoints:
+
+```ts
+const result = await resolver.resolve(
+  {
+    elements: [
+      {
+        tag: 'Shape',
+        id: 'a',
+        x: 0,
+        y: 0,
+        containerId: 'group-outside-selection',
+      },
+      {
+        tag: 'Relationship',
+        id: 'edge',
+        from: 'a',
+        to: 'node-outside-selection',
+      },
+    ],
+  },
+  { partial: true },
+);
+```
+
+The same per-call option is available on `validate`. Only missing-reference errors are suppressed; reference values are preserved. Duplicate IDs, invalid schemas, references to included connections, references to included non-containers, containment cycles, sanitization and icon policy still apply. A subsequent call without the option remains strict. Partial results are for an editor's fragment renderer; they do not supply the missing geometry needed to route a complete scene.
+
+## Themes
+
+`resolve(input, { theme: 'dark' })` resolves for a dark page: the normalizers receive the theme (`context.theme`, `light` by default) and write the colours a template binds for it. The stock `Shape` scales each of its colours, its default ink, stroke and shadow among them, the way the Eraser canvas draws them in dark mode; the other stock tags, and the colours authored on a `Badge` inside a Shape, do not read the theme yet. A normalizer also receives `context.paletteToken(key)`: the palette token the author wrote at a top-level key, which the `x-palette` step has already swapped for its colour on the clone.
+
+## Diagram text
+
+Markdown is a small diagram-text surface: headings (drawn through level three), paragraphs, flat lists, simple blockquotes containing paragraph text and inline marks, horizontal rules, and top-level fenced code blocks. Inline marks include emphasis, strikethrough, code spans, and links. Nested block structures (such as headings, lists, or code fences inside quotes) are outside the supported contract; parser acceptance does not guarantee their presentation.
+
+A prose newline draws a line break; two newlines separate paragraphs; additional blank lines and trailing newlines retain empty lines. Code spans and link syntax are interpreted by the Markdown parser, without injecting hard-break spaces into their source. Fenced code keeps its internal lines and spaces and wraps long tokens to the available width. Four-space indentation stays paragraph text. Labels use inline Markdown, so block starters remain literal. Tables, images, and raw HTML in Markdown are not supported. These output rules also apply to existing documents rendered through Node, CLI, and server entry points.

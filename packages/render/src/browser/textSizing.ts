@@ -1,3 +1,4 @@
+import { textRects } from './textMeasure.js';
 import { TEXT_SIZE_POLICIES, type TextSizePolicy } from '@eraserlabs/protocol';
 import type { ResolvedConnection, ResolvedEntity } from '@eraserlabs/protocol';
 import type { Box, SceneLayout } from '@eraserlabs/render';
@@ -8,6 +9,8 @@ import type { MountedElement } from './mount.js';
 const POLICY_ATTRIBUTE = 'data-text-grow-policy';
 const MAX_LINES_ATTRIBUTE = 'data-text-max-lines';
 const ASPECT_ATTRIBUTE = 'data-text-aspect';
+const WORD_GROWTH_ATTRIBUTE = 'data-text-word-growth';
+const WORD_HEADROOM_ATTRIBUTE = 'data-text-word-headroom';
 const DEFAULT_MAX_LINES = 3;
 const DEFAULT_ASPECT = 0.8;
 const MAIN_APP_ASPECT_MAGIC = 1.2;
@@ -23,17 +26,22 @@ const CONNECTION_LABEL_MIN_WIDTH = 48;
 // hyphenate. Widen to keep words whole up to this factor of the preferred width — past it the
 // longest word is genuinely oversized for the box and character breaking is the right answer.
 const WORD_FIT_TOLERANCE = 1.5;
+// The slack a `content` fit lets a text run past its wrapping target before it wraps.
+const CONTENT_FIT_SLACK_PX = 2;
+const CONTENT_FIT_SLACK_RATIO = 0.05;
 
 interface TextPolicyNode {
   node: HTMLElement;
   policy: TextSizePolicy;
   maxLines: number;
   aspect: number;
+  wordGrowth: number;
+  wordHeadroom: number;
   naturalTextWidth: number;
   lineHeight: number;
 }
 
-interface Overflow {
+export interface Overflow {
   left: number;
   top: number;
   right: number;
@@ -42,14 +50,239 @@ interface Overflow {
 }
 
 /**
- * Resolve entity dimensions around semantic internal-text boxes. Templates opt individual text
- * boxes into a policy with `data-text-grow-policy`; an unannotated internal-text box defaults to
- * balanced. Templates without internal text retain the ordinary max(authored, intrinsic) rule.
+ * How an element's text region decides the element's width (the Fit operation). The template's
+ * own text policies (`data-text-grow-policy`) say which applies when the document is rendered;
+ * a host that fits one element at a time passes the policy of the operation it is performing.
+ *
+ *  - `natural`: no wrapping target. The element is its max-content box, never below the authored
+ *    size (templates without internal text, `width-only` text).
+ *  - `fixed`: the authored width is kept, whatever the text does to it: no word is kept whole by
+ *    widening, nothing balances. The height follows the text (`height-only` text, a hand-sized box).
+ *  - `content`: the authored width is a wrapping target. Text that fits unwrapped within the
+ *    target plus a small slack is left unwrapped and the element takes the text's own width;
+ *    wider text wraps at the target and the element keeps it (a dynamic text box).
+ *  - `balanced`: the authored width is a floor. A word too wide for the text lane widens the
+ *    element (within `wordGrowth`), and text past `maxLines` lines widens it toward the text
+ *    lane's aspect ratio; repeated fits of the result do not move it again.
+ */
+export type FitPolicy = 'natural' | 'fixed' | 'content' | 'balanced';
+
+export interface FitConstraints {
+  policy: FitPolicy;
+  /**
+   * The authored width: kept (`fixed`), the wrapping target (`content`), or the floor (`balanced`,
+   * `natural`). Absent, the element starts from its max-content width (`natural`) or from the
+   * renderer's preferred width for unauthored text (`balanced`, `fixed`).
+   */
+  width?: number;
+  /** The authored height: a floor when `heightMode` is `grow`. */
+  height?: number;
+  /** `grow`: the height never goes below the authored one (a shape). `fit`: the text's height (a text box). */
+  heightMode?: 'grow' | 'fit';
+  /**
+   * `balanced` only: keep a word whole by widening the element within its word growth (default
+   * true), or break the word inside the lane (false). A `fixed` width never widens for a word.
+   */
+  keepWords?: boolean;
+  balanced?: {
+    /** Lines past which the text widens toward the aspect ratio; default: the template's `data-text-max-lines`, else 3. */
+    maxLines?: number;
+    /** The width : height the text block widens toward; default: the template's `data-text-aspect`, else 0.8. */
+    aspect?: number;
+    /**
+     * How far a word may widen the element, as a multiple of its text lane; default: the template's
+     * `data-text-word-growth`, else 1.5.
+     */
+    wordGrowth?: number;
+    /**
+     * Slack left beside a word the lane was widened to; default: the template's
+     * `data-text-word-headroom`, else 0.
+     */
+    wordHeadroom?: number;
+    /** A word past `wordGrowth`: `break` it where it is (default), or `clamp` the lane to the limit and break it there. */
+    wordPastGrowth?: 'break' | 'clamp';
+  };
+  content?: {
+    /** The slack past the target a text may run before it wraps: the larger of `slackPx` (default 2) and `slackRatio` (default 0.05) × target. */
+    slackPx?: number;
+    slackRatio?: number;
+  };
+}
+
+/** A text region of the element, as laid out at the proposed size. */
+export interface TextRegionMeasure {
+  /** `internal-text` (inside the body) or `external-text` (a caption, a label beside the body). */
+  role: 'internal-text' | 'external-text';
+  /** The template's `data-part` of the node, when it carries one. */
+  part?: string;
+  /** The region's box, relative to the wrapper origin. */
+  box: MeasuredBox;
+  /** The lines the text wrapped to. */
+  lines: number;
+}
+
+export interface ElementFit {
+  /** The proposed body size (the wrapper's). */
+  body: { width: number; height: number };
+  /** Every text region of the element at that size: the chosen widths, a caption's included. */
+  textRegions: TextRegionMeasure[];
+  /** Content that still runs past the body at that size, in px per side, and the text's scroll overflow. */
+  overflow: Overflow;
+}
+
+/**
+ * Measure (the Measure operation): the element as it is laid out now, at the size the wrapper has.
+ * Changes nothing. The wrapper is the mount host (`data-mdp-tag`) holding the filled template,
+ * attached and unzoomed, with the template CSS and the fonts in place.
+ */
+export function measureElement(wrapper: HTMLElement): ElementFit {
+  const origin = wrapper.getBoundingClientRect();
+  const textRegions: TextRegionMeasure[] = [];
+
+  for (const role of ['internal-text', 'external-text'] as const) {
+    for (const node of ownRoleNodes(wrapper, role)) {
+      const box = node.getBoundingClientRect();
+      const partNode = node.closest<HTMLElement>('[data-part]');
+      const part =
+        partNode && partNode.closest('[data-mdp-tag]') === wrapper
+          ? partNode.getAttribute('data-part')
+          : null;
+      textRegions.push({
+        role,
+        ...(part !== null ? { part } : {}),
+        box: {
+          x: box.x - origin.x,
+          y: box.y - origin.y,
+          width: box.width,
+          height: box.height,
+        },
+        lines: maxLineCount(node),
+      });
+    }
+  }
+
+  return {
+    body: { width: origin.width, height: origin.height },
+    textRegions,
+    overflow: internalOverflow(wrapper),
+  };
+}
+
+/**
+ * Fit (the Fit operation): the size the element should take for its text under `constraints`,
+ * measured on the filled template in `wrapper` (as measureElement takes it). The wrapper is sized
+ * as the fit goes and left at the proposed size; nothing else is changed, and nothing is persisted:
+ * the caller decides whether to apply the proposal.
+ */
+export function fitElement(wrapper: HTMLElement, constraints: FitConstraints): ElementFit {
+  // the intrinsic box: the element at max-content, as the document path measures it first
+  wrapper.style.width = 'max-content';
+  wrapper.style.height = '';
+  const intrinsicRect = wrapper.getBoundingClientRect();
+  const intrinsic = rect(intrinsicRect.width, intrinsicRect.height);
+  const policies = internalPolicies(wrapper, constraints.balanced);
+  const authoredHeight = constraints.height ?? 0;
+  const heightFloor = constraints.heightMode === 'fit' ? 0 : authoredHeight;
+  let width: number;
+  let height: number;
+
+  if (constraints.policy === 'natural') {
+    width = Math.max(constraints.width ?? 0, intrinsic.width);
+    height = Math.max(heightFloor, intrinsic.height);
+  } else if (constraints.policy === 'content') {
+    const target = constraints.width ?? 0;
+    const slack = Math.max(
+      constraints.content?.slackPx ?? CONTENT_FIT_SLACK_PX,
+      target * (constraints.content?.slackRatio ?? CONTENT_FIT_SLACK_RATIO),
+    );
+    width = target > 0 && intrinsic.width > target + slack ? target : intrinsic.width;
+    height = heightFloor;
+    setWrapperSize(wrapper, width, height);
+    height = Math.max(height, naturalContentHeight(wrapper));
+    height = growForVerticalOverflow(wrapper, width, height);
+  } else {
+    const templateFloor = templateWidthFloor(wrapper);
+    width =
+      constraints.width ??
+      Math.min(intrinsic.width, Math.max(DEFAULT_UNAUTHORED_TEXT_WIDTH, templateFloor));
+    height =
+      constraints.heightMode === 'fit'
+        ? 0
+        : Math.max(heightFloor, intrinsic.height, naturalContentHeight(wrapper));
+    setWrapperSize(wrapper, width, height);
+
+    // a fixed width is kept whatever the text does: only balanced keeps a word whole by widening
+    if (constraints.policy === 'balanced' && (constraints.keepWords ?? true)) {
+      width = Math.max(width, wordIntegrityWidth(policies, width, constraints.balanced));
+      setWrapperSize(wrapper, width, height);
+    }
+
+    if (constraints.policy === 'balanced') {
+      // The balanced target is anchored on the currently rendered text width, which lags the
+      // wrapper width through percentage insets and wrap granularity — applied once it leaves
+      // the target unmet AND non-idempotent: re-entering the produced width as authored moves
+      // it again (the echo drift pinned by echo-idempotence.spec). Iterate to the fixed point;
+      // the step is monotone non-decreasing and bounded by max-content, and the residual
+      // contracts by the inset fraction per pass, so it lands within EPSILON in a few passes.
+      for (let pass = 0; pass < MAX_GROWTH_PASSES; pass += 1) {
+        const next = balancedWidth(wrapper, policies, width, intrinsic.width);
+
+        if (next - width <= EPSILON) {
+          break;
+        }
+
+        width = next;
+        setWrapperSize(wrapper, width, height);
+      }
+
+      width = growForHorizontalOverflow(wrapper, width, height);
+      setWrapperSize(wrapper, width, height);
+    }
+
+    if (constraints.heightMode === 'fit') {
+      height = naturalContentHeight(wrapper);
+      setWrapperSize(wrapper, width, height);
+    }
+
+    height = growForVerticalOverflow(wrapper, width, height);
+  }
+
+  setWrapperSize(wrapper, width, height);
+
+  return measureElement(wrapper);
+}
+
+/**
+ * The document path's constraints for an element: the template's own text policies
+ * (`data-text-grow-policy`; an unannotated internal-text box is balanced) say how its authored
+ * size is read. Templates without internal text keep the ordinary max(authored, intrinsic) rule.
+ */
+function documentConstraints(element: ResolvedEntity, wrapper: HTMLElement): FitConstraints {
+  const policies = internalPolicies(wrapper);
+  const authored = {
+    ...(element.width !== undefined ? { width: element.width } : {}),
+    ...(element.height !== undefined ? { height: element.height } : {}),
+  };
+
+  if (policies.length === 0 || policies.every(({ policy }) => policy === 'width-only')) {
+    return { policy: 'natural', ...authored };
+  }
+
+  if (policies.some(({ policy }) => policy === 'balanced')) {
+    return { policy: 'balanced', ...authored };
+  }
+
+  // height-only: the width is kept, and a word wider than it breaks (a fixed width never widens)
+  return { policy: 'fixed', ...authored };
+}
+
+/**
+ * Resolve entity dimensions around semantic internal-text boxes: every element is fitted
+ * (fitElement) under the constraints its template states (documentConstraints).
  */
 export function resolveTextSizedElements(
   entities: ResolvedEntity[],
   mounted: MountedElement[],
-  intrinsics: Map<string, MeasuredBox>,
 ): Map<string, MeasuredBox> {
   const elementById = new Map(entities.map((element) => [element.id, element]));
   const resolved = new Map<string, MeasuredBox>();
@@ -61,52 +294,11 @@ export function resolveTextSizedElements(
       continue;
     }
 
-    const { wrapper } = mountedElement;
-    const intrinsic = intrinsics.get(element.id) ?? rect(0, 0);
-    const policies = internalPolicies(wrapper);
-    let width: number;
-    let height: number;
-
-    if (policies.length === 0 || policies.every(({ policy }) => policy === 'width-only')) {
-      width = Math.max(element.width ?? 0, intrinsic.width);
-      height = Math.max(element.height ?? 0, intrinsic.height);
-    } else {
-      const templateFloor = templateWidthFloor(wrapper);
-      width =
-        element.width ??
-        Math.min(intrinsic.width, Math.max(DEFAULT_UNAUTHORED_TEXT_WIDTH, templateFloor));
-      height = Math.max(element.height ?? 0, intrinsic.height, naturalContentHeight(wrapper));
-      setWrapperSize(wrapper, width, height);
-      width = Math.max(width, wordIntegrityWidth(policies, width));
-      setWrapperSize(wrapper, width, height);
-
-      if (policies.some(({ policy }) => policy === 'balanced')) {
-        // The balanced target is anchored on the currently rendered text width, which lags the
-        // wrapper width through percentage insets and wrap granularity — applied once it leaves
-        // the target unmet AND non-idempotent: re-entering the produced width as authored moves
-        // it again (the echo drift pinned by echo-idempotence.spec). Iterate to the fixed point;
-        // the step is monotone non-decreasing and bounded by max-content, and the residual
-        // contracts by the inset fraction per pass, so it lands within EPSILON in a few passes.
-        for (let pass = 0; pass < MAX_GROWTH_PASSES; pass += 1) {
-          const next = balancedWidth(wrapper, policies, width, intrinsic.width);
-
-          if (next - width <= EPSILON) {
-            break;
-          }
-
-          width = next;
-          setWrapperSize(wrapper, width, height);
-        }
-
-        width = growForHorizontalOverflow(wrapper, width, height);
-        setWrapperSize(wrapper, width, height);
-      }
-
-      height = growForVerticalOverflow(wrapper, width, height);
-    }
-
-    setWrapperSize(wrapper, width, height);
-    resolved.set(element.id, rect(width, height));
+    const fit = fitElement(
+      mountedElement.wrapper,
+      documentConstraints(element, mountedElement.wrapper),
+    );
+    resolved.set(element.id, rect(fit.body.width, fit.body.height));
   }
 
   return resolved;
@@ -211,12 +403,7 @@ function templateWidthFloor(wrapper: HTMLElement): number {
     return 0;
   }
 
-  const previousWidth = wrapper.style.width;
-  wrapper.style.width = '0px';
-  const width = body.getBoundingClientRect().width;
-  wrapper.style.width = previousWidth;
-
-  return width;
+  return withProbeStyle(wrapper, 'width', '0px', () => body.getBoundingClientRect().width);
 }
 
 /**
@@ -226,49 +413,106 @@ function templateWidthFloor(wrapper: HTMLElement): number {
  * WORD_FIT_TOLERANCE is repaired; a token that overshoots by more is genuinely too big for its
  * box and still breaks.
  */
-function wordIntegrityWidth(policies: TextPolicyNode[], width: number): number {
+function wordIntegrityWidth(
+  policies: TextPolicyNode[],
+  width: number,
+  options: FitConstraints['balanced'] = {},
+): number {
   let floor = 0;
 
   for (const spec of policies) {
     if (spec.policy === 'width-only') {
       continue;
     }
+    // the template's word growth and headroom (data-text-word-growth, -headroom), or the caller's
+    const growth = spec.wordGrowth;
+    const headroom = spec.wordHeadroom;
 
     const textWidth = spec.node.getBoundingClientRect().width;
     const minimum = minContentWidth(spec.node);
+    const limit = textWidth * growth;
+    // the inset the template keeps between the wrapper and the text lane
+    const inset = Math.max(0, width - textWidth);
 
-    if (minimum > textWidth * WORD_FIT_TOLERANCE) {
+    if (minimum + headroom > limit) {
+      if (options.wordPastGrowth === 'clamp') {
+        floor = Math.max(floor, limit + inset);
+      }
+
       continue;
     }
 
-    floor = Math.max(floor, minimum + Math.max(0, width - textWidth));
+    floor = Math.max(floor, minimum + headroom + inset);
   }
 
   return floor;
 }
 
 function minContentWidth(node: HTMLElement): number {
-  const previous = node.style.width;
-  node.style.width = 'min-content';
-  const width = node.getBoundingClientRect().width;
-  node.style.width = previous;
-
-  return width;
+  return withProbeStyle(node, 'width', 'min-content', () => node.getBoundingClientRect().width);
 }
 
-function internalPolicies(wrapper: HTMLElement): TextPolicyNode[] {
+/**
+ * Probe in the real CSS context with one property set for the read, then put the node's inline style back as it was
+ * written (its text, every priority), even if layout measurement fails.
+ */
+function withProbeStyle(
+  node: HTMLElement,
+  property: string,
+  value: string,
+  measure: () => number,
+): number {
+  const style = node.getAttribute('style');
+  try {
+    node.style.setProperty(property, value, 'important');
+    return measure();
+  } finally {
+    if (style === null) {
+      node.removeAttribute('style');
+    } else {
+      node.setAttribute('style', style);
+    }
+  }
+}
+
+/**
+ * The internal text nodes with their policies: the template's attributes, under a caller's
+ * `balanced` parameters when it passes them. Read at max-content: the natural text width and the
+ * line height are the unwrapped text's.
+ */
+function internalPolicies(
+  wrapper: HTMLElement,
+  overrides: FitConstraints['balanced'] = {},
+): TextPolicyNode[] {
   return ownRoleNodes(wrapper, 'internal-text').map((node) => {
     const rects = textRects(node);
 
     return {
       node,
       policy: parsePolicy(node.getAttribute(POLICY_ATTRIBUTE), 'balanced'),
-      maxLines: positiveNumber(node.getAttribute(MAX_LINES_ATTRIBUTE)) ?? DEFAULT_MAX_LINES,
-      aspect: positiveNumber(node.getAttribute(ASPECT_ATTRIBUTE)) ?? DEFAULT_ASPECT,
-      naturalTextWidth: Math.max(node.scrollWidth, ...rects.map((textRect) => textRect.width)),
+      maxLines:
+        overrides.maxLines ??
+        positiveNumber(node.getAttribute(MAX_LINES_ATTRIBUTE)) ??
+        DEFAULT_MAX_LINES,
+      aspect:
+        overrides.aspect ?? positiveNumber(node.getAttribute(ASPECT_ATTRIBUTE)) ?? DEFAULT_ASPECT,
+      wordGrowth:
+        overrides.wordGrowth ??
+        positiveNumber(node.getAttribute(WORD_GROWTH_ATTRIBUTE)) ??
+        WORD_FIT_TOLERANCE,
+      wordHeadroom:
+        overrides.wordHeadroom ??
+        nonNegativeNumber(node.getAttribute(WORD_HEADROOM_ATTRIBUTE)) ??
+        0,
+      naturalTextWidth: naturalTextWidth(node, rects),
       lineHeight: Math.max(0, ...rects.map((textRect) => textRect.height)),
     };
   });
+}
+
+/** The text's unwrapped width, read at max-content: its scroll width, or the widest of its line rects. */
+function naturalTextWidth(node: HTMLElement, rects: DOMRect[] = textRects(node)): number {
+  return Math.max(node.scrollWidth, ...rects.map((textRect) => textRect.width));
 }
 
 function parsePolicy(value: string | null, fallback: TextSizePolicy): TextSizePolicy {
@@ -488,24 +732,6 @@ function mergedLineCount(rects: DOMRect[]): number {
   return bands.length;
 }
 
-function textRects(root: HTMLElement): DOMRect[] {
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  const rects: DOMRect[] = [];
-  let current = walker.nextNode();
-
-  while (current) {
-    if (current.textContent?.trim()) {
-      const range = document.createRange();
-      range.selectNodeContents(current);
-      rects.push(...range.getClientRects());
-    }
-
-    current = walker.nextNode();
-  }
-
-  return rects;
-}
-
 function connectionLabelWidth(
   element: ResolvedConnection,
   points: [number, number][],
@@ -553,6 +779,14 @@ function setWrapperSize(wrapper: HTMLElement, width: number, height: number): vo
 
 function rect(width: number, height: number): MeasuredBox {
   return { x: 0, y: 0, width, height };
+}
+
+function nonNegativeNumber(value: string | null): number | undefined {
+  if (value === null || value.trim() === '') {
+    return undefined;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
 }
 
 function positiveNumber(value: unknown): number | undefined {

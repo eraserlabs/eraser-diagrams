@@ -15,18 +15,20 @@ async function resolveProps(element: Record<string, unknown>): Promise<Record<st
   return allElements(r)[0]!.props;
 }
 
-describe('x-palette translation — one identity value, no derived pair', () => {
-  it('Shape: a palette token becomes its palette color, in place, on `color` alone', async () => {
+describe('x-palette translation — one identity value; a Shape fill as the Eraser canvas paints it', () => {
+  it('Shape: a palette token becomes its palette color, in place; the body is the canvas pastel', async () => {
     const props = await resolveProps({ tag: 'Shape', id: 's', x: 0, y: 0, color: 'blue' });
     expect(props.color).toBe('#2866c4');
-    // The pastel body, the hairline and the badge tint are CSS formulas over that one value now.
-    expect(props.fillColor).toBeUndefined();
+    // The canvas fills a palette Shape with its pastel swatch, not the 85% tint of the identity; the hairline stays
+    // the stylesheet's formula over the identity.
+    expect(props.bgColor).toBe('#c7dcfc');
     expect(props.borderColor).toBeUndefined();
   });
 
-  it('a raw CSS color passes through, and now gets the identity treatment tokens used to get', async () => {
+  it('a raw CSS color passes through, and a Shape is filled with it solid, as the canvas fills a hex shape', async () => {
     const props = await resolveProps({ tag: 'Shape', id: 's', x: 0, y: 0, color: 'peachpuff' });
     expect(props.color).toBe('peachpuff');
+    expect(props.bgColor).toBe('peachpuff');
   });
 
   it('a string that is neither errors, with a did-you-mean over the token names', async () => {
@@ -347,6 +349,30 @@ describe('derive stage — sizing', () => {
       fixedWidth: true,
     });
     expect(props.wrapMode).toBe('wrap');
+  });
+
+  it('Divider: the label is inline markdown, as a connection label (the Labels group of the text contract)', async () => {
+    const props = await resolveProps({
+      tag: 'Divider',
+      id: 'd',
+      x: 0,
+      y: 0,
+      orientation: 'horizontal',
+      label: '# not a heading, **bold**\nline two',
+    });
+    expect(props.label).toBe('# not a heading, <strong>bold</strong><br />line two');
+  });
+
+  it('Textbox: an authored nowrap stays (a text box with no fixed width draws one line per line)', async () => {
+    const props = await resolveProps({
+      tag: 'Textbox',
+      id: 't',
+      x: 0,
+      y: 0,
+      text: 'x',
+      wrapMode: 'nowrap',
+    });
+    expect(props.wrapMode).toBe('nowrap');
   });
 
   it('Textbox: without fixedWidth still accepts the renderer fallback width', async () => {

@@ -9,14 +9,54 @@
  * top-level keys must be assigned directly on the element — the pointer machinery only resolves
  * keys that already exist.
  */
-export type ElementNormalizer = (element: Record<string, unknown>) => void;
+export type ElementNormalizer = (
+  element: Record<string, unknown>,
+  context: NormalizerContext,
+) => void;
+
+/**
+ * The theme a document is resolved for. `light` draws every authored colour as written; `dark` draws each colour the
+ * way the Eraser canvas draws it in dark mode. A normalizer that writes colours writes them for this theme.
+ */
+export type Theme = 'light' | 'dark';
+
+/** What a normalizer may read besides the element clone. */
+export interface NormalizerContext {
+  readonly theme: Theme;
+  /**
+   * The library palette token the author wrote at a top-level key (`color: 'blue'`), or undefined when the authored
+   * value is no token. The `x-palette` step has already swapped such a token for its colour on the clone, so this is
+   * the one way a normalizer can tell `blue` from the same colour written as hex. Read from the authored source,
+   * which no stage mutates.
+   */
+  paletteToken(key: string): string | undefined;
+}
+
+/** The context for one element: its authored source, the library palette, the theme. */
+export function normalizerContext(
+  source: Record<string, unknown>,
+  palette: Record<string, string> | undefined,
+  theme: Theme,
+): NormalizerContext {
+  return {
+    theme,
+    paletteToken(key) {
+      const value = source[key];
+
+      return typeof value === 'string' && palette !== undefined && Object.hasOwn(palette, value)
+        ? value
+        : undefined;
+    },
+  };
+}
 
 export function deriveProps(
   element: Record<string, unknown>,
   tag: string,
   normalizers: Record<string, ElementNormalizer> | undefined,
+  context: NormalizerContext,
 ): void {
-  normalizers?.[tag]?.(element);
+  normalizers?.[tag]?.(element, context);
 }
 
 /** A text run: any object with a string `text` (a `texts[]` entry, a group `title`, a Textbox). */

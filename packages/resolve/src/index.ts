@@ -5,24 +5,33 @@ import type {
   Issue,
   TagInfo,
 } from './result-types.js';
-import type { Resolver, ResolverSetup } from './types.js';
+import type { Resolver, ResolverSetup, ResolveOptions } from './types.js';
 import { compileSchemas } from './schema/compile.js';
 import { prepareLibrary } from './library/prepare.js';
 import { normalizeInput } from './pipeline/input.js';
 import { processElements, type PipelineElement } from './pipeline/element.js';
 import { normalizeAnnotatedProps, roundAuthoredGeometry } from './pipeline/normalize.js';
-import { deriveProps } from './pipeline/derive.js';
+import { deriveProps, normalizerContext } from './pipeline/derive.js';
 import { assignMissingConnectionIds } from './pipeline/identity.js';
 import { stageCrossref } from './pipeline/crossref.js';
 import { buildSanitizers, stageSanitize } from './pipeline/sanitize.js';
 import { stageColors } from './pipeline/colors.js';
-import { stageIcons, type IconMode, type IconCache } from './pipeline/icons.js';
+import {
+  stageIcons,
+  stageIconsForLayout,
+  type IconMode,
+  type IconCache,
+  type IconStageResult,
+} from './pipeline/icons.js';
 import { buildResolvedPayload } from './pipeline/emit.js';
 import { TimeTracker } from '@eraserlabs/utils';
 
 export type {
   Resolver,
   ResolverSetup,
+  ResolveOptions,
+  CodeHighlighter,
+  HighlightedRun,
   AuthoredLibrary,
   AuthoredRecord,
   TemplateOverrides,
@@ -53,6 +62,8 @@ export {
   isTextRun,
   primaryTextRun,
   type ElementNormalizer,
+  type NormalizerContext,
+  type Theme,
   type TextRun,
 } from './pipeline/derive.js';
 export { NAMED_COLOR_HEX, colorToHex } from './pipeline/colors.js';
@@ -85,6 +96,15 @@ interface PipelineOutput {
   tracker: TimeTracker;
 }
 
+/** The pipeline's checks done (everything before the icon stage); `empty` when nothing was submitted. */
+interface Checked {
+  errors: Issue[];
+  warnings: Issue[];
+  elements: PipelineElement[];
+  tracker: TimeTracker;
+  empty: boolean;
+}
+
 /**
  * Warm set-up. All expensive work (library check, schema compile, policy-table build, sanitizer
  * construction) happens here, once, so the per-call path stays light (Constitution VI). A library
@@ -97,7 +117,7 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
   const knownTags = Object.keys(compiled.validators);
   const onUnknownIcon = setup.onUnknownIcon ?? 'placeholder';
 
-  const sanitizers = buildSanitizers();
+  const sanitizers = buildSanitizers(setup.highlightCode);
   const iconCache: IconCache = new Map();
 
   const registry = {
@@ -110,7 +130,8 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
       : {}),
   };
 
-  async function runPipeline(input: unknown, mode: IconMode): Promise<PipelineOutput> {
+  /** Every stage before the icons: parse, schema, crossref, sanitize. Synchronous. */
+  function runChecks(input: unknown, options: ResolveOptions): Checked {
     const errors: Issue[] = [];
     const warnings: Issue[] = [];
     const tracker = new TimeTracker();
@@ -121,7 +142,7 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
     warnings.push(...submitted.warnings);
 
     if (submitted.lists.length === 0) {
-      return { errors, warnings, elements: [], iconsInlined: 0, icons: {}, tracker };
+      return { errors, warnings, elements: [], tracker, empty: true };
     }
 
     // One pass per element: forbidden-key scan, tag dispatch, schema check, kind classification.
@@ -132,16 +153,23 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
 
     assignMissingConnectionIds(elements);
 
+    const theme = options.theme ?? 'light';
+
     for (const item of elements) {
       roundAuthoredGeometry(item.element);
       errors.push(
         ...normalizeAnnotatedProps(item, compiled.policyTables[item.tag] ?? [], library.palette),
       );
-      deriveProps(item.element, item.tag, setup.normalizers);
+      deriveProps(
+        item.element,
+        item.tag,
+        setup.normalizers,
+        normalizerContext(item.source, library.palette, theme),
+      );
     }
     tracker.mark('schema');
 
-    const crossref = stageCrossref(elements, compiled.policyTables, compiled.containers);
+    const crossref = stageCrossref(elements, compiled.policyTables, compiled.containers, options);
     errors.push(...crossref.errors);
     warnings.push(...crossref.warnings);
     tracker.mark('crossref');
@@ -151,14 +179,12 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
     warnings.push(...sanitize.warnings);
     tracker.mark('sanitize');
 
-    const iconStage = await stageIcons(
-      elements,
-      compiled.policyTables,
-      iconCache,
-      setup.iconLoader,
-      mode,
-      onUnknownIcon,
-    );
+    return { errors, warnings, elements, tracker, empty: false };
+  }
+
+  /** The stages after the icons (colors), and the pipeline's output. Synchronous. */
+  function afterIcons(checked: Checked, iconStage: IconStageResult): PipelineOutput {
+    const { errors, warnings, elements, tracker } = checked;
     errors.push(...iconStage.errors);
     warnings.push(...iconStage.warnings);
     tracker.mark('icons');
@@ -177,48 +203,83 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
     };
   }
 
+  async function runPipeline(
+    input: unknown,
+    mode: IconMode,
+    options: ResolveOptions = {},
+  ): Promise<PipelineOutput> {
+    const checked = runChecks(input, options);
+    if (checked.empty) {
+      return { ...checked, iconsInlined: 0, icons: {} };
+    }
+    const iconStage = await stageIcons(
+      checked.elements,
+      compiled.policyTables,
+      iconCache,
+      setup.iconLoader,
+      mode,
+      onUnknownIcon,
+    );
+    return afterIcons(checked, iconStage);
+  }
+
+  /** The pipeline with every glyph the placeholder (stageIconsForLayout): no loading, so no await. */
+  function runPipelineForLayout(input: unknown, options: ResolveOptions = {}): PipelineOutput {
+    const checked = runChecks(input, options);
+    if (checked.empty) {
+      return { ...checked, iconsInlined: 0, icons: {} };
+    }
+    return afterIcons(checked, stageIconsForLayout(checked.elements, compiled.policyTables));
+  }
+
+  /** A pipeline output as the resolve result (both resolve entries). */
+  function toResolveResult(output: PipelineOutput): ResolveResult {
+    const { errors, warnings, elements, iconsInlined, icons, tracker } = output;
+    const ok = errors.length === 0;
+    const result: ResolveResult = {
+      ok,
+      errors,
+      warnings,
+      meta: {
+        elementCount: elements.length,
+        iconsInlined,
+        timingsMs: tracker.timings,
+      },
+    };
+
+    if (ok) {
+      // emit: resolved data only. Markup is the browser render stage's job.
+      tracker.reset();
+      const payload = buildResolvedPayload(elements, compiled.containers);
+      result.entities = payload.entities;
+      result.connections = payload.connections;
+      result.icons = icons;
+      result.authored = elements.map(({ kind, element, source }) => ({
+        id: element.id as string,
+        kind,
+        source,
+      }));
+      tracker.mark('emit');
+    }
+
+    return result;
+  }
+
   const resolver: Resolver = {
     library,
 
-    async validate(input: unknown): Promise<ValidationResult> {
-      const { errors, warnings } = await runPipeline(input, 'validate');
+    async validate(input: unknown, options?: ResolveOptions): Promise<ValidationResult> {
+      const { errors, warnings } = await runPipeline(input, 'validate', options);
 
       return { ok: errors.length === 0, errors, warnings };
     },
 
-    async resolve(input: unknown): Promise<ResolveResult> {
-      const { errors, warnings, elements, iconsInlined, icons, tracker } = await runPipeline(
-        input,
-        'resolve',
-      );
-      const ok = errors.length === 0;
-      const result: ResolveResult = {
-        ok,
-        errors,
-        warnings,
-        meta: {
-          elementCount: elements.length,
-          iconsInlined,
-          timingsMs: tracker.timings,
-        },
-      };
+    async resolve(input: unknown, options?: ResolveOptions): Promise<ResolveResult> {
+      return toResolveResult(await runPipeline(input, 'resolve', options));
+    },
 
-      if (ok) {
-        // emit: resolved data only. Markup is the browser render stage's job.
-        tracker.reset();
-        const payload = buildResolvedPayload(elements, compiled.containers);
-        result.entities = payload.entities;
-        result.connections = payload.connections;
-        result.icons = icons;
-        result.authored = elements.map(({ kind, element, source }) => ({
-          id: element.id as string,
-          kind,
-          source,
-        }));
-        tracker.mark('emit');
-      }
-
-      return result;
+    resolveForLayout(input: unknown, options?: ResolveOptions): ResolveResult {
+      return toResolveResult(runPipelineForLayout(input, options));
     },
 
     registryInfo(): RegistryInfo {

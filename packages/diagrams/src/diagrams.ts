@@ -8,6 +8,7 @@ import { TimeTracker } from '@eraserlabs/utils';
 import {
   createResolver,
   type AuthoredConnection,
+  type CodeHighlighter,
   type AuthoredEntity,
   type AuthoredLibrary,
   type AuthoredRecord,
@@ -52,6 +53,8 @@ interface CommonRendererOptions {
   iconLoader?: IconLoader;
   fonts?: FontsConfig;
   onUnknownIcon?: 'placeholder' | 'error';
+  /** Syntax highlighting for fenced code blocks (the resolver's `highlightCode`). Without it, code is plain. */
+  highlightCode?: CodeHighlighter;
   /** Warm page pool size. */
   pages?: number;
   /** Pixel density used for Chromium screenshots. */
@@ -275,6 +278,7 @@ export async function createRenderer(options: RendererOptions): Promise<Renderer
     // Default to the public Eraser icon bucket; a fetch failure degrades to placeholder + warning.
     iconLoader: options.iconLoader ?? createEraserIconLoader(),
     ...(options.onUnknownIcon ? { onUnknownIcon: options.onUnknownIcon } : {}),
+    ...(options.highlightCode ? { highlightCode: options.highlightCode } : {}),
   });
 
   const staged: StagedFonts = await stageFonts(options.fonts ?? eraserFonts());

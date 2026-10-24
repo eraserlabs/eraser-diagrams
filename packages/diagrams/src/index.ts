@@ -92,4 +92,6 @@ export {
   type TagInfo,
   type IconLoader,
   type ElementNormalizer,
+  type CodeHighlighter,
+  type HighlightedRun,
 } from '@eraserlabs/resolve';
