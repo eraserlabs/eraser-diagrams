@@ -69,9 +69,21 @@ svg[stroke='currentColor'] {
 .er-md ul > li::marker {
   content: '• ';
 }
+/* Inline code as the Eraser canvas draws it: a pill with side padding, a hairline edge and a ground of its own
+   (the app's typography `code` and its notepad's inline code: grey-400 edge, grey-200 ground). The padding and the
+   edge take room, so a text measures as it draws. A block's code takes none of it (`.er-md pre code` below). A host
+   in a dark theme marks a container `data-er-theme="dark"`; a host can also set the two colours itself. */
 .er-md code {
+  padding: 0 5px;
+  border: 1px solid var(--er-code-edge, #f1f1f1);
+  border-radius: 5px;
+  background: var(--er-code-ground, #fafafa);
   font-family: var(--font-mono, monospace);
   font-size: calc(1em * 13 / 15);
+}
+[data-er-theme='dark'] {
+  --er-code-edge: #3a3a3a;
+  --er-code-ground: #242424;
 }
 .er-md a {
   color: #457fe5;
@@ -143,39 +155,43 @@ svg[stroke='currentColor'] {
    light theme. Zero specificity: a host's own highlight.js theme wins, as the canvas's GitHub Dark Dimmed does in
    dark mode. */
 :where(
-    .er-md .hljs-doctag,
-    .er-md .hljs-keyword,
-    .er-md .hljs-meta .hljs-keyword,
-    .er-md .hljs-template-tag,
-    .er-md .hljs-template-variable,
-    .er-md .hljs-type,
-    .er-md .hljs-variable.language_
-  ) {
+  .er-md .hljs-doctag,
+  .er-md .hljs-keyword,
+  .er-md .hljs-meta .hljs-keyword,
+  .er-md .hljs-template-tag,
+  .er-md .hljs-template-variable,
+  .er-md .hljs-type,
+  .er-md .hljs-variable.language_
+) {
   color: #d73a49;
 }
 :where(
-    .er-md .hljs-title,
-    .er-md .hljs-title.class_,
-    .er-md .hljs-title.class_.inherited__,
-    .er-md .hljs-title.function_
-  ) {
+  .er-md .hljs-title,
+  .er-md .hljs-title.class_,
+  .er-md .hljs-title.class_.inherited__,
+  .er-md .hljs-title.function_
+) {
   color: #6f42c1;
 }
 :where(
-    .er-md .hljs-attr,
-    .er-md .hljs-attribute,
-    .er-md .hljs-literal,
-    .er-md .hljs-meta,
-    .er-md .hljs-number,
-    .er-md .hljs-operator,
-    .er-md .hljs-variable,
-    .er-md .hljs-selector-attr,
-    .er-md .hljs-selector-class,
-    .er-md .hljs-selector-id
-  ) {
+  .er-md .hljs-attr,
+  .er-md .hljs-attribute,
+  .er-md .hljs-literal,
+  .er-md .hljs-meta,
+  .er-md .hljs-number,
+  .er-md .hljs-operator,
+  .er-md .hljs-variable,
+  .er-md .hljs-selector-attr,
+  .er-md .hljs-selector-class,
+  .er-md .hljs-selector-id
+) {
   color: #005cc5;
 }
-:where(.er-md .hljs-regexp, .er-md .hljs-string, .er-md .hljs-meta .hljs-string) {
+:where(
+  .er-md .hljs-regexp,
+  .er-md .hljs-string,
+  .er-md .hljs-meta .hljs-string
+) {
   color: #032f62;
 }
 :where(.er-md .hljs-built_in, .er-md .hljs-symbol) {
@@ -185,11 +201,11 @@ svg[stroke='currentColor'] {
   color: #6a737d;
 }
 :where(
-    .er-md .hljs-name,
-    .er-md .hljs-quote,
-    .er-md .hljs-selector-tag,
-    .er-md .hljs-selector-pseudo
-  ) {
+  .er-md .hljs-name,
+  .er-md .hljs-quote,
+  .er-md .hljs-selector-tag,
+  .er-md .hljs-selector-pseudo
+) {
   color: #22863a;
 }
 :where(.er-md .hljs-subst) {
