@@ -1,77 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import type { NormalizerContext, Theme } from '@eraserlabs/resolve';
 import { stockNormalizers } from '../src/normalizers.js';
-import { STOCK_PALETTE } from '../src/schema/palette.js';
-import { scaleForTheme } from '../src/canvasColors.js';
 
-/**
- * A Shape as the resolver hands it to the normalizer: `x-palette` has swapped an authored token for its identity
- * colour on the clone, and the context still knows the token from the authored source.
- */
-function shape(
-  authored: Record<string, unknown>,
-  theme: Theme = 'light',
-  palette: Record<string, string> = STOCK_PALETTE,
-): Record<string, unknown> {
-  const element: Record<string, unknown> = {
+function shape(authored: Record<string, unknown>): Record<string, unknown> {
+  const element = {
     tag: 'Shape',
     id: 's',
-    x: 0,
-    y: 0,
     width: 180,
     height: 80,
     texts: [{ text: 'API' }],
     ...structuredClone(authored),
   };
-  if (typeof authored.color === 'string' && authored.color in palette) {
-    element.color = palette[authored.color];
-  }
-  const context: NormalizerContext = {
-    theme,
-    paletteToken: (key) => {
-      const value = authored[key];
-      return typeof value === 'string' && value in palette ? value : undefined;
-    },
-  };
-  stockNormalizers.Shape!(element, context);
+  stockNormalizers.Shape!(element);
   return element;
 }
 
-describe('Shape paint, as the Eraser canvas paints a shape', () => {
-  it('a hex colour is a solid fill with a darker border in its hue, and white ink on it', () => {
-    const s = shape({ color: '#1168BD' });
-    expect([s.bgColor, s.borderColor, s.bodyInk, s.textInk]).toEqual([
-      '#1168BD',
-      '#2267ac',
-      '#ffffff',
-      '#242424',
-    ]);
-  });
-
-  it("a palette colour is the canvas pastel, the stylesheet's identity hairline, the default ink", () => {
-    const s = shape({ color: 'blue' });
-    expect([s.color, s.bgColor, s.borderColor, s.bodyInk]).toEqual([
-      '#2866c4',
-      '#c7dcfc',
-      undefined,
-      '#242424',
-    ]);
-  });
-
-  it("a palette colour the library changed is filled from the library's palette, not the stock swatch", () => {
-    const red = shape({ color: 'blue' }, 'light', { ...STOCK_PALETTE, blue: '#bd413a' });
-    expect(red.color).toBe('#bd413a');
-    expect(red.bgColor).not.toBe('#c7dcfc');
-    // the pastel of the library's colour: its hue (red), at the pastel lightness
-    const [r, g, b] = [1, 3, 5].map((i) => Number.parseInt(String(red.bgColor).slice(i, i + 2), 16));
-    expect(r).toBeGreaterThan(g!);
-    expect(r).toBeGreaterThan(b!);
-    expect(Math.min(r!, g!, b!)).toBeGreaterThan(180);
-  });
-
-  it('the same colour written as hex is solid: the token, not the value, makes the pastel', () => {
-    expect(shape({ color: '#2866c4' }).bgColor).toBe('#2866c4');
-  });
+describe('Shape paint', () => {
+  it.each(['#00FFFF', '#2866c4', 'hsl(180, 100%, 50%)', 'rgb(0, 255, 255)'])(
+    'leaves identity paint to the template: %s',
+    (color) => {
+      const s = shape({ color });
+      expect(s.color).toBe(color);
+      expect(s.bgColor).toBeUndefined();
+      expect(s.borderColor).toBeUndefined();
+      expect(s.bodyInk).toBeUndefined();
+    },
+  );
 
   it('an authored fill and border win, raw CSS as the schema reads them; a dark fill inks white', () => {
     expect(shape({ color: '#1168BD', bgColor: '#ffffff', borderColor: '#ff0000' })).toMatchObject({
@@ -95,37 +48,12 @@ describe('Shape paint, as the Eraser canvas paints a shape', () => {
 
   it('no colour: nothing written in light mode, the template defaults draw it', () => {
     const s = shape({});
-    expect([s.bgColor, s.borderColor, s.bodyInk, s.textInk, s.tintColor, s.shadowColor]).toEqual([
+    expect([s.bgColor, s.borderColor, s.bodyInk, s.textInk, s.tintColor]).toEqual([
       undefined,
       undefined,
       undefined,
       undefined,
       undefined,
-      undefined,
-    ]);
-  });
-
-  it('dark: every colour, the defaults among them, scaled as the canvas scales it', () => {
-    const navy = shape({ bgColor: '#08427B', texts: [{ text: 'A' }, { text: 'b', color: '#000000' }] }, 'dark');
-    expect(navy).toMatchObject({
-      bgColor: '#85bff8',
-      // the ink is chosen on the authored fill (white on navy), then scaled: dark on the scaled light blue
-      bodyInk: scaleForTheme('#ffffff', 'dark'),
-      borderColor: scaleForTheme('#242424', 'dark'),
-      shadowColor: scaleForTheme('#e8e8e8', 'dark'),
-    });
-    expect((navy.texts as { color?: string }[])[1]!.color).toBe('#ffffff');
-    // a hex shape in dark mode, against the canvas (chroma-js): the solid fill scaled, the border derived on the
-    // authored fill then scaled, the white ink scaled
-    const hex = shape({ color: '#1168BD' }, 'dark');
-    expect([hex.bgColor, hex.borderColor, hex.bodyInk]).toEqual(['#449bf0', '#579ce2', '#171717']);
-    const palette = shape({ color: 'blue' }, 'dark');
-    expect([palette.bgColor, palette.borderColor]).toEqual(['#21385b', '#407edd']);
-    const plain = shape({}, 'dark');
-    expect([plain.bgColor, plain.bodyInk, plain.tintColor]).toEqual([
-      undefined,
-      '#e2e2e2',
-      '#171717',
     ]);
   });
 });

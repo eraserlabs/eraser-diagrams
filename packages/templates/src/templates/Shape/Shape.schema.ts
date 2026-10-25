@@ -29,8 +29,6 @@ export const Shape = entitySchema(
     bodyInk: CssColor,
     /** Derived: the fill's near-white tint, published to nested mounts (the Badge's ground). */
     tintColor: CssColor,
-    /** Derived (dark theme): the hard shadow's colour, scaled. */
-    shadowColor: CssColor,
     vAlign: { type: 'string', enum: [...V_ALIGNS], default: 'middle' },
     /** Extra px clearance for top/bottom-aligned content. */
     vMargin: { type: 'number' },

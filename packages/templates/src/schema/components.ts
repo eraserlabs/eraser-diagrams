@@ -28,12 +28,13 @@ export const CornerRadius: JsonSchema = {
 
 /**
  * Identity/stroke trio. `color` is the identity; body/hairline/tint formulas derive from it in
- * CSS. `bgColor` / `borderColor` are raw paint that outrank those formulas.
+ * CSS. All three resolve palette tokens; `bgColor` / `borderColor` then paint the resolved value
+ * directly, overriding those formulas.
  */
 export const ShapeStyleProps: Record<string, JsonSchema> = {
   color: PaletteColor,
-  bgColor: CssColor,
-  borderColor: CssColor,
+  bgColor: PaletteColor,
+  borderColor: PaletteColor,
   styleMode: { type: 'string', enum: [...STYLE_MODES], default: 'shadow' },
   cornerRadius: CornerRadius,
   borderStyle: { type: 'string', enum: [...BORDER_STYLES] },

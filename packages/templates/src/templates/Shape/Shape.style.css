@@ -23,7 +23,7 @@
      (getIconBadgePosition): --er-badge-tl-x / -y are its left edge and vertical centre. */
   --er-badge-tint: var(--er-ground, #ffffff);
   --er-host-ink: currentColor;
-  /* The hard shadow; a dark theme writes its scaled colour (data-shadow). */
+  /* The hard shadow. */
   --er-shadow: #e8e8e8;
   --er-host-border-width: 1.2px;
   --er-host-border-style: solid;
@@ -74,8 +74,8 @@
 .er-shape[data-text-ink]:not([data-text-ink='']) {
   --er-host-ink: var(--er-text-ink);
 }
-/* The colours the normalizer wrote for the fill and the theme: the ink of a run with no colour of
-   its own (white on a dark fill), the fill's near-white tint, the shadow. Later in source than the
+/* The colours the normalizer wrote for the fill: the ink of a run with no colour of
+   its own (white on a dark fill) and the fill's near-white tint. Later in source than the
    identity and paint formulas above, at the same specificity, so they win. */
 .er-shape[data-body-ink]:not([data-body-ink='']) {
   color: var(--er-body-ink);
@@ -83,9 +83,6 @@
 .er-shape[data-tint]:not([data-tint='']) {
   --er-tint: var(--er-tint-color);
   --er-badge-tint: var(--er-tint-color);
-}
-.er-shape[data-shadow]:not([data-shadow='']) {
-  --er-shadow: var(--er-shadow-color);
 }
 .er-shape[data-border='dashed'] {
   --er-host-border-style: dashed;

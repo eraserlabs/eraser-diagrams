@@ -15,10 +15,9 @@
     data-text-ink="{{textInk}}"
     data-body-ink="{{bodyInk}}"
     data-tint="{{tintColor}}"
-    data-shadow="{{shadowColor}}"
     data-washtex-css="{{washTexCss}}"
     data-washtex-geo="{{washTexGeo}}"
-    style="--er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-text-ink: {{textInk}}; --er-body-ink: {{bodyInk}}; --er-tint-color: {{tintColor}}; --er-shadow-color: {{shadowColor}}; --er-icon-pad: {{iconPadding}}px; --er-icon-ink: {{iconColor}}; --er-v-margin: {{vMargin}}px; --er-font-px: {{fontSize}}px; --er-font-num: {{fontSize}}"
+    style="--er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-text-ink: {{textInk}}; --er-body-ink: {{bodyInk}}; --er-tint-color: {{tintColor}}; --er-icon-pad: {{iconPadding}}px; --er-icon-ink: {{iconColor}}; --er-v-margin: {{vMargin}}px; --er-font-px: {{fontSize}}px; --er-font-num: {{fontSize}}"
   >
     <svg
       class="er-shape__geo er-shape__geo--dynamic"
@@ -185,8 +184,9 @@
           data-h-align="{{t.hAlign}}"
           data-run-px="{{t.fontSize}}"
           style="--f: var(--font-{{t.typeface}}, var(--font-clean)); --er-ink: {{t.color}}; --er-run-px: {{t.fontSize}}px"
-        >{{t.text}}</div
         >
+          {{t.text}}
+        </div>
       </div>
     </div>
     <span data-use="Badge" data-props="badge" data-if="badge"></span>

@@ -1,19 +1,5 @@
-import {
-  colorToHex,
-  primaryTextRun,
-  type ElementNormalizer,
-  type NormalizerContext,
-} from '@eraserlabs/resolve';
-import {
-  alphaOf,
-  borderFromFill,
-  CANVAS_INK,
-  CANVAS_SHADOW,
-  inkForFill,
-  scaleForTheme,
-  tintOf,
-} from './canvasColors.js';
-import { STOCK_PALETTE, STOCK_PASTEL } from './schema/palette.js';
+import { colorToHex, primaryTextRun, type ElementNormalizer } from '@eraserlabs/resolve';
+import { alphaOf, CANVAS_INK, inkForFill, tintOf } from './canvasColors.js';
 import { washTextureProps } from './watercolorTexture.js';
 import { roundedShapePath } from './roundedPolygon.js';
 import { curvedShapePath } from './curvedShapePaths.js';
@@ -82,98 +68,26 @@ const isPaint = (value: string | undefined): value is string =>
   value !== undefined && colorToHex(value) !== null && alphaOf(value) > 0.5;
 
 /**
- * A Shape's colours as the Eraser canvas paints them (freeform getFreeformShapeProperties, shape.ts), written for the
- * theme as the final values the template binds:
- *
- * - `bgColor`: the authored fill (raw CSS, as the schema reads it), else a palette `color`'s pastel (paletteFill: the
- *   library's palette colour, the stock swatch only while that colour is the stock one), else a raw `color` itself: a
- *   hex shape is solid, not the 85% tint of the identity formulas;
- * - `borderColor`: the authored border, else a border in a raw `color`'s hue; a palette `color` keeps the identity
- *   hairline of the stylesheet (written out only in dark mode, to scale it);
- * - `bodyInk`: the ink of a run with no colour of its own: the primary run's colour, else white on a dark fill and the
- *   default ink on a light one (textColorFromPrimary);
- * - `textInk`: what a nested mount (the Badge) inks with: the primary run's colour, else the default ink;
- * - `tintColor`: the fill's near-white tint (the Badge's ground).
- *
- * The palette name comes from the authored source (`context.paletteToken`): the `x-palette` step has swapped it for the
- * identity colour, which alone cannot tell `blue` from `#2866c4`. Dark: every colour, the defaults (ink, stroke, the
- * shadow, the ground) among them, is scaled as the canvas scales it in dark mode (scaleForTheme).
+ * Derive readable ink and nested badge colors from an explicit fill. The template owns the
+ * identity treatment: `color` supplies the border and a lighter background, while `bgColor`
+ * and `borderColor` override those paints. Palette tokens have already resolved to CSS colors,
+ * so their treatment is identical to literal colors.
  */
-/**
- * A palette `color`'s fill, from the library's palette (`color` is the palette's colour for the token: the `x-palette`
- * step swapped it in). The stock token at its stock colour keeps the stock swatch (STOCK_PASTEL); a colour the library
- * changed is lightened to the pastel lightness, its hue kept. A colour that is no hex is its own fill.
- */
-function paletteFill(token: string, color: string | undefined): string | undefined {
-  if (color === undefined || color === STOCK_PALETTE[token]) {
-    return STOCK_PASTEL[token] ?? color;
-  }
-
-  return atLightness(colorToHex(color) ?? color, PASTEL_LIGHTNESS) ?? color;
-}
-
-function deriveShapePaint(element: Record<string, unknown>, context: NormalizerContext): void {
-  const { theme } = context;
-  const color = stringOr(element.color);
-  const colorToken = context.paletteToken('color');
-  const solid = colorToken === undefined && isPaint(color) ? color : undefined;
-  const fill =
-    stringOr(element.bgColor) ??
-    (colorToken !== undefined ? paletteFill(colorToken, color) : solid);
-  const border =
-    stringOr(element.borderColor) ?? (solid !== undefined ? borderFromFill(solid) : undefined);
+function deriveShapePaint(element: Record<string, unknown>): void {
+  const fill = stringOr(element.bgColor);
   const runInk = stringOr(primaryTextRun(element)?.color);
-  const fillInk = isPaint(fill) ? inkForFill(fill) : undefined;
-  const bodyInk = runInk ?? fillInk;
+  const bodyInk = runInk ?? (isPaint(fill) ? inkForFill(fill) : undefined);
   const textInk = runInk ?? (bodyInk !== undefined ? CANVAS_INK : undefined);
   const tint = isPaint(fill) ? tintOf(fill) : undefined;
-  const scale = (value: string): string => scaleForTheme(value, theme);
 
-  if (fill !== undefined) {
-    element.bgColor = scale(fill);
+  if (bodyInk !== undefined) {
+    element.bodyInk = bodyInk;
   }
-
-  if (theme === 'light') {
-    if (border !== undefined) {
-      element.borderColor = border;
-    }
-
-    if (bodyInk !== undefined) {
-      element.bodyInk = bodyInk;
-    }
-
-    if (textInk !== undefined) {
-      element.textInk = textInk;
-    }
-
-    if (tint !== undefined) {
-      element.tintColor = tint;
-    }
-
-    return;
+  if (textInk !== undefined) {
+    element.textInk = textInk;
   }
-
-  // dark: the defaults too, as the canvas scales its own ink, stroke, ground and shadow
-  if (color !== undefined) {
-    element.color = scale(color);
-  }
-
-  element.borderColor = scale(border ?? (colorToken !== undefined ? color : undefined) ?? CANVAS_INK);
-  element.bodyInk = scale(bodyInk ?? CANVAS_INK);
-  element.textInk = scale(textInk ?? CANVAS_INK);
-  element.tintColor = scale(tint ?? '#ffffff');
-  element.shadowColor = scale(CANVAS_SHADOW);
-
-  if (typeof element.iconColor === 'string') {
-    element.iconColor = scale(element.iconColor);
-  }
-
-  if (Array.isArray(element.texts)) {
-    for (const run of element.texts as Record<string, unknown>[]) {
-      if (run !== null && typeof run === 'object' && typeof run.color === 'string') {
-        run.color = scale(run.color);
-      }
-    }
+  if (tint !== undefined) {
+    element.tintColor = tint;
   }
 }
 
@@ -349,7 +263,7 @@ function deriveLineWidth(element: Record<string, unknown>): void {
       : CONNECTION_STROKE_PX;
 }
 
-const normalizeShape: ElementNormalizer = (element, context) => {
+const normalizeShape: ElementNormalizer = (element) => {
   element.vMargin =
     typeof element.vMargin === 'number' && Number.isFinite(element.vMargin)
       ? Math.max(0, element.vMargin)
@@ -357,9 +271,8 @@ const normalizeShape: ElementNormalizer = (element, context) => {
   element.textAspectRatio = TEXT_ASPECT_BY_SHAPE[String(element.shape)] ?? 1;
   // Geo before watercolor: texture mode clips the master to the dynamic geometry path.
   deriveGeo(element);
-  // The glyph ink before the paint, which scales it in dark mode; the paint before watercolor, whose pigment is the fill
   deriveShapeIconColor(element);
-  deriveShapePaint(element, context);
+  deriveShapePaint(element);
   deriveWatercolor(element);
   deriveOutline(element);
 };

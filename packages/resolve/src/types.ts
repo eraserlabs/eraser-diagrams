@@ -2,7 +2,7 @@ import type { TemplateFile } from '@eraserlabs/protocol';
 import type { ElementKind } from '@eraserlabs/protocol/schema';
 import type { ValidationResult, ResolveResult, RegistryInfo } from './result-types.js';
 import type { PolicyKind, ContentPolicy } from './schema/keywords.js';
-import type { ElementNormalizer, Theme } from './pipeline/derive.js';
+import type { ElementNormalizer } from './pipeline/derive.js';
 
 /**
  * Loads one icon's raw SVG source by name. Rejects (or throws) when the icon does not exist or
@@ -147,8 +147,6 @@ export interface AuthoredRecord {
 export interface ResolveOptions {
   /** Allow references to elements outside this input; present targets and all other validation still apply. */
   partial?: boolean;
-  /** The theme the normalizers write colours for (see {@link Theme}). Default `light`. */
-  theme?: Theme;
 }
 
 export interface Resolver {

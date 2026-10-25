@@ -72,7 +72,7 @@ svg[stroke='currentColor'] {
 /* Inline code as the Eraser canvas draws it: a pill with side padding, a hairline edge and a ground of its own
    (the app's typography `code` and its notepad's inline code: grey-400 edge, grey-200 ground). The padding and the
    edge take room, so a text measures as it draws. A block's code takes none of it (`.er-md pre code` below). A host
-   in a dark theme marks a container `data-er-theme="dark"`; a host can also set the two colours itself. */
+   can override the two colors with CSS variables. */
 .er-md code {
   padding: 0 5px;
   border: 1px solid var(--er-code-edge, #f1f1f1);
@@ -80,10 +80,6 @@ svg[stroke='currentColor'] {
   background: var(--er-code-ground, #fafafa);
   font-family: var(--font-mono, monospace);
   font-size: calc(1em * 13 / 15);
-}
-[data-er-theme='dark'] {
-  --er-code-edge: #3a3a3a;
-  --er-code-ground: #242424;
 }
 .er-md a {
   color: #457fe5;
@@ -152,8 +148,7 @@ svg[stroke='currentColor'] {
 }
 /* A code block's tokens, coloured as the Eraser canvas colours them. resolve writes the highlight.js classes
    (codeHighlight.ts); the colours are highlight.js's GitHub theme (styles/github.css, BSD-3-Clause), the canvas's
-   light theme. Zero specificity: a host's own highlight.js theme wins, as the canvas's GitHub Dark Dimmed does in
-   dark mode. */
+   light theme. Zero specificity lets a host's own highlight.js stylesheet override these colors. */
 :where(
   .er-md .hljs-doctag,
   .er-md .hljs-keyword,

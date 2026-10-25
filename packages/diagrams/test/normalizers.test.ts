@@ -15,20 +15,18 @@ async function resolveProps(element: Record<string, unknown>): Promise<Record<st
   return allElements(r)[0]!.props;
 }
 
-describe('x-palette translation — one identity value; a Shape fill as the Eraser canvas paints it', () => {
-  it('Shape: a palette token becomes its palette color, in place; the body is the canvas pastel', async () => {
+describe('x-palette translation — one identity value, template-derived fills', () => {
+  it('Shape: a palette token becomes its palette color; the template derives its fill', async () => {
     const props = await resolveProps({ tag: 'Shape', id: 's', x: 0, y: 0, color: 'blue' });
     expect(props.color).toBe('#2866c4');
-    // The canvas fills a palette Shape with its pastel swatch, not the 85% tint of the identity; the hairline stays
-    // the stylesheet's formula over the identity.
-    expect(props.bgColor).toBe('#c7dcfc');
+    expect(props.bgColor).toBeUndefined();
     expect(props.borderColor).toBeUndefined();
   });
 
-  it('a raw CSS color passes through, and a Shape is filled with it solid, as the canvas fills a hex shape', async () => {
+  it('a literal color passes through for the same template-derived fill', async () => {
     const props = await resolveProps({ tag: 'Shape', id: 's', x: 0, y: 0, color: 'peachpuff' });
     expect(props.color).toBe('peachpuff');
-    expect(props.bgColor).toBe('peachpuff');
+    expect(props.bgColor).toBeUndefined();
   });
 
   it('a string that is neither errors, with a did-you-mean over the token names', async () => {
@@ -42,12 +40,11 @@ describe('x-palette translation — one identity value; a Shape fill as the Eras
     expect(r.errors[0]?.suggestion).toBe('blue');
   });
 
-  it('bgColor / borderColor are raw CSS only — a token name is not a color', async () => {
+  it('bgColor / borderColor resolve palette tokens but preserve literal paints', async () => {
     const raw = await resolveProps({ tag: 'Shape', id: 's', x: 0, y: 0, bgColor: '#123456' });
     expect(raw.bgColor).toBe('#123456');
 
-    // "red" and "yellow" are CSS named colors too, so they stay themselves rather than
-    // resolving to the palette identity they used to alias.
+    // Palette names take precedence over CSS names; use hex for an exact literal.
     const named = await resolveProps({
       tag: 'Shape',
       id: 's2',
@@ -56,8 +53,8 @@ describe('x-palette translation — one identity value; a Shape fill as the Eras
       bgColor: 'red',
       borderColor: 'yellow',
     });
-    expect(named.bgColor).toBe('red');
-    expect(named.borderColor).toBe('yellow');
+    expect(named.bgColor).toBe(STOCK_PALETTE.red);
+    expect(named.borderColor).toBe(STOCK_PALETTE.yellow);
   });
 
   it('Shape: absent shape, styleMode, and vAlign come from the schema', async () => {
