@@ -4,14 +4,15 @@
 /* Text sizing (see CUSTOMIZATION.md): sizes are pixels only — this slot's literal default, or
    an authored `fontSize` through the gated data-font-px + --er-font-px idiom. */
 .er-grouplike {
+  --er-fill-lightness: 98%;
   /* Identity treatment, one authored `color` (see Shape.style.css for the shared model). A group
      body is the near-white 98% lightness tint, not the shape pastel; the raised title surface is
      the 85% step of the body (same hue/saturation as the identity). */
   --er-border-width: 1px;
   --er-radius: 6px;
   --er-fill: transparent;
-  --er-stroke: #242424;
-  --er-tint: #ffffff;
+  --er-stroke: var(--er-text);
+  --er-tint: var(--er-surface);
   --er-title-surface: transparent;
   --er-title-paint: transparent;
   /* Title-band icon buckets; unitless px so base.style.css can divide for the stroke-width
@@ -28,16 +29,16 @@
   box-sizing: border-box;
 }
 .er-grouplike[data-color]:not([data-color='']) {
-  --er-fill: hsl(from var(--er-color) h s 98%);
+  --er-fill: var(--er-fill-color);
   --er-stroke: var(--er-color);
-  --er-tint: hsl(from var(--er-color) h s 98%);
-  --er-title-surface: hsl(from var(--er-color) h s 85%);
+  --er-tint: var(--er-tint-color);
+  --er-title-surface: var(--er-title-surface-color);
 }
 /* Authored paint outranks the identity formulas — same specificity, later in source order. */
 .er-grouplike[data-bg]:not([data-bg='']) {
   --er-fill: var(--er-bg);
-  --er-tint: hsl(from var(--er-bg) h s 98%);
-  --er-title-surface: hsl(from var(--er-bg) h s 85%);
+  --er-tint: var(--er-tint-color);
+  --er-title-surface: var(--er-title-surface-color);
 }
 .er-grouplike[data-border-color]:not([data-border-color='']) {
   --er-stroke: var(--er-border);
@@ -47,11 +48,11 @@
 .er-grouplike[data-bg='transparent']:not([data-bg='']),
 .er-grouplike[data-bg='none']:not([data-bg='']) {
   --er-fill: transparent;
-  --er-tint: #ffffff;
+  --er-tint: var(--er-surface);
   --er-title-surface: transparent;
 }
 .er-grouplike[data-style='shadow'] {
-  box-shadow: 4px 4px 0 0 #e8e8e8;
+  box-shadow: 4px 4px 0 0 var(--er-shadow);
 }
 /* Watercolor: the wash mount, faint smudged border, and texture fill-drop are shared with Lane
    and Pool, so they live in base.style.css under the er-grouplike/er-washtex family. */
@@ -107,7 +108,7 @@
   font-size: 16px;
   font-weight: 400;
   letter-spacing: -0.01em;
-  color: #242424;
+  color: var(--er-text);
   box-sizing: border-box;
 }
 .er-grouplike[data-title-ink]:not([data-title-ink='']) .er-grouplike__title {
@@ -335,4 +336,16 @@
   .er-grouplike__title {
   border-top-left-radius: inherit;
   border-bottom-left-radius: inherit;
+}
+
+/* currentColor is inherited at paint time, so concrete resolve-time tinting cannot read it.
+   Preserve relative tinting in light mode; semantic dark surfaces keep it legible. */
+.er-grouplike[data-color='currentColor' i]:not([data-color=''])[data-bg=''] {
+  --er-fill: var(--er-inherited-tint);
+}
+.er-grouplike[data-color='currentColor' i]:not([data-color=''])[data-bg=''],
+.er-grouplike[data-bg='currentColor' i]:not([data-bg='']) {
+  --er-tint: var(--er-inherited-tint);
+  --er-badge-tint: var(--er-inherited-tint);
+  --er-title-surface: var(--er-inherited-pastel);
 }

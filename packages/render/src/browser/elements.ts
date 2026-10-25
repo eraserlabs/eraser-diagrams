@@ -55,7 +55,11 @@ export function createElementRenderer(setup: PageSetup): {
       const fill = createFillEngine({ templates: registry.templates, icons: request.icons });
       return {
         defs,
-        elements: elements.map(({ id, tag, props }) => ({ id, tag, html: fill(tag, props) })),
+        elements: elements.map(({ id, tag, props, theme }) => ({
+          id,
+          tag,
+          html: fill(tag, props, theme ?? request.theme),
+        })),
       };
     },
   };

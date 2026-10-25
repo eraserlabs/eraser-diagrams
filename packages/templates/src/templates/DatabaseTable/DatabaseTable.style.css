@@ -7,12 +7,13 @@
    and the 15px type/meta columns are fixed ratios of it, so one authored fontSize moves the whole
    ramp instead of flattening it. */
 .er-dbtable {
+  --er-fill-lightness: 98%;
   /* Identity treatment, one authored `color` (see Shape.style.css for the shared model). The
      identity drives the border, the row separators (92% lightness), and the face tint (98%,
      the same lightening groups use); an authored bgColor paints the face directly. */
-  --er-stroke: #737373;
-  --er-divider: #ebebeb;
-  --er-tint: #ffffff;
+  --er-stroke: var(--er-muted);
+  --er-divider: var(--er-separator);
+  --er-tint: var(--er-surface);
   --er-base: 17px;
   position: relative;
   display: flex;
@@ -27,15 +28,15 @@
   font-family: var(--f, var(--font-clean, sans-serif));
 }
 .er-dbtable[data-style='shadow'] {
-  box-shadow: 4px 4px 0 0 #e8e8e8;
+  box-shadow: 4px 4px 0 0 var(--er-shadow);
 }
 .er-dbtable[data-font-px]:not([data-font-px='']) {
   --er-base: var(--er-font-px);
 }
 .er-dbtable[data-color]:not([data-color='']) {
   --er-stroke: var(--er-color);
-  --er-divider: hsl(from var(--er-color) h s 92%);
-  --er-tint: hsl(from var(--er-color) h s 98%);
+  --er-divider: var(--er-divider-color);
+  --er-tint: var(--er-tint-color);
 }
 .er-dbtable[data-bg]:not([data-bg='']) {
   --er-tint: var(--er-bg);
@@ -83,7 +84,7 @@
   gap: 8px;
   min-height: 36px;
   padding: 0 10px;
-  background: #ffffff;
+  background: var(--er-surface);
   border-bottom: 1px solid var(--er-divider);
   box-sizing: border-box;
 }
@@ -99,7 +100,7 @@
   font-size: calc(var(--er-base) * 18 / 17);
   font-weight: 400;
   letter-spacing: -0.01em;
-  color: #242424;
+  color: var(--er-text);
   text-align: left;
 }
 .er-dbtable[data-h-align='center'] .er-dbtable__title {
@@ -113,7 +114,7 @@
   flex: 0 0 auto;
   width: 25px;
   height: 25px;
-  color: #454545;
+  color: var(--er-secondary);
   line-height: 0;
 }
 .er-dbtable__icon svg {
@@ -140,22 +141,31 @@
 }
 .er-dbtable__f-name {
   font-size: var(--er-base);
-  color: #2e2e2e;
+  color: var(--er-body-text);
 }
 .er-dbtable__f-type {
   flex: 1;
   text-align: right;
-  color: #737373;
+  color: var(--er-muted);
   font-family: var(--font-mono, monospace);
   font-size: calc(var(--er-base) * 15 / 17);
 }
 .er-dbtable__f-meta {
   text-align: right;
-  color: #737373;
+  color: var(--er-muted);
   font-family: var(--font-mono, monospace);
   font-size: calc(var(--er-base) * 15 / 17);
 }
 /* data-if does not execute inside data-each items — an absent meta substitutes empty. */
 .er-dbtable__f-meta:empty {
   display: none;
+}
+
+/* currentColor is inherited at paint time, so concrete resolve-time tinting cannot read it.
+   Preserve relative tinting in light mode; semantic dark surfaces keep it legible. */
+.er-dbtable[data-color='currentColor' i]:not([data-color=''])[data-bg=''] {
+  --er-tint: var(--er-inherited-tint);
+}
+.er-dbtable[data-color='currentColor' i]:not([data-color='']) {
+  --er-divider: var(--er-inherited-divider);
 }

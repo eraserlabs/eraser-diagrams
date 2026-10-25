@@ -1,4 +1,4 @@
-import type { ResolvedConnection, ResolvedEntity } from '@eraserlabs/protocol';
+import type { ResolvedConnection, ResolvedEntity, Theme } from '@eraserlabs/protocol';
 
 /** Page-lifetime configuration: injected once per page by the orchestrator, reused per request. */
 export interface PageSetup {
@@ -15,6 +15,8 @@ export interface PageSetup {
  * read off `x-schema-kind`, so nothing in the browser re-derives it.
  */
 export interface RunRequest {
+  /** Scene presentation; normally inherited from resolved elements. Useful for an empty scene. */
+  theme?: Theme;
   entities: ResolvedEntity[];
   connections: ResolvedConnection[];
   /** Icon name → sanitized SVG sidecar. */

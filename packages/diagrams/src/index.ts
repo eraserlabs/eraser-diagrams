@@ -79,6 +79,8 @@ export type { TemplateFile, FontsConfig, FontRoles, FontSource } from '@eraserla
 
 // Results, issues, and the callback shapes `RendererOptions` and `Renderer` are written against.
 export {
+  scaleColorForTheme,
+  setColorLightness,
   ERROR_CODE,
   WARNING_CODE,
   SEVERITY,
@@ -91,6 +93,7 @@ export {
   type RegistryInfo,
   type TagInfo,
   type IconLoader,
+  type Theme,
   type ElementNormalizer,
   type CodeHighlighter,
   type HighlightedRun,

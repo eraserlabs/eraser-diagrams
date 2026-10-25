@@ -177,53 +177,113 @@ const HSL = new RegExp(
   'i',
 );
 
-/**
- * A color canonicalized to `#rrggbb` for stages that need actual channel values without a DOM
- * (the watercolor pigment, notably): hex in every length (alpha dropped), `rgb()/rgba()`, and
- * the named colors. Null for everything else — `transparent`, `hsl()` and future functions have
- * no channel math here. Lives beside the validation grammar above so the two evolve together.
- */
-export function colorToHex(value: string): string | null {
-  const raw = value.trim().toLowerCase();
-  const named = NAMED_COLOR_HEX[raw];
+/** Concrete sRGB channels in 0..255, with alpha in 0..1. */
+export interface RgbaColor {
+  r: number;
+  g: number;
+  b: number;
+  alpha: number;
+}
 
-  if (named) {
-    return named;
+function clamp(value: number, max = 1): number {
+  return Math.max(0, Math.min(max, value));
+}
+
+function alphaChannel(part: string | undefined): number {
+  if (part === undefined) {
+    return 1;
   }
 
-  const hex = HEX.exec(raw);
+  return clamp(Number.parseFloat(part) / (part.endsWith('%') ? 100 : 1));
+}
+
+/**
+ * Reads every concrete color accepted by the validation grammar, without a DOM. Semantic
+ * keywords (`transparent`, `currentColor`) and unsupported expressions have no concrete channels.
+ * Fractional channels and alpha are preserved; callers choose their output precision.
+ */
+export function colorToRgba(value: string): RgbaColor | null {
+  const raw = value.trim().toLowerCase();
+  const named = NAMED_COLOR_HEX[raw];
+  const hex = HEX.exec(named ?? raw);
 
   if (hex) {
     const digits = hex[1]!;
+    const expanded =
+      digits.length < 6 ? [...digits].map((digit) => digit + digit).join('') : digits;
 
-    if (digits.length >= 6) {
-      return `#${digits.slice(0, 6)}`;
-    }
-
-    return `#${digits[0]}${digits[0]}${digits[1]}${digits[1]}${digits[2]}${digits[2]}`;
+    return {
+      r: Number.parseInt(expanded.slice(0, 2), 16),
+      g: Number.parseInt(expanded.slice(2, 4), 16),
+      b: Number.parseInt(expanded.slice(4, 6), 16),
+      alpha: expanded.length === 8 ? Number.parseInt(expanded.slice(6, 8), 16) / 255 : 1,
+    };
   }
 
-  const fn = RGB_CHANNELS.exec(raw);
+  const rgb = RGB_CHANNELS.exec(raw);
 
-  if (!fn) {
+  if (rgb) {
+    const channel = (part: string): number =>
+      clamp(
+        part.endsWith('%') ? (Number.parseFloat(part) / 100) * 255 : Number.parseFloat(part),
+        255,
+      );
+
+    return {
+      r: channel(rgb[1]!),
+      g: channel(rgb[2]!),
+      b: channel(rgb[3]!),
+      alpha: alphaChannel(rgb[4]),
+    };
+  }
+
+  const hsl = HSL_CHANNELS.exec(raw);
+
+  if (!hsl) {
     return null;
   }
 
-  const channel = (part: string): number => {
-    const num = Number.parseFloat(part);
-    const byte = part.endsWith('%') ? (num / 100) * 255 : num;
+  const hue = ((Number.parseFloat(hsl[1]!) % 360) + 360) % 360;
+  const saturation = clamp(Number.parseFloat(hsl[2]!) / 100);
+  const lightness = clamp(Number.parseFloat(hsl[3]!) / 100);
+  const amplitude = saturation * Math.min(lightness, 1 - lightness);
+  const channel = (offset: number): number => {
+    const k = (offset + hue / 30) % 12;
 
-    return Math.min(255, Math.max(0, Math.round(byte)));
+    return 255 * (lightness - amplitude * Math.max(-1, Math.min(k - 3, 9 - k, 1)));
   };
 
-  const packed = (1 << 24) | (channel(fn[1]!) << 16) | (channel(fn[2]!) << 8) | channel(fn[3]!);
-
-  return `#${packed.toString(16).slice(1)}`;
+  return {
+    r: channel(0),
+    g: channel(8),
+    b: channel(4),
+    alpha: alphaChannel(hsl[4]),
+  };
 }
 
-// The validating RGB regex above accepts without capturing channels; this twin captures them.
+/**
+ * A color canonicalized to `#rrggbb` for stages that need channel values without a DOM
+ * (notably watercolor pigment). Alpha is dropped. Semantic keywords return null.
+ */
+export function colorToHex(value: string): string | null {
+  const color = colorToRgba(value);
+
+  if (!color) {
+    return null;
+  }
+
+  return `#${[color.r, color.g, color.b]
+    .map((channel) => Math.round(channel).toString(16).padStart(2, '0'))
+    .join('')}`;
+}
+
+// Capture the same channels accepted by the validating expressions above.
 const RGB_CHANNELS = new RegExp(
-  String.raw`^rgba?\(\s*(${NUM})\s*,\s*(${NUM})\s*,\s*(${NUM})\s*(?:,\s*${NUM}\s*)?\)$`,
+  String.raw`^rgba?\(\s*(${NUM})\s*,\s*(${NUM})\s*,\s*(${NUM})\s*(?:,\s*(${NUM})\s*)?\)$`,
+  'i',
+);
+const HSL_CHANNELS = new RegExp(
+  String.raw`^hsla?\(\s*(-?\d*\.?\d+)(?:deg)?\s*,\s*(${PCT})\s*,\s*(${PCT})\s*(?:,\s*(${NUM})\s*)?\)$`,
   'i',
 );
 

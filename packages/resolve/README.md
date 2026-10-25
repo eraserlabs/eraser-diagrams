@@ -66,6 +66,16 @@ const result = await resolver.resolve(
 
 The same per-call option is available on `validate`. Only missing-reference errors are suppressed; reference values are preserved. Duplicate IDs, invalid schemas, references to included connections, references to included non-containers, containment cycles, sanitization and icon policy still apply. A subsequent call without the option remains strict. Partial results are for an editor's fragment renderer; they do not supply the missing geometry needed to route a complete scene.
 
+## Presentation themes
+
+Pass `resolve(input, { theme: 'dark' })` (or `resolveForLayout` with the same option) to prepare a dark presentation. Light is the default. Palette lookup and all normalizers run first; one schema-driven pass then transforms every declared CSS color, including nested text runs, badges, icon overrides, connection labels, and derived watercolor paints. Authored input and the `authored` sidecar remain unchanged. `validate` performs the same checks without preparing a presentation.
+
+The result and each resolved element carry their theme. Both the full browser renderer and `createElementRenderer` use that metadata automatically; the host does not add a DOM theme attribute. To change themes, resolve the original authored input again. Changing a DOM attribute alone only changes CSS defaults, not the already prepared explicit paints.
+
+Stock templates calculate their light-space surface colors before conversion (Shape 85% lightness, Group 98%, and their own title/badge treatments). Defaults, code chrome, links and syntax highlighting use theme-aware CSS variables. `scaleColorForTheme` and `setColorLightness` are exported for custom normalizers that derive light-space paints. Normalizers should not transform for the theme themselves: declare every output color as `CssColor` and let the shared pass do it once.
+
+Concrete hex, named, RGB/RGBA and HSL/HSLA colors share the same conversion and preserve alpha. `transparent` and `currentColor` retain their semantic meaning. A stock surface using inherited `currentColor` keeps its relative tint in light mode and uses a neutral themed surface in dark mode; use a concrete color for hue-preserving derived tints. Fixed colors inside multicolor SVG/image assets are left intact; monochrome icons using `currentColor` inherit their themed ink. Custom CSS should consume the library's semantic variables or provide its own theme-aware defaults.
+
 ## Diagram text
 
 Markdown is a small diagram-text surface: headings (drawn through level three), paragraphs, flat lists, simple blockquotes containing paragraph text and inline marks, horizontal rules, and top-level fenced code blocks. Inline marks include emphasis, strikethrough, code spans, and links. Nested block structures (such as headings, lists, or code fences inside quotes) are outside the supported contract; parser acceptance does not guarantee their presentation.

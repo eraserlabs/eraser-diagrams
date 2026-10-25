@@ -30,6 +30,12 @@ describe('the canvas colour rules', () => {
     });
   }
 
+  it('HSL and RGB spellings derive the same readable ink', () => {
+    expect(inkForFill('hsl(0, 0%, 100%)')).toBe(inkForFill('#ffffff'));
+    expect(inkForFill('hsl(0, 100%, 50%)')).toBe(inkForFill('#ff0000'));
+    expect(alphaOf('hsla(120, 100%, 50%, 0.25)')).toBe(0.25);
+  });
+
   it('a color with no channels has no derived ink', () => {
     expect(inkForFill('transparent')).toBeUndefined();
   });

@@ -24,14 +24,14 @@
      their stroke as --er-stroke / --er-host-border-width / --er-host-border-style; inheritance
      crosses the mount boundary even though the host's stylesheet cannot. Other hosts fall back
      to --er-tint (near-white), dark ink and the default 1px hairline. */
-  background: var(--er-badge-tint, var(--er-tint, #ffffff));
-  color: var(--er-host-ink, #242424);
+  background: var(--er-badge-tint, var(--er-tint, var(--er-surface)));
+  color: var(--er-host-ink, var(--er-text));
   /* Watercolor hosts publish --er-wc-ink-alpha (inherited across the mount boundary, same as
      the tint above); everywhere else the fallback keeps the ink at full strength. */
   border: var(--er-host-border-width, 1px) var(--er-host-border-style, solid)
     color-mix(
       in srgb,
-      var(--er-stroke, #242424) var(--er-wc-ink-alpha, 100%),
+      var(--er-stroke, var(--er-text)) var(--er-wc-ink-alpha, 100%),
       transparent
     );
   font-family: var(--font-clean, sans-serif);

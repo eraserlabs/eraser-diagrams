@@ -2,12 +2,13 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Page } from '@playwright/test';
-import type { ResolvedConnection, ResolvedEntity } from '@eraserlabs/protocol';
+import type { ResolvedConnection, ResolvedEntity, Theme } from '@eraserlabs/protocol';
 // Type-only: the window.__eraser global declaration for the evaluate callbacks below.
 import type { PageSetup, RunResult } from '@eraserlabs/render/browser';
 import {
   createResolver,
   type DiagramInput,
+  type CodeHighlighter,
   type AuthoredLibrary,
   type ElementNormalizer,
   type IconLoader,
@@ -22,6 +23,7 @@ import { injectFonts, prepareFontsRequest } from '../../src/fonts/inject.js';
 /** Build `window.__eraser` payloads straight from the resolver's data output. */
 
 export interface RenderPayload {
+  theme?: Theme;
   templates: PageSetup['templates'];
   baseCss: string;
   washMaster?: string;
@@ -51,6 +53,8 @@ export function readFixture(name: string): DiagramInput {
 }
 
 export interface BuildPayloadOptions {
+  highlightCode?: CodeHighlighter;
+  theme?: Theme;
   overrides?: TemplateOverrides;
   iconLoader?: IconLoader;
   /** Swap the whole vocabulary — the custom-library suite drives the pipeline with its own tags. */
@@ -64,14 +68,16 @@ export async function buildPayload(
   options: BuildPayloadOptions = {},
 ): Promise<{ payload: RenderPayload; result: ResolveResult }> {
   const resolver = await createResolver({
+    ...(options.highlightCode ? { highlightCode: options.highlightCode } : {}),
     library: options.library ?? stockLibrary,
     ...(options.overrides ? { overrides: options.overrides } : {}),
     normalizers: options.normalizers ?? stockNormalizers,
     iconLoader: options.iconLoader ?? stubIconLoader,
   });
-  const result = await resolver.resolve(input);
+  const result = await resolver.resolve(input, options.theme ? { theme: options.theme } : {});
   const pageSetup = buildRenderPageSetup(resolver.library);
   const payload: RenderPayload = {
+    ...(result.theme ? { theme: result.theme } : {}),
     templates: pageSetup.templates,
     baseCss: pageSetup.baseCss,
     ...(pageSetup.washMaster !== undefined ? { washMaster: pageSetup.washMaster } : {}),
@@ -103,6 +109,7 @@ export async function runPayload(
   }
 
   return page.evaluate((request) => window.__eraser.run(request), {
+    ...(payload.theme ? { theme: payload.theme } : {}),
     entities: payload.entities,
     connections: payload.connections,
     icons: payload.icons,

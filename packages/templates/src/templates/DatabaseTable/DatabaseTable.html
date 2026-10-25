@@ -7,12 +7,14 @@
     data-style="{{styleMode}}"
     data-font-px="{{fontSize}}"
     data-color="{{color}}"
+    data-tint-color="{{tintColor}}"
+    data-divider-color="{{dividerColor}}"
     data-bg="{{bgColor}}"
     data-border-color="{{borderColor}}"
     data-title-bg="{{titleBgColor}}"
     data-h-align="{{hAlign}}"
     data-washtex-css="{{washTexCss}}"
-    style="--er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-title-bg: {{titleBgColor}}; --er-font-px: {{fontSize}}px; --f: var(--font-{{typeface}}, var(--font-clean))"
+    style="--er-resolved-divider: {{dividerColor}}; --er-resolved-tint: {{tintColor}}; --er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-title-bg: {{titleBgColor}}; --er-font-px: {{fontSize}}px; --f: var(--font-{{typeface}}, var(--font-clean))"
   >
     <span class="er-washtex" data-if="washTexCss" aria-hidden="true"><svg
         width="100%"

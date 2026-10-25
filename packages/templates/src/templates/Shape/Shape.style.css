@@ -5,15 +5,14 @@
 /* Text sizing (see CUSTOMIZATION.md): sizes are pixels only. Each slot names its own --er-base;
    an authored `fontSize` arrives as gated data-font-px + --er-font-px and replaces it. */
 .er-shape {
-  /* One authored `color` reaches CSS as --er-color; every surface below it is a relative-color
-     lightness step over that value (keep hue + saturation, force lightness). Defaults are real
-     declarations, not var() fallbacks — an absent binding substitutes empty, which voids a
-     declaration rather than triggering a fallback, so each identity rule is gated on its own
-     attribute instead. */
+  --er-fill-lightness: 85%;
+  /* Normalizers derive concrete surface paints before the resolver themes them. Defaults are
+     real declarations: an absent binding substitutes empty, which voids a declaration rather
+     than triggering a var() fallback, so each paint rule is gated on its authored attribute. */
   --er-fill: transparent;
-  --er-stroke: #242424;
+  --er-stroke: var(--er-text);
   /* Near-white tint published to nested mounts. */
-  --er-tint: #ffffff;
+  --er-tint: var(--er-surface);
   /* What a mounted Badge inherits (the canvas badge.ts): background = the body at 98% lightness
      (getColorAtLightScale(bg, 1)), the ground itself when the body is transparent (--er-ground
      is the embedder's page colour, white when unset); text = the primary run's colour
@@ -21,10 +20,9 @@
      inherits its container's ink); border = this box's stroke: --er-stroke, the hairline width
      and the border style. The top-left badge sits on the outline per shape
      (getIconBadgePosition): --er-badge-tl-x / -y are its left edge and vertical centre. */
-  --er-badge-tint: var(--er-ground, #ffffff);
+  --er-badge-tint: var(--er-ground, var(--er-surface));
   --er-host-ink: currentColor;
   /* The hard shadow. */
-  --er-shadow: #e8e8e8;
   --er-host-border-width: 1.2px;
   --er-host-border-style: solid;
   --er-badge-tl-x: 12px;
@@ -43,14 +41,14 @@
   min-width: 0;
   min-height: 0;
   box-sizing: border-box;
-  color: #242424;
+  color: var(--er-text);
 }
 /* Identity: pastel body at 85% lightness, the identity colour itself as the hairline. */
 .er-shape[data-color]:not([data-color='']) {
-  --er-fill: hsl(from var(--er-color) h s 85%);
+  --er-fill: var(--er-fill-color);
   --er-stroke: var(--er-color);
-  --er-tint: hsl(from var(--er-color) h s 98%);
-  --er-badge-tint: hsl(from var(--er-color) h s 98%);
+  --er-tint: var(--er-tint-color);
+  --er-badge-tint: var(--er-tint-color);
 }
 /* Authored paint outranks the identity formulas. Every rule in this cascade is written
    `[attr]:not([attr=''])` and, in watercolor, with the mode qualifier as well, so within a mode
@@ -58,13 +56,13 @@
    `:not()` on the value-matching rules below is what keeps that true. */
 .er-shape[data-bg]:not([data-bg='']) {
   --er-fill: var(--er-bg);
-  --er-tint: hsl(from var(--er-bg) h s 98%);
-  --er-badge-tint: hsl(from var(--er-bg) h s 98%);
+  --er-tint: var(--er-tint-color);
+  --er-badge-tint: var(--er-tint-color);
 }
 .er-shape[data-bg='transparent']:not([data-bg='']),
 .er-shape[data-bg='none']:not([data-bg='']) {
-  --er-tint: #ffffff;
-  --er-badge-tint: var(--er-ground, #ffffff);
+  --er-tint: var(--er-surface);
+  --er-badge-tint: var(--er-ground, var(--er-surface));
 }
 .er-shape[data-border-color]:not([data-border-color='']) {
   --er-stroke: var(--er-border);
@@ -80,7 +78,7 @@
 .er-shape[data-body-ink]:not([data-body-ink='']) {
   color: var(--er-body-ink);
 }
-.er-shape[data-tint]:not([data-tint='']) {
+.er-shape[data-tint-color]:not([data-tint-color='']) {
   --er-tint: var(--er-tint-color);
   --er-badge-tint: var(--er-tint-color);
 }
@@ -132,7 +130,7 @@
   --er-wc-ink-alpha: var(--er-wc-border-alpha, 45%);
 }
 .er-shape[data-style='watercolor'][data-color]:not([data-color='']) {
-  --er-fill: hsl(from var(--er-color) h s 85% / 0.65);
+  --er-fill: rgb(from var(--er-fill-color) r g b / 0.65);
 }
 .er-shape[data-style='watercolor'][data-bg]:not([data-bg='']) {
   --er-fill: rgb(from var(--er-bg) r g b / 0.65);
@@ -395,7 +393,7 @@
   width: var(--er-icon-size, 20px);
   height: var(--er-icon-size, 20px);
   justify-self: center;
-  color: var(--er-icon-ink, #242424);
+  color: var(--er-icon-ink, var(--er-text));
   line-height: 0;
 }
 .er-shape__icon svg {
@@ -431,7 +429,7 @@
   overflow-wrap: break-word;
   word-break: normal;
   /* a run's own colour, else the body's ink (bodyInk: white on a dark fill) */
-  color: var(--er-ink, var(--er-body-ink, #242424));
+  color: var(--er-ink, var(--er-body-ink, var(--er-text)));
 }
 /* texts[1+] are the muted sub slot (2px gap). */
 .er-shape__text + .er-shape__text {
@@ -467,4 +465,15 @@
 }
 .er-shape__text[data-h-align='right'] {
   margin-inline: auto 0;
+}
+
+/* currentColor is inherited at paint time, so concrete resolve-time tinting cannot read it.
+   Preserve relative tinting in light mode; semantic dark surfaces keep it legible. */
+.er-shape[data-color='currentColor' i]:not([data-color=''])[data-bg=''] {
+  --er-fill: var(--er-inherited-pastel);
+}
+.er-shape[data-color='currentColor' i]:not([data-color=''])[data-bg=''],
+.er-shape[data-bg='currentColor' i]:not([data-bg='']) {
+  --er-tint: var(--er-inherited-tint);
+  --er-badge-tint: var(--er-inherited-tint);
 }

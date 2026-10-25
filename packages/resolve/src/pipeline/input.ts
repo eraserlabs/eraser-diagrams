@@ -24,7 +24,7 @@ const DOCUMENT_KEYS = new Set(['title']);
  * Keys a render call may set on the same object. `resolve` ignores them silently so a complete
  * render request validates as-is, with no warning noise.
  */
-const RESERVED_KEYS = new Set(['outputs']);
+const RESERVED_KEYS = new Set(['outputs', 'theme']);
 
 const ENVELOPE_ADVICE = 'Expected { elements: [...] } or { entities: [...], connections: [...] }.';
 

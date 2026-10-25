@@ -1,4 +1,4 @@
-import type { TemplateFile } from '@eraserlabs/protocol';
+import type { TemplateFile, Theme } from '@eraserlabs/protocol';
 import type { ElementKind } from '@eraserlabs/protocol/schema';
 import type { ValidationResult, ResolveResult, RegistryInfo } from './result-types.js';
 import type { PolicyKind, ContentPolicy } from './schema/keywords.js';
@@ -145,6 +145,8 @@ export interface AuthoredRecord {
 
 /** Per-call policy for resolving an editor selection or other incomplete document. */
 export interface ResolveOptions {
+  /** Prepare all schema-declared colors for this presentation theme. Default light. */
+  theme?: Theme;
   /** Allow references to elements outside this input; present targets and all other validation still apply. */
   partial?: boolean;
 }

@@ -1,4 +1,4 @@
-import { colorToHex } from '@eraserlabs/resolve';
+import { colorToRgba } from '@eraserlabs/resolve';
 
 /** Readable text ink and near-white badge tints for explicit shape fills. */
 
@@ -13,39 +13,16 @@ function clamp01(x: number): number {
 
 /** Channels 0..1, or null for a colour with no channel values here. */
 function rgbOf(color: string): Rgb | null {
-  const hex = colorToHex(color);
-
-  if (!hex) {
+  const rgba = colorToRgba(color);
+  if (rgba === null || rgba.alpha === 0) {
     return null;
   }
-
-  const n = Number.parseInt(hex.slice(1), 16);
-
-  return [((n >> 16) & 0xff) / 255, ((n >> 8) & 0xff) / 255, (n & 0xff) / 255];
+  return [rgba.r / 255, rgba.g / 255, rgba.b / 255];
 }
 
-/**
- * A colour's alpha 0..1, as chroma-js keeps it (two decimals): from a 4- or 8-digit hex or the 4th channel of
- * `rgb()`/`rgba()`; 1 for every other form.
- */
+/** Fill opacity, rounded like the canvas's chroma-js helper. */
 export function alphaOf(color: string): number {
-  const raw = color.trim().toLowerCase();
-  const hex = /^#(?:[0-9a-f]{3}([0-9a-f])|[0-9a-f]{6}([0-9a-f]{2}))$/.exec(raw);
-  let alpha = 1;
-
-  if (hex) {
-    const digits = hex[1] !== undefined ? hex[1] + hex[1] : hex[2]!;
-    alpha = Number.parseInt(digits, 16) / 255;
-  } else {
-    const fn = /^rgba?\(([^)]*)\)$/.exec(raw);
-    const part = fn?.[1]!.split(/[\s,/]+/).filter(Boolean)[3];
-
-    if (part !== undefined) {
-      alpha = part.endsWith('%') ? Number.parseFloat(part) / 100 : Number.parseFloat(part);
-    }
-  }
-
-  return Number.isFinite(alpha) ? Math.round(clamp01(alpha) * 100) / 100 : 1;
+  return Math.round((colorToRgba(color)?.alpha ?? 1) * 100) / 100;
 }
 
 function toHex([r, g, b]: Rgb): string {

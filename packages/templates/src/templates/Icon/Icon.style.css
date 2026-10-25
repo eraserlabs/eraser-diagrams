@@ -36,7 +36,7 @@
   width: var(--er-icon-px);
   height: var(--er-icon-px);
   margin: 0 auto;
-  color: var(--er-glyph-ink, #242424);
+  color: var(--er-glyph-ink, var(--er-text));
   line-height: 0;
 }
 .er-icon__glyph svg {
@@ -69,7 +69,7 @@
   font-size: var(--er-base);
   letter-spacing: -0.01em;
   line-height: 1.25;
-  color: var(--er-ink, #242424);
+  color: var(--er-ink, var(--er-text));
   /* wraps at 1.8 × the glyph, between words, with the lines balanced (about even); a word wider than that breaks.
      Nothing is stored or measured for it: the same text, font and glyph size always draw the same caption */
   max-width: calc(var(--er-icon-px) * 1.8);

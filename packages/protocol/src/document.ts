@@ -1,9 +1,14 @@
+/** Presentation theme; authored colors remain in their original light-space representation. */
+export type Theme = 'light' | 'dark';
+
 /**
  * An element after validation, normalization, derivation, and sanitization. Element kind remains a
  * property of the tag registry, not of each payload item.
  */
 export interface ResolvedElement {
   tag: string;
+  /** Theme used to prepare these paints. Omitted means light. */
+  theme?: Theme;
   /** Always concrete; resolution synthesizes this for an authored connection that omitted it. */
   id: string;
   x?: number;

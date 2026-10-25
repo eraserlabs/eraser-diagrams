@@ -17,6 +17,7 @@ import {
   type FontsConfig,
   type IconLoader,
   type Issue,
+  type Theme,
   type RegistryInfo,
   type TemplateOverrides,
   type ValidationResult,
@@ -42,6 +43,8 @@ import { eraserFonts } from './fonts/eraserFonts.js';
 export type BrowserProvider = () => Promise<Browser>;
 
 interface CommonRendererOptions {
+  /** Default presentation theme; a request can override it. */
+  theme?: Theme;
   /** The visual vocabulary to render with. Defaults to the stock Eraser library. */
   library?: AuthoredLibrary;
   overrides?: TemplateOverrides;
@@ -129,6 +132,8 @@ export interface DiagramJson {
  * also a valid document.
  */
 export type RenderRequest = DiagramInput & {
+  /** Presentation only; authored colors in JSON output remain unchanged. */
+  theme?: Theme;
   /**
    * The outputs this render should produce. Omitted, the renderer's creation-time `outputs`
    * default applies (itself `{ png: true }`); when present it replaces that default wholesale
@@ -355,7 +360,8 @@ export async function createRenderer(options: RendererOptions): Promise<Renderer
       const requested: OutputRequest = request?.outputs ?? defaultOutputs;
       const tracker = new TimeTracker();
 
-      const resolved = await resolver.resolve(request);
+      const theme = request?.theme ?? options.theme ?? 'light';
+      const resolved = await resolver.resolve(request, { theme });
       tracker.mark('resolve');
 
       // Fold the resolver's per-stage split in under a prefix.
@@ -371,6 +377,7 @@ export async function createRenderer(options: RendererOptions): Promise<Renderer
         // Pool wait is not billed to browserRun.
         tracker.reset();
         const run: RunResult = await page.evaluate((payload) => window.__eraser.run(payload), {
+          theme,
           entities: resolved.entities ?? [],
           connections: resolved.connections ?? [],
           icons: resolved.icons ?? {},
@@ -405,6 +412,9 @@ export async function createRenderer(options: RendererOptions): Promise<Renderer
           outcome['png'] = await page.locator('#eraser-scene').screenshot({
             type: 'png',
             omitBackground: options.transparent ?? false,
+            ...(options.transparent
+              ? { style: '#eraser-scene { --er-scene-background: transparent !important; }' }
+              : {}),
           });
           tracker.mark('screenshot');
         }

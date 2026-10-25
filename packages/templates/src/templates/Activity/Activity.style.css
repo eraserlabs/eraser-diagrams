@@ -5,8 +5,9 @@
 /* Text sizing (see CUSTOMIZATION.md): sizes are pixels only. The body slot's --er-base is 16px;
    an authored element `fontSize` arrives as gated data-font-px, per-run as data-run-px. */
 .er-activity {
-  --er-fill: #ffffff;
-  --er-stroke: #242424;
+  --er-fill-lightness: 96%;
+  --er-fill: var(--er-surface);
+  --er-stroke: var(--er-text);
   position: relative;
   display: flex;
   align-items: center;
@@ -21,7 +22,7 @@
   box-sizing: border-box;
 }
 .er-activity[data-color]:not([data-color='']) {
-  --er-fill: hsl(from var(--er-color) h s 96%);
+  --er-fill: var(--er-fill-color);
   --er-stroke: var(--er-color);
 }
 /* Authored paint outranks the identity formulas — same specificity, later in source order. */
@@ -43,7 +44,7 @@
   flex: none;
   width: calc(var(--er-glyph-num) * 1px);
   height: calc(var(--er-glyph-num) * 1px);
-  color: #242424;
+  color: var(--er-text);
   line-height: 0;
 }
 .er-activity__icon svg {
@@ -62,7 +63,7 @@
   font-family: var(--f, var(--font-clean, sans-serif));
   font-size: var(--er-base);
   line-height: 1.3;
-  color: var(--er-ink, #242424);
+  color: var(--er-ink, var(--er-text));
   overflow-wrap: break-word;
 }
 .er-activity[data-font-px]:not([data-font-px='']) .er-activity__line {
@@ -70,4 +71,10 @@
 }
 .er-activity__line[data-run-px]:not([data-run-px='']) {
   font-size: var(--er-run-px);
+}
+
+/* currentColor is inherited at paint time, so concrete resolve-time tinting cannot read it.
+   Preserve relative tinting in light mode; semantic dark surfaces keep it legible. */
+.er-activity[data-color='currentColor' i]:not([data-color=''])[data-bg=''] {
+  --er-fill: var(--er-inherited-bpmn);
 }

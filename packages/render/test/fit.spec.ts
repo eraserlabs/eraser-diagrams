@@ -228,7 +228,8 @@ test("balanced: the template's word growth and headroom (data-text-word-growth, 
     height: 16,
     balanced: { maxLines: 50 },
   });
-  expect(breaks.body.width).toBe(lane);
+  // Chromium quantizes layout to 1/64 px; the half-width target may lie between those steps.
+  expect(Math.abs(breaks.body.width - lane)).toBeLessThanOrEqual(1 / 64);
   const template = await fit(
     page,
     WORD,
@@ -245,7 +246,7 @@ test("balanced: the template's word growth and headroom (data-text-word-growth, 
     undefined,
     'data-text-word-growth="3"',
   );
-  expect(caller.body.width).toBe(lane);
+  expect(Math.abs(caller.body.width - lane)).toBeLessThanOrEqual(1 / 64);
 });
 
 test('measureElement: every text region at the proposed size, a caption by its part, and the overflow', async ({

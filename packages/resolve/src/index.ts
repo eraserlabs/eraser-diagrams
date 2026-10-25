@@ -16,6 +16,7 @@ import { assignMissingConnectionIds } from './pipeline/identity.js';
 import { stageCrossref } from './pipeline/crossref.js';
 import { buildSanitizers, stageSanitize } from './pipeline/sanitize.js';
 import { stageColors } from './pipeline/colors.js';
+import { applyColorTheme } from './pipeline/theme.js';
 import {
   stageIcons,
   stageIconsForLayout,
@@ -64,7 +65,8 @@ export {
   type ElementNormalizer,
   type TextRun,
 } from './pipeline/derive.js';
-export { NAMED_COLOR_HEX, colorToHex } from './pipeline/colors.js';
+export { NAMED_COLOR_HEX, colorToHex, colorToRgba, type RgbaColor } from './pipeline/colors.js';
+export { scaleColorForTheme, setColorLightness, type Theme } from './colors/theme.js';
 export { planFontStaging, type FontStagingPlan, type FontFetch } from './fonts/setup.js';
 export { buildFontsHead, fontFaceRule, cssQuoted } from './fonts/head.js';
 export type { FontsConfig, FontSource } from '@eraserlabs/protocol';
@@ -224,7 +226,7 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
   }
 
   /** A pipeline output as the resolve result (both resolve entries). */
-  function toResolveResult(output: PipelineOutput): ResolveResult {
+  function toResolveResult(output: PipelineOutput, options: ResolveOptions = {}): ResolveResult {
     const { errors, warnings, elements, iconsInlined, icons, tracker } = output;
     const ok = errors.length === 0;
     const result: ResolveResult = {
@@ -241,7 +243,12 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
     if (ok) {
       // emit: resolved data only. Markup is the browser render stage's job.
       tracker.reset();
+      applyColorTheme(elements, compiled.policyTables, options.theme ?? 'light');
       const payload = buildResolvedPayload(elements, compiled.containers);
+      result.theme = options.theme ?? 'light';
+      for (const element of [...payload.entities, ...payload.connections]) {
+        element.theme = result.theme;
+      }
       result.entities = payload.entities;
       result.connections = payload.connections;
       result.icons = icons;
@@ -266,11 +273,11 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
     },
 
     async resolve(input: unknown, options?: ResolveOptions): Promise<ResolveResult> {
-      return toResolveResult(await runPipeline(input, 'resolve', options));
+      return toResolveResult(await runPipeline(input, 'resolve', options), options);
     },
 
     resolveForLayout(input: unknown, options?: ResolveOptions): ResolveResult {
-      return toResolveResult(runPipelineForLayout(input, options));
+      return toResolveResult(runPipelineForLayout(input, options), options);
     },
 
     registryInfo(): RegistryInfo {

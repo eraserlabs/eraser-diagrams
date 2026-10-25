@@ -4,11 +4,12 @@
     data-role="body"
     class="er-activity"
     data-color="{{color}}"
+    data-fill-color="{{fillColor}}"
     data-bg="{{bgColor}}"
     data-border-color="{{borderColor}}"
     data-border="{{borderStyle}}"
     data-font-px="{{fontSize}}"
-    style="--er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-font-px: {{fontSize}}px"
+    style="--er-resolved-fill: {{fillColor}}; --er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-font-px: {{fontSize}}px"
   >
     <span class="er-activity__icon" data-slot="icon" data-if="icon"></span>
     <div

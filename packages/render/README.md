@@ -94,7 +94,15 @@ style.remove();
 
 `render` returns all supplied elements, including orphaned `containerId`/`from`/`to` references. It fills templates, including icons and watercolor, without resolving geometry or mutating input. It does not invent missing nodes, route connections, or apply positions. A connection's anchor is left for the editor's saved path. Hosts can use the exported `applyLayout(scene, mounted, layout)` with their own `SceneLayout` (public at `@eraserlabs/render`) to paint supplied boxes, paths and label positions even when endpoints are absent. Alternatively, the editor can paint those itself. `run()` continues to provide the full-scene sizing/routing/painting pipeline.
 
-Keep `fragment.defs` mounted alongside its elements. Each render has distinct watercolor mask and texture-symbol IDs, including across independently bundled copies of the library; tinted texture bytes are cached and shared across elements of the same pigment pair. Templates and `washMaster` are trusted library configuration; element content and icon SVG must come through `resolve` before rendering. Base CSS is intentionally unscoped, as in `setup`.
+Keep `fragment.defs` mounted alongside its elements. Each render has distinct watercolor mask and texture-symbol IDs, including across independently bundled copies of the library; tinted texture bytes are cached and shared across elements of the same pigment and paper colors. Templates and `washMaster` are trusted library configuration; element content and icon SVG must come through `resolve` before rendering. Base CSS is intentionally unscoped, as in `setup`.
+
+### Theme roots
+
+Resolved elements carry their presentation theme. `run` creates `#eraser-scene` with `data-er-theme`, and the shared fill engine stamps each template root (including nested templates) with `data-er-theme="light"` or `"dark"`. `createElementRenderer` returns those roots in `html`, so no extra wrapper or manual theme attribute is required. The host still supplies the existing `data-mdp-tag` scope wrapper. Explicit light roots reset the theme defaults inside dark hosts, and vice versa.
+
+The renderer does not invert colors: resolution has already prepared the paints. Pass the same resolved elements to full-scene and fragment rendering. `RunRequest.theme` sets the scene theme (including an empty scene); otherwise it follows the first element. Each element's own metadata controls its content. Low-level fill callers pass the prepared theme as `fill(tag, props, theme)`.
+
+Stock CSS exposes `--er-canvas`, `--er-surface`, `--er-text`, `--er-line`, `--er-shadow`, and `--er-code-background`, `--er-code-border`, `--er-code-text` for custom content. Theme-owned tokens reset per root; contextual paints such as inherited badge colors remain inherited. Host CSS and fixed-color artwork are not automatically rewritten.
 
 ### Measurement and fonts
 

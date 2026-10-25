@@ -434,3 +434,73 @@ test('independent full-scene and element bundles cannot collide on watercolor de
   expect(result.explicit).toContain('id="preview-same-element-wash-0"');
   expect(result.pixel[1]).toBeGreaterThan(result.pixel[0]! + 100);
 });
+
+test('watercolor themes the paper stop without changing density or reusing the wrong texture', async ({
+  page,
+}) => {
+  const result = await page.evaluate(async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d')!;
+    for (const [index, value] of [0, 128, 192, 255].entries()) {
+      ctx.fillStyle = `rgb(${value}, ${value}, ${value})`;
+      ctx.fillRect(index * 32, 0, 32, 32);
+    }
+    const master = canvas.toDataURL();
+    const paint = (washPaper?: string) => ({
+      props: {
+        washTexCss: true,
+        washShade: '#004400',
+        washMid: '#00cc00',
+        ...(washPaper === undefined ? {} : { washPaper }),
+      } as Record<string, unknown>,
+    });
+    const elements = [paint(), paint('#ffffff'), paint('#171717')];
+    const defs = await window.elementApi.prepareWashMasters(master, elements);
+    const root = document.createElement('div');
+    root.innerHTML = defs;
+    const symbols = [...root.querySelectorAll('symbol')];
+    const hrefs = symbols.map((symbol) => symbol.querySelector('image')!.getAttribute('href')!);
+    const pixels = await Promise.all(
+      hrefs.map(async (href) => {
+        const image = new Image();
+        image.src = href;
+        await image.decode();
+        const output = document.createElement('canvas');
+        output.width = 128;
+        output.height = 32;
+        const context = output.getContext('2d')!;
+        context.drawImage(image, 0, 0);
+        return [16, 48, 80, 112].map((x) => [...context.getImageData(x, 16, 1, 1).data]);
+      }),
+    );
+    const again = document.createElement('div');
+    again.innerHTML = await window.elementApi.prepareWashMasters(master, [paint('#171717')]);
+    return {
+      symbols: symbols.length,
+      defaultSymbol: elements[0]!.props.washSym,
+      whiteSymbol: elements[1]!.props.washSym,
+      darkSymbol: elements[2]!.props.washSym,
+      hrefs,
+      cachedDark: again.querySelector('image')!.getAttribute('href'),
+      pixels,
+    };
+  });
+
+  expect(result.symbols).toBe(2);
+  expect(result.defaultSymbol).toBe(result.whiteSymbol);
+  expect(result.darkSymbol).not.toBe(result.whiteSymbol);
+  expect(result.hrefs[0]).not.toBe(result.hrefs[1]);
+  expect(result.cachedDark).toBe(result.hrefs[1]);
+  const [light, dark] = result.pixels;
+  expect(light!.map((pixel) => pixel[3])).toEqual(dark!.map((pixel) => pixel[3]));
+  expect(light![3]![3]).toBe(0);
+  // At 75% source luminance the paper stop contributes half the RGB value.
+  expect(light![2]![0]! - dark![2]![0]!).toBeGreaterThan(90);
+  expect(light![2]![2]! - dark![2]![2]!).toBeGreaterThan(90);
+  // The shade stop remains stable; webp encoding may vary individual channels slightly.
+  for (let channel = 0; channel < 3; channel++) {
+    expect(Math.abs(light![0]![channel]! - dark![0]![channel]!)).toBeLessThanOrEqual(4);
+  }
+});

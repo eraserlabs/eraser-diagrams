@@ -1,3 +1,74 @@
+/* Semantic defaults reset at every explicit theme root, so standalone elements and nested
+   diagrams do not accidentally inherit a surrounding diagram's theme. Default paints follow
+   scaleColorForTheme; code chrome uses the workspace gray tokens and syntax uses GitHub themes.
+   Custom templates can consume these tokens alongside their own schema-declared paints. */
+:where(:root, [data-er-theme='light']) {
+  --er-inherited-pastel: hsl(from currentColor h s 85%);
+  --er-inherited-tint: hsl(from currentColor h s 98%);
+  --er-inherited-bpmn: hsl(from currentColor h s 96%);
+  --er-inherited-divider: hsl(from currentColor h s 92%);
+  --er-canvas: #ffffff;
+  --er-surface: #ffffff;
+  --er-text: #242424;
+  --er-line: #1c1c1c;
+  --er-shadow: #e8e8e8;
+  --er-muted: #737373;
+  --er-separator: #ebebeb;
+  --er-secondary: #454545;
+  --er-body-text: #2e2e2e;
+  --er-swatch-default: #e4e4e4;
+  --er-code-background: #fafafa;
+  --er-code-border: #f1f1f1;
+  --er-code-text: #171717;
+  --er-link: #457fe5;
+  --er-syntax-keyword: #d73a49;
+  --er-syntax-title: #6f42c1;
+  --er-syntax-number: #005cc5;
+  --er-syntax-string: #032f62;
+  --er-syntax-builtin: #e36209;
+  --er-syntax-comment: #6a737d;
+  --er-syntax-name: #22863a;
+  --er-syntax-text: #24292e;
+  --er-syntax-bullet: #735c0f;
+  --er-syntax-addition: #22863a;
+  --er-syntax-addition-background: #f0fff4;
+  --er-syntax-deletion: #b31d28;
+  --er-syntax-deletion-background: #ffeef0;
+}
+:where([data-er-theme='dark']) {
+  --er-inherited-pastel: var(--er-surface);
+  --er-inherited-tint: var(--er-surface);
+  --er-inherited-bpmn: var(--er-surface);
+  --er-inherited-divider: var(--er-separator);
+  --er-canvas: #171717;
+  --er-surface: #171717;
+  --er-text: #e2e2e2;
+  --er-line: #e9e9e9;
+  --er-shadow: #3f3f3f;
+  --er-muted: #a2a2a2;
+  --er-separator: #3c3c3c;
+  --er-secondary: #c8c8c8;
+  --er-body-text: #dadada;
+  --er-swatch-default: #434343;
+  --er-code-background: #242424;
+  --er-code-border: #3a3a3a;
+  --er-code-text: #ffffff;
+  --er-link: #68aaf2;
+  --er-syntax-keyword: #f47067;
+  --er-syntax-title: #dcbdfb;
+  --er-syntax-number: #6cb6ff;
+  --er-syntax-string: #96d0ff;
+  --er-syntax-builtin: #f69d50;
+  --er-syntax-comment: #768390;
+  --er-syntax-name: #8ddb8c;
+  --er-syntax-text: #adbac7;
+  --er-syntax-bullet: #eac55f;
+  --er-syntax-addition: #b4f1b4;
+  --er-syntax-addition-background: #1b4721;
+  --er-syntax-deletion: #ffd8d3;
+  --er-syntax-deletion-background: #78191b;
+}
+
 /* Shared, template-agnostic CSS applied before per-template rules (unscoped, emitted first). */
 * {
   box-sizing: border-box;
@@ -6,6 +77,64 @@
    consumed and text falls back to the platform default font. */
 [data-tpl] {
   font-family: var(--font-clean, sans-serif);
+  color: var(--er-text);
+  /* Final paint intermediates belong to this body; badges inherit the published host paints. */
+  --er-fill-color: initial;
+  --er-tint-color: initial;
+  --er-title-surface-color: initial;
+  --er-divider-color: initial;
+}
+
+/* Stock normalizers supply concrete final paints before theme conversion. Legacy light-mode
+   callers may omit them: preserve their original CSS tinting only when each derived value is
+   absent. Dark mode requires prepared paints, since its identity has already been transformed.
+   Empty placeholder variables do not activate var() fallbacks, so presence is explicit. */
+[data-fill-color]:not([data-fill-color='']) {
+  --er-fill-color: var(--er-resolved-fill);
+}
+[data-tint-color]:not([data-tint-color='']) {
+  --er-tint-color: var(--er-resolved-tint);
+}
+[data-title-surface-color]:not([data-title-surface-color='']) {
+  --er-title-surface-color: var(--er-resolved-title-surface);
+}
+[data-divider-color]:not([data-divider-color='']) {
+  --er-divider-color: var(--er-resolved-divider);
+}
+[data-fill-color='']:where(:not([data-er-theme='dark']))[data-color]:not(
+    [data-color='']
+  ) {
+  --er-fill-color: hsl(from var(--er-color) h s var(--er-fill-lightness));
+}
+[data-fill-color='']:where(:not([data-er-theme='dark']))[data-bg]:not(
+    [data-bg='']
+  ) {
+  --er-fill-color: var(--er-bg);
+}
+[data-tint-color='']:where(:not([data-er-theme='dark']))[data-color]:not(
+    [data-color='']
+  ) {
+  --er-tint-color: hsl(from var(--er-color) h s 98%);
+}
+[data-tint-color='']:where(:not([data-er-theme='dark']))[data-bg]:not(
+    [data-bg='']
+  ) {
+  --er-tint-color: hsl(from var(--er-bg) h s 98%);
+}
+[data-title-surface-color='']:where(
+    :not([data-er-theme='dark'])
+  )[data-color]:not([data-color='']) {
+  --er-title-surface-color: hsl(from var(--er-color) h s 85%);
+}
+[data-title-surface-color='']:where(:not([data-er-theme='dark']))[data-bg]:not(
+    [data-bg='']
+  ) {
+  --er-title-surface-color: hsl(from var(--er-bg) h s 85%);
+}
+[data-divider-color='']:where(:not([data-er-theme='dark']))[data-color]:not(
+    [data-color='']
+  ) {
+  --er-divider-color: hsl(from var(--er-color) h s 92%);
 }
 
 /* Outline icons ship a 24-unit viewBox at stroke-width 1.5, so scaling the glyph box with CSS
@@ -72,17 +201,18 @@ svg[stroke='currentColor'] {
 /* Inline code as the Eraser canvas draws it: a pill with side padding, a hairline edge and a ground of its own
    (the app's typography `code` and its notepad's inline code: grey-400 edge, grey-200 ground). The padding and the
    edge take room, so a text measures as it draws. A block's code takes none of it (`.er-md pre code` below). A host
-   can override the two colors with CSS variables. */
+   can override its coordinated foreground/background through the semantic CSS variables. */
 .er-md code {
   padding: 0 5px;
-  border: 1px solid var(--er-code-edge, #f1f1f1);
+  border: 1px solid var(--er-code-edge, var(--er-code-border));
   border-radius: 5px;
-  background: var(--er-code-ground, #fafafa);
+  background: var(--er-code-ground, var(--er-code-background));
+  color: var(--er-code-text);
   font-family: var(--font-mono, monospace);
   font-size: calc(1em * 13 / 15);
 }
 .er-md a {
-  color: #457fe5;
+  color: var(--er-link);
   text-decoration: none;
 }
 
@@ -126,9 +256,10 @@ svg[stroke='currentColor'] {
   margin: 0;
   padding: 8px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border: 1px solid var(--er-code-border);
   border-radius: 8px;
-  background: color-mix(in srgb, currentColor 6%, transparent);
+  background: var(--er-code-background);
+  color: var(--er-code-text);
   font-size: 85%;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -148,7 +279,7 @@ svg[stroke='currentColor'] {
 }
 /* A code block's tokens, coloured as the Eraser canvas colours them. resolve writes the highlight.js classes
    (codeHighlight.ts); the colours are highlight.js's GitHub theme (styles/github.css, BSD-3-Clause), the canvas's
-   light theme. Zero specificity lets a host's own highlight.js stylesheet override these colors. */
+   light/dark themes. Zero specificity lets a host's highlight.js stylesheet override these colors. */
 :where(
   .er-md .hljs-doctag,
   .er-md .hljs-keyword,
@@ -158,7 +289,7 @@ svg[stroke='currentColor'] {
   .er-md .hljs-type,
   .er-md .hljs-variable.language_
 ) {
-  color: #d73a49;
+  color: var(--er-syntax-keyword);
 }
 :where(
   .er-md .hljs-title,
@@ -166,7 +297,7 @@ svg[stroke='currentColor'] {
   .er-md .hljs-title.class_.inherited__,
   .er-md .hljs-title.function_
 ) {
-  color: #6f42c1;
+  color: var(--er-syntax-title);
 }
 :where(
   .er-md .hljs-attr,
@@ -175,25 +306,25 @@ svg[stroke='currentColor'] {
   .er-md .hljs-meta,
   .er-md .hljs-number,
   .er-md .hljs-operator,
-  .er-md .hljs-variable,
+  .er-md .hljs-variable:not(.language_),
   .er-md .hljs-selector-attr,
   .er-md .hljs-selector-class,
   .er-md .hljs-selector-id
 ) {
-  color: #005cc5;
+  color: var(--er-syntax-number);
 }
 :where(
   .er-md .hljs-regexp,
   .er-md .hljs-string,
   .er-md .hljs-meta .hljs-string
 ) {
-  color: #032f62;
+  color: var(--er-syntax-string);
 }
 :where(.er-md .hljs-built_in, .er-md .hljs-symbol) {
-  color: #e36209;
+  color: var(--er-syntax-builtin);
 }
 :where(.er-md .hljs-comment, .er-md .hljs-code, .er-md .hljs-formula) {
-  color: #6a737d;
+  color: var(--er-syntax-comment);
 }
 :where(
   .er-md .hljs-name,
@@ -201,46 +332,61 @@ svg[stroke='currentColor'] {
   .er-md .hljs-selector-tag,
   .er-md .hljs-selector-pseudo
 ) {
-  color: #22863a;
+  color: var(--er-syntax-name);
 }
 :where(.er-md .hljs-subst) {
-  color: #24292e;
+  color: var(--er-syntax-text);
 }
 :where(.er-md .hljs-section) {
-  color: #005cc5;
+  color: var(--er-syntax-number);
   font-weight: bold;
 }
 :where(.er-md .hljs-bullet) {
-  color: #735c0f;
+  color: var(--er-syntax-bullet);
 }
 :where(.er-md .hljs-emphasis) {
-  color: #24292e;
+  color: var(--er-syntax-text);
   font-style: italic;
 }
 :where(.er-md .hljs-strong) {
-  color: #24292e;
+  color: var(--er-syntax-text);
   font-weight: bold;
 }
 :where(.er-md .hljs-addition) {
-  color: #22863a;
-  background-color: #f0fff4;
+  color: var(--er-syntax-addition);
+  background-color: var(--er-syntax-addition-background);
 }
 :where(.er-md .hljs-deletion) {
-  color: #b31d28;
-  background-color: #ffeef0;
+  color: var(--er-syntax-deletion);
+  background-color: var(--er-syntax-deletion-background);
 }
-/* The link icon, drawn here as presentation: the canvas's external-link mark (a rounded square on a tinted
-   ground, an arrow out of it), 16px, 4px before the text, as the Eraser canvas draws before a link. The icon is a
-   background in the link's own left padding, not a ::before box: a line cannot wrap inside padding, so the icon
-   always stays on the line of the link's first word (an inline-block lets the line wrap after it). The tint is in
-   the SVG at the link colour (#457fe5, `.er-md a`), because a background image has no corner radius of its own.
-   The host attaches hover and click on `data-md="link"` and edits no markup. */
+/* External-link chrome uses the link's themed ink. The icon is a masked pseudo-element in
+   the first-word padding, so its geometry and wrapping stay the same in either theme. */
 .er-md a[data-md='link'] {
+  position: relative;
   padding-left: 20px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23457fe5' fill-opacity='0.1'/%3E%3Crect x='0.5' y='0.5' width='15' height='15' rx='2.5' fill='none' stroke='%23888' stroke-width='1.2'/%3E%3Cpath d='M7 5h4v4M5 11l6-6' fill='none' stroke='%23888' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: left center;
-  background-size: 16px 16px;
+}
+.er-md a[data-md='link']::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  width: 16px;
+  height: 16px;
+  border: 1px solid color-mix(in srgb, currentColor 65%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+.er-md a[data-md='link']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M7 5h4v4M5 11l6-6' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
 }
 
 /* Texture-stain wash, shared by every boxy watercolor body — Shape's CSS-geometry kinds,
@@ -331,10 +477,10 @@ svg[stroke='currentColor'] {
    [data-title-bg] qualifiers outrank the opaque template formulas (base is emitted first, so
    specificity has to do the winning). The full-width band's hairline joins the faint border. */
 .er-grouplike[data-style='watercolor'][data-color]:not([data-color='']) {
-  --er-title-surface: hsl(from var(--er-color) h s 85% / 0.6);
+  --er-title-surface: rgb(from var(--er-title-surface-color) r g b / 0.6);
 }
 .er-grouplike[data-style='watercolor'][data-bg]:not([data-bg='']) {
-  --er-title-surface: hsl(from var(--er-bg) h s 85% / 0.6);
+  --er-title-surface: rgb(from var(--er-title-surface-color) r g b / 0.6);
 }
 .er-grouplike[data-style='watercolor'][data-bg='transparent']:not([data-bg='']),
 .er-grouplike[data-style='watercolor'][data-bg='none']:not([data-bg='']) {

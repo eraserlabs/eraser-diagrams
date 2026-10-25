@@ -1,13 +1,13 @@
 /**
  * Watercolor master prephase: recolor the library's grayscale wash scan once per distinct
- * pigment pair, before anything mounts — the fonts pattern applied to raster assets. Each tinted
+ * pigment and paper colors, before anything mounts — the fonts pattern applied to raster assets. Each tinted
  * master registers ONCE as an SVG `<symbol>` in a shared hidden defs block; elements reference it
  * with `<use href>`, so the page runs zero SVG filters and the serialized artifact carries one
  * copy per color (5-6 for a typical diagram), not one per element.
  *
  * The recolor reproduces the SVG luminance LUT it replaces (feComponentTransfer 3-stop tables +
  * luminance→alpha): dark master regions map toward the shade color, midtones toward the pigment,
- * paper toward white, with alpha = AMPLITUDE * (1 - luminance)^GAMMA so paper drops transparent.
+ * paper toward the themed paper color, with alpha = AMPLITUDE * (1 - luminance)^GAMMA so paper drops transparent.
  */
 
 import { renderIdPrefix } from './domIds.js';
@@ -17,7 +17,7 @@ const GAMMA = 0.78;
 /** Alpha ceiling (the filter's feFuncA gamma amplitude). */
 const AMPLITUDE = 0.95;
 
-/** Tinted masters survive across runs on the same page; distinct pairs are few. */
+/** Tinted masters survive across runs on the same page; distinct color sets are few. */
 const MAX_CACHE = 128;
 interface TintedMaster {
   href: string;
@@ -54,11 +54,11 @@ function parseRgb(hex: unknown): [number, number, number] | null {
   return [(v >> 16) & 0xff, (v >> 8) & 0xff, v & 0xff];
 }
 
-/** feComponentTransfer type="table" with 3 stops: piecewise-linear shade → mid → white. */
-function stop3(t: number, shade: number, mid: number): number {
+/** feComponentTransfer type="table" with 3 stops: piecewise-linear shade → mid → paper. */
+function stop3(t: number, shade: number, mid: number, paper: number): number {
   const x = t * 2;
 
-  return x < 1 ? shade + x * (mid - shade) : mid + (x - 1) * (255 - mid);
+  return x < 1 ? shade + x * (mid - shade) : mid + (x - 1) * (paper - mid);
 }
 
 function decodeMaster(master: string): Promise<GrayMaster> {
@@ -99,11 +99,12 @@ function tint(
   source: GrayMaster,
   shade: [number, number, number],
   mid: [number, number, number],
+  paper: [number, number, number],
 ): string {
   // 256-entry LUTs per channel + the alpha curve, then one pass over the pixels.
   const lut = [0, 1, 2].map((channel) =>
     Uint8ClampedArray.from({ length: 256 }, (_, v) =>
-      stop3(v / 255, shade[channel]!, mid[channel]!),
+      stop3(v / 255, shade[channel]!, mid[channel]!, paper[channel]!),
     ),
   );
   const alpha = Uint8ClampedArray.from({ length: 256 }, (_, v) =>
@@ -130,9 +131,10 @@ function tint(
 
 /**
  * Stamp `washSym` (the shared symbol reference) on every element carrying a wash pigment pair,
- * tinting each distinct (washShade, washMid) once, and return the `<defs>` markup registering the
+ * tinting each distinct (washShade, washMid, washPaper) once, and return the `<defs>` markup registering the
  * symbols used by this scene. Cached image bytes are shared; IDs belong to this call. An optional
- * idPrefix must be unique among mounted fragments in the document. No-ops (returns '') without
+ * idPrefix must be unique among mounted fragments in the document. washPaper defaults to white.
+ * No-ops (returns '') without
  * a master or wash elements. On tint failure the symbol wraps the grayscale master itself, so the wash still paints (uncolored)
  * rather than vanishing.
  */
@@ -163,13 +165,17 @@ export async function prepareWashMasters(
   for (const props of washes) {
     const shade = parseRgb(props.washShade);
     const mid = parseRgb(props.washMid);
-    const fallback = source === null || shade === null || mid === null;
-    const key = JSON.stringify([master, fallback ? 'gray' : `${props.washShade}:${props.washMid}`]);
+    const paper = parseRgb(props.washPaper ?? '#ffffff');
+    const fallback = source === null || shade === null || mid === null || paper === null;
+    const key = JSON.stringify([master, fallback ? 'gray' : [shade, mid, paper]]);
     let entry = used.get(key) ?? tintCache.get(key);
 
     if (entry === undefined) {
       entry = {
-        href: source === null || shade === null || mid === null ? master : tint(source, shade, mid),
+        href:
+          source === null || shade === null || mid === null || paper === null
+            ? master
+            : tint(source, shade, mid, paper),
         width: source?.width ?? 448,
         height: source?.height ?? 346,
       };

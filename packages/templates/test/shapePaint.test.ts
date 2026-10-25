@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { colorToRgba, setColorLightness } from '@eraserlabs/resolve';
 import { stockNormalizers } from '../src/normalizers.js';
 
 function shape(authored: Record<string, unknown>): Record<string, unknown> {
@@ -16,11 +17,12 @@ function shape(authored: Record<string, unknown>): Record<string, unknown> {
 
 describe('Shape paint', () => {
   it.each(['#00FFFF', '#2866c4', 'hsl(180, 100%, 50%)', 'rgb(0, 255, 255)'])(
-    'leaves identity paint to the template: %s',
+    'derives the final fill without changing authored identity paint: %s',
     (color) => {
       const s = shape({ color });
       expect(s.color).toBe(color);
       expect(s.bgColor).toBeUndefined();
+      expect(s.fillColor).toBe(setColorLightness(color, 0.85));
       expect(s.borderColor).toBeUndefined();
       expect(s.bodyInk).toBeUndefined();
     },
@@ -41,9 +43,10 @@ describe('Shape paint', () => {
     expect([s.bodyInk, s.textInk]).toEqual(['#000000', '#000000']);
   });
 
-  it('a faint fill (mostly transparent) picks no ink and no tint: the page under it decides', () => {
+  it('a faint fill picks no ink and its derived tint preserves opacity', () => {
     const s = shape({ bgColor: '#00000020' });
-    expect([s.bgColor, s.bodyInk, s.tintColor]).toEqual(['#00000020', undefined, undefined]);
+    expect([s.bgColor, s.bodyInk]).toEqual(['#00000020', undefined]);
+    expect(colorToRgba(s.tintColor as string)?.alpha).toBe(32 / 255);
   });
 
   it('no colour: nothing written in light mode, the template defaults draw it', () => {

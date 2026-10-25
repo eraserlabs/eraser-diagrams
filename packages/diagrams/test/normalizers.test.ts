@@ -64,10 +64,12 @@ describe('x-palette translation — one identity value, template-derived fills',
     expect(props.vAlign).toBe('middle');
   });
 
-  it("Group: the same one value; the near-white tint is the stylesheet's step, not a prop", async () => {
+  it('Group: final body and title paints derive from the identity before theming', async () => {
     const props = await resolveProps({ tag: 'Group', id: 'g', x: 0, y: 0, color: 'blue' });
     expect(props.color).toBe('#2866c4');
-    expect(props.fillColor).toBeUndefined();
+    expect(props.fillColor).toBe('#f7f9fd'); // 98% lightness body
+    expect(props.titleSurfaceColor).toBe('#bfd4f2'); // 85% lightness title band
+    expect(props.bgColor).toBeUndefined(); // derivation does not invent an explicit override
     expect(props.fillMode).toBeUndefined();
   });
 
@@ -470,8 +472,11 @@ describe('derive stage — watercolor', () => {
       color: 'blue',
     });
 
-    // The body IS the recolored master; the stylesheet drops the paint behind it, no blob mounts.
-    expect(props.fillColor).toBeUndefined();
+    // Final paints exist before theming even when texture replaces the flat body. The
+    // stylesheet suppresses that flat fill under the watercolor master, not the normalizer.
+    expect(props.fillColor).toBe('#bfd4f2'); // Shape's 85% lightness pigment
+    expect(props.bgColor).toBeUndefined();
+    expect(props.washPaper).toBe('#ffffff');
     expect(props.washTexCss).toBe(true);
     expect(props.washPath).toBeUndefined();
     expect(props.washUid).toBe('w1');

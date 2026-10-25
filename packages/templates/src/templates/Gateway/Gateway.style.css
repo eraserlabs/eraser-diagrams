@@ -4,6 +4,7 @@
 /* Text sizing (see CUSTOMIZATION.md): sizes are pixels only. The caption slot's --er-base is
    15px; an authored element `fontSize` arrives as gated data-font-px, per-run as data-run-px. */
 .er-gateway {
+  --er-fill-lightness: 96%;
   position: relative;
   display: block;
   width: 100%;
@@ -12,8 +13,8 @@
   text-align: center;
 }
 .er-gateway__box {
-  --er-fill: #ffffff;
-  --er-stroke: #242424;
+  --er-fill: var(--er-surface);
+  --er-stroke: var(--er-text);
   --er-glyph-num: 18;
   position: relative;
   display: block;
@@ -22,7 +23,7 @@
   margin: 0 auto;
 }
 .er-gateway[data-color]:not([data-color='']) .er-gateway__box {
-  --er-fill: hsl(from var(--er-color) h s 96%);
+  --er-fill: var(--er-fill-color);
   --er-stroke: var(--er-color);
 }
 /* Authored paint outranks the identity formulas — same specificity, later in source order. */
@@ -56,7 +57,7 @@
   transform: translate(-50%, -50%);
   width: calc(var(--er-glyph-num) * 1px);
   height: calc(var(--er-glyph-num) * 1px);
-  color: #242424;
+  color: var(--er-text);
   line-height: 0;
 }
 .er-gateway__glyph svg {
@@ -80,11 +81,17 @@
   font-family: var(--f, var(--font-clean, sans-serif));
   font-size: var(--er-base);
   line-height: 1.25;
-  color: var(--er-ink, #242424);
+  color: var(--er-ink, var(--er-text));
 }
 .er-gateway[data-font-px]:not([data-font-px='']) .er-gateway__caption-line {
   font-size: var(--er-font-px);
 }
 .er-gateway__caption-line[data-run-px]:not([data-run-px='']) {
   font-size: var(--er-run-px);
+}
+
+/* currentColor is inherited at paint time, so concrete resolve-time tinting cannot read it.
+   Preserve relative tinting in light mode; semantic dark surfaces keep it legible. */
+.er-gateway[data-color='currentColor' i]:not([data-color=''])[data-bg=''] {
+  --er-fill: var(--er-inherited-bpmn);
 }
