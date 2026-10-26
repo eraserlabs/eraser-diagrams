@@ -27,6 +27,7 @@ import {
 } from './templates/DatabaseRelationship/index.js';
 import { name as BadgeName, schema as Badge } from './templates/Badge/index.js';
 import { STOCK_PALETTE } from './schema/palette.js';
+import { stockRenderProps } from './renderProps.js';
 
 /**
  * Stock templates as data. Markup is declarative and unfilled: `{{ }}` placeholders and `data-*`
@@ -95,12 +96,15 @@ export const subTemplateSchemas: Record<string, JsonSchema> = {
   [BadgeName]: Badge,
 };
 
-/** Allowed placeholder head names per template, derived from each template's own schema. */
+/** Allowed placeholder heads include authored fields and internal normalizer output. */
 export const templateProps: Record<string, string[]> = (() => {
   const map: Record<string, string[]> = {};
 
   for (const [name, schema] of Object.entries({ ...tagSchemas, ...subTemplateSchemas })) {
-    map[name] = Object.keys(schema.properties ?? {});
+    map[name] = [
+      ...Object.keys(schema.properties ?? {}),
+      ...Object.keys(stockRenderProps[name] ?? {}),
+    ];
   }
 
   return map;
@@ -110,6 +114,7 @@ export const templateProps: Record<string, string[]> = (() => {
 export const stockLibrary: AuthoredLibrary = {
   manifest: MANIFEST,
   schemas: tagSchemas,
+  renderProps: stockRenderProps,
   templates: stockTemplates,
   baseCss: BASE_CSS,
   subTemplates: subTemplateSchemas,
@@ -123,3 +128,7 @@ export { ALLOWED_SHAPES, BADGE_PLACEMENTS } from './schema/enums.js';
 
 // The page-setup builder: the library as the renderer's page-lifetime registry (markup, CSS, the wash master).
 export { buildRenderPageSetup } from './pageSetup.js';
+// The shape outlines at a size, for a host that resizes a drawn element while it cannot fill it again (a box
+// grows as its text is typed): the same paths the normalizer stamps at fill (deriveGeo).
+export { roundedShapePath } from './roundedPolygon.js';
+export { curvedShapePath, type CurvedShapePath } from './curvedShapePaths.js';

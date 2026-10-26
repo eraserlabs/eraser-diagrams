@@ -4,11 +4,12 @@
     data-role="body"
     class="er-gateway"
     data-color="{{color}}"
+    data-fill-color="{{fillColor}}"
     data-bg="{{bgColor}}"
     data-border-color="{{borderColor}}"
     data-border="{{borderStyle}}"
     data-font-px="{{fontSize}}"
-    style="--er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-font-px: {{fontSize}}px"
+    style="--er-resolved-fill: {{fillColor}}; --er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-font-px: {{fontSize}}px"
   >
     <span data-role="anchor" data-part="diamond" class="er-gateway__box">
       <svg class="er-gateway__geo" viewBox="0 0 56 56" aria-hidden="true">
@@ -27,9 +28,8 @@
         class="er-gateway__caption-line er-md"
         data-run-px="{{t.fontSize}}"
         style="--f: var(--font-{{t.typeface}}, var(--font-clean)); --er-ink: {{t.color}}; --er-run-px: {{t.fontSize}}px"
+      >{{t.text}}</div
       >
-        {{t.text}}
-      </div>
     </figcaption>
     <span data-use="Badge" data-props="badge" data-if="badge"></span>
   </figure>

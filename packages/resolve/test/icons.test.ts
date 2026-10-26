@@ -269,3 +269,14 @@ describe('extras that exported icon sets carry are removed, not rejected', () =>
 it('rejects excessive nesting before serialization', () => {
   expect(sanitizeSvg(`<svg>${'<g>'.repeat(100)}${'</g>'.repeat(100)}</svg>`).ok).toBe(false);
 });
+
+describe('icon stage for layout (resolveForLayout)', () => {
+  it('ships the placeholder for every icon, with no issue and no loading', async () => {
+    const { stageIconsForLayout } = await import('../src/pipeline/icons.js');
+    const out = stageIconsForLayout([iconElement('db', 0), iconElement('gone', 1)], ICON_POLICY);
+    expect(out.icons['db']).toBe(PLACEHOLDER_GLYPH);
+    expect(out.icons['gone']).toBe(PLACEHOLDER_GLYPH);
+    expect(out.errors).toEqual([]);
+    expect(out.warnings).toEqual([]);
+  });
+});

@@ -1,4 +1,10 @@
-import { colorToHex, primaryTextRun, type ElementNormalizer } from '@eraserlabs/resolve';
+import {
+  colorToHex,
+  primaryTextRun,
+  setColorLightness,
+  type ElementNormalizer,
+} from '@eraserlabs/resolve';
+import { alphaOf, CANVAS_INK, inkForFill, tintOf } from './canvasColors.js';
 import { washTextureProps } from './watercolorTexture.js';
 import { roundedShapePath } from './roundedPolygon.js';
 import { curvedShapePath } from './curvedShapePaths.js';
@@ -6,8 +12,9 @@ import { shapeOutline } from './shapeOutlines.js';
 
 /**
  * Derived-prop table injected via `ResolverSetup.normalizers`. Pure derivations from authored
- * props — no measurement, no DOM. Props written here are `Optional` in the tag schemas so
- * authored input may carry them too. Template `--er-*` bindings of props this file may leave
+ * props — no measurement, no DOM. New render-only props are declared separately in
+ * `stockLibrary.renderProps`; published legacy props remain in their existing tag schemas.
+ * Template `--er-*` bindings of props this file may leave
  * absent must be gated (`[data-x]:not([data-x=''])`) — CSS `var()` fallbacks do not fire on
  * empty substitutions.
  */
@@ -56,83 +63,70 @@ function deriveShapeIconColor(element: Record<string, unknown>): void {
   element.iconColor = iconProps?.color ?? primaryTextRun(element)?.color ?? '#242424';
 }
 
-/** The primary run's colour, published to nested mounts (a Badge takes it as its default ink). */
-function deriveShapeTextInk(element: Record<string, unknown>): void {
-  const color = primaryTextRun(element)?.color;
+const stringOr = (value: unknown): string | undefined =>
+  typeof value === 'string' ? value : undefined;
 
-  if (typeof color === 'string') {
-    element.textInk = color;
+/**
+ * A colour with channels that mostly hides what is under it: not `transparent`, `none` or a variable, and more than
+ * half opaque (a faint `#00000020` reads as the page under it, so it picks no ink and no tint).
+ */
+const isPaint = (value: string | undefined): value is string =>
+  value !== undefined && colorToHex(value) !== null && alphaOf(value) > 0.5;
+
+/**
+ * Stock surfaces derive their final light-theme paints before resolve transforms schema colors.
+ * Templates choose lightness here, while every tag uses the same theme transform later. Keep
+ * authored properties intact: `bgColor` is exact and `color` is only the identity color.
+ */
+function deriveStockPaint(
+  element: Record<string, unknown>,
+  lightness: number,
+  options: { title?: boolean; divider?: boolean } = {},
+): void {
+  const identity = stringOr(element.color);
+  const background = stringOr(element.bgColor);
+  const source = background ?? identity;
+
+  if (source !== undefined) {
+    const unpainted = ['none', 'transparent'].includes(source.toLowerCase());
+    element.fillColor = background ?? setColorLightness(source, lightness);
+    element.tintColor = unpainted ? 'transparent' : setColorLightness(source, 0.98);
+    if (options.title) {
+      element.titleSurfaceColor = unpainted ? 'transparent' : setColorLightness(source, 0.85);
+    }
+  }
+  if (options.divider && identity !== undefined) {
+    element.dividerColor = setColorLightness(identity, 0.92);
+  }
+}
+
+/**
+ * Derive readable ink and nested badge colors from an explicit fill. The template owns the
+ * identity treatment: `color` supplies the border and a lighter background, while `bgColor`
+ * and `borderColor` override those paints. Palette tokens have already resolved to CSS colors,
+ * so their treatment is identical to literal colors.
+ */
+function deriveShapePaint(element: Record<string, unknown>): void {
+  const fill = stringOr(element.bgColor);
+  const runInk = stringOr(primaryTextRun(element)?.color);
+  const bodyInk = runInk ?? (isPaint(fill) ? inkForFill(fill) : undefined);
+  const textInk = runInk ?? (bodyInk !== undefined ? CANVAS_INK : undefined);
+  const tint = isPaint(fill) ? tintOf(fill) : undefined;
+
+  if (bodyInk !== undefined) {
+    element.bodyInk = bodyInk;
+  }
+  if (textInk !== undefined) {
+    element.textInk = textInk;
+  }
+  if (tint !== undefined) {
+    element.tintColor = tint;
   }
 }
 
 // Watercolor texture recolors a grayscale master via an SVG luminance LUT. LUT stops are
 // concrete `#rrggbb` attribute values, so relative-color CSS cannot reach them — pigment must
 // be resolved here before the browser prephase (render masters.ts).
-
-const PASTEL_LIGHTNESS = 0.85;
-
-const HEX6 = /^#([0-9a-f]{6})$/i;
-
-function parseHex(value: unknown): [number, number, number] | null {
-  const hex = typeof value === 'string' ? HEX6.exec(value) : null;
-
-  if (!hex) {
-    return null;
-  }
-
-  const n = Number.parseInt(hex[1]!, 16);
-
-  return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
-}
-
-/** Keep hue and saturation; force lightness — same semantics as `hsl(from value h s L)`. */
-function atLightness(value: string, lightness: number): string | null {
-  const rgb = parseHex(value);
-
-  if (!rgb) {
-    return null;
-  }
-
-  const [r, g, b] = rgb.map((c) => c / 255) as [number, number, number];
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const delta = max - min;
-  const mid = (max + min) / 2;
-  let hue = 0;
-  let saturation = 0;
-
-  if (delta !== 0) {
-    saturation = delta / (1 - Math.abs(2 * mid - 1));
-
-    if (max === r) {
-      hue = 60 * (((g - b) / delta) % 6);
-    } else if (max === g) {
-      hue = 60 * ((b - r) / delta + 2);
-    } else {
-      hue = 60 * ((r - g) / delta + 4);
-    }
-  }
-
-  const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
-  const x = c * (1 - Math.abs(((hue / 60) % 2) - 1));
-  const m = lightness - c / 2;
-  const sector = Math.floor(((hue + 360) % 360) / 60);
-  const channels: [number, number, number][] = [
-    [c, x, 0],
-    [x, c, 0],
-    [0, c, x],
-    [0, x, c],
-    [x, 0, c],
-    [c, 0, x],
-  ];
-  const [r1, g1, b1] = channels[sector] ?? [0, 0, 0];
-  const hex = (v: number): string =>
-    Math.round((v + m) * 255)
-      .toString(16)
-      .padStart(2, '0');
-
-  return `#${hex(r1)}${hex(g1)}${hex(b1)}`;
-}
 
 /** Spill past the shape box so the wash bleed can paint over the border. */
 const WASH_SPILL = 14;
@@ -157,20 +151,14 @@ const WHITE_WASH_PIGMENT = '#ececec';
 /**
  * Any validated CSS color the LUT can be tinted with, canonicalized to `#rrggbb` by resolve's
  * own grammar (`colorToHex`, colocated with validation so the two cannot drift). Null for
- * everything else — `transparent`, `hsl()` and future functions stay untextured.
+ * semantic colors with no concrete channels stay untextured.
  */
 function pigmentHex(value: unknown): string | null {
   return typeof value === 'string' ? colorToHex(value) : null;
 }
 
 function bodyPigment(element: Record<string, unknown>): string | null {
-  const pigment =
-    typeof element.bgColor === 'string'
-      ? pigmentHex(element.bgColor)
-      : typeof element.color === 'string'
-        ? atLightness(pigmentHex(element.color) ?? element.color, PASTEL_LIGHTNESS)
-        : null;
-
+  const pigment = pigmentHex(element.fillColor);
   return pigment === '#ffffff' ? WHITE_WASH_PIGMENT : pigment;
 }
 
@@ -191,7 +179,7 @@ function deriveBoxWash(element: Record<string, unknown>): void {
       : washTextureProps(pigment, washShadeSource(element), String(element.id ?? ''));
 
   if (texture !== null) {
-    Object.assign(element, texture);
+    Object.assign(element, texture, { washPaper: '#ffffff' });
     element.washTexCss = true;
   }
 }
@@ -219,7 +207,7 @@ function deriveWatercolor(element: Record<string, unknown>): void {
     return;
   }
 
-  Object.assign(element, texture);
+  Object.assign(element, texture, { washPaper: '#ffffff' });
 
   if (isCssKind) {
     element.washTexCss = true;
@@ -245,10 +233,11 @@ const normalizeShape: ElementNormalizer = (element) => {
   element.textAspectRatio = TEXT_ASPECT_BY_SHAPE[String(element.shape)] ?? 1;
   // Geo before watercolor: texture mode clips the master to the dynamic geometry path.
   deriveGeo(element);
+  deriveShapeIconColor(element);
+  deriveStockPaint(element, 0.85);
+  deriveShapePaint(element);
   deriveWatercolor(element);
   deriveOutline(element);
-  deriveShapeIconColor(element);
-  deriveShapeTextInk(element);
 };
 
 /**
@@ -315,16 +304,19 @@ const normalizeIcon: ElementNormalizer = (element) => {
 
 /** BPMN nodes share Icon's run model: an element-level typeface copies onto runs that omit one. */
 const normalizeBpmnNode: ElementNormalizer = (element) => {
+  deriveStockPaint(element, 0.96);
   deriveTextRunTypeface(element);
 };
 
 const normalizeTextbox: ElementNormalizer = (element) => {
-  // Render supplies a preferred width even when none is authored.
-  element.wrapMode = 'wrap';
+  // An authored wrap mode stays (a text box with no fixed width draws on one line per line, `nowrap`); with none,
+  // render supplies a preferred width, so the text wraps.
+  element.wrapMode ??= 'wrap';
   element.color ??= '#242424';
 };
 
 const normalizeGroupLike: ElementNormalizer = (element) => {
+  deriveStockPaint(element, 0.98, { title: true });
   const corners = element.cornerRadius;
   if (corners === 'sharp' || corners === 'round' || Array.isArray(corners)) {
     const radii = Array.isArray(corners) ? corners : Array(4).fill(corners === 'sharp' ? 0 : 6);
@@ -339,6 +331,7 @@ const normalizeGroupLike: ElementNormalizer = (element) => {
 };
 
 const normalizeDatabaseTable: ElementNormalizer = (element) => {
+  deriveStockPaint(element, 0.98, { divider: true });
   deriveBoxWash(element);
 };
 
@@ -378,6 +371,7 @@ const normalizeDatabaseRelationship: ElementNormalizer = (element) => {
 
 export const stockNormalizers: Record<string, ElementNormalizer> = {
   Shape: normalizeShape,
+  Legend: (element) => deriveStockPaint(element, 0.85),
   Icon: normalizeIcon,
   Activity: normalizeBpmnNode,
   Event: normalizeBpmnNode,

@@ -5,6 +5,7 @@
 /* Text sizing (see CUSTOMIZATION.md): sizes are pixels only. The caption slot's --er-base is
    15px; an authored element `fontSize` arrives as gated data-font-px, per-run as data-run-px. */
 .er-event {
+  --er-fill-lightness: 96%;
   position: relative;
   display: block;
   width: 100%;
@@ -13,8 +14,8 @@
   text-align: center;
 }
 .er-event__disc {
-  --er-fill: #ffffff;
-  --er-stroke: #242424;
+  --er-fill: var(--er-surface);
+  --er-stroke: var(--er-text);
   --er-glyph-num: 22;
   position: relative;
   display: flex;
@@ -29,7 +30,7 @@
   box-sizing: border-box;
 }
 .er-event[data-color]:not([data-color='']) .er-event__disc {
-  --er-fill: hsl(from var(--er-color) h s 96%);
+  --er-fill: var(--er-fill-color);
   --er-stroke: var(--er-color);
 }
 /* Authored paint outranks the identity formulas — same specificity, later in source order. */
@@ -49,7 +50,7 @@
   display: block;
   width: calc(var(--er-glyph-num) * 1px);
   height: calc(var(--er-glyph-num) * 1px);
-  color: #242424;
+  color: var(--er-text);
   line-height: 0;
 }
 .er-event__glyph svg {
@@ -73,7 +74,7 @@
   font-family: var(--f, var(--font-clean, sans-serif));
   font-size: var(--er-base);
   line-height: 1.25;
-  color: var(--er-ink, #242424);
+  color: var(--er-ink, var(--er-text));
 }
 .er-event[data-font-px]:not([data-font-px='']) .er-event__caption-line {
   font-size: var(--er-font-px);

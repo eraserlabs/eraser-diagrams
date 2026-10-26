@@ -1,3 +1,5 @@
+import type { Theme } from '@eraserlabs/protocol';
+
 /**
  * Browser-side fill engine: expands the declarative template dialect into ready-to-mount HTML
  * strings. All value insertion is string substitution followed by HTML-parser assignment — resolve
@@ -32,7 +34,7 @@ export interface FillEngineInit {
 }
 
 /** Fills a template and returns its mount markup (host content). */
-export type FillFn = (name: string, props: Record<string, unknown>) => string;
+export type FillFn = (name: string, props: Record<string, unknown>, theme?: Theme) => string;
 
 const PLACEHOLDER_RE = /\{\{\s*([^}]*?)\s*\}\}/g;
 const EACH_RE = /^\s*([A-Za-z_]\w*)\s+of\s+(.+?)\s*$/;
@@ -45,7 +47,12 @@ export function createFillEngine(init: FillEngineInit): FillFn {
     contents.set(name, extractTemplateContent(name, html));
   }
 
-  function fill(name: string, props: Record<string, unknown>, depth = 0): string {
+  function fill(
+    name: string,
+    props: Record<string, unknown>,
+    depth = 0,
+    theme: Theme = 'light',
+  ): string {
     if (depth > MAX_USE_DEPTH) {
       throw new Error(`template "${name}": data-use recursion exceeds ${MAX_USE_DEPTH}`);
     }
@@ -60,13 +67,19 @@ export function createFillEngine(init: FillEngineInit): FillFn {
     work.innerHTML = raw;
 
     for (const el of [...work.content.children]) {
-      processElement(el, props, depth);
+      el.setAttribute('data-er-theme', theme);
+      processElement(el, props, depth, theme);
     }
 
     return substitute(work.innerHTML, props);
   }
 
-  function processElement(el: Element, props: Record<string, unknown>, depth: number): void {
+  function processElement(
+    el: Element,
+    props: Record<string, unknown>,
+    depth: number,
+    theme: Theme,
+  ): void {
     const ifExpr = el.getAttribute('data-if');
 
     if (ifExpr !== null && !lookup(props, ifExpr)) {
@@ -91,7 +104,7 @@ export function createFillEngine(init: FillEngineInit): FillFn {
       // The host becomes the sub-template's scope root — and the enclosing template's scope
       // boundary — via this attribute.
       el.setAttribute('data-mdp-tag', useTarget);
-      el.innerHTML = fill(useTarget, asPropsObject(sub), depth + 1);
+      el.innerHTML = fill(useTarget, asPropsObject(sub), depth + 1, theme);
 
       return;
     }
@@ -106,7 +119,7 @@ export function createFillEngine(init: FillEngineInit): FillFn {
     }
 
     for (const child of [...el.children]) {
-      processElement(child, props, depth);
+      processElement(child, props, depth, theme);
     }
   }
 
@@ -128,7 +141,7 @@ export function createFillEngine(init: FillEngineInit): FillFn {
       .join('');
   }
 
-  return (name, props) => fill(name, props);
+  return (name, props, theme) => fill(name, props, 0, theme);
 }
 
 /**

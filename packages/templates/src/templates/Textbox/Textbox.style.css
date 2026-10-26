@@ -26,7 +26,7 @@
   overflow-wrap: break-word;
   word-break: normal;
   text-align: left;
-  color: var(--er-ink, #242424);
+  color: var(--er-ink, var(--er-text));
   box-sizing: border-box;
 }
 .er-textbox[data-font-px]:not([data-font-px='']) .er-textbox__text {

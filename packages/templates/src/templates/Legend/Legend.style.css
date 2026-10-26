@@ -1,8 +1,9 @@
 /* Plain card of swatch + text rows: white body, near-black hairline, 6px corners. */
 .er-legend {
+  --er-fill-lightness: 85%;
   /* Identity treatment, one authored `color` (see Shape.style.css for the shared model). */
-  --er-fill: #ffffff;
-  --er-stroke: #242424;
+  --er-fill: var(--er-surface);
+  --er-stroke: var(--er-text);
   width: 100%;
   height: 100%;
   border: 1px solid var(--er-stroke);
@@ -13,7 +14,7 @@
   font-family: var(--font-clean, sans-serif);
 }
 .er-legend[data-color]:not([data-color='']) {
-  --er-fill: hsl(from var(--er-color) h s 85%);
+  --er-fill: var(--er-fill-color);
   --er-stroke: var(--er-color);
 }
 .er-legend[data-bg]:not([data-bg='']) {
@@ -39,7 +40,7 @@
   height: 12px;
   border-radius: 3px;
   border: 1px solid rgba(36, 36, 36, 0.4);
-  background: #e4e4e4;
+  background: var(--er-swatch-default);
 }
 /* An entry without a color substitutes empty, which would void the declaration rather than fire a
    var() fallback — so the authored swatch is gated behind its own attribute. */
@@ -49,5 +50,11 @@
 .er-legend__text {
   font-size: 13px;
   letter-spacing: -0.01em;
-  color: #242424;
+  color: var(--er-text);
+}
+
+/* currentColor is inherited at paint time, so concrete resolve-time tinting cannot read it.
+   Preserve relative tinting in light mode; semantic dark surfaces keep it legible. */
+.er-legend[data-color='currentColor' i]:not([data-color=''])[data-bg=''] {
+  --er-fill: var(--er-inherited-pastel);
 }

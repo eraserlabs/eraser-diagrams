@@ -11,7 +11,7 @@
 }
 .er-divider__line {
   flex: 1;
-  border-top: var(--er-line-w, 1.3px) solid var(--er-stroke, #1c1c1c);
+  border-top: var(--er-line-w, 1.3px) solid var(--er-stroke, var(--er-line));
 }
 .er-divider[data-line-style='dashed'] .er-divider__line {
   border-top-style: dashed;
@@ -26,7 +26,7 @@
   letter-spacing: -0.01em;
   line-height: 1.2;
   white-space: nowrap;
-  color: #242424;
+  color: var(--er-text);
 }
 .er-divider[data-font-px]:not([data-font-px='']) .er-divider__label {
   font-size: var(--er-font-px);
@@ -36,7 +36,7 @@
 }
 .er-divider[data-orientation='vertical'] .er-divider__line {
   border-top: none;
-  border-left: var(--er-line-w, 1.3px) solid var(--er-stroke, #1c1c1c);
+  border-left: var(--er-line-w, 1.3px) solid var(--er-stroke, var(--er-line));
 }
 .er-divider[data-orientation='vertical'][data-line-style='dashed']
   .er-divider__line {

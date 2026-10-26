@@ -23,3 +23,5 @@ const fill = createFillEngine({ templates: Object.fromEntries(Object.entries(tem
 ## Editing a template
 
 Each tag lives in `src/templates/<Tag>/` as `<Tag>.schema.ts`, `<Tag>.html` and `<Tag>.style.css`. `pnpm generate` (run by `build`) folds the HTML and CSS into `src/generated/templates.gen.ts`, which is tracked; `pnpm check-generated` fails when the tracked file is stale. See [CUSTOMIZATION.md](../../CUSTOMIZATION.md) for the template conventions.
+
+For direct resolver use, pass both `library: stockLibrary` and `normalizers: stockNormalizers`, and include the library's base CSS when rendering. The high-level diagrams renderer installs these automatically. Internal paint fields such as `fillColor` belong to `stockLibrary.renderProps`, not authored elements. See the [resolver contracts](../resolve/README.md#themes-and-internal-paints).

@@ -377,7 +377,9 @@ test('missing authored width uses the renderer fallback for stock policy-aware t
   expect(boxes['shape']!.width).toBeLessThan(longText.length * 15);
 });
 
-test('an authored width one word short widens instead of breaking the word', async ({ page }) => {
+test('fixed-width textboxes wrap oversized words without widening the authored box', async ({
+  page,
+}) => {
   const { payload, result } = await buildPayload({
     elements: [
       { tag: 'Textbox', id: 'near', x: 0, y: 0, width: 70, text: 'AAAA AAAA', fontSize: 20 },
@@ -388,11 +390,12 @@ test('an authored width one word short widens instead of breaking the word', asy
   const run = await runPayload(page, payload, await stageAhem());
   const boxes = run.layout.boxes;
 
-  // 'AAAA' is 4 em at 20px, just past the authored 70: a metric mismatch, so the box grows.
-  expect(boxes['near']!.width).toBeGreaterThanOrEqual(79);
-  expect(boxes['near']!.width).toBeLessThan(90);
-  // Ten em against an authored 40 is no mismatch — that word cannot fit and still breaks.
+  // Textbox's height-only policy selects a fixed fit: even a slightly oversized word wraps.
+  // Keeping words whole by widening is reserved for balanced fitting (for example Shape).
+  expect(boxes['near']!.width).toBe(70);
   expect(boxes['far']!.width).toBe(40);
+  expect(boxes['near']!.height).toBeGreaterThan(26);
+  expect(boxes['far']!.height).toBeGreaterThan(26);
 });
 
 test('a wrapped connection label straddles the line its stored placement centred it on', async ({
@@ -584,12 +587,12 @@ test('watercolor: texture stain mounts as the body via a shared tinted master', 
 
   // The prephase registered one tinted master per pigment pair, as shared symbols (the rgb()
   // pigment converts to hex and gets its own).
-  await expect(page.locator('#eraser-scene symbol[id^="er-wash-"]')).toHaveCount(3);
+  const masters = page.locator('#eraser-scene > svg > defs > symbol');
+  await expect(masters).toHaveCount(3);
 
   // CSS-geometry kind: the master fills the inner box; the body fill itself goes transparent.
   const washtex = page.locator('[data-mdp-id="w"] .er-washtex use');
   await expect(washtex).toHaveCount(1);
-  await expect(washtex).toHaveAttribute('href', /^#er-wash-\d+$/);
   await expect(page.locator('[data-mdp-id="w"] .er-shape__inner')).toHaveCSS(
     'background-color',
     'rgba(0, 0, 0, 0)',
@@ -598,16 +601,25 @@ test('watercolor: texture stain mounts as the body via a shared tinted master', 
   // Polygon kind: the master clips to the dynamic geometry path inside the geo svg.
   const geoUse = page.locator('[data-mdp-id="hex"] .er-shape__geo--dynamic use');
   await expect(geoUse).toHaveCount(1);
-  await expect(geoUse).toHaveAttribute('href', /^#er-wash-\d+$/);
 
   // Non-hex pigment: rgb(120, 140, 220) canonicalizes to #788cdc and textures like hex.
   const converted = page.locator('[data-mdp-id="blob"] .er-washtex use');
   await expect(converted).toHaveCount(1);
-  await expect(converted).toHaveAttribute('href', /^#er-wash-\d+$/);
   await expect(page.locator('[data-mdp-id="blob"] .er-shape__inner')).toHaveCSS(
     'background-color',
     'rgba(0, 0, 0, 0)',
   );
+
+  // Each distinct pigment references its registered master. IDs are opaque, document-unique
+  // values so independently loaded render bundles can safely share a page.
+  const references = await Promise.all(
+    [washtex, geoUse, converted].map((use) => use.getAttribute('href')),
+  );
+  const registered = await masters.evaluateAll((symbols) =>
+    symbols.map((symbol) => `#${symbol.id}`),
+  );
+  expect(references.sort()).toEqual(registered.sort());
+  expect(new Set(registered).size).toBe(3);
 
   // Default (shadow) shapes mount no wash markup of any kind.
   await expect(page.locator('[data-mdp-id="p"] .er-washtex')).toHaveCount(0);

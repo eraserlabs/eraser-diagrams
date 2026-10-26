@@ -1,4 +1,4 @@
-import type { ResolvedConnection, ResolvedElement, ResolvedEntity } from '@eraserlabs/protocol';
+import type { ResolvedElement, ResolvedEntity } from '@eraserlabs/protocol';
 import type { SceneLayout } from '@eraserlabs/render';
 import { externalTextOf, routeScene } from './route.js';
 import { createFillEngine } from './fill.js';
@@ -20,28 +20,18 @@ import {
 
 export type { WireFontFace, UrlFontFace, RegisterFontsRequest } from './fonts.js';
 export type { ElementMeasure, MeasuredBox } from './measure.js';
+export type {
+  ElementFit,
+  FitConstraints,
+  FitPolicy,
+  Overflow,
+  TextRegionMeasure,
+} from './textSizing.js';
 export { cutLabelGap, clearLabelGap, type LabelGapOptions } from './labelGap.js';
 
-/** Page-lifetime configuration: injected once per page by the orchestrator, reused per request. */
-export interface PageSetup {
-  /** Template name → template file HTML and its bare-selector CSS. */
-  templates: Record<string, { html: string; css: string }>;
-  /** Shared CSS applied before per-template rules (unscoped). */
-  baseCss: string;
-  /** Grayscale watercolor master (data URI) — tinted per pigment pair before fill (masters.ts). */
-  washMaster?: string;
-}
-
-/**
- * The per-request payload. The lists arrive already split: kind is a per-tag fact the resolver
- * read off `x-schema-kind`, so nothing in the browser re-derives it.
- */
-export interface RunRequest {
-  entities: ResolvedEntity[];
-  connections: ResolvedConnection[];
-  /** Icon name → sanitized SVG sidecar. */
-  icons: Record<string, string>;
-}
+export type { PageSetup, RunRequest } from './types.js';
+import type { PageSetup, RunRequest } from './types.js';
+import { templateRegistry } from './templates.js';
 
 export interface RunResult {
   /** Natural pass-1 boxes plus final policy-sized body/role/part/ink boxes. */
@@ -61,31 +51,10 @@ let templatesHtml: Record<string, string> | undefined;
 let washMaster: string | undefined;
 
 function setup(config: PageSetup): void {
-  templatesHtml = {};
+  const registry = templateRegistry(config);
+  templatesHtml = registry.templates;
   washMaster = config.washMaster;
-  const scoped: string[] = [];
-
-  for (const [name, template] of Object.entries(config.templates)) {
-    templatesHtml[name] = template.html;
-
-    if (template.css.trim() !== '') {
-      scoped.push(scopeCss(name, template.css));
-    }
-  }
-
-  injectStyles(config.baseCss + scoped.join(''));
-}
-
-/**
- * Confine a template's bare-selector CSS to its mount hosts. The scope root is the host element
- * (`[data-mdp-tag]`), never the styled template root itself, so bare selectors match the whole
- * template — root included. The `to` boundary stops matching at nested mount hosts, walling
- * data-use compositions off from the enclosing template's CSS. (A scope root matching the
- * boundary selector does not limit its own scope; the boundary hosts themselves are outside the
- * scope, so a template cannot style a nested mount host directly — wrap the host to position it.)
- */
-function scopeCss(name: string, css: string): string {
-  return `@scope([data-mdp-tag="${name}"]) to ([data-mdp-tag]){${css}}`;
+  injectStyles(registry.css);
 }
 
 /**
@@ -107,14 +76,14 @@ async function run(request: RunRequest): Promise<RunResult> {
   // returned defs block carries one <symbol> per pair; elements reference them via <use>.
   const washDefs = await prepareWashMasters(washMaster, all);
   const fill = createFillEngine({ templates: templatesHtml, icons: request.icons });
-  const { scene, mounted } = mountScene(all, fill);
+  const { scene, mounted } = mountScene(all, fill, request.theme ?? all[0]?.theme ?? 'light');
 
   if (washDefs !== '') {
     scene.insertAdjacentHTML('afterbegin', washDefs);
   }
   await document.fonts.ready;
   const intrinsics = measureIntrinsics(mounted);
-  const resolvedSizes = resolveTextSizedElements(entities, mounted, intrinsics);
+  const resolvedSizes = resolveTextSizedElements(entities, mounted);
   let measures = measureScene(mounted, intrinsics);
   let finalExternalText = externalTextOf(measures);
   const provisional = deferConstrainedConnectionLabels(connections, mounted, finalExternalText);

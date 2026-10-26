@@ -4,10 +4,12 @@
  * clone — in place, no return value, mirroring normalize.ts — before the cross-ref / sanitize /
  * icon / color stages, so derived output is validated by those stages for free.
  *
- * Contract for normalizer authors: every prop a normalizer writes must be declared in the tag
- * schema (the template linter derives allowed placeholders from schema properties), and brand-new
- * top-level keys must be assigned directly on the element — the pointer machinery only resolves
- * keys that already exist.
+ * Contract for normalizer authors: declare internal outputs in `library.renderProps[tag]`,
+ * keeping the tag schema for author-facing inputs. Both declarations supply template bindings
+ * and post-normalization content/icon/reference/color policies. Render declarations do not apply
+ * schema defaults or run full structural validation; the normalizer must produce their declared
+ * shape. Derived colors must be `CssColor`: palette translation has already run on authored input.
+ * Assign brand-new keys directly — pointer traversal only visits keys that already exist.
  */
 export type ElementNormalizer = (element: Record<string, unknown>) => void;
 

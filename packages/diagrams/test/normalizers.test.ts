@@ -15,18 +15,18 @@ async function resolveProps(element: Record<string, unknown>): Promise<Record<st
   return allElements(r)[0]!.props;
 }
 
-describe('x-palette translation — one identity value, no derived pair', () => {
-  it('Shape: a palette token becomes its palette color, in place, on `color` alone', async () => {
+describe('x-palette translation — one identity value, template-derived fills', () => {
+  it('Shape: a palette token becomes its palette color; the template derives its fill', async () => {
     const props = await resolveProps({ tag: 'Shape', id: 's', x: 0, y: 0, color: 'blue' });
     expect(props.color).toBe('#2866c4');
-    // The pastel body, the hairline and the badge tint are CSS formulas over that one value now.
-    expect(props.fillColor).toBeUndefined();
+    expect(props.bgColor).toBeUndefined();
     expect(props.borderColor).toBeUndefined();
   });
 
-  it('a raw CSS color passes through, and now gets the identity treatment tokens used to get', async () => {
+  it('a literal color passes through for the same template-derived fill', async () => {
     const props = await resolveProps({ tag: 'Shape', id: 's', x: 0, y: 0, color: 'peachpuff' });
     expect(props.color).toBe('peachpuff');
+    expect(props.bgColor).toBeUndefined();
   });
 
   it('a string that is neither errors, with a did-you-mean over the token names', async () => {
@@ -40,12 +40,11 @@ describe('x-palette translation — one identity value, no derived pair', () => 
     expect(r.errors[0]?.suggestion).toBe('blue');
   });
 
-  it('bgColor / borderColor are raw CSS only — a token name is not a color', async () => {
+  it('bgColor / borderColor resolve palette tokens but preserve literal paints', async () => {
     const raw = await resolveProps({ tag: 'Shape', id: 's', x: 0, y: 0, bgColor: '#123456' });
     expect(raw.bgColor).toBe('#123456');
 
-    // "red" and "yellow" are CSS named colors too, so they stay themselves rather than
-    // resolving to the palette identity they used to alias.
+    // Palette names take precedence over CSS names; use hex for an exact literal.
     const named = await resolveProps({
       tag: 'Shape',
       id: 's2',
@@ -54,8 +53,8 @@ describe('x-palette translation — one identity value, no derived pair', () => 
       bgColor: 'red',
       borderColor: 'yellow',
     });
-    expect(named.bgColor).toBe('red');
-    expect(named.borderColor).toBe('yellow');
+    expect(named.bgColor).toBe(STOCK_PALETTE.red);
+    expect(named.borderColor).toBe(STOCK_PALETTE.yellow);
   });
 
   it('Shape: absent shape, styleMode, and vAlign come from the schema', async () => {
@@ -65,10 +64,12 @@ describe('x-palette translation — one identity value, no derived pair', () => 
     expect(props.vAlign).toBe('middle');
   });
 
-  it("Group: the same one value; the near-white tint is the stylesheet's step, not a prop", async () => {
+  it('Group: final body and title paints derive from the identity before theming', async () => {
     const props = await resolveProps({ tag: 'Group', id: 'g', x: 0, y: 0, color: 'blue' });
     expect(props.color).toBe('#2866c4');
-    expect(props.fillColor).toBeUndefined();
+    expect(props.fillColor).toBe('#f7f9fd'); // 98% lightness body
+    expect(props.titleSurfaceColor).toBe('#bfd4f2'); // 85% lightness title band
+    expect(props.bgColor).toBeUndefined(); // derivation does not invent an explicit override
     expect(props.fillMode).toBeUndefined();
   });
 
@@ -349,6 +350,30 @@ describe('derive stage — sizing', () => {
     expect(props.wrapMode).toBe('wrap');
   });
 
+  it('Divider: the label is inline markdown, as a connection label (the Labels group of the text contract)', async () => {
+    const props = await resolveProps({
+      tag: 'Divider',
+      id: 'd',
+      x: 0,
+      y: 0,
+      orientation: 'horizontal',
+      label: '# not a heading, **bold**\nline two',
+    });
+    expect(props.label).toBe('# not a heading, <strong>bold</strong><br />line two');
+  });
+
+  it('Textbox: an authored nowrap stays (a text box with no fixed width draws one line per line)', async () => {
+    const props = await resolveProps({
+      tag: 'Textbox',
+      id: 't',
+      x: 0,
+      y: 0,
+      text: 'x',
+      wrapMode: 'nowrap',
+    });
+    expect(props.wrapMode).toBe('nowrap');
+  });
+
   it('Textbox: without fixedWidth still accepts the renderer fallback width', async () => {
     const props = await resolveProps({ tag: 'Textbox', id: 't', x: 0, y: 0, text: 'x' });
     expect(props.wrapMode).toBe('wrap');
@@ -447,8 +472,11 @@ describe('derive stage — watercolor', () => {
       color: 'blue',
     });
 
-    // The body IS the recolored master; the stylesheet drops the paint behind it, no blob mounts.
-    expect(props.fillColor).toBeUndefined();
+    // Final paints exist before theming even when texture replaces the flat body. The
+    // stylesheet suppresses that flat fill under the watercolor master, not the normalizer.
+    expect(props.fillColor).toBe('#bfd4f2'); // Shape's 85% lightness pigment
+    expect(props.bgColor).toBeUndefined();
+    expect(props.washPaper).toBe('#ffffff');
     expect(props.washTexCss).toBe(true);
     expect(props.washPath).toBeUndefined();
     expect(props.washUid).toBe('w1');

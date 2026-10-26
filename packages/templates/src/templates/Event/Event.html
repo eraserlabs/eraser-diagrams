@@ -4,11 +4,12 @@
     data-role="body"
     class="er-event"
     data-color="{{color}}"
+    data-fill-color="{{fillColor}}"
     data-bg="{{bgColor}}"
     data-border-color="{{borderColor}}"
     data-border="{{borderStyle}}"
     data-font-px="{{fontSize}}"
-    style="--er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-font-px: {{fontSize}}px"
+    style="--er-resolved-fill: {{fillColor}}; --er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-font-px: {{fontSize}}px"
   >
     <span data-role="anchor" data-part="disc" class="er-event__disc">
       <span class="er-event__glyph" data-slot="icon" data-if="icon"></span>
@@ -24,9 +25,8 @@
         class="er-event__caption-line er-md"
         data-run-px="{{t.fontSize}}"
         style="--f: var(--font-{{t.typeface}}, var(--font-clean)); --er-ink: {{t.color}}; --er-run-px: {{t.fontSize}}px"
+      >{{t.text}}</div
       >
-        {{t.text}}
-      </div>
     </figcaption>
     <span data-use="Badge" data-props="badge" data-if="badge"></span>
   </figure>

@@ -1,4 +1,4 @@
-import type { ResolvedElement } from '@eraserlabs/protocol';
+import type { ResolvedElement, Theme } from '@eraserlabs/protocol';
 import type { FillFn } from './fill.js';
 
 export interface MountedElement {
@@ -20,10 +20,17 @@ const SCENE_ID = 'eraser-scene';
  * styled template content always sits strictly below it. Wrappers are unstyled flow content at
  * this stage; positioning is the apply stage's job, after layout has run over the measured boxes.
  */
-export function mountScene(elements: ResolvedElement[], fill: FillFn): MountedScene {
+export function mountScene(
+  elements: ResolvedElement[],
+  fill: FillFn,
+  theme: Theme = 'light',
+): MountedScene {
   document.getElementById(SCENE_ID)?.remove();
   const scene = document.createElement('div');
   scene.id = SCENE_ID;
+  scene.setAttribute('data-er-theme', theme);
+  // Isolated from the host page; screenshot callers can temporarily clear just this surface.
+  scene.style.backgroundColor = `var(--er-scene-background, var(--er-canvas, ${theme === 'dark' ? '#171717' : '#ffffff'}))`;
 
   const mounted: MountedElement[] = elements.map((element) => {
     const wrapper = document.createElement('div');
@@ -33,7 +40,7 @@ export function mountScene(elements: ResolvedElement[], fill: FillFn): MountedSc
     // the wrapper's rect the element's natural box. The size-resolution step overwrites this
     // with concrete px before the final measure pass.
     wrapper.style.width = 'max-content';
-    wrapper.innerHTML = fill(element.tag, element.props);
+    wrapper.innerHTML = fill(element.tag, element.props, element.theme ?? theme);
     scene.appendChild(wrapper);
 
     return { id: element.id, tag: element.tag, wrapper };

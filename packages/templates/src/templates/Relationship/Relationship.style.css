@@ -9,7 +9,7 @@
    an authored `fontSize` through the gated data-font-px + --er-font-px idiom. */
 .er-rel__line {
   fill: none;
-  stroke: var(--er-stroke, #1c1c1c);
+  stroke: var(--er-stroke, var(--er-line));
   stroke-width: var(--er-line-w, 1.3px);
 }
 .er-rel[data-line-style='dashed'] .er-rel__line {
@@ -32,7 +32,7 @@
   overflow-wrap: break-word;
   word-break: normal;
   /* The label follows the line colour unless `labelColor` is authored. */
-  color: var(--er-stroke, #1c1c1c);
+  color: var(--er-stroke, var(--er-line));
   background: transparent;
   padding: 0 2px;
 }

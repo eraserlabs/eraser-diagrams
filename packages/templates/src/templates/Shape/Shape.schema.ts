@@ -23,7 +23,7 @@ export const Shape = entitySchema(
     iconPadding: { type: 'number' },
     /** Derived: glyph ink — iconProps.color, else the primary run's color. */
     iconColor: CssColor,
-    /** Derived: the primary run's color, published to nested mounts (the Badge's default ink). */
+    /** Derived: the primary run's color, else the default ink, published to nested mounts (the Badge's ink). */
     textInk: CssColor,
     vAlign: { type: 'string', enum: [...V_ALIGNS], default: 'middle' },
     /** Extra px clearance for top/bottom-aligned content. */

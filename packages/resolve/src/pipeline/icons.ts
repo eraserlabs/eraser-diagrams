@@ -52,28 +52,16 @@ export async function stageIcons(
   mode: IconMode,
   onUnknownIcon: 'placeholder' | 'error',
 ): Promise<IconStageResult> {
-  const errors: Issue[] = [];
-  const warnings: Issue[] = [];
-  const icons: Record<string, string> = Object.create(null);
-
-  const hits: IconHit[] = [];
-
-  for (const { index, path: elementPath, tag, element } of items) {
-    const iconEntries = (policyTables[tag] ?? []).filter((e) => e.kind === 'icon-name');
-
-    for (const entry of iconEntries) {
-      for (const hit of resolvePointer(element, entry.pointer)) {
-        if (typeof hit.value === 'string') {
-          hits.push({ index, tag, name: hit.value, path: `${elementPath}${hit.path}` });
-        }
-      }
-    }
-  }
+  const hits = iconHits(items, policyTables);
 
   if (mode === 'resolve' && loader) {
     const missing = [...new Set(hits.map((h) => h.name))].filter((name) => !cache.has(name));
     await loadInBatches(missing, loader, cache);
   }
+
+  const errors: Issue[] = [];
+  const warnings: Issue[] = [];
+  const icons: Record<string, string> = Object.create(null);
 
   for (const { index, tag, name, path } of hits) {
     const cached = cache.get(name);
@@ -118,6 +106,46 @@ export async function stageIcons(
   }
 
   return { errors, warnings, inlined: Object.keys(icons).length, icons };
+}
+
+/**
+ * The icon stage for layout only (`resolveForLayout`): nothing is loaded or read from the cache, and every icon name
+ * ships the placeholder glyph, with no issue. A glyph's box comes from its element's size, not from its SVG, so text
+ * laid out with the placeholder is the size it is drawn at with the real icon.
+ */
+export function stageIconsForLayout(
+  items: readonly PipelineElement[],
+  policyTables: Record<string, PolicyEntry[]>,
+): IconStageResult {
+  const icons: Record<string, string> = Object.create(null);
+
+  for (const { name } of iconHits(items, policyTables)) {
+    icons[name] = PLACEHOLDER_GLYPH;
+  }
+
+  return { errors: [], warnings: [], inlined: Object.keys(icons).length, icons };
+}
+
+/** Every icon name the elements carry, with where it sits. */
+function iconHits(
+  items: readonly PipelineElement[],
+  policyTables: Record<string, PolicyEntry[]>,
+): IconHit[] {
+  const hits: IconHit[] = [];
+
+  for (const { index, path: elementPath, tag, element } of items) {
+    const iconEntries = (policyTables[tag] ?? []).filter((e) => e.kind === 'icon-name');
+
+    for (const entry of iconEntries) {
+      for (const hit of resolvePointer(element, entry.pointer)) {
+        if (typeof hit.value === 'string') {
+          hits.push({ index, tag, name: hit.value, path: `${elementPath}${hit.path}` });
+        }
+      }
+    }
+  }
+
+  return hits;
 }
 
 async function loadInBatches(names: string[], loader: IconLoader, cache: IconCache): Promise<void> {

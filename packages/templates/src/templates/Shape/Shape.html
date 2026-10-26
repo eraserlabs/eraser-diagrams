@@ -10,12 +10,15 @@
     data-icon-size="{{iconProps.size}}"
     data-font-px="{{fontSize}}"
     data-color="{{color}}"
+    data-fill-color="{{fillColor}}"
+    data-tint-color="{{tintColor}}"
     data-bg="{{bgColor}}"
     data-border-color="{{borderColor}}"
     data-text-ink="{{textInk}}"
+    data-body-ink="{{bodyInk}}"
     data-washtex-css="{{washTexCss}}"
     data-washtex-geo="{{washTexGeo}}"
-    style="--er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-text-ink: {{textInk}}; --er-icon-pad: {{iconPadding}}px; --er-icon-ink: {{iconColor}}; --er-v-margin: {{vMargin}}px; --er-font-px: {{fontSize}}px; --er-font-num: {{fontSize}}"
+    style="--er-resolved-fill: {{fillColor}}; --er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-text-ink: {{textInk}}; --er-body-ink: {{bodyInk}}; --er-resolved-tint: {{tintColor}}; --er-icon-pad: {{iconPadding}}px; --er-icon-ink: {{iconColor}}; --er-v-margin: {{vMargin}}px; --er-font-px: {{fontSize}}px; --er-font-num: {{fontSize}}"
   >
     <svg
       class="er-shape__geo er-shape__geo--dynamic"
@@ -96,7 +99,7 @@
       ></path>
       <path
         class="er-shape__path er-shape__path--document"
-        d="M 0.87,6.67 C 0.87,3.47 3.41,1 6.53,1 H 93.3 C 96.4,1 99,3.51 99,7 V 77.7 C 98.9,86.3 95.1,89.9 91.3,88.8 C 85.1,87.1 76.1,85.1 68.5,85.1 C 55.4,98.1 44.3,98.1 28,98.1 C 15.2,98.1 5.9,90.8 2.45,87.6 C 0.87,86.7 0.87,85.2 0.87,83.9 V 6.67 Z"
+        d="M 0.87,6.67 C 0.87,3.47 3.41,1 6.53,1 H 93.3 C 96.4,1 99,3.51 99,7 V 77.7 C 98.9,86.3 95.1,89.9 91.3,88.8 C 85.1,87.1 76.1,85.1 68.5,85.1 C 55.4,85.1 44.3,98.1 28,98.1 C 15.2,98.1 5.9,90.8 2.45,87.6 C 0.87,86.7 0.87,85.2 0.87,83.9 V 6.67 Z"
       ></path>
       <path
         class="er-shape__path er-shape__path--cylinder-body"
@@ -139,6 +142,7 @@
         data-role="internal-text"
         data-text-grow-policy="balanced"
         data-text-max-lines="3"
+        data-text-word-growth="1.5"
         data-text-aspect="{{textAspectRatio}}"
         data-each="t of texts"
         data-key="text"

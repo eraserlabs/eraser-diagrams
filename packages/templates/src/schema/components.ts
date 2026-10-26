@@ -27,13 +27,14 @@ export const CornerRadius: JsonSchema = {
 };
 
 /**
- * Identity/stroke trio. `color` is the identity; body/hairline/tint formulas derive from it in
- * CSS. `bgColor` / `borderColor` are raw paint that outrank those formulas.
+ * Identity/stroke trio. `color` is the identity; normalizers derive surface paints from it
+ * before the shared theme transform. All three resolve palette tokens; `bgColor` / `borderColor` then paint the resolved value
+ * directly, overriding those formulas.
  */
 export const ShapeStyleProps: Record<string, JsonSchema> = {
   color: PaletteColor,
-  bgColor: CssColor,
-  borderColor: CssColor,
+  bgColor: PaletteColor,
+  borderColor: PaletteColor,
   styleMode: { type: 'string', enum: [...STYLE_MODES], default: 'shadow' },
   cornerRadius: CornerRadius,
   borderStyle: { type: 'string', enum: [...BORDER_STYLES] },
@@ -47,8 +48,8 @@ export const ShapeStyleProps: Record<string, JsonSchema> = {
 export const WashTexProps: Record<string, JsonSchema> = {
   washTexCss: { type: 'boolean' },
   washUid: { type: 'string', pattern: '^[A-Za-z0-9_-]+$' },
-  washShade: { type: 'string', pattern: '^#[0-9a-f]{6}$' },
-  washMid: { type: 'string', pattern: '^#[0-9a-f]{6}$' },
+  washShade: { ...CssColor, pattern: '^#[0-9a-f]{6}$' },
+  washMid: { ...CssColor, pattern: '^#[0-9a-f]{6}$' },
   /** Stamped by the browser prephase: shared tinted-master symbol id. */
   washSym: { type: 'string', pattern: '^[A-Za-z0-9_-]+$' },
 };

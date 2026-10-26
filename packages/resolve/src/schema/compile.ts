@@ -12,12 +12,15 @@ import {
 } from './keywords.js';
 import { walkSchema } from './walk.js';
 import { assertValidTagSchema } from './definition.js';
+import { withRenderProps } from './render-props.js';
 
 export interface CompiledSchemas {
   /** Null-prototype map tag → validator (Object.create(null) to resist prototype pollution). */
   validators: Record<string, ValidateFunction>;
   /** Null-prototype map tag → per-prop policy entries (iterated by stages 4–7). */
   policyTables: Record<string, PolicyEntry[]>;
+  /** Authored policies only, used for canonicalization before normalizers run. */
+  authoredPolicyTables: Record<string, PolicyEntry[]>;
   rawSchemas: Record<string, object>;
   /** Tag classification declared once on each schema root. */
   kinds: Record<string, ElementKind>;
@@ -49,10 +52,12 @@ export function createAjv(): Ajv {
 export function compileSchemas(
   schemas: Record<string, object>,
   hasPalette = false,
+  renderProps?: Record<string, Record<string, object>>,
 ): CompiledSchemas {
   const ajv = createAjv();
   const validators: Record<string, ValidateFunction> = Object.create(null);
   const policyTables: Record<string, PolicyEntry[]> = Object.create(null);
+  const authoredPolicyTables: Record<string, PolicyEntry[]> = Object.create(null);
   const rawSchemas: Record<string, object> = Object.create(null);
   const kinds: Record<string, ElementKind> = Object.create(null);
   const containers = new Set<string>();
@@ -66,7 +71,10 @@ export function compileSchemas(
     }
 
     validators[tag] = ajv.compile(withEntityIsContainer(schema, kind));
-    policyTables[tag] = walkPolicies(schema);
+    authoredPolicyTables[tag] = walkPolicies(schema);
+    policyTables[tag] = renderProps?.[tag]
+      ? walkPolicies(withRenderProps(schema, renderProps[tag]))
+      : authoredPolicyTables[tag];
     rawSchemas[tag] = schema;
     kinds[tag] = kind;
 
@@ -75,7 +83,7 @@ export function compileSchemas(
     }
   }
 
-  return { validators, policyTables, rawSchemas, kinds, containers };
+  return { validators, policyTables, authoredPolicyTables, rawSchemas, kinds, containers };
 }
 
 /**

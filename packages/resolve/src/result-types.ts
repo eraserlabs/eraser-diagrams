@@ -1,4 +1,4 @@
-import type { ResolvedConnection, ResolvedEntity } from '@eraserlabs/protocol';
+import type { ResolvedConnection, ResolvedEntity, Theme } from '@eraserlabs/protocol';
 import type { ElementKind } from '@eraserlabs/protocol/schema';
 import type { AuthoredRecord } from './types.js';
 
@@ -86,6 +86,8 @@ export interface ResolveMeta {
  * consumer re-derives kind from the tag registry.
  */
 export interface ResolveResult {
+  /** Presentation theme, also carried by each element for fragment rendering. Omitted means light. */
+  theme?: Theme;
   ok: boolean;
   errors: Issue[];
   warnings: Issue[];
