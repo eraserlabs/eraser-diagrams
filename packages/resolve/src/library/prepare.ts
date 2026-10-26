@@ -8,6 +8,7 @@ import type {
 import { walkPolicies } from '../schema/compile.js';
 import { CSS_COLOR_KEYWORD, PALETTE_KEYWORD } from '../schema/keywords.js';
 import { walkSchema } from '../schema/walk.js';
+import { checkRenderProps, withRenderProps } from '../schema/render-props.js';
 import { parseTemplate } from './parse.js';
 import { lintTemplate, LINT_RULE, type LintIssue } from './lint.js';
 import { mergeTemplates } from './merge.js';
@@ -38,6 +39,7 @@ export function prepareLibrary(
   const subTemplates = library.subTemplates ?? {};
   const paletteIssues: LintIssue[] = [];
   const palette = checkPalette(library.palette, paletteIssues);
+  checkRenderProps(library.schemas, library.renderProps, library.palette !== undefined);
   const defaultConnectionTag = checkDefaultConnectionTag(library, paletteIssues);
   const seen = new Set<string>();
   const prepared: PreparedTemplate[] = [];
@@ -57,7 +59,10 @@ export function prepareLibrary(
 
     seen.add(parsed.name);
 
-    const schema = library.schemas[parsed.name] ?? subTemplates[parsed.name];
+    const authoredSchema = library.schemas[parsed.name];
+    const schema = authoredSchema
+      ? withRenderProps(authoredSchema, library.renderProps?.[parsed.name])
+      : subTemplates[parsed.name];
     const isSubTemplate = parsed.name in subTemplates;
     const elementKind = elementKindOf(schema);
 
@@ -97,6 +102,7 @@ export function prepareLibrary(
   return {
     manifest: [...order, ...extras],
     schemas: library.schemas,
+    ...(library.renderProps !== undefined ? { renderProps: library.renderProps } : {}),
     templates: prepared,
     baseCss: library.baseCss,
     ...(palette ? { palette } : {}),

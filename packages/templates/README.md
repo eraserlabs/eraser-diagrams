@@ -26,6 +26,8 @@ Each tag lives in `src/templates/<Tag>/` as `<Tag>.schema.ts`, `<Tag>.html` and 
 
 ## Theme and paint ownership
 
+Derived paint fields such as `fillColor`, `bodyInk`, and `washPaper` are internal render properties. `stockLibrary.renderProps` describes their validation and template bindings; they are absent from the public authoring schemas and must not be supplied in authored elements.
+
 When using `createResolver` directly, pass both `library: stockLibrary` and `normalizers: stockNormalizers`; the normalizers prepare the paints consumed by the stock CSS. Legacy light-mode rendering without normalizers retains its CSS tinting, but full functionality and dark mode require them. The high-level `@eraserlabs/diagrams` renderer installs these defaults automatically.
 
 Resolve with `{ theme: 'dark' }` to theme every schema-declared color, including nested text, labels, icons, badges, and watercolor pigments. Stock normalizers first derive final surface paints in light space: `color` gets an 85%-lightness Shape/Legend fill, 98% Group/Lane/Pool/table fill, or 96% BPMN fill; explicit `bgColor` and `borderColor` remain exact light-theme paints. Palette tokens and equivalent literal colors use the same derivation. The shared resolver transform then themes these final paints without changing the authored input.

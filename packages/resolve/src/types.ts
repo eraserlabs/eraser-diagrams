@@ -18,6 +18,13 @@ export interface AuthoredLibrary {
   manifest: readonly string[];
   /** Dispatchable per-tag schemas. */
   schemas: Record<string, object>;
+  /**
+   * Internal normalizer outputs by dispatchable tag, separate from the authored input schema.
+   * These property schemas allow template bindings and supply post-normalization policies;
+   * they do not accept input, apply defaults, or change `tagSchema()` / exported schemas.
+   * Declare derived colors as `CssColor`, since palette lookup precedes normalizers.
+   */
+  renderProps?: Record<string, Record<string, object>>;
   templates: TemplateFile[];
   /** Shared CSS applied before per-template rules. */
   baseCss: string;
@@ -69,6 +76,8 @@ export interface TemplateLibrary {
   manifest: readonly string[];
   /** Per-tag plain JSON Schema objects. */
   schemas: Record<string, object>;
+  /** Checked internal render properties; never part of the authored input schemas. */
+  renderProps?: Record<string, Record<string, object>>;
   templates: PreparedTemplate[];
   /** Shared CSS applied before per-template rules. */
   baseCss: string;

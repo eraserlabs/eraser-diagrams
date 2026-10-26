@@ -113,7 +113,11 @@ interface Checked {
  */
 export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
   const library = prepareLibrary(setup.library, setup.overrides);
-  const compiled = compileSchemas(library.schemas, library.palette !== undefined);
+  const compiled = compileSchemas(
+    library.schemas,
+    library.palette !== undefined,
+    library.renderProps,
+  );
   const knownTags = Object.keys(compiled.validators);
   const onUnknownIcon = setup.onUnknownIcon ?? 'placeholder';
 
@@ -156,7 +160,11 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
     for (const item of elements) {
       roundAuthoredGeometry(item.element);
       errors.push(
-        ...normalizeAnnotatedProps(item, compiled.policyTables[item.tag] ?? [], library.palette),
+        ...normalizeAnnotatedProps(
+          item,
+          compiled.authoredPolicyTables[item.tag] ?? [],
+          library.palette,
+        ),
       );
       deriveProps(item.element, item.tag, setup.normalizers);
     }

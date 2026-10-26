@@ -12,8 +12,9 @@ import { shapeOutline } from './shapeOutlines.js';
 
 /**
  * Derived-prop table injected via `ResolverSetup.normalizers`. Pure derivations from authored
- * props — no measurement, no DOM. Props written here are `Optional` in the tag schemas so
- * authored input may carry them too. Template `--er-*` bindings of props this file may leave
+ * props — no measurement, no DOM. New render-only props are declared separately in
+ * `stockLibrary.renderProps`; published legacy props remain in their existing tag schemas.
+ * Template `--er-*` bindings of props this file may leave
  * absent must be gated (`[data-x]:not([data-x=''])`) — CSS `var()` fallbacks do not fire on
  * empty substitutions.
  */

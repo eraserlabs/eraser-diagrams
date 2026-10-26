@@ -144,57 +144,63 @@ test('library swap: the same json re-renders in the NEW palette, not the measure
   }
 });
 
-test('purity: a watercolor shape carries no derived prop into the json', async () => {
-  const outcome = await diagrams.render({ ...DOC, outputs: { json: true } });
-  expect(outcome.ok).toBe(true);
+for (const theme of ['light', 'dark'] as const) {
+  test(`purity: ${theme} watercolor paints stay internal to rendering`, async () => {
+    const outcome = await diagrams.render({ ...DOC, theme, outputs: { json: true } });
+    expect(outcome.ok).toBe(true);
 
-  if (!outcome.ok) {
-    return;
-  }
+    if (!outcome.ok) {
+      return;
+    }
 
-  const [shape, icon, group] = outcome.json.entities;
-  const derived = [
-    'fillColor',
-    'fillMode',
-    'borderColor',
-    'washColor',
-    'washTexCss',
-    'washTexGeo',
-    'washUid',
-    'washShade',
-    'washMid',
-    'geoPath',
-    'geoW',
-    'geoH',
-    'staticGeo',
-    'outline',
-    'textAspectRatio',
-    'vAlign',
-    'vMargin',
-    'iconColor',
-    'sizePx',
-    'titleStyle',
-    'titleRule',
-    'titleBgColor',
-    'titleColor',
-    'titleHAlign',
-    'titleIconColor',
-    'dividerColor',
-  ];
+    const [shape, icon, group] = outcome.json.entities;
+    const derived = [
+      'fillColor',
+      'tintColor',
+      'titleSurfaceColor',
+      'bodyInk',
+      'fillMode',
+      'borderColor',
+      'washColor',
+      'washTexCss',
+      'washTexGeo',
+      'washUid',
+      'washShade',
+      'washMid',
+      'washPaper',
+      'geoPath',
+      'geoW',
+      'geoH',
+      'staticGeo',
+      'outline',
+      'textAspectRatio',
+      'vAlign',
+      'vMargin',
+      'iconColor',
+      'sizePx',
+      'titleStyle',
+      'titleRule',
+      'titleBgColor',
+      'titleColor',
+      'titleHAlign',
+      'titleIconColor',
+      'dividerColor',
+    ];
 
-  for (const key of derived) {
-    expect(shape, `Shape leaked "${key}"`).not.toHaveProperty(key);
-    expect(icon, `Icon leaked "${key}"`).not.toHaveProperty(key);
-    expect(group, `Group leaked "${key}"`).not.toHaveProperty(key);
-  }
+    for (const key of derived) {
+      expect(shape, `Shape leaked "${key}"`).not.toHaveProperty(key);
+      expect(icon, `Icon leaked "${key}"`).not.toHaveProperty(key);
+      expect(group, `Group leaked "${key}"`).not.toHaveProperty(key);
+    }
 
-  // Defaults the normalizers apply to the clone stay on the clone.
-  expect(shape).not.toHaveProperty('lineWidthPx');
-  expect(outcome.json.connections[0]).not.toHaveProperty('lineWidthPx');
-  expect(outcome.json.connections[0]).not.toHaveProperty('endArrowhead');
-  expect(outcome.json.connections[0]).not.toHaveProperty('color');
-  // The authored keys, and only those plus the overlay, survive.
-  expect(Object.keys(shape!).sort()).toEqual(
-    ['badge', 'color', 'height', 'id', 'styleMode', 'tag', 'texts', 'width', 'x', 'y'].sort(),
-  );
-});
+    // Defaults the normalizers apply to the clone stay on the clone.
+    expect(shape).not.toHaveProperty('lineWidthPx');
+    expect(outcome.json.connections[0]).not.toHaveProperty('lineWidthPx');
+    expect(outcome.json.connections[0]).not.toHaveProperty('endArrowhead');
+    expect(outcome.json.connections[0]).not.toHaveProperty('color');
+    // The authored keys, and only those plus the overlay, survive.
+    expect(Object.keys(shape!).sort()).toEqual(
+      ['badge', 'color', 'height', 'id', 'styleMode', 'tag', 'texts', 'width', 'x', 'y'].sort(),
+    );
+  });
+}

@@ -31,15 +31,7 @@ export const CornerRadius: JsonSchema = {
  * before the shared theme transform. All three resolve palette tokens; `bgColor` / `borderColor` then paint the resolved value
  * directly, overriding those formulas.
  */
-export const DerivedPaintProps: Record<string, JsonSchema> = {
-  fillColor: CssColor,
-  tintColor: CssColor,
-  titleSurfaceColor: CssColor,
-  dividerColor: CssColor,
-};
-
 export const ShapeStyleProps: Record<string, JsonSchema> = {
-  ...DerivedPaintProps,
   color: PaletteColor,
   bgColor: PaletteColor,
   borderColor: PaletteColor,
@@ -58,7 +50,6 @@ export const WashTexProps: Record<string, JsonSchema> = {
   washUid: { type: 'string', pattern: '^[A-Za-z0-9_-]+$' },
   washShade: { ...CssColor, pattern: '^#[0-9a-f]{6}$' },
   washMid: { ...CssColor, pattern: '^#[0-9a-f]{6}$' },
-  washPaper: { ...CssColor, pattern: '^#[0-9a-f]{6}$' },
   /** Stamped by the browser prephase: shared tinted-master symbol id. */
   washSym: { type: 'string', pattern: '^[A-Za-z0-9_-]+$' },
 };

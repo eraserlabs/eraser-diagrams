@@ -72,9 +72,30 @@ Pass `resolve(input, { theme: 'dark' })` (or `resolveForLayout` with the same op
 
 The result and each resolved element carry their theme. Both the full browser renderer and `createElementRenderer` use that metadata automatically; the host does not add a DOM theme attribute. To change themes, resolve the original authored input again. Changing a DOM attribute alone only changes CSS defaults, not the already prepared explicit paints.
 
-Stock templates calculate their light-space surface colors before conversion (Shape 85% lightness, Group 98%, and their own title/badge treatments). Defaults, code chrome, links and syntax highlighting use theme-aware CSS variables. `scaleColorForTheme` and `setColorLightness` are exported for custom normalizers that derive light-space paints. Normalizers should not transform for the theme themselves: declare every output color as `CssColor` and let the shared pass do it once.
+Stock templates calculate their light-space surface colors before conversion (Shape 85% lightness, Group 98%, and their own title/badge treatments). Defaults, code chrome, links and syntax highlighting use theme-aware CSS variables. `scaleColorForTheme` and `setColorLightness` are exported for custom normalizers that derive light-space paints. Normalizers should not transform for the theme themselves: declare every output color as `CssColor` in the library's internal `renderProps` and let the shared pass do it once.
 
 Concrete hex, named, RGB/RGBA and HSL/HSLA colors share the same conversion and preserve alpha. `transparent` and `currentColor` retain their semantic meaning. A stock surface using inherited `currentColor` keeps its relative tint in light mode and uses a neutral themed surface in dark mode; use a concrete color for hue-preserving derived tints. Fixed colors inside multicolor SVG/image assets are left intact; monochrome icons using `currentColor` inherit their themed ink. Custom CSS should consume the library's semantic variables or provide its own theme-aware defaults.
+
+## Internal render properties
+
+Keep author-facing options in `library.schemas`. A normalizer's new implementation fields belong in the optional `library.renderProps` map, keyed by dispatchable tag:
+
+```ts
+const library = {
+  // ...manifest, templates, baseCss
+  schemas: { Tile: entitySchema('Tile', { bgColor: CssColor }) },
+  renderProps: { Tile: { fillColor: CssColor } },
+};
+const normalizers = {
+  Tile: (element) => {
+    element.fillColor = element.bgColor ?? '#ffffff';
+  },
+};
+```
+
+Here `bgColor` is accepted input, while `fillColor` is available to template bindings and the post-normalizer color/theme stages. Supplying `fillColor` in authored input produces the normal unknown-property warning and strips it before the normalizer runs. The original input schemas, `tagSchema()`, and schema exports do not include internal fields. Existing libraries without `renderProps` keep their behavior.
+
+Render declarations use the same property-schema subset and may describe nested objects and arrays. They supply post-normalizer content, reference, icon and color policies; they do not apply defaults or run a second full structural validation. Normalizers are responsible for producing the declared shape. Derived colors must use `CssColor`, not `PaletteColor`: palette lookup runs on authored input before normalizers. Boot rejects unknown tag names, collisions with authored properties, forbidden keys and invalid declarations. Subtemplate-only declarations and extensions inside existing authored properties are not supported.
 
 ## Diagram text
 

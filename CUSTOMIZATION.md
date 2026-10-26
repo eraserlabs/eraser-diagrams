@@ -4,7 +4,7 @@ The stock library is a complete diagramming system, and most customization is a 
 
 Customization is data, not code. A visual vocabulary — Eraser calls it a _component library_ — is a set of tags, where each tag is a **component**:
 
-- a **JSON Schema** describing the tag's authored properties;
+- a **JSON Schema** describing the tag's authored properties, with optional internal `renderProps` declarations for computed template values;
 - **markup** that renders those properties (a named HTML `<template>` element);
 - **CSS** scoped to that component; and
 - optionally, **normalizers** that derive render-ready values from authored ones (see [Normalizers](#normalizers) — these are application code, not library data).
@@ -260,7 +260,7 @@ An `x-palette` property accepts **either a palette token name or any raw CSS col
 
 This is the one union the system blesses, and the reason is mechanical. A `"sm" | number` size union cannot work as data: the token arm wants an attribute selector and the number arm wants an `--er-*` binding, and one property cannot be both — which is why sizes are an enum or a number, never either-or. The palette union has no such split. Both arms are colors, and a color has exactly one markup mechanism — a custom-property binding. Translation does not pick between two mechanisms; it just replaces a name with the value it names, and the property has a single domain (validated CSS color) before and after. There is nothing to reconcile.
 
-The one thing that does change is _what_ the value means to your CSS. A palette that names identity colors pairs naturally with relative-color formulas over the single bound value, which is how the stock library works — one `--er-color` per element, and the pastel body, hairline, container tint, badge background and title surface are all `hsl(from var(--er-color) h s <L>%)` steps of it. Doing that in CSS rather than in a normalizer is what lets a raw `color: "peachpuff"` get exactly the treatment a token gets.
+A palette names identity colors; the template decides how that identity becomes a border, background, or title surface. Palette lookup happens before normalizers, so a token and its equivalent literal receive the same treatment. The stock normalizers derive their surface paints in light space before the shared dark-mode conversion. Custom libraries that support dark mode should follow that order: deriving a light tint in CSS from an already converted dark color produces a different result.
 
 ### Trust boundary
 
@@ -295,20 +295,34 @@ A custom property set by an attribute selector inherits, so one authored token c
 
 A sizing property is therefore an enum **or** a number — never a union of the two. A token wants an attribute selector and a number wants an `--er-*` binding, and one property cannot be both, so the system simply does not offer `"sm" | number`. The stock library follows its own rule: text sizes are px-only, and icon sizes are token-only enums whose buckets each host's stylesheet owns (`md` is 50px for a standalone `Icon`, 20px inside a `Shape`, 15px in a group title band), with the numeric path being the authored `width`/`height` that outrank the token through a gated rule. When two properties must not be authored together, declare a plain JSON Schema `not: { required: [...] }` on the slot — validation names both properties in the error.
 
-Color is the other conversion that has already happened. `color` is an `x-palette` property, and the coordinated identity treatment is relative-color arithmetic in each tag's own stylesheet — `hsl(from var(--er-color) h s 85%)` for a shape's pastel body, `98%` for a container's near-white tint and the badge background a mounted `Badge` inherits, `92%` for a `DatabaseTable`'s row separators, with the identity color itself as the hairline. Authored `bgColor` / `borderColor` outrank those formulas through ordinary cascade order. Palette tokens and literal colors use the same formulas. The Shape normalizer only derives text ink and badge colors from an explicit fill; it does not replace the authored paints. The shared presentation-theme pass transforms declared colors after these derivations. Custom derived paint fields must be annotated with `CssColor`; normalizers should compute light-space paints only. Stylesheet defaults should use semantic variables such as `--er-text`, `--er-surface`, and `--er-line`, which are reset on each renderer-owned theme root.
+Color has two steps. Palette tokens first become concrete colors. Stock normalizers then derive the template's light-space paints: 85% lightness for a Shape background, 98% for a Group background, and the appropriate title, badge, and separator paints. Authored `bgColor` and `borderColor` remain explicit overrides. The generic presentation-theme pass converts all declared colors after these derivations, including internal render props. CSS defaults use semantic variables such as `--er-text`, `--er-surface`, and `--er-line`, reset on each renderer-owned theme root.
 
 Normalizers exist for what neither CSS nor an annotation can express. The markup dialect deliberately cannot compute — no arithmetic beyond `calc()`, no string building, no conditionals beyond truthiness — and some derivations fall outside paint entirely. A normalizer is a per-tag function run during resolution that writes render-ready properties onto the element. What the stock library still uses them for, in full:
 
 - precomputed SVG path data — the watercolor wash blobs and the rounded shape polygons, since CSS cannot author a path's `d`;
-- the watercolor **texture pigment pair** (`washShade` / `washMid`): the stain recolors a grayscale scan through an SVG luminance LUT whose stops are concrete `#rrggbb` values in `feFunc*` _attributes_, which no relative-color expression can reach, so that one pastel step is computed a second time in code;
+- final surface paints and readable ink, derived before theme conversion;
+- watercolor pigment and paper colors: the renderer recolors a grayscale scan from these concrete colors, including the themed paper stop;
 - the `outline` geometry that lets connection endpoints attach to a shape's true drawn boundary (consumed by the router, not the painter);
 - seeded per-element randomness;
 - the half of an `Icon`'s `width || height || size || 50px` precedence that is not paint (it writes `sizePx` only when bounds are authored; the token and the 50px default are attribute selectors, and the gated `[data-sized]` rule is what lets bounds outrank them);
 - a handful of small flattenings CSS and `default` cannot express: `vMargin` (clamp), the text-wrap aspect ratio, the `Icon` element→run typeface cascade, `iconColor`, `lineWidthPx`, and the crow-foot arrowhead pair a `relType` implies. Simple omitted values (`shape`, `styleMode`, `vAlign`, `Relationship.endArrowhead`, group-title `width`/`border`) are schema `default`s, filled by AJV during validation.
 
-Two rules: every property a normalizer writes must also be declared in the tag's schema (kept optional — derived output is validated exactly like authored input), and every markup binding it feeds should get a concrete default (see the `var()` caveat above).
+Declare internal computed properties in `library.renderProps`, separately from the tag's authored schema:
 
-**Normalizers are application code, not library data — know the trust boundary.** Schemas, component markup, and CSS are data, not code: `AuthoredLibrary` contains exactly those, they serialize, and a hosted product can accept them from untrusted profile authors because preparation validates and the engine never executes them. Normalizers are JavaScript functions passed separately (`createRenderer({ normalizers })`) and run in your process — ship them only as part of your own application, and never accept them from outside the trust boundary. A profile that must stay pure data can do without them: every derived property is schema-declared, so authoring tools can compute and supply those values directly as input.
+```ts
+const library = {
+  ...myLibrary,
+  renderProps: {
+    Card: { fillColor: CssColor },
+  },
+};
+```
+
+Here the Card normalizer may write `fillColor`, and its template may bind `{{fillColor}}`. The declaration enables template linting, color validation, and theme conversion. It does not add an authoring option: `tagSchema('Card')` omits it, and submitted `fillColor` values are warned about and stripped under the usual unknown-property policy before normalization. Internal names must not overlap authored properties. Derived colors use `CssColor`; palette tokens have already been resolved on authored fields before normalizers run.
+
+Normalizers may still update declared authored properties where that is the intended contract. Keep derived output in `renderProps` when it is only an implementation detail, and give optional markup bindings concrete defaults (see the `var()` caveat above). These values travel in resolved `props` for the renderer but are not copied into measured diagram JSON.
+
+**Normalizers are application code, not library data — know the trust boundary.** Schemas, component markup, and CSS are data, not code: `AuthoredLibrary` contains exactly those, they serialize, and a hosted product can accept them from untrusted profile authors because preparation validates and the engine never executes them. Normalizers are JavaScript functions passed separately (`createRenderer({ normalizers })`) and run in your process — ship them only as part of your own application, and never accept them from outside the trust boundary. A profile that must stay pure data can use CSS expressions and declared authored properties instead. Internal `renderProps` are declarations only; they do not execute code or compute values.
 
 ## Safety rules
 

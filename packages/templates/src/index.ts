@@ -27,6 +27,7 @@ import {
 } from './templates/DatabaseRelationship/index.js';
 import { name as BadgeName, schema as Badge } from './templates/Badge/index.js';
 import { STOCK_PALETTE } from './schema/palette.js';
+import { stockRenderProps } from './renderProps.js';
 
 /**
  * Stock templates as data. Markup is declarative and unfilled: `{{ }}` placeholders and `data-*`
@@ -95,12 +96,15 @@ export const subTemplateSchemas: Record<string, JsonSchema> = {
   [BadgeName]: Badge,
 };
 
-/** Allowed placeholder head names per template, derived from each template's own schema. */
+/** Allowed placeholder heads include authored fields and internal normalizer output. */
 export const templateProps: Record<string, string[]> = (() => {
   const map: Record<string, string[]> = {};
 
   for (const [name, schema] of Object.entries({ ...tagSchemas, ...subTemplateSchemas })) {
-    map[name] = Object.keys(schema.properties ?? {});
+    map[name] = [
+      ...Object.keys(schema.properties ?? {}),
+      ...Object.keys(stockRenderProps[name] ?? {}),
+    ];
   }
 
   return map;
@@ -110,6 +114,7 @@ export const templateProps: Record<string, string[]> = (() => {
 export const stockLibrary: AuthoredLibrary = {
   manifest: MANIFEST,
   schemas: tagSchemas,
+  renderProps: stockRenderProps,
   templates: stockTemplates,
   baseCss: BASE_CSS,
   subTemplates: subTemplateSchemas,

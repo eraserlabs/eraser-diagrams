@@ -3,7 +3,6 @@ import {
   MarkdownTextProperties,
   BadgeProperties,
   PaletteColor,
-  DerivedPaintProps,
   CssColor,
   FontSizePx,
   BORDER_STYLES,
@@ -16,7 +15,6 @@ export const Event = entitySchema(
   {
     texts: { type: 'array', items: MarkdownTextProperties },
     icon: IconName,
-    ...DerivedPaintProps,
     color: PaletteColor,
     bgColor: CssColor,
     borderColor: CssColor,
