@@ -89,9 +89,3 @@
 .er-gateway__caption-line[data-run-px]:not([data-run-px='']) {
   font-size: var(--er-run-px);
 }
-
-/* currentColor is inherited at paint time, so concrete resolve-time tinting cannot read it.
-   Preserve relative tinting in light mode; semantic dark surfaces keep it legible. */
-.er-gateway[data-color='currentColor' i]:not([data-color=''])[data-bg=''] {
-  --er-fill: var(--er-inherited-bpmn);
-}

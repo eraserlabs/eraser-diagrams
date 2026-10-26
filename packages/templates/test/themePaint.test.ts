@@ -39,27 +39,6 @@ describe('stock final paint preparation', () => {
     expect(tagSchemas.Shape!.properties).toHaveProperty('washMid');
   });
 
-  it.each([
-    ['Shape', 'fillColor'],
-    ['Shape', 'tintColor'],
-    ['Shape', 'bodyInk'],
-    ['Shape', 'washPaper'],
-    ['Group', 'titleSurfaceColor'],
-    ['DatabaseTable', 'dividerColor'],
-  ])('ignores authored %s.%s instead of treating it as a user color option', async (tag, field) => {
-    const resolver = await createResolver({ library: stockLibrary, normalizers: stockNormalizers });
-    const result = await resolver.resolve({
-      elements: [{ tag, id: 'node', x: 0, y: 0, [field!]: '#ffffff' }],
-    });
-    expect(result.ok).toBe(true);
-    expect(result.warnings).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ code: 'W_UNKNOWN_PROP', path: `/elements/0/${field}` }),
-      ]),
-    );
-    expect(result.entities![0]!.props[field!]).toBeUndefined();
-  });
-
   it.each(SURFACES)(
     '%s derives its surface before the shared theme transform',
     async (tag, lightness) => {

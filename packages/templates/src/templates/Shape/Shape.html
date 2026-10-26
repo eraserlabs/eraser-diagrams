@@ -28,23 +28,11 @@
     >
       <g data-if="washTexGeo">
         <defs>
-          <filter
-            id="wcb-{{washUid}}"
-            x="-50%"
-            y="-50%"
-            width="200%"
-            height="200%"
-          >
+          <filter id="wcb-{{washUid}}" x="-50%" y="-50%" width="200%" height="200%">
             <feMorphology operator="dilate" radius="5"></feMorphology>
             <feGaussianBlur stdDeviation="7"></feGaussianBlur>
           </filter>
-          <filter
-            id="wcbf-{{washUid}}"
-            x="-30%"
-            y="-30%"
-            width="160%"
-            height="160%"
-          >
+          <filter id="wcbf-{{washUid}}" x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="1.5"></feGaussianBlur>
           </filter>
           <mask id="wcg-{{washUid}}">
@@ -68,19 +56,10 @@
         </defs>
         <!-- Mask keeps the interior organic; the clip terminates the wash at the drawn outline. -->
         <g mask="url(#wcg-{{washUid}})" clip-path="url(#wcgc-{{washUid}})">
-          <use
-            href="#{{washSym}}"
-            x="-14"
-            y="-14"
-            width="{{washUseW}}"
-            height="{{washUseH}}"
-          ></use>
+          <use href="#{{washSym}}" x="-14" y="-14" width="{{washUseW}}" height="{{washUseH}}"></use>
         </g>
       </g>
-      <path
-        class="er-shape__path er-shape__path--dynamic"
-        d="{{geoPath}}"
-      ></path>
+      <path class="er-shape__path er-shape__path--dynamic" d="{{geoPath}}"></path>
       <path
         data-if="geoCapPath"
         class="er-shape__cap er-shape__cap--dynamic"
@@ -132,37 +111,25 @@
       ></path>
     </svg>
     <div class="er-shape__inner" data-v-align="{{vAlign}}">
-      <span class="er-washtex" data-if="washTexCss" aria-hidden="true"
-        ><svg width="100%" height="100%">
-          <filter
-            id="wcc-{{washUid}}"
-            x="-50%"
-            y="-50%"
-            width="200%"
-            height="200%"
-          >
-            <feMorphology operator="dilate" radius="5"></feMorphology>
-            <feGaussianBlur stdDeviation="7"></feGaussianBlur>
-          </filter>
-          <mask id="wcf-{{washUid}}">
-            <rect
+      <span class="er-washtex" data-if="washTexCss" aria-hidden="true"><svg
+          width="100%"
+          height="100%"
+        ><filter id="wcc-{{washUid}}" x="-50%" y="-50%" width="200%" height="200%"><feMorphology
+              operator="dilate"
+              radius="5"
+            ></feMorphology><feGaussianBlur stdDeviation="7"></feGaussianBlur></filter><mask id="wcf-{{washUid}}"><rect
               class="er-washmask"
               width="100%"
               height="100%"
               fill="#fff"
               filter="url(#wcc-{{washUid}})"
-            ></rect>
-          </mask>
-          <g mask="url(#wcf-{{washUid}})">
-            <use
+            ></rect></mask><g mask="url(#wcf-{{washUid}})"><use
               href="#{{washSym}}"
               x="-6%"
               y="-6%"
               width="112%"
               height="112%"
-            ></use>
-          </g></svg
-      ></span>
+            ></use></g></svg></span>
       <span
         class="er-shape__icon"
         data-part="icon"

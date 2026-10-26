@@ -137,6 +137,33 @@
   --er-divider-color: hsl(from var(--er-color) h s 92%);
 }
 
+/* currentColor is inherited at paint time, so concrete resolve-time tinting cannot read it.
+   Preserve relative tinting in light mode; semantic dark surfaces keep it legible. */
+[data-tpl].er-grouplike[data-color='currentColor' i]:not(
+    [data-color='']
+  )[data-bg=''] {
+  --er-fill: var(--er-inherited-tint);
+}
+[data-tpl].er-grouplike[data-color='currentColor' i]:not(
+    [data-color='']
+  )[data-bg=''],
+[data-tpl].er-grouplike[data-bg='currentColor' i]:not([data-bg='']) {
+  --er-tint: var(--er-inherited-tint);
+  --er-badge-tint: var(--er-inherited-tint);
+  --er-title-surface: var(--er-inherited-pastel);
+}
+
+:is(.er-activity, .er-event, .er-gateway)[data-color='currentColor' i]:not(
+    [data-color='']
+  )[data-bg=''] {
+  --er-fill-color: var(--er-inherited-bpmn);
+}
+
+/* Bare SVGs inherit ink; explicitly painted assets keep their colors. */
+:is(.er-shape__icon, .er-icon__glyph) svg:not([fill]) {
+  fill: currentColor;
+}
+
 /* Outline icons ship a 24-unit viewBox at stroke-width 1.5, so scaling the glyph box with CSS
    scales the stroke with it and a 50px icon reads twice too heavy. Cap via
    `35 / clamp(1, box, 50)` so the on-screen stroke stays ~1.46px until the box passes 50px, then

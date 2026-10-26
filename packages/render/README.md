@@ -33,87 +33,31 @@ Authored connection `points` are route-local `{ x, y }` objects whose origin is 
 
 The page API and measure contract are specified in `SPEC.md`.
 
-## Rendering subsets in an editor
+## Editor APIs
 
-`@eraserlabs/render/elements` is a browser entry with no import-time side effects: it does not install `window.__eraser`, mount or remove DOM, inject styles, or run layout. It is suitable for a host that already owns element positions, routes and DOM lifetimes.
+`@eraserlabs/render/elements` renders resolved subsets without mounting, routing, or global setup:
 
 ```ts
-import {
-  createElementRenderer,
-  measureElements,
-  measureText,
-} from '@eraserlabs/render/elements';
+import { createElementRenderer } from '@eraserlabs/render/elements';
 import { buildRenderPageSetup } from '@eraserlabs/diagram-templates';
 
-// `resolver` was created with the desired library and normalizers.
 const renderer = createElementRenderer(buildRenderPageSetup(resolver.library));
-const resolved = await resolver.resolve(
+const result = await resolver.resolve(
   { elements: selection },
   { partial: true },
 );
-if (!resolved.ok)
-  throw new Error(resolved.errors.map((e) => e.message).join('\n'));
-
+if (!result.ok) throw new Error(JSON.stringify(result.errors));
 const fragment = await renderer.render({
-  entities: resolved.entities!,
-  connections: resolved.connections!,
-  icons: resolved.icons!,
+  entities: result.entities!,
+  connections: result.connections!,
+  icons: result.icons!,
 });
-
-// Install renderer.css once for this library. It includes base CSS and host-scoped template CSS.
-const style = document.createElement('style');
-style.textContent = renderer.css;
-document.head.appendChild(style);
-
-// Use a connected, untransformed host (or an offscreen measurement probe, not display:none).
-const host = document.createElement('div');
-document.body.appendChild(host);
-host.innerHTML = fragment.defs;
-const mounted = fragment.elements.map(({ id, tag, html }) => {
-  const wrapper = document.createElement('div');
-  wrapper.dataset.mdpTag = tag;
-  wrapper.innerHTML = html;
-  host.appendChild(wrapper);
-  return { id, tag, wrapper };
-});
-
-// Natural max-content sizes and policy-sized body/role/part/ink bounds, without routing.
-const measures = await measureElements(mounted, resolved.entities!);
-// Or inspect current host dimensions without applying sizing policies:
-const current = await measureElements(mounted);
-// Exact text fragments and their union at the DOM node's current font and wrapping width:
-const text = mounted[0]?.wrapper.querySelector<HTMLElement>(
-  '[data-role="internal-text"]',
-);
-if (text) console.log(await measureText(text));
-
-// The host owns cleanup; the library retains none of these DOM nodes.
-host.remove();
-style.remove();
 ```
 
-`render` returns all supplied elements, including orphaned `containerId`/`from`/`to` references. It fills templates, including icons and watercolor, without resolving geometry or mutating input. It does not invent missing nodes, route connections, or apply positions. A connection's anchor is left for the editor's saved path. Hosts can use the exported `applyLayout(scene, mounted, layout)` with their own `SceneLayout` (public at `@eraserlabs/render`) to paint supplied boxes, paths and label positions even when endpoints are absent. Alternatively, the editor can paint those itself. `run()` continues to provide the full-scene sizing/routing/painting pipeline.
+Install `renderer.css` and mount `fragment.defs` alongside the HTML. Wrap each element in `[data-mdp-tag="<tag>"]`; the host owns positioning and cleanup. Resolved themes are applied automatically to template roots. Use `applyLayout` to apply existing geometry without routing.
 
-Keep `fragment.defs` mounted alongside its elements. Each render has distinct watercolor mask and texture-symbol IDs, including across independently bundled copies of the library; tinted texture bytes are cached and shared across elements of the same pigment and paper colors. Templates and `washMaster` are trusted library configuration; element content and icon SVG must come through `resolve` before rendering. Base CSS is intentionally unscoped, as in `setup`.
+The same entry exports `measureElements(mounted, entities?)` and `measureText(root)`. Supply connected, untransformed DOM with the library CSS and registered fonts; `display:none` cannot be measured. These calls wait for fonts. With entities, measurement applies the full renderer's sizing policies and restores probe styles; without them it reads current layout. Text measurements contain range fragments and their union, not padded boxes or one rectangle per line.
 
-### Theme roots
+`@eraserlabs/render/fit` exports synchronous `measureElement(wrapper)` and `fitElement(wrapper, constraints)`. Fit policies are `natural`, `fixed`, `content`, and `balanced`; fitting leaves the probe at its proposed size. The host decides whether to persist that geometry.
 
-Resolved elements carry their presentation theme. `run` creates `#eraser-scene` with `data-er-theme`, and the shared fill engine stamps each template root (including nested templates) with `data-er-theme="light"` or `"dark"`. `createElementRenderer` returns those roots in `html`, so no extra wrapper or manual theme attribute is required. The host still supplies the existing `data-mdp-tag` scope wrapper. Explicit light roots reset the theme defaults inside dark hosts, and vice versa.
-
-The renderer does not invert colors: resolution has already prepared the paints. Pass the same resolved elements to full-scene and fragment rendering. `RunRequest.theme` sets the scene theme (including an empty scene); otherwise it follows the first element. Each element's own metadata controls its content. Low-level fill callers pass the prepared theme as `fill(tag, props, theme)`.
-
-Stock CSS exposes `--er-canvas`, `--er-surface`, `--er-text`, `--er-line`, `--er-shadow`, and `--er-code-background`, `--er-code-border`, `--er-code-text` for custom content. Theme-owned tokens reset per root; contextual paints such as inherited badge colors remain inherited. Host CSS and fixed-color artwork are not automatically rewritten.
-
-### Measurement and fonts
-
-`run()` already returns `ElementMeasure[]`, including text roles, but runs the full scene pipeline. The standalone `measureElements` and `measureText` functions do not route, replace the current scene, or alter text. They wait for the mounted content's fonts via `document.fonts.ready`. Stage custom fonts before calling them; a font not registered with the document cannot be measured.
-
-With entities, `measureElements` uses the same two-pass sizing policy as `run`, then restores the hosts' original inline styles and any descendant styles changed by width probes, including `!important` priorities. Probes run synchronously in the original CSS context after fonts load. If the host needs isolation from style mutations, it can supply its own mounted measurement copy with equivalent ancestor styles and constraints. Use the returned `body` dimensions to resize elements explicitly. Without entities it reads current layout; `intrinsic` then equals the current wrapper box. Text roles (`internal-text`, `external-text`) and parts are in the element measurement; `measureText` returns individual text-run fragments and their union, excluding padding. Fragments are **not** line boxes: differently styled spans on the same line may produce multiple fragments. Empty text has `bounds: null`.
-
-Measurements require connected elements in the current document and actual browser layout. Use an untransformed probe for canvas coordinates; CSS transforms/zoom are reflected in browser rectangles. Hidden offscreen probes may use `visibility:hidden`; `display:none` has no layout.
-
-### Reusing watercolor preparation alone
-
-Existing fill-engine integrations can import `prepareWashMasters` from `@eraserlabs/render/elements`. Call it with the library's `washMaster` and resolved elements **before** filling their templates. It writes `props.washSym` and returns the SVG definitions that must be mounted with that fragment. It does not install those definitions. This low-level function mutates the supplied props; `createElementRenderer` handles cloning, per-fragment watercolor mask IDs, and preparation for you.
-
-To control watercolor IDs, pass `{ idPrefix: 'view-a-element-123' }` as the second argument to `renderer.render(request, options)` or the third argument to `prepareWashMasters(master, elements, options)`. Use only letters, digits, underscores, and hyphens. The prefix must be unique among simultaneously mounted fragments in the same document: an element ID alone is insufficient when the same element appears in multiple views. Reuse a prefix only when replacing its previous fragment and definitions. Without a prefix, the library uses a random bundle namespace plus a counter. Cached tinted image bytes are shared, while each preparation call emits definitions with its own IDs.
+`prepareWashMasters(master, elements, { idPrefix }?)` prepares watercolor definitions before low-level filling and mutates `props.washSym`. `renderer.render(request, { idPrefix }?)` handles cloning and preparation itself. Keep returned definitions mounted; an optional prefix must be unique among mounted fragments, using only letters, digits, underscores and hyphens. Automatic prefixes are isolated across bundles.

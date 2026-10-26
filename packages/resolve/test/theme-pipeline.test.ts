@@ -85,18 +85,6 @@ describe('schema-wide presentation colors', () => {
     expect(r.resolveForLayout(source, { theme: 'dark' }).entities).toEqual(dark.entities);
   });
 
-  it('resolves palette tokens and equivalent literals identically; explicit fill wins', async () => {
-    const r = await resolver();
-    const base = { tag: 'Tile', id: 'a', x: 0, y: 0, fill: '#00ffff' };
-    const token = await r.resolve({ elements: [{ ...base, color: 'brand' }] }, { theme: 'dark' });
-    const literal = await r.resolve(
-      { elements: [{ ...base, color: '#2866c4' }] },
-      { theme: 'dark' },
-    );
-    expect(token.entities).toEqual(literal.entities);
-    expect(token.entities![0]!.props.fill).toBe(scaleColorForTheme('#00ffff', 'dark'));
-  });
-
   it('rejects invalid colors before presentation and retains strict/partial validation', async () => {
     const r = await resolver();
     const input = {

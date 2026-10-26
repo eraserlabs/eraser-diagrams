@@ -307,20 +307,7 @@ Normalizers exist for what neither CSS nor an annotation can express. The markup
 - the half of an `Icon`'s `width || height || size || 50px` precedence that is not paint (it writes `sizePx` only when bounds are authored; the token and the 50px default are attribute selectors, and the gated `[data-sized]` rule is what lets bounds outrank them);
 - a handful of small flattenings CSS and `default` cannot express: `vMargin` (clamp), the text-wrap aspect ratio, the `Icon` element→run typeface cascade, `iconColor`, `lineWidthPx`, and the crow-foot arrowhead pair a `relType` implies. Simple omitted values (`shape`, `styleMode`, `vAlign`, `Relationship.endArrowhead`, group-title `width`/`border`) are schema `default`s, filled by AJV during validation.
 
-Declare internal computed properties in `library.renderProps`, separately from the tag's authored schema:
-
-```ts
-const library = {
-  ...myLibrary,
-  renderProps: {
-    Card: { fillColor: CssColor },
-  },
-};
-```
-
-Here the Card normalizer may write `fillColor`, and its template may bind `{{fillColor}}`. The declaration enables template linting, color validation, and theme conversion. It does not add an authoring option: `tagSchema('Card')` omits it, and submitted `fillColor` values are warned about and stripped under the usual unknown-property policy before normalization. Internal names must not overlap authored properties. Derived colors use `CssColor`; palette tokens have already been resolved on authored fields before normalizers run.
-
-Normalizers may still update declared authored properties where that is the intended contract. Keep derived output in `renderProps` when it is only an implementation detail, and give optional markup bindings concrete defaults (see the `var()` caveat above). These values travel in resolved `props` for the renderer but are not copied into measured diagram JSON.
+Declare internal computed properties separately, e.g. `renderProps: { Card: { fillColor: CssColor } }`. They authorize template bindings and post-normalizer policies but are not accepted as authored input or copied into measured JSON. Normalizers may also update authored properties when that is their intended contract. See the [resolver's internal-paint contract](./packages/resolve/README.md#themes-and-internal-paints); optional markup bindings still need concrete defaults (the `var()` caveat above).
 
 **Normalizers are application code, not library data — know the trust boundary.** Schemas, component markup, and CSS are data, not code: `AuthoredLibrary` contains exactly those, they serialize, and a hosted product can accept them from untrusted profile authors because preparation validates and the engine never executes them. Normalizers are JavaScript functions passed separately (`createRenderer({ normalizers })`) and run in your process — ship them only as part of your own application, and never accept them from outside the trust boundary. A profile that must stay pure data can use CSS expressions and declared authored properties instead. Internal `renderProps` are declarations only; they do not execute code or compute values.
 

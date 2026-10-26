@@ -185,6 +185,9 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
 
   /** The stages after the icons (colors), and the pipeline's output. Synchronous. */
   function afterIcons(checked: Checked, iconStage: IconStageResult): PipelineOutput {
+    if (checked.empty) {
+      return { ...checked, iconsInlined: 0, icons: {} };
+    }
     const { errors, warnings, elements, tracker } = checked;
     errors.push(...iconStage.errors);
     warnings.push(...iconStage.warnings);
@@ -210,9 +213,6 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
     options: ResolveOptions = {},
   ): Promise<PipelineOutput> {
     const checked = runChecks(input, options);
-    if (checked.empty) {
-      return { ...checked, iconsInlined: 0, icons: {} };
-    }
     const iconStage = await stageIcons(
       checked.elements,
       compiled.policyTables,
@@ -222,15 +222,6 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
       onUnknownIcon,
     );
     return afterIcons(checked, iconStage);
-  }
-
-  /** The pipeline with every glyph the placeholder (stageIconsForLayout): no loading, so no await. */
-  function runPipelineForLayout(input: unknown, options: ResolveOptions = {}): PipelineOutput {
-    const checked = runChecks(input, options);
-    if (checked.empty) {
-      return { ...checked, iconsInlined: 0, icons: {} };
-    }
-    return afterIcons(checked, stageIconsForLayout(checked.elements, compiled.policyTables));
   }
 
   /** A pipeline output as the resolve result (both resolve entries). */
@@ -284,8 +275,10 @@ export async function createResolver(setup: ResolverSetup): Promise<Resolver> {
       return toResolveResult(await runPipeline(input, 'resolve', options), options);
     },
 
-    resolveForLayout(input: unknown, options?: ResolveOptions): ResolveResult {
-      return toResolveResult(runPipelineForLayout(input, options), options);
+    resolveForLayout(input: unknown, options: ResolveOptions = {}): ResolveResult {
+      const checked = runChecks(input, options);
+      const icons = stageIconsForLayout(checked.elements, compiled.policyTables);
+      return toResolveResult(afterIcons(checked, icons), options);
     },
 
     registryInfo(): RegistryInfo {

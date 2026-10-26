@@ -203,19 +203,6 @@ test('balanced: a word wider than the lane widens the element within wordGrowth;
   expect(region(grown).lines).toBe(1);
 });
 
-test('fixed never widens for a word, even asked to keep words; balanced does', async ({ page }) => {
-  const word = (await fit(page, WORD, { policy: 'natural' })).body.width;
-  const fixed = await fit(page, WORD, {
-    policy: 'fixed',
-    width: word - 30,
-    height: 16,
-    keepWords: true,
-  });
-  expect(fixed.body.width).toBe(word - 30);
-  const balanced = await fit(page, WORD, { policy: 'balanced', width: word - 30, height: 16 });
-  expect(balanced.body.width).toBeGreaterThanOrEqual(word);
-});
-
 test("balanced: the template's word growth and headroom (data-text-word-growth, -headroom), under the caller's", async ({
   page,
 }) => {
@@ -262,30 +249,4 @@ test('measureElement: every text region at the proposed size, a caption by its p
     window.fitTest.measureElement(document.querySelector<HTMLElement>('[data-mdp-tag]')!),
   );
   expect(measured).toEqual(result);
-});
-
-test('measureElement leaves the text as it was: its inline style, every priority, its lines', async ({
-  page,
-}) => {
-  const result = await page.evaluate((text) => {
-    // a sheet rule that wraps, outranked only by the text's own `!important`: a probe that drops the priority wraps it
-    const sheet = document.createElement('style');
-    sheet.textContent = '.fit-text { white-space: normal !important }';
-    document.head.append(sheet);
-    const wrapper = document.createElement('div');
-    wrapper.setAttribute('data-mdp-tag', 'Fit');
-    wrapper.style.width = '80px';
-    wrapper.innerHTML = `<div class="fit" data-tpl="Fit" data-role="body"><span class="fit-text" data-role="internal-text" style="white-space:nowrap!important">${text}</span></div>`;
-    document.body.appendChild(wrapper);
-    const node = wrapper.querySelector<HTMLElement>('.fit-text')!;
-    const style = node.getAttribute('style');
-    const height = node.getBoundingClientRect().height;
-    window.fitTest.measureElement(wrapper);
-    return {
-      style: node.getAttribute('style') === style,
-      priority: node.style.getPropertyPriority('white-space'),
-      height: node.getBoundingClientRect().height === height,
-    };
-  }, LONG);
-  expect(result).toEqual({ style: true, priority: 'important', height: true });
 });

@@ -37,68 +37,22 @@ const result = await resolver.resolve({
 
 Portable document, component, font, and schema-vocabulary contracts live in `@eraserlabs/protocol`. Compatibility re-exports remain at `@eraserlabs/resolve/schema`. Component authoring is documented in [CUSTOMIZATION.md](../../CUSTOMIZATION.md).
 
-## Partial documents
+## Subsets and synchronous resolution
 
-Editors can resolve a selection without submitting its container or connection endpoints:
+`resolve(input, { partial: true })` and `validate(input, { partial: true })` allow references to omitted elements. Schema errors, duplicate IDs, included targets of the wrong kind, and containment cycles remain errors. Calls are strict by default; partial results do not supply missing routing geometry.
 
-```ts
-const result = await resolver.resolve(
-  {
-    elements: [
-      {
-        tag: 'Shape',
-        id: 'a',
-        x: 0,
-        y: 0,
-        containerId: 'group-outside-selection',
-      },
-      {
-        tag: 'Relationship',
-        id: 'edge',
-        from: 'a',
-        to: 'node-outside-selection',
-      },
-    ],
-  },
-  { partial: true },
-);
-```
+`resolveForLayout(input, options?)` returns synchronously with placeholder icons, without loading icons or checking their existence. All other resolution stages are shared. It supports measurement before assets load when templates give real and placeholder icons the same bounds.
 
-The same per-call option is available on `validate`. Only missing-reference errors are suppressed; reference values are preserved. Duplicate IDs, invalid schemas, references to included connections, references to included non-containers, containment cycles, sanitization and icon policy still apply. A subsequent call without the option remains strict. Partial results are for an editor's fragment renderer; they do not supply the missing geometry needed to route a complete scene.
+## Themes and internal paints
 
-## Presentation themes
+Pass `{ theme: 'dark' }` to either resolution method. Palette lookup and normalizers run first, then every schema-declared color is transformed once, including nested and internal colors. Authored input stays unchanged. Renderers apply the resulting theme metadata automatically; changing themes requires resolving the original input again.
 
-Pass `resolve(input, { theme: 'dark' })` (or `resolveForLayout` with the same option) to prepare a dark presentation. Light is the default. Palette lookup and all normalizers run first; one schema-driven pass then transforms every declared CSS color, including nested text runs, badges, icon overrides, connection labels, and derived watercolor paints. Authored input and the `authored` sidecar remain unchanged. `validate` performs the same checks without preparing a presentation.
+Normalizers compute light-space paints. Declare new internal outputs in `library.renderProps`, e.g. `renderProps: { Card: { fillColor: CssColor } }`. These authorize template bindings and post-normalizer content/color policies without appearing in authoring schemas. Submitted internal fields are warned about and stripped before normalization. Names cannot overlap authored fields; derived colors use `CssColor`, not `PaletteColor`. Normalizers own structural validity; render declarations do not apply defaults or repeat full schema validation.
 
-The result and each resolved element carry their theme. Both the full browser renderer and `createElementRenderer` use that metadata automatically; the host does not add a DOM theme attribute. To change themes, resolve the original authored input again. Changing a DOM attribute alone only changes CSS defaults, not the already prepared explicit paints.
+Custom CSS needs theme-aware defaults; stock CSS provides `--er-text`, `--er-surface`, `--er-line`, and code/syntax tokens. Fixed-color artwork is unchanged. `currentColor` stays inherited; use concrete colors for hue-preserving tint conversion.
 
-Stock templates calculate their light-space surface colors before conversion (Shape 85% lightness, Group 98%, and their own title/badge treatments). Defaults, code chrome, links and syntax highlighting use theme-aware CSS variables. `scaleColorForTheme` and `setColorLightness` are exported for custom normalizers that derive light-space paints. Normalizers should not transform for the theme themselves: declare every output color as `CssColor` in the library's internal `renderProps` and let the shared pass do it once.
+## Diagram Markdown
 
-Concrete hex, named, RGB/RGBA and HSL/HSLA colors share the same conversion and preserve alpha. `transparent` and `currentColor` retain their semantic meaning. A stock surface using inherited `currentColor` keeps its relative tint in light mode and uses a neutral themed surface in dark mode; use a concrete color for hue-preserving derived tints. Fixed colors inside multicolor SVG/image assets are left intact; monochrome icons using `currentColor` inherit their themed ink. Custom CSS should consume the library's semantic variables or provide its own theme-aware defaults.
+Block text supports paragraphs, headings (capped at level three), flat lists, simple quotes, rules, strikethrough, and fenced code. Labels use inline Markdown. Nested blocks, tables, images, and raw HTML are outside the presentation contract; raw HTML is escaped. These rules also affect existing documents.
 
-## Internal render properties
-
-Keep author-facing options in `library.schemas`. A normalizer's new implementation fields belong in the optional `library.renderProps` map, keyed by dispatchable tag:
-
-```ts
-const library = {
-  // ...manifest, templates, baseCss
-  schemas: { Tile: entitySchema('Tile', { bgColor: CssColor }) },
-  renderProps: { Tile: { fillColor: CssColor } },
-};
-const normalizers = {
-  Tile: (element) => {
-    element.fillColor = element.bgColor ?? '#ffffff';
-  },
-};
-```
-
-Here `bgColor` is accepted input, while `fillColor` is available to template bindings and the post-normalizer color/theme stages. Supplying `fillColor` in authored input produces the normal unknown-property warning and strips it before the normalizer runs. The original input schemas, `tagSchema()`, and schema exports do not include internal fields. Existing libraries without `renderProps` keep their behavior.
-
-Render declarations use the same property-schema subset and may describe nested objects and arrays. They supply post-normalizer content, reference, icon and color policies; they do not apply defaults or run a second full structural validation. Normalizers are responsible for producing the declared shape. Derived colors must use `CssColor`, not `PaletteColor`: palette lookup runs on authored input before normalizers. Boot rejects unknown tag names, collisions with authored properties, forbidden keys and invalid declarations. Subtemplate-only declarations and extensions inside existing authored properties are not supported.
-
-## Diagram text
-
-Markdown is a small diagram-text surface: headings (drawn through level three), paragraphs, flat lists, simple blockquotes containing paragraph text and inline marks, horizontal rules, and top-level fenced code blocks. Inline marks include emphasis, strikethrough, code spans, and links. Nested block structures (such as headings, lists, or code fences inside quotes) are outside the supported contract; parser acceptance does not guarantee their presentation.
-
-A prose newline draws a line break; two newlines separate paragraphs; additional blank lines and trailing newlines retain empty lines. Code spans and link syntax are interpreted by the Markdown parser, without injecting hard-break spaces into their source. Fenced code keeps its internal lines and spaces and wraps long tokens to the available width. Four-space indentation stays paragraph text. Labels use inline Markdown, so block starters remain literal. Tables, images, and raw HTML in Markdown are not supported. These output rules also apply to existing documents rendered through Node, CLI, and server entry points.
+Prose newlines draw line breaks; a blank line separates paragraphs. Extra and trailing empty lines are preserved. Four-space indentation remains prose. Marked handles code spans and links; fenced code preserves internal whitespace and wraps long tokens. Optional `highlightCode` returns text/class runs that must reproduce its input exactly; failures fall back to plain code.

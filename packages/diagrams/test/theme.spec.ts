@@ -157,46 +157,25 @@ for (const theme of ['light', 'dark'] as const) {
     const ink = theme === 'dark' ? 'rgb(226, 226, 226)' : 'rgb(36, 36, 36)';
     const ground = theme === 'dark' ? 'rgb(23, 23, 23)' : 'rgb(255, 255, 255)';
 
-    // The identity tint is derived in light mode first; the authored border is never tinted.
-    await expect(host('s1').locator('.er-shape__inner')).toHaveCSS(
-      'background-color',
-      paint('#b3ffff'),
-    );
-    await expect(host('s1').locator('.er-shape__inner')).toHaveCSS(
-      'border-top-color',
-      paint('#00ffff'),
-    );
-    await expect(host('g1').locator('[data-role="body"]')).toHaveCSS(
-      'background-color',
-      paint('#f5ffff'),
-    );
-    await expect(host('s1').locator('.er-shape__text')).toHaveCSS('color', ink);
-    await expect(host('s1').locator('[data-tpl="Badge"]')).toHaveCSS(
-      'background-color',
-      paint('#f5ffff'),
-    );
-    await expect(host('s1').locator('[data-tpl="Badge"]')).toHaveCSS('color', ink);
-
-    // Nested fields must participate in the same schema-driven transformation as top-level paints.
-    await expect(host('i1').locator('.er-icon__glyph')).toHaveCSS('color', paint('#123456'));
-    await expect(host('i1').locator('.er-icon__caption-line')).toHaveCSS('color', paint('#345678'));
-    await expect(host('g1').locator('.er-grouplike__title')).toHaveCSS(
-      'background-color',
-      paint('#ffeecc'),
-    );
-    await expect(host('g1').locator('.er-grouplike__title-text')).toHaveCSS(
-      'color',
-      paint('#123456'),
-    );
-    await expect(host('g1').locator('.er-grouplike__title-icon')).toHaveCSS(
-      'color',
-      paint('#008000'),
-    );
-    await expect(host('g1').locator('[data-tpl="Badge"]')).toHaveCSS('color', paint('#123456'));
-    await expect(host('g1').locator('[data-tpl="Badge"]')).toHaveCSS(
-      'background-color',
-      paint('#ffeecc'),
-    );
+    // Final paints and nested overrides use the same theme pass.
+    const paints = [
+      ['s1', '.er-shape__inner', 'background-color', paint('#b3ffff')],
+      ['s1', '.er-shape__inner', 'border-top-color', paint('#00ffff')],
+      ['g1', '[data-role="body"]', 'background-color', paint('#f5ffff')],
+      ['s1', '.er-shape__text', 'color', ink],
+      ['s1', '[data-tpl="Badge"]', 'background-color', paint('#f5ffff')],
+      ['s1', '[data-tpl="Badge"]', 'color', ink],
+      ['i1', '.er-icon__glyph', 'color', paint('#123456')],
+      ['i1', '.er-icon__caption-line', 'color', paint('#345678')],
+      ['g1', '.er-grouplike__title', 'background-color', paint('#ffeecc')],
+      ['g1', '.er-grouplike__title-text', 'color', paint('#123456')],
+      ['g1', '.er-grouplike__title-icon', 'color', paint('#008000')],
+      ['g1', '[data-tpl="Badge"]', 'color', paint('#123456')],
+      ['g1', '[data-tpl="Badge"]', 'background-color', paint('#ffeecc')],
+    ] as const;
+    for (const [id, selector, property, value] of paints) {
+      await expect(host(id).locator(selector)).toHaveCSS(property, value);
+    }
     await expect(host('lg1').locator('.er-legend__swatch').first()).toHaveCSS(
       'background-color',
       paint('#00aa77'),
@@ -331,23 +310,25 @@ test('a null high-level request still returns validation errors', async () => {
   }
 });
 
-test('stock CSS preserves light identity tints when a low-level caller omits normalizers', async ({
+test('stock CSS preserves legacy light paints and inherited colors in both themes', async ({
   page,
 }) => {
   const elements: Record<string, unknown>[] = [
-    ...['Shape', 'Group', 'Activity', 'Event', 'Gateway', 'DatabaseTable'].map((tag, index) => ({
-      tag,
-      id: tag,
-      x: index * 180,
-      y: 0,
-      width: 160,
-      height: 100,
-      color: '#00ffff',
-      ...(tag === 'Group' ? { title: { text: 'Group' } } : {}),
-      ...(tag === 'DatabaseTable'
-        ? { label: 'users', fields: [{ name: 'id', type: 'uuid' }] }
-        : {}),
-    })),
+    ...['Shape', 'Group', 'Lane', 'Pool', 'Activity', 'Event', 'Gateway', 'DatabaseTable'].map(
+      (tag, index) => ({
+        tag,
+        id: tag,
+        x: index * 180,
+        y: 0,
+        width: 160,
+        height: 100,
+        color: '#00ffff',
+        ...(['Group', 'Lane', 'Pool'].includes(tag) ? { title: { text: tag } } : {}),
+        ...(tag === 'DatabaseTable'
+          ? { label: 'users', fields: [{ name: 'id', type: 'uuid' }] }
+          : {}),
+      }),
+    ),
     {
       tag: 'Shape',
       id: 'explicit',
@@ -369,14 +350,27 @@ test('stock CSS preserves light identity tints when a low-level caller omits nor
   const { theme: _theme, ...legacyPayload } = payload;
   legacyPayload.entities = payload.entities.map(({ theme: _elementTheme, ...entity }) => entity);
   await runPayload(page, legacyPayload);
-  for (const legacyMarkup of [false, true]) {
-    if (legacyMarkup) {
+  for (const mode of ['light', 'legacy', 'inherited-light', 'inherited-dark']) {
+    if (mode === 'legacy') {
       // Older renderers mount the same stock templates without a theme attribute at all.
       await page.locator('[data-er-theme]').evaluateAll((nodes) => {
         for (const node of nodes) {
           node.removeAttribute('data-er-theme');
         }
       });
+    }
+    if (mode.startsWith('inherited-')) {
+      await page.locator('[data-mdp-id]:not([data-mdp-id="explicit"]) > [data-tpl]').evaluateAll(
+        (nodes, theme) => {
+          for (const node of nodes as HTMLElement[]) {
+            node.dataset.erTheme = theme;
+            node.dataset.color = 'currentColor';
+            node.style.setProperty('--er-color', 'currentColor');
+            node.style.color = '#00ffff';
+          }
+        },
+        mode === 'inherited-dark' ? 'dark' : 'light',
+      );
     }
     const paints = await page.evaluate(() => {
       const canvas = document.createElement('canvas');
@@ -394,6 +388,8 @@ test('stock CSS preserves light identity tints when a low-level caller omits nor
         shape: paint('Shape', '.er-shape__inner', 'background-color'),
         shapeBorder: paint('Shape', '.er-shape__inner', 'border-top-color'),
         group: paint('Group', '[data-role="body"]', 'background-color'),
+        lane: paint('Lane', '[data-role="body"]', 'background-color'),
+        pool: paint('Pool', '[data-role="body"]', 'background-color'),
         title: paint('Group', '.er-grouplike__title', 'background-color'),
         activity: paint('Activity', '[data-role="body"]', 'background-color'),
         event: paint('Event', '.er-event__disc', 'background-color'),
@@ -404,16 +400,21 @@ test('stock CSS preserves light identity tints when a low-level caller omits nor
         explicitBorder: paint('explicit', '.er-shape__inner', 'border-top-color'),
       };
     });
-    expect(paints, legacyMarkup ? 'legacy markup' : 'current light markup').toEqual({
-      shape: [179, 255, 255, 255],
+    const dark = mode === 'inherited-dark';
+    const surface = (red: number) => (dark ? [23, 23, 23, 255] : [red, 255, 255, 255]);
+    expect(paints, mode).toEqual({
+      shape: surface(179),
       shapeBorder: [0, 255, 255, 255],
-      group: [245, 255, 255, 255],
-      title: [179, 255, 255, 255],
-      activity: [235, 255, 255, 255],
-      event: [235, 255, 255, 255],
-      gateway: [235, 255, 255, 255],
-      table: [245, 255, 255, 255],
-      divider: [214, 255, 255, 255],
+      group: surface(245),
+      lane: surface(245),
+      pool: surface(245),
+      // currentColor follows the title's own neutral text color, not the body's cyan ink.
+      title: mode === 'inherited-light' ? [217, 217, 217, 255] : surface(179),
+      activity: surface(235),
+      event: surface(235),
+      gateway: surface(235),
+      table: surface(245),
+      divider: dark ? [60, 60, 60, 255] : [214, 255, 255, 255],
       explicit: [0, 255, 255, 255],
       explicitBorder: [0, 0, 255, 255],
     });

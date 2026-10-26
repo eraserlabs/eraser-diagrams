@@ -337,15 +337,3 @@
   border-top-left-radius: inherit;
   border-bottom-left-radius: inherit;
 }
-
-/* currentColor is inherited at paint time, so concrete resolve-time tinting cannot read it.
-   Preserve relative tinting in light mode; semantic dark surfaces keep it legible. */
-.er-grouplike[data-color='currentColor' i]:not([data-color=''])[data-bg=''] {
-  --er-fill: var(--er-inherited-tint);
-}
-.er-grouplike[data-color='currentColor' i]:not([data-color=''])[data-bg=''],
-.er-grouplike[data-bg='currentColor' i]:not([data-bg='']) {
-  --er-tint: var(--er-inherited-tint);
-  --er-badge-tint: var(--er-inherited-tint);
-  --er-title-surface: var(--er-inherited-pastel);
-}
