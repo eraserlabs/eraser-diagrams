@@ -32,33 +32,49 @@ const lexer = new Marked({ gfm: true }).use(NO_INDENTED_CODE);
 /** Block markdown (a text run, a text box) with empty paragraphs preserved; Marked handles soft line breaks. */
 export function canvasBlockMarkdown(markdown: string): string {
   const text = unescapeNewlines(markdown).replace(/\r\n?/g, '\n');
-  if (text !== '' && text.trim() === '') {
-    // a text of whitespace only (spaces or Enter typed in an empty text box): its lines as the canvas editor shows
-    // them, each a paragraph. Markdown drops spaces, so they go as entities, held open by an EMPTY_LINE after them
-    // (a space at the end of a line does not widen it)
-    return inlineLines(text)
-      .map((line) => `${[...line].map((c) => `&#${c.codePointAt(0)};`).join('')}${EMPTY_LINE}`)
-      .join('\n\n');
+  if (/^\n+$/.test(text)) {
+    // a text of newlines only (Enter in an empty text box): an empty paragraph each, as the canvas editor reads them
+    return Array.from({ length: text.length }, () => EMPTY_LINE).join('\n\n');
   }
   const leading = leadingNewlines(text);
   let out = `${EMPTY_LINE}\n\n`.repeat(leading);
-  // the newlines since the last block, and how many blocks so far (a line of spaces before the first is not drawn)
+  // the newlines since the last block, and how many blocks so far
   let gap = 0;
   let blocks = 0;
-  for (const token of lexer.lexer(text.slice(leading))) {
-    if (token.type === 'space') {
-      gap += newlines(token.raw);
-      continue;
-    }
-    const body = token.raw.replace(/\n+$/, '');
+  const block = (body: string): void => {
     if (blocks > 0) {
       out += separator(gap);
     }
     out += body;
-    gap = token.raw.length - body.length;
     blocks += 1;
+  };
+  for (const token of lexer.lexer(text.slice(leading))) {
+    if (token.type === 'space') {
+      // between blocks: newlines, and lines of spaces, which the editor shows as lines of their own
+      for (const [i, part] of token.raw.split('\n').entries()) {
+        if (i > 0) {
+          gap += 1;
+        }
+        if (part !== '') {
+          block(spacesLine(part));
+          gap = 0;
+        }
+      }
+      continue;
+    }
+    const body = token.raw.replace(/\n+$/, '');
+    block(body);
+    gap = token.raw.length - body.length;
   }
   return blocks > 0 ? out + `\n\n${EMPTY_LINE}`.repeat(gap) : '';
+}
+
+/**
+ * A line of spaces (or tabs) as text Markdown keeps: entities, which it does not trim, held open by an EMPTY_LINE after
+ * them (a space at the end of a line does not widen it).
+ */
+function spacesLine(spaces: string): string {
+  return `${[...spaces].map((c) => `&#${c.codePointAt(0)};`).join('')}${EMPTY_LINE}`;
 }
 
 /**

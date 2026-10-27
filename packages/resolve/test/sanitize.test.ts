@@ -89,14 +89,18 @@ describe('canvas newline rule', () => {
     expect(s.markdown('\n- a').html).toBe(`<p>${E}</p><ul><li>a</li></ul>`);
   });
 
-  it('block: a line of spaces before the text is not drawn, as the canvas editor reads it', () => {
-    expect(s.markdown('   \na').html).toBe('<p>a</p>');
-    expect(s.markdown('\n  \na').html).toBe(`<p>${E}</p><p>a</p>`);
+  it('block: a line of spaces is a line, as the canvas editor shows it while typing', () => {
+    expect(s.markdown('a\n\n ').html).toBe(`<p>a</p><p> ${E}</p>`);
+    expect(s.markdown('a\n\n\n ').html).toBe(`<p>a</p><p>${E}</p><p> ${E}</p>`);
+    expect(s.markdown('a\n\n  \n\nb').html).toBe(`<p>a</p><p>  ${E}</p><p>b</p>`);
+    expect(s.markdown('   \n\na').html).toBe(`<p>   ${E}</p><p>a</p>`);
+    expect(s.markdown('\n  \n\na').html).toBe(`<p>${E}</p><p>  ${E}</p><p>a</p>`);
   });
 
   it('block: a text of spaces only is drawn, so a text box widens as spaces are typed', () => {
     expect(s.markdown('   ').html).toBe(`<p>   ${E}</p>`);
     expect(s.markdown('  \n\n ').html).toBe(`<p>  ${E}</p><p> ${E}</p>`);
+    expect(s.markdown('\t').html).toBe(`<p>\t${E}</p>`);
   });
 
   it('block: a text of newlines only is an empty paragraph per newline', () => {
