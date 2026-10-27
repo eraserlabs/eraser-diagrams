@@ -109,6 +109,24 @@ describe('canvas newline rule', () => {
     expect(s.markdown('').html).toBe('');
   });
 
+  it('block: a list ending in an empty item draws no empty line after it', () => {
+    expect(s.markdown('- a\n- ').html).toBe('<ul><li>a</li><li></li></ul>');
+    expect(s.markdown('- a\n-').html).toBe('<ul><li>a</li><li></li></ul>');
+    expect(s.markdown('- a\n- \n').html).toBe(`<ul><li>a</li><li></li></ul><p>${E}</p>`);
+    expect(s.markdown('- a\n').html).toBe(`<ul><li>a</li></ul><p>${E}</p>`);
+  });
+
+  it('block: empty lines between two lists are drawn, not merged into one list', () => {
+    expect(s.markdown('- a\n\n\n- b').html).toBe(
+      `<ul><li>a</li></ul><p>${E}</p><ul><li>b</li></ul>`,
+    );
+    expect(s.markdown('- a\n\n\n\n\n\n- ').html).toBe(
+      `<ul><li>a</li></ul><p>${E}</p><p>${E}</p><p>${E}</p><p>${E}</p><ul><li></li></ul>`,
+    );
+    expect(s.markdown('```\na\n\n\nb\n```').html).toContain('a\n\n\nb');
+    expect(s.markdown('a\n\n\n ').html).toBe(`<p>a</p><p>${E}</p><p> ${E}</p>`);
+  });
+
   it('block: a list item breaks its own lines, not before the next item', () => {
     const out = s.markdown('- a\nstill a\n- b').html;
     expect(out).toContain('a<br />still a');

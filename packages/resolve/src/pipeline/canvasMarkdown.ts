@@ -48,25 +48,70 @@ export function canvasBlockMarkdown(markdown: string): string {
     out += body;
     blocks += 1;
   };
-  for (const token of lexer.lexer(text.slice(leading))) {
-    if (token.type === 'space') {
-      // between blocks: newlines, and lines of spaces, which the editor shows as lines of their own
-      for (const [i, part] of token.raw.split('\n').entries()) {
-        if (i > 0) {
-          gap += 1;
+  const body = text.slice(leading, text.length - trailingNewlines(text));
+  for (const piece of splitAtEmptyLines(body)) {
+    if (blocks > 0) {
+      gap = piece.newlinesBefore;
+    }
+    let pieceStart = true;
+    for (const token of lexer.lexer(piece.text)) {
+      if (token.type === 'space') {
+        // between blocks: newlines, and lines of spaces, which the editor shows as lines of their own. Spaces right
+        // after a block, on its line, are that line's own (Marked can split an empty list item's `- ` that way), unless a piece starts with them
+        for (const [i, part] of token.raw.split('\n').entries()) {
+          if (i > 0) {
+            gap += 1;
+          }
+          if (part !== '' && (i > 0 || blocks === 0 || pieceStart)) {
+            block(spacesLine(part));
+            gap = 0;
+          }
         }
-        if (part !== '') {
-          block(spacesLine(part));
-          gap = 0;
-        }
+        pieceStart = false;
+        continue;
       }
+      pieceStart = false;
+      const raw = token.raw.replace(/\n+$/, '');
+      block(raw);
+      gap = token.raw.length - raw.length;
+    }
+  }
+  // newlines at the end: an empty paragraph each, counted in the text, not in the last token, which Marked can end with
+  // a newline the text does not have (a list whose last item is an empty `- `)
+  return blocks > 0 ? out + `\n\n${EMPTY_LINE}`.repeat(trailingNewlines(text)) : '';
+}
+
+/**
+ * The text in pieces, cut at each run of three or more newlines outside a code fence, with the count of newlines
+ * before each piece. Marked keeps a list going across empty lines (one loose list, the empty lines gone), where the
+ * text has two lists with empty paragraphs between them: each piece is lexed alone, and the run is the gap between.
+ */
+function splitAtEmptyLines(text: string): Array<{ text: string; newlinesBefore: number }> {
+  const pieces: Array<{ text: string; newlinesBefore: number }> = [];
+  let lines: string[] = [];
+  let newlinesBefore = 0;
+  let empty = 0;
+  let fenced = false;
+  for (const line of text.split('\n')) {
+    if (line === '' && !fenced) {
+      empty += 1;
       continue;
     }
-    const body = token.raw.replace(/\n+$/, '');
-    block(body);
-    gap = token.raw.length - body.length;
+    if (empty >= 2 && lines.length > 0) {
+      pieces.push({ text: lines.join('\n'), newlinesBefore });
+      lines = [];
+      newlinesBefore = empty + 1;
+    } else {
+      lines.push(...Array.from({ length: empty }, () => ''));
+    }
+    empty = 0;
+    if (/^ {0,3}(`{3,}|~{3,})/.test(line)) {
+      fenced = !fenced;
+    }
+    lines.push(line);
   }
-  return blocks > 0 ? out + `\n\n${EMPTY_LINE}`.repeat(gap) : '';
+  pieces.push({ text: lines.join('\n'), newlinesBefore });
+  return pieces;
 }
 
 /**
@@ -134,6 +179,11 @@ export function unescapeNewlines(markdown: string): string {
  * The newlines before the first character that is not a newline: an empty line each, as the canvas editor reads them
  * (its countLeadingLineBreaks). A text of newlines only has none: those are trailing.
  */
+/** The newlines after the last character that is not a newline. */
+function trailingNewlines(text: string): number {
+  return /\n*$/.exec(text)?.[0].length ?? 0;
+}
+
 function leadingNewlines(text: string): number {
   return /^\n+(?=[^\n])/.exec(text)?.[0].length ?? 0;
 }
