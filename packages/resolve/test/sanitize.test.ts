@@ -79,6 +79,19 @@ describe('canvas newline rule', () => {
     expect(s.markdown('a\n\n').html).toBe(`<p>a</p><p>${E}</p><p>${E}</p>`);
   });
 
+  it('block: leading newlines are leading empty paragraphs', () => {
+    expect(s.markdown('\na').html).toBe(`<p>${E}</p><p>a</p>`);
+    expect(s.markdown('\n\na').html).toBe(`<p>${E}</p><p>${E}</p><p>a</p>`);
+    expect(s.markdown('\n# T').html).toBe(`<p>${E}</p><h1>T</h1>`);
+    expect(s.markdown('\na\n\nb').html).toBe(`<p>${E}</p><p>a</p><p>b</p>`);
+  });
+
+  it('block: a text of newlines only is an empty paragraph per newline', () => {
+    expect(s.markdown('\n').html).toBe(`<p>${E}</p>`);
+    expect(s.markdown('\n\n').html).toBe(`<p>${E}</p><p>${E}</p>`);
+    expect(s.markdown('').html).toBe('');
+  });
+
   it('block: a list item breaks its own lines, not before the next item', () => {
     const out = s.markdown('- a\nstill a\n- b').html;
     expect(out).toContain('a<br />still a');
@@ -104,6 +117,12 @@ describe('canvas newline rule', () => {
     expect(s.inlineMarkdown('a\n\n\nb').html).toBe(`a<br />${E}<br />b`);
     expect(s.inlineMarkdown('a\n').html).toBe(`a<br />${E}`);
     expect(s.inlineMarkdown('').html).toBe('');
+  });
+
+  it('inline: leading newlines are leading empty lines, one each', () => {
+    expect(s.inlineMarkdown('\na').html).toBe(`${E}<br />a`);
+    expect(s.inlineMarkdown('\n\na').html).toBe(`${E}<br />${E}<br />a`);
+    expect(s.inlineMarkdown('\n\na\n\nb').html).toBe(`${E}<br />${E}<br />a<br />b`);
   });
 });
 
@@ -180,15 +199,20 @@ describe('complete inline syntax', () => {
 describe("code block highlighting: the host's highlighter", () => {
   // A stand-in for the host's highlight.js: `const` is a keyword, a digit a number, the rest plain.
   const keywords: CodeHighlighter = (code) =>
-    code.split(/(const|\d)/).filter(Boolean).map((text) =>
-      text === 'const'
-        ? { text, className: 'hljs-keyword' }
-        : /\d/.test(text)
-          ? { text, className: 'hljs-number' }
-          : { text },
-    );
+    code
+      .split(/(const|\d)/)
+      .filter(Boolean)
+      .map((text) =>
+        text === 'const'
+          ? { text, className: 'hljs-keyword' }
+          : /\d/.test(text)
+            ? { text, className: 'hljs-number' }
+            : { text },
+      );
   const code = (sanitizers: ReturnType<typeof buildSanitizers>, md: string) =>
-    sanitizers.markdown(md).html.replace(/^<pre data-md="code-block"><code[^>]*>|<\/code><\/pre>$/g, '');
+    sanitizers
+      .markdown(md)
+      .html.replace(/^<pre data-md="code-block"><code[^>]*>|<\/code><\/pre>$/g, '');
 
   it('wraps each coloured run, keeps the newlines between runs, and never reads as stripped', () => {
     const hl = buildSanitizers(keywords);

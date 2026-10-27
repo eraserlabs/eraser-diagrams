@@ -3,7 +3,7 @@
  *
  * Eraser's canvas text editor reads a newline inside a paragraph, a list item or a quote as a line
  * break; two newlines as a paragraph break with no blank line; each newline past two as one empty
- * paragraph; and each newline at the end as one trailing empty paragraph. GFM alone reads one
+ * paragraph; and each newline at the start or the end as one empty paragraph. GFM alone reads one
  * newline as a space and draws no empty lines, so paragraph gaps are made explicit here.
  * Marked handles soft breaks with its `breaks` option, which recognizes code spans and links
  * before breaking prose. Stored text never changes.
@@ -33,7 +33,7 @@ const lexer = new Marked({ gfm: true }).use(NO_INDENTED_CODE);
 export function canvasBlockMarkdown(markdown: string): string {
   const text = unescapeNewlines(markdown).replace(/\r\n?/g, '\n');
   let out = '';
-  // the newlines since the last block, and how many blocks so far (newlines before the first are not drawn)
+  // the newlines since the last block, and how many blocks so far
   let gap = 0;
   let blocks = 0;
   for (const token of lexer.lexer(text)) {
@@ -44,12 +44,19 @@ export function canvasBlockMarkdown(markdown: string): string {
     const body = token.raw.replace(/\n+$/, '');
     if (blocks > 0) {
       out += separator(gap);
+    } else {
+      // newlines before the first block: an empty paragraph each, as the canvas editor reads them
+      out += `${EMPTY_LINE}\n\n`.repeat(gap);
     }
     out += body;
     gap = token.raw.length - body.length;
     blocks += 1;
   }
-  return blocks > 0 ? out + `\n\n${EMPTY_LINE}`.repeat(gap) : out;
+  if (blocks === 0) {
+    // a text of newlines only (Enter in an empty text box): an empty paragraph each, as the canvas editor reads them
+    return Array.from({ length: gap }, () => EMPTY_LINE).join('\n\n');
+  }
+  return out + `\n\n${EMPTY_LINE}`.repeat(gap);
 }
 
 /**
@@ -68,13 +75,17 @@ export function canvasInlineMarkdown(markdown: string): string {
 /**
  * The lines of a one-paragraph text as the canvas draws them. One newline is a line break; two or
  * more start a new paragraph, which is one line break too, and each newline past two is an empty
- * line; newlines at the end are one empty line each.
+ * line; newlines at the start or the end are one empty line each.
  */
 export function inlineLines(markdown: string): string[] {
   const text = unescapeNewlines(markdown).replace(/\r\n?/g, '\n');
   const trailing = /\n*$/.exec(text)?.[0].length ?? 0;
-  const body = text.slice(0, text.length - trailing);
+  const leading = trailing < text.length ? (/^\n*/.exec(text)?.[0].length ?? 0) : 0;
+  const body = text.slice(leading, text.length - trailing);
   const lines: string[] = [];
+  for (let i = 0; i < leading; i += 1) {
+    lines.push('');
+  }
   if (body.length > 0) {
     let line = '';
     let cursor = 0;
@@ -83,16 +94,8 @@ export function inlineLines(markdown: string): string[] {
       const count = run[0].length;
       line += body.slice(cursor, at);
       cursor = at + count;
-      if (count === 1) {
-        lines.push(line);
-        line = '';
-        continue;
-      }
-      // a paragraph break at the very start leaves no empty paragraph before the text
-      if (at > 0) {
-        lines.push(line);
-        line = '';
-      }
+      lines.push(line);
+      line = '';
       for (let i = 2; i < count; i += 1) {
         lines.push('');
       }
