@@ -3,7 +3,7 @@
  *
  * Eraser's canvas text editor reads a newline inside a paragraph, a list item or a quote as a line
  * break; two newlines as a paragraph break with no blank line; each newline past two as one empty
- * paragraph; and each newline at the end as one trailing empty paragraph. GFM alone reads one
+ * paragraph; and each newline at the start or the end as one empty paragraph. GFM alone reads one
  * newline as a space and draws no empty lines, so paragraph gaps are made explicit here.
  * Marked handles soft breaks with its `breaks` option, which recognizes code spans and links
  * before breaking prose. Stored text never changes.
@@ -32,24 +32,49 @@ const lexer = new Marked({ gfm: true }).use(NO_INDENTED_CODE);
 /** Block markdown (a text run, a text box) with empty paragraphs preserved; Marked handles soft line breaks. */
 export function canvasBlockMarkdown(markdown: string): string {
   const text = unescapeNewlines(markdown).replace(/\r\n?/g, '\n');
-  let out = '';
-  // the newlines since the last block, and how many blocks so far (newlines before the first are not drawn)
+  if (/^\n+$/.test(text)) {
+    // a text of newlines only (Enter in an empty text box): an empty paragraph each, as the canvas editor reads them
+    return Array.from({ length: text.length }, () => EMPTY_LINE).join('\n\n');
+  }
+  const leading = leadingNewlines(text);
+  let out = `${EMPTY_LINE}\n\n`.repeat(leading);
+  // the newlines since the last block, and how many blocks so far
   let gap = 0;
   let blocks = 0;
-  for (const token of lexer.lexer(text)) {
-    if (token.type === 'space') {
-      gap += newlines(token.raw);
-      continue;
-    }
-    const body = token.raw.replace(/\n+$/, '');
+  const block = (body: string): void => {
     if (blocks > 0) {
       out += separator(gap);
     }
     out += body;
-    gap = token.raw.length - body.length;
     blocks += 1;
+  };
+  for (const token of lexer.lexer(text.slice(leading))) {
+    if (token.type === 'space') {
+      // between blocks: newlines, and lines of spaces, which the editor shows as lines of their own
+      for (const [i, part] of token.raw.split('\n').entries()) {
+        if (i > 0) {
+          gap += 1;
+        }
+        if (part !== '') {
+          block(spacesLine(part));
+          gap = 0;
+        }
+      }
+      continue;
+    }
+    const body = token.raw.replace(/\n+$/, '');
+    block(body);
+    gap = token.raw.length - body.length;
   }
-  return blocks > 0 ? out + `\n\n${EMPTY_LINE}`.repeat(gap) : out;
+  return blocks > 0 ? out + `\n\n${EMPTY_LINE}`.repeat(gap) : '';
+}
+
+/**
+ * A line of spaces (or tabs) as text Markdown keeps: entities, which it does not trim, held open by an EMPTY_LINE after
+ * them (a space at the end of a line does not widen it).
+ */
+function spacesLine(spaces: string): string {
+  return `${[...spaces].map((c) => `&#${c.codePointAt(0)};`).join('')}${EMPTY_LINE}`;
 }
 
 /**
@@ -68,13 +93,17 @@ export function canvasInlineMarkdown(markdown: string): string {
 /**
  * The lines of a one-paragraph text as the canvas draws them. One newline is a line break; two or
  * more start a new paragraph, which is one line break too, and each newline past two is an empty
- * line; newlines at the end are one empty line each.
+ * line; newlines at the start or the end are one empty line each.
  */
 export function inlineLines(markdown: string): string[] {
   const text = unescapeNewlines(markdown).replace(/\r\n?/g, '\n');
   const trailing = /\n*$/.exec(text)?.[0].length ?? 0;
-  const body = text.slice(0, text.length - trailing);
+  const leading = leadingNewlines(text);
+  const body = text.slice(leading, text.length - trailing);
   const lines: string[] = [];
+  for (let i = 0; i < leading; i += 1) {
+    lines.push('');
+  }
   if (body.length > 0) {
     let line = '';
     let cursor = 0;
@@ -83,16 +112,8 @@ export function inlineLines(markdown: string): string[] {
       const count = run[0].length;
       line += body.slice(cursor, at);
       cursor = at + count;
-      if (count === 1) {
-        lines.push(line);
-        line = '';
-        continue;
-      }
-      // a paragraph break at the very start leaves no empty paragraph before the text
-      if (at > 0) {
-        lines.push(line);
-        line = '';
-      }
+      lines.push(line);
+      line = '';
       for (let i = 2; i < count; i += 1) {
         lines.push('');
       }
@@ -107,6 +128,14 @@ export function inlineLines(markdown: string): string[] {
 
 export function unescapeNewlines(markdown: string): string {
   return markdown.replace(/\\n/g, '\n');
+}
+
+/**
+ * The newlines before the first character that is not a newline: an empty line each, as the canvas editor reads them
+ * (its countLeadingLineBreaks). A text of newlines only has none: those are trailing.
+ */
+function leadingNewlines(text: string): number {
+  return /^\n+(?=[^\n])/.exec(text)?.[0].length ?? 0;
 }
 
 function newlines(text: string): number {
