@@ -127,6 +127,32 @@ describe('canvas newline rule', () => {
     expect(s.markdown('a\n\n\n ').html).toBe(`<p>a</p><p>${E}</p><p> ${E}</p>`);
   });
 
+  it('block: empty lines inside a list item, a code fence or HTML stay as they are', () => {
+    const code = (md: string) => /<code[^>]*>([\s\S]*)<\/code>/.exec(s.markdown(md).html)?.[1];
+    expect(code('- ```\n  a\n\n\n  b\n  ```')).toBe('a\n\n\nb');
+    expect(code('1. ```js\n   x\n\n\n   y\n   ```')).toBe('x\n\n\ny');
+    expect(code('- a\n  - b\n    ```\n    x\n\n\n    y\n    ```')).toBe('x\n\n\ny');
+    expect(code('```\na\n~~~\n\n\nb\n```')).toBe('a\n~~~\n\n\nb');
+    expect(code('````\nx\n```\n\n\ny\n````')).toBe('x\n```\n\n\ny');
+    expect(s.markdown('<pre>\na\n\n\nb\n</pre>').html).not.toContain(E);
+    expect(s.markdown('- ```\n  a\n\n\n  b\n  ```\n\n\n- z').html).toBe(
+      `<ul><li><pre data-md="code-block"><code>a\n\n\nb</code></pre></li></ul><p>${E}</p><ul><li>z</li></ul>`,
+    );
+  });
+
+  it('block: a line of spaces before empty lines is drawn', () => {
+    expect(s.markdown('a\n  \n\n\nb').html).toBe(`<p>a<br />  ${E}</p><p>${E}</p><p>b</p>`);
+    expect(s.markdown('a\n  \n\n\n').html).toBe(
+      `<p>a<br />  ${E}</p><p>${E}</p><p>${E}</p><p>${E}</p>`,
+    );
+  });
+
+  it('block: a nested list keeps its depth', () => {
+    expect(s.markdown('- a\n  - b\n\n\n  - c').html).toContain(
+      '<ul><li><p>b</p></li><li><p>c</p></li></ul>',
+    );
+  });
+
   it('block: a list item breaks its own lines, not before the next item', () => {
     const out = s.markdown('- a\nstill a\n- b').html;
     expect(out).toContain('a<br />still a');

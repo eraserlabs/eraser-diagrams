@@ -10,7 +10,7 @@
  *
  * A literal `\n` (two characters, as AI-written JSON carries it) is a newline.
  */
-import { Marked } from 'marked';
+import { Marked, type Tokens } from 'marked';
 
 /** Holds an empty line open (a paragraph with nothing in it is not drawn): zero-width, so it adds no width. */
 export const EMPTY_LINE = '​';
@@ -48,70 +48,58 @@ export function canvasBlockMarkdown(markdown: string): string {
     out += body;
     blocks += 1;
   };
-  const body = text.slice(leading, text.length - trailingNewlines(text));
-  for (const piece of splitAtEmptyLines(body)) {
-    if (blocks > 0) {
-      gap = piece.newlinesBefore;
-    }
-    let pieceStart = true;
-    for (const token of lexer.lexer(piece.text)) {
-      if (token.type === 'space') {
-        // between blocks: newlines, and lines of spaces, which the editor shows as lines of their own. Spaces right
-        // after a block, on its line, are that line's own (Marked can split an empty list item's `- ` that way), unless a piece starts with them
-        for (const [i, part] of token.raw.split('\n').entries()) {
-          if (i > 0) {
-            gap += 1;
-          }
-          if (part !== '' && (i > 0 || blocks === 0 || pieceStart)) {
-            block(spacesLine(part));
-            gap = 0;
-          }
+  const trailing = trailingNewlines(text);
+  for (const token of lexer.lexer(text.slice(leading))) {
+    if (token.type === 'space') {
+      // between blocks: newlines, and lines of spaces, which the editor shows as lines of their own. Spaces right
+      // after a block are on that block's last line (Marked can split an empty list item's `- ` that way).
+      for (const [i, part] of token.raw.split('\n').entries()) {
+        if (i > 0) {
+          gap += 1;
         }
-        pieceStart = false;
-        continue;
+        if (part !== '' && (i > 0 || blocks === 0)) {
+          block(spacesLine(part));
+          gap = 0;
+        }
       }
-      pieceStart = false;
-      const raw = token.raw.replace(/\n+$/, '');
-      block(raw);
-      gap = token.raw.length - raw.length;
+      continue;
+    }
+    for (const raw of token.type === 'list'
+      ? listsAtEmptyLines(token as Tokens.List)
+      : [token.raw]) {
+      const content = raw.replace(/\n+$/, '');
+      block(content);
+      gap = raw.length - content.length;
     }
   }
   // newlines at the end: an empty paragraph each, counted in the text, not in the last token, which Marked can end with
   // a newline the text does not have (a list whose last item is an empty `- `)
-  return blocks > 0 ? out + `\n\n${EMPTY_LINE}`.repeat(trailingNewlines(text)) : '';
+  return blocks > 0 ? out + `\n\n${EMPTY_LINE}`.repeat(trailing) : '';
 }
 
 /**
- * The text in pieces, cut at each run of three or more newlines outside a code fence, with the count of newlines
- * before each piece. Marked keeps a list going across empty lines (one loose list, the empty lines gone), where the
- * text has two lists with empty paragraphs between them: each piece is lexed alone, and the run is the gap between.
+ * A list cut into one list per run of items, at each gap of three or more newlines between two items. Marked keeps a
+ * list going across empty lines (one loose list, the empty lines gone), where the text has two lists with empty
+ * paragraphs between them. Each part keeps the newlines after it, which become the gap to the next part. Nested
+ * lists and the content of an item (a code fence, a paragraph) do not change.
  */
-function splitAtEmptyLines(text: string): Array<{ text: string; newlinesBefore: number }> {
-  const pieces: Array<{ text: string; newlinesBefore: number }> = [];
-  let lines: string[] = [];
-  let newlinesBefore = 0;
-  let empty = 0;
-  let fenced = false;
-  for (const line of text.split('\n')) {
-    if (line === '' && !fenced) {
-      empty += 1;
-      continue;
+function listsAtEmptyLines(list: Tokens.List): string[] {
+  const parts: string[] = [];
+  let at = 0;
+  let from = 0;
+  for (const [i, item] of list.items.entries()) {
+    if (list.raw.slice(at, at + item.raw.length) !== item.raw) {
+      // the items do not spell out the list: keep it whole
+      return [list.raw];
     }
-    if (empty >= 2 && lines.length > 0) {
-      pieces.push({ text: lines.join('\n'), newlinesBefore });
-      lines = [];
-      newlinesBefore = empty + 1;
-    } else {
-      lines.push(...Array.from({ length: empty }, () => ''));
+    at += item.raw.length;
+    if (i < list.items.length - 1 && trailingNewlines(item.raw) >= 3) {
+      parts.push(list.raw.slice(from, at));
+      from = at;
     }
-    empty = 0;
-    if (/^ {0,3}(`{3,}|~{3,})/.test(line)) {
-      fenced = !fenced;
-    }
-    lines.push(line);
   }
-  pieces.push({ text: lines.join('\n'), newlinesBefore });
-  return pieces;
+  parts.push(list.raw.slice(from));
+  return parts;
 }
 
 /**
@@ -142,7 +130,7 @@ export function canvasInlineMarkdown(markdown: string): string {
  */
 export function inlineLines(markdown: string): string[] {
   const text = unescapeNewlines(markdown).replace(/\r\n?/g, '\n');
-  const trailing = /\n*$/.exec(text)?.[0].length ?? 0;
+  const trailing = trailingNewlines(text);
   const leading = leadingNewlines(text);
   const body = text.slice(leading, text.length - trailing);
   const lines: string[] = [];
@@ -175,21 +163,17 @@ export function unescapeNewlines(markdown: string): string {
   return markdown.replace(/\\n/g, '\n');
 }
 
-/**
- * The newlines before the first character that is not a newline: an empty line each, as the canvas editor reads them
- * (its countLeadingLineBreaks). A text of newlines only has none: those are trailing.
- */
 /** The newlines after the last character that is not a newline. */
 function trailingNewlines(text: string): number {
   return /\n*$/.exec(text)?.[0].length ?? 0;
 }
 
+/**
+ * The newlines before the first character that is not a newline: an empty line each, as the canvas editor reads them
+ * (its countLeadingLineBreaks). A text of newlines only has none: those are trailing.
+ */
 function leadingNewlines(text: string): number {
   return /^\n+(?=[^\n])/.exec(text)?.[0].length ?? 0;
-}
-
-function newlines(text: string): number {
-  return text.split('\n').length - 1;
 }
 
 /** Between two blocks: one newline stays one (a list straight after a paragraph); past two, an empty paragraph each. */
