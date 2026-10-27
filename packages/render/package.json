@@ -1,6 +1,6 @@
 {
   "name": "@eraserlabs/render",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "In-browser fill, measure, layout, and apply implementation for the Eraser diagram protocol.",
   "type": "module",
   "license": "MIT",
