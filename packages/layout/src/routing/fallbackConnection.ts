@@ -1,3 +1,4 @@
+import { clipFacePointToOutline } from '../outline.js';
 import { isHorizontal, OPPOSITE_DIRECTION } from '../directionUtils.js';
 import { LayoutManager } from '../LayoutManager.js';
 import { getFaceCenterPoint } from '../portUtils.js';
@@ -43,19 +44,31 @@ export function makeRoughFallbackConnectionChange(
     options.toFace ??
     authoredEndpointFace(connection, 'to') ??
     OPPOSITE_DIRECTION[layoutManager.primaryDirection];
+  const faceStart = entityFacePoint(fromEntity, fromFace);
+  const faceEnd = entityFacePoint(toEntity, toFace);
   const start =
     finitePointOrUndefined(options.startPoint) ??
     relativeEndpointPoint(fromEntity, connection.relativeFromPort) ??
-    entityFacePoint(fromEntity, fromFace) ??
+    faceStart ??
     storedEndpoint(connection, 'from') ??
     ([0, 0] as Point);
   const end =
     finitePointOrUndefined(options.endPoint) ??
     relativeEndpointPoint(toEntity, connection.relativeToPort) ??
-    entityFacePoint(toEntity, toFace) ??
+    faceEnd ??
     storedEndpoint(connection, 'to') ??
     ([start[0] + 10, start[1]] as Point);
   const absolutePoints = makeRoughFallbackPoints(start, end, fromFace, toFace);
+  // An entity with an outline (a non-rectangular shape): only self-derived face points walk to
+  // the drawn boundary; authored geometry stays verbatim. Without an outline this is a no-op.
+  if (fromEntity && start === faceStart) {
+    const clipped = clipFacePointToOutline(fromEntity, fromFace, { x: start[0], y: start[1] });
+    absolutePoints[0] = [clipped.x, clipped.y];
+  }
+  if (toEntity && end === faceEnd) {
+    const clipped = clipFacePointToOutline(toEntity, toFace, { x: end[0], y: end[1] });
+    absolutePoints[absolutePoints.length - 1] = [clipped.x, clipped.y];
+  }
   const geometry = connectionGeometryFromPoints(absolutePoints);
   const label = connection.textPlacement;
   const relativeLabel = hasMeasuredLabel(label)

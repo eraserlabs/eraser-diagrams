@@ -1,7 +1,8 @@
+import { clipFacePointToOutline } from '../../outline.js';
 import type { XYPoint } from '../../types.js';
 import { isPointEndpoint } from './contract.js';
 import type { Corridor, PortalRef, RouteEndpoint } from './contract.js';
-import { axisPoint, pointInRect, samePoint, terminalFacePlane } from './geometry.js';
+import { axisPoint, facePlane, pointInRect, samePoint, terminalFacePlane } from './geometry.js';
 import { Route, routeFailure, type BoundaryRealization, type VisitBoundary } from './route.js';
 import type { CorridorWorld } from './world.js';
 
@@ -125,9 +126,16 @@ function emittedEndpointPoint(
   const sourceEntities = world.sourceEntities ?? world.entities;
   const source = sourceEntities[endpoint.entityIndex];
   const plane = terminalFacePlane(source, endpoint.face);
-  return endpoint.face === 'left' || endpoint.face === 'right'
-    ? { x: plane, y: track }
-    : { x: track, y: plane };
+  const point =
+    endpoint.face === 'left' || endpoint.face === 'right'
+      ? { x: plane, y: track }
+      : { x: track, y: plane };
+  // An entity with an outline (a non-rectangular shape) gets the end walked inward to its drawn
+  // boundary. A caption-extended plane attaches to the text's edge, so it is never clipped.
+  if (plane !== facePlane(source, endpoint.face)) {
+    return point;
+  }
+  return clipFacePointToOutline(source, endpoint.face, point);
 }
 
 function routeError(route: Route, message: string): never {
