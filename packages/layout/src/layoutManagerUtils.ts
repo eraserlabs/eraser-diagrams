@@ -36,55 +36,6 @@ export function getContainerIdsByDepth(
   return containerIds;
 }
 
-export function getGroupOutsAndIns(
-  layoutManager: LayoutManager,
-  fromEntity: LayoutEntity | undefined,
-  toEntity: LayoutEntity | undefined,
-): {
-  necessaryGroupOuts: Set<string>;
-  necessaryGroupIns: Set<string>;
-  sharedContainers: Set<string>;
-} {
-  const fromContainers: readonly string[] = fromEntity?.containerId
-    ? layoutManager.getAllContainerIds(fromEntity.id)
-    : [];
-  const toContainers: readonly string[] = toEntity?.containerId
-    ? layoutManager.getAllContainerIds(toEntity.id)
-    : [];
-
-  const fromContainerSet = new Set(fromContainers);
-  const toContainerSet = new Set(toContainers);
-  const necessaryGroupOuts = new Set<string>();
-  const necessaryGroupIns = new Set<string>();
-  const sharedContainers = new Set<string>();
-
-  for (const id of fromContainers) {
-    if (toContainerSet.has(id)) {
-      sharedContainers.add(id);
-    } else {
-      necessaryGroupOuts.add(id);
-    }
-  }
-  for (const id of toContainers) {
-    if (!fromContainerSet.has(id)) {
-      necessaryGroupIns.add(id);
-    }
-  }
-
-  if (fromEntity?.isContainer && !toContainers.includes(fromEntity.id)) {
-    necessaryGroupOuts.add(fromEntity.id);
-  }
-  if (toEntity?.isContainer && !fromContainers.includes(toEntity.id)) {
-    necessaryGroupIns.add(toEntity.id);
-  }
-
-  return {
-    necessaryGroupOuts,
-    necessaryGroupIns,
-    sharedContainers,
-  };
-}
-
 export function makeContainerMapping(entities: LayoutEntity[]): ContainerMapping {
   const containerMapping: ContainerMapping = {};
 
@@ -223,29 +174,9 @@ export function updateEntityParentMapping(
 
 export function makeConnectionMapping(connections: LayoutConnection[]): Record<string, string[]> {
   const connectionMapping: Record<string, string[]> = {};
-
   for (const connection of connections) {
-    const { id, from, to } = connection;
-
-    // A free (unbound) endpoint is `''`; don't register it as an entity key, so
-    // a one-bound connection is re-routed only when its *bound* entity moves.
-    if (from) {
-      if (connectionMapping[from]) {
-        connectionMapping[from].push(id);
-      } else {
-        connectionMapping[from] = [id];
-      }
-    }
-
-    if (to) {
-      if (connectionMapping[to]) {
-        connectionMapping[to].push(id);
-      } else {
-        connectionMapping[to] = [id];
-      }
-    }
+    addConnectionToMappings(connection, connectionMapping);
   }
-
   return connectionMapping;
 }
 
@@ -254,21 +185,16 @@ export function addConnectionToMappings(
   connectionMapping: Record<string, string[]>,
 ): void {
   const { id, from, to } = connection;
-
-  if (!connectionMapping[from]) {
-    connectionMapping[from] = [];
-  }
-
-  if (!connectionMapping[from].includes(id)) {
-    connectionMapping[from].push(id);
-  }
-
-  if (!connectionMapping[to]) {
-    connectionMapping[to] = [];
-  }
-
-  if (!connectionMapping[to].includes(id)) {
-    connectionMapping[to].push(id);
+  for (const entityId of [from, to]) {
+    // A free (unbound) endpoint is `''`; don't register it as an entity key, so
+    // a one-bound connection is re-routed only when its *bound* entity moves.
+    if (!entityId) {
+      continue;
+    }
+    connectionMapping[entityId] ??= [];
+    if (!connectionMapping[entityId].includes(id)) {
+      connectionMapping[entityId].push(id);
+    }
   }
 }
 

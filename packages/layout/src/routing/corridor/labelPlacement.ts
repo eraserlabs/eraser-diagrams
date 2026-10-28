@@ -13,7 +13,6 @@ import {
   axisPoint,
   centeredRect,
   compareNumber,
-  corridorTravelSpan,
   expandRect,
   inside,
   orderedSpan,
@@ -402,11 +401,11 @@ function placementCandidates(
         continue;
       }
       seenCorridors.add(corridorIndex);
-      const corridor = world.indexer.corridors[corridorIndex];
-      const corridorTravel = corridorTravelSpan(corridor);
-      const corridorCenter = midpoint(corridorTravel);
+      const travelStart = world.indexer.spans.travelStarts[corridorIndex];
+      const travelEnd = world.indexer.spans.travelEnds[corridorIndex];
+      const corridorCenter = (travelStart + travelEnd) / 2;
       if (coordinateInSpan(corridorCenter, legalTravel, EPSILON)) {
-        add(corridorCenter, 'corridor-center', spanLength(corridorTravel));
+        add(corridorCenter, 'corridor-center', travelEnd - travelStart);
       }
     }
     add(clampToSpan(runMidpoint, legalTravel), 'segment-center', length);

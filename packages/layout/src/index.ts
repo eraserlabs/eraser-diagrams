@@ -1,10 +1,30 @@
 /**
- * Layout geometry and the corridor connection router. No DOM, no browser — this module runs
- * identically in Node (unit tests) and inside the render bundle in Chromium. Coordinates are
- * scene-space throughout.
+ * Layout and routing: where entities go (placement, bumping, auto-layout, resize) and where
+ * connections go (elbow, straight and arc routing, label placement). No DOM, no browser: this
+ * module runs the same in Node and inside a browser bundle. Coordinates are scene-space throughout.
+ *
+ * The root exports the main API. Every other module is also reachable by its path, for example
+ * `@eraserlabs/layout/routing/points`.
  */
 
+// layout state and editing
 export { LayoutManager } from './LayoutManager.js';
+export { generateChanges, generateChangesForMove } from './calculateChanges.js';
+export { makeRoomForEntities } from './bumpUtils.js';
+export { getPositionForEntity } from './newPosition.js';
+
+// routing
+export { COMMIT_REPAIR, routeConnections } from './routing/routeConnections.js';
+export type {
+  ConnectionRoutingRequest,
+  EndpointPins,
+  RouteConnectionsArgs,
+  RoutingResult,
+} from './routing/routeConnections.js';
+export type { RepairPolicy } from './routing/executeCorridorRouting.js';
+export { anchorFromStored, resolveManualLabel } from './routing/manualLabelAnchor.js';
+
+// geometry
 export {
   addPaddingToRange,
   combineRanges,
@@ -15,18 +35,10 @@ export {
 } from './rangeUtils.js';
 export { createEntityOutline, roundedCornerGeometry } from './outline.js';
 export type { CornerGeometry, EntityOutline } from './outline.js';
-export { routeCorridorConnectionBatch } from './routing/corridorRoutingAdapter.js';
-export { anchorFromStored, resolveManualLabel } from './routing/manualLabelAnchor.js';
-export { straightConnectionEndpoints } from './routing/straightConnection.js';
-export type { StraightConnectionOptions } from './routing/straightConnection.js';
-export type {
-  CorridorConnectionBatchRoutingOptions,
-  CorridorConnectionBatchRoutingResult,
-  CorridorConnectionRoutingResult,
-  RouteCorridorConnectionBatchArgs,
-} from './routing/corridorRoutingAdapter.js';
+
 export type {
   Direction,
+  GuidelineName,
   LayoutConnection,
   LayoutConnectionChange,
   LayoutEntity,
@@ -36,4 +48,6 @@ export type {
   OutlineVertex,
   Port,
   TextPlacement,
+  TransformHandleDirection,
 } from './types.js';
+export { GUIDELINE_NAME } from './types.js';

@@ -1,8 +1,8 @@
-import { clipFacePointToOutline } from '../../outline.js';
 import type { XYPoint } from '../../types.js';
+import { isPointEndpoint } from './contract.js';
 import type { Corridor, PortalRef, RouteEndpoint } from './contract.js';
-import { axisPoint, facePlane, pointInRect, samePoint, terminalFacePlane } from './geometry.js';
-import { Route, type BoundaryRealization, type VisitBoundary } from './route.js';
+import { axisPoint, pointInRect, samePoint, terminalFacePlane } from './geometry.js';
+import { Route, routeFailure, type BoundaryRealization, type VisitBoundary } from './route.js';
 import type { CorridorWorld } from './world.js';
 
 const EPSILON = 1e-6;
@@ -69,41 +69,49 @@ export function emitRoutes(
       continue;
     }
     route.assertSpaced();
-    // Terminal emission is the one place we leave the whole-pixel grid: endpoints
-    // re-anchor to the caller's true (unsnapped) entity faces so lines meet the drawn
-    // border exactly. Only the face-normal coordinate floats; tracks stay on-grid.
-    const from = emittedEndpointPoint(world, route.from, route.nominalTrackOf(0));
-    const to = emittedEndpointPoint(world, route.to, route.nominalTrackOf(route.visits.length - 1));
-    const raw: XYPoint[] = [from];
-    const rawSegmentVisits: number[] = [];
-    for (let visitIndex = 0; visitIndex + 1 < route.visits.length; visitIndex += 1) {
-      const current = route.visits[visitIndex];
-      const next = route.visits[visitIndex + 1];
-      const portal = sharedPortal(world, current.exit, next.entry);
-      const currentCorridor = world.indexer.corridors[current.corridorIndex];
-      const nextCorridor = world.indexer.corridors[next.corridorIndex];
-      if (portal.kind === 'continue') {
-        emitContinuation(
-          raw,
-          rawSegmentVisits,
-          route,
-          visitIndex,
-          currentCorridor,
-          nextCorridor,
-          portal,
-        );
-        continue;
-      }
-      emitTurn(raw, rawSegmentVisits, route, visitIndex, currentCorridor, nextCorridor, portal);
+    try {
+      emitRoute(world, route);
+    } catch (error) {
+      throw routeFailure(route, error);
     }
-    appendRaw(raw, rawSegmentVisits, to, route.visits.length - 1);
-    const { points, segmentVisitByIndex } = simplifyEmittedGeometry(
-      route.requestIndex,
-      raw,
-      rawSegmentVisits,
-    );
-    route.setGeometry({ from, to }, points, segmentVisitByIndex);
   }
+}
+
+function emitRoute(world: CorridorWorld, route: Route): void {
+  // Terminal emission is the one seam that leaves the whole-pixel grid: endpoints
+  // re-anchor to the caller's true (unsnapped) entity faces so lines meet the drawn
+  // border exactly. Only the face-normal coordinate floats; tracks stay on-grid.
+  const from = emittedEndpointPoint(world, route.from, route.nominalTrackOf(0));
+  const to = emittedEndpointPoint(world, route.to, route.nominalTrackOf(route.visits.length - 1));
+  const raw: XYPoint[] = [from];
+  const rawSegmentVisits: number[] = [];
+  for (let visitIndex = 0; visitIndex + 1 < route.visits.length; visitIndex += 1) {
+    const current = route.visits[visitIndex];
+    const next = route.visits[visitIndex + 1];
+    const portal = sharedPortal(world, current.exit, next.entry);
+    const currentCorridor = world.indexer.corridors[current.corridorIndex];
+    const nextCorridor = world.indexer.corridors[next.corridorIndex];
+    if (portal.kind === 'continue') {
+      emitContinuation(
+        raw,
+        rawSegmentVisits,
+        route,
+        visitIndex,
+        currentCorridor,
+        nextCorridor,
+        portal,
+      );
+      continue;
+    }
+    emitTurn(raw, rawSegmentVisits, route, visitIndex, currentCorridor, nextCorridor, portal);
+  }
+  appendRaw(raw, rawSegmentVisits, to, route.visits.length - 1);
+  const { points, segmentVisitByIndex } = simplifyEmittedGeometry(
+    route.requestIndex,
+    raw,
+    rawSegmentVisits,
+  );
+  route.setGeometry({ from, to }, points, segmentVisitByIndex);
 }
 
 function emittedEndpointPoint(
@@ -111,18 +119,15 @@ function emittedEndpointPoint(
   endpoint: RouteEndpoint,
   track: number,
 ): XYPoint {
+  if (isPointEndpoint(endpoint)) {
+    return { x: endpoint.x, y: endpoint.y };
+  }
   const sourceEntities = world.sourceEntities ?? world.entities;
   const source = sourceEntities[endpoint.entityIndex];
   const plane = terminalFacePlane(source, endpoint.face);
-  const point =
-    endpoint.face === 'left' || endpoint.face === 'right'
-      ? { x: plane, y: track }
-      : { x: track, y: plane };
-  // A caption-extended plane attaches to the text's edge, not the body — never clip through it.
-  if (plane !== facePlane(source, endpoint.face)) {
-    return point;
-  }
-  return clipFacePointToOutline(source, endpoint.face, point);
+  return endpoint.face === 'left' || endpoint.face === 'right'
+    ? { x: plane, y: track }
+    : { x: track, y: plane };
 }
 
 function routeError(route: Route, message: string): never {
@@ -225,6 +230,11 @@ function emitTurn(
 }
 
 function sameEndpoint(left: Route['from'], right: Route['from']): boolean {
+  if (isPointEndpoint(left) || isPointEndpoint(right)) {
+    return (
+      isPointEndpoint(left) && isPointEndpoint(right) && left.x === right.x && left.y === right.y
+    );
+  }
   return (
     left.entityIndex === right.entityIndex &&
     left.face === right.face &&

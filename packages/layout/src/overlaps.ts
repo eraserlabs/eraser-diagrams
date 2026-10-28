@@ -1,9 +1,13 @@
-import { addToSet } from '@eraserlabs/utils';
-import { DirectionActivation } from './directionUtils.js';
+import { addToSet } from './setUtils.js';
+import { GenerateChangesArgs, generateChanges } from './calculateChanges.js';
+import { DirectionActivation, OPPOSITE_DIRECTION } from './directionUtils.js';
 import type { LayoutManager } from './LayoutManager.js';
 import type { LayoutEntity, LayoutRange, OverlapEntry } from './types.js';
 import { getEntityDimensions } from './sizeUtils.js';
 import { addBufferToRange, isOverlapping } from './rangeUtils.js';
+
+// Temp - just picking a number
+const EXPAND_BUFFER = 10;
 
 /**
  * Determine the overlaps for entities that are being moved or resized (containers that are expanding)
@@ -181,6 +185,34 @@ export function calculateAllOverlaps(layoutManager: LayoutManager, buffer = 0): 
   return overlaps;
 }
 
+/**
+ * Detects whether an expanding container is getting (near to) overlapping another entity.
+ * Can return early if we only care whether there is or is not an overlap
+ */
+export function detectExpandingOverlapsForContainer(
+  layoutManager: LayoutManager,
+  container: LayoutEntity | null | undefined,
+  buffer = EXPAND_BUFFER,
+): LayoutEntity[] {
+  if (!container) {
+    return [];
+  }
+  const childIds = layoutManager.getChildIds(container.id, true);
+  const containerIds = layoutManager.getAllContainerIds(container.id);
+
+  const bufferRange = {
+    minX: container.x - buffer,
+    minY: container.y - buffer,
+    maxX: container.x + container.width + buffer,
+    maxY: container.y + container.height + buffer,
+  };
+
+  return layoutManager.findEntitiesInRange(
+    bufferRange,
+    (c) => !childIds?.has(c.id) && !containerIds.includes(c.id) && c.id !== container.id,
+  );
+}
+
 function getContainerIds(entities: LayoutEntity[]): Set<string> {
   const containerIds = new Set<string>();
   for (const entity of entities) {
@@ -189,6 +221,79 @@ function getContainerIds(entities: LayoutEntity[]): Set<string> {
     }
   }
   return containerIds;
+}
+
+/**
+ * Resolves each overlap by displacing the overlapping entity away from the overlapped one.
+ * @note It is unclear if we are able to handle a layout manager that has dirty changes coming into this
+ */
+export function resolveOverlaps(
+  layoutManager: LayoutManager,
+  overlaps: OverlapEntry[],
+  { routing, beforeRoute }: Pick<GenerateChangesArgs, 'routing' | 'beforeRoute'>,
+): void {
+  for (const overlap of overlaps) {
+    const overlappingEntity = layoutManager.getEntityById(overlap.overlappingEntityId);
+    const overlappedEntity = layoutManager.getEntityById(overlap.overlappedEntityId);
+    if (checkShouldSkipOverlap(layoutManager, overlap, overlappingEntity, overlappedEntity)) {
+      continue;
+    }
+    generateChanges({
+      layoutManager,
+      movedEntities: [
+        {
+          id: overlappingEntity!.id,
+          newPlacement: {
+            displaceId: overlappedEntity!.id,
+            displaceDirection: OPPOSITE_DIRECTION[overlap.primaryDirection],
+          },
+        },
+      ],
+      routing,
+      beforeRoute,
+    });
+  }
+}
+
+function checkShouldSkipOverlap(
+  layoutManager: LayoutManager,
+  overlap: OverlapEntry,
+  overlappingEntity: LayoutEntity | undefined,
+  overlappedEntity: LayoutEntity | undefined,
+): boolean {
+  if (!overlappingEntity || !overlappedEntity) {
+    console.warn('[DiagramLayoutAdapter] Could not find overlapping or overlapped entity', {
+      overlap,
+      overlappedEntity,
+      overlappingEntity,
+    });
+    return true;
+  }
+
+  if (!overlap.isOverlapping) {
+    /** @todo Implement the snapping */
+    return true;
+  }
+
+  if (layoutManager.stagedChanges?.updates.get(overlap.overlappedEntityId)) {
+    console.warn('[DiagramLayoutAdapter] Skipping overlap resolution for overlapped entity', {
+      overlap,
+    });
+    /** @hack For now we skip if we've already moved */
+    /** @todo Implement the correct logic */
+    return true;
+  }
+
+  if (layoutManager.stagedChanges?.updates.get(overlap.overlappingEntityId)) {
+    console.warn('[DiagramLayoutAdapter] Skipping overlap resolution for overlapping entity', {
+      overlap,
+    });
+    /** @hack For now we skip if we've already moved */
+    /** @todo Implement the correct logic */
+    return true;
+  }
+
+  return false;
 }
 
 function determineOverlappedSides(

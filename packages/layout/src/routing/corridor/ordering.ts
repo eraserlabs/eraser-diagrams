@@ -90,6 +90,14 @@ export function orderRoutes(world: CorridorWorld, routes: readonly Route[]): Ord
     if (!refs || refs.length === 0) {
       continue;
     }
+    if (refs.length === 1) {
+      const ref = refs[0];
+      groups.push({
+        corridorIndex,
+        members: [{ routeIndex: ref.routeIndex, visitIndex: ref.visitIndex, order: 0 }],
+      });
+      continue;
+    }
     refs.sort(compareStableRefs);
 
     const cellCount = refs.length * refs.length;

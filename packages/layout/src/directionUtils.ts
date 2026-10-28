@@ -6,7 +6,11 @@ import { Point } from './routing/types.js';
 type AxisOrDirectionArg = LayoutManager | Direction | Axis;
 
 /**
- * @perf These arrays let us use a single number to represent a direction and use an array or Uint8Array to indicate if a direction is valid
+ * @perf notes:
+ * In a lot of cases, reading from the Directions enum is actually pretty expensive
+ * Having these arrays allows us to:
+ * - Use a single number to represent a direction
+ * - Use an array / Uint8Array to indicate whether a direction is valid / included
  * */
 export const DIRECTION_FOR_INDEX = ['up', 'down', 'left', 'right'] as const;
 export const OPPOSITE_DIRECTION_FOR_INDEX = ['down', 'up', 'right', 'left'] as const;
@@ -210,6 +214,18 @@ export function getStartAndEndFromObject<T>(
 }
 
 export function getPortDirection(port: Point, entity: LayoutEntity): Direction {
+  const text = entity.textPlacement;
+  if (
+    text &&
+    text.relativeY >= entity.height &&
+    port[1] >= entity.y + text.relativeY &&
+    port[0] >= Math.min(entity.x, entity.x + text.relativeX) &&
+    port[0] <= Math.max(entity.x + entity.width, entity.x + text.relativeX + text.width)
+  ) {
+    // A point below an external label belongs to the bottom face even when
+    // its x coordinate lies on or beyond a side of the smaller icon body.
+    return 'down';
+  }
   // Calculate distances to each edge of the entity
   const distToRight = Math.abs(port[0] - (entity.x + entity.width));
   const distToLeft = Math.abs(port[0] - entity.x);

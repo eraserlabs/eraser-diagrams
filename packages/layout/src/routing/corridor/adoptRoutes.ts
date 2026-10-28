@@ -3,20 +3,16 @@
  * geometry is rejected. Tracks are pinned by default so realization preserves the path.
  */
 
-import { coordinateInSpan, intersectSpans } from '../../rangeUtils.js';
+import { clampToSpan, coordinateInSpan, intersectSpans } from '../../rangeUtils.js';
 import type { Axis, AxisSpan } from '../../types.js';
+import { isPointEndpoint } from './contract.js';
 import type {
   PortalRef,
   RouteEndpoint,
   RouteSearchRequest,
   TerminalAttachment,
 } from './contract.js';
-import {
-  corridorCrossSpan,
-  corridorTravelSpan,
-  crossSpanOf,
-  terminalFacePlane,
-} from './geometry.js';
+import { attachmentCrossSpan, crossSpanOf, terminalFacePlane } from './geometry.js';
 import { Route, type VisitBoundary, type CorridorVisit } from './route.js';
 import type { CorridorWorld } from './world.js';
 
@@ -84,9 +80,9 @@ function terminalAttachmentFor(
     const corridor = world.indexer.corridors[attachment.corridorIndex];
     if (
       corridor.axis === axis &&
-      coordinateInSpan(track, corridorCrossSpan(corridor), TOLERANCE_PX) &&
-      coordinateInSpan(coordinateAtFace, corridorTravelSpan(corridor), TOLERANCE_PX) &&
-      coordinateInSpan(track, attachment.faceSpan, TOLERANCE_PX)
+      world.indexer.spans.crossIncludes(corridor.index, track, TOLERANCE_PX) &&
+      world.indexer.spans.travelIncludes(corridor.index, coordinateAtFace, TOLERANCE_PX) &&
+      coordinateInSpan(track, attachmentCrossSpan(attachment, corridor.axis), TOLERANCE_PX)
     ) {
       return attachment;
     }
@@ -127,9 +123,7 @@ function nextContinuePortal(
       continue;
     }
     const other = world.indexer.otherCorridorIndex(portal, corridorIndex);
-    if (
-      coordinateInSpan(target, corridorTravelSpan(world.indexer.corridors[other]), TOLERANCE_PX)
-    ) {
+    if (world.indexer.spans.travelIncludes(other, target, TOLERANCE_PX)) {
       return portal;
     }
     fallback = fallback ?? portal;
@@ -151,11 +145,10 @@ function turnPortalAt(
       continue;
     }
     const other = world.indexer.otherCorridorIndex(portal, corridorIndex);
-    const otherCorridor = world.indexer.corridors[other];
-    if (!coordinateInSpan(nextTrack, corridorCrossSpan(otherCorridor), TOLERANCE_PX)) {
+    if (!world.indexer.spans.crossIncludes(other, nextTrack, TOLERANCE_PX)) {
       continue;
     }
-    if (coordinateInSpan(nextTarget, corridorTravelSpan(otherCorridor), TOLERANCE_PX)) {
+    if (world.indexer.spans.travelIncludes(other, nextTarget, TOLERANCE_PX)) {
       return { portal, otherCorridorIndex: other };
     }
     fallback = fallback ?? { portal, otherCorridorIndex: other };
@@ -185,15 +178,20 @@ export function adoptRoute(
   if (segments === undefined) {
     return undefined;
   }
-  // Only geometry outside the terminal entities participates in the corridor world.
-  segments[0].travelStart = terminalFacePlane(
-    world.entities[request.from.entityIndex],
-    request.from.face,
-  );
-  segments[segments.length - 1].travelEnd = terminalFacePlane(
-    world.entities[request.to.entityIndex],
-    request.to.face,
-  );
+  // Only geometry outside the terminal entities participates in the corridor
+  // world. A point terminal's stored endpoint already is the terminal plane.
+  if (!isPointEndpoint(request.from)) {
+    segments[0].travelStart = terminalFacePlane(
+      world.entities[request.from.entityIndex],
+      request.from.face,
+    );
+  }
+  if (!isPointEndpoint(request.to)) {
+    segments[segments.length - 1].travelEnd = terminalFacePlane(
+      world.entities[request.to.entityIndex],
+      request.to.face,
+    );
+  }
 
   const first = segments[0];
   const sourceAttachment = terminalAttachmentFor(
@@ -246,11 +244,7 @@ export function adoptRoute(
     const forward = segment.travelEnd >= segment.travelStart;
     let guard = world.indexer.corridors.length + 1;
     while (
-      !coordinateInSpan(
-        segment.travelEnd,
-        corridorTravelSpan(world.indexer.corridors[current().corridorIndex]),
-        TOLERANCE_PX,
-      )
+      !world.indexer.spans.travelIncludes(current().corridorIndex, segment.travelEnd, TOLERANCE_PX)
     ) {
       guard -= 1;
       if (guard <= 0) {
@@ -304,7 +298,7 @@ export function adoptRoute(
     }
     if (options.pinTracks !== false) {
       // Clamp tolerance-level boundary drift before pinning the adopted track.
-      const pinnedTrack = Math.min(Math.max(visit.track, feasibleTrack[0]), feasibleTrack[1]);
+      const pinnedTrack = clampToSpan(visit.track, feasibleTrack);
       feasibleTrack = [pinnedTrack, pinnedTrack];
     }
     corridorVisits.push({
@@ -324,7 +318,7 @@ function boundaryConstrainedSpan(
   entry: VisitBoundary,
   exit: VisitBoundary,
 ): AxisSpan | undefined {
-  let span = corridorCrossSpan(world.indexer.corridors[corridorIndex]);
+  let span = world.indexer.spans.crossSpan(corridorIndex);
   for (const boundary of [entry, exit]) {
     const constraint = boundaryCrossSpan(world, corridorIndex, boundary);
     const intersection = intersectSpans(span, constraint, TOLERANCE_PX);
@@ -344,7 +338,7 @@ function boundaryCrossSpan(
 ): AxisSpan {
   const corridor = world.indexer.corridors[corridorIndex];
   if (boundary.kind === 'terminal') {
-    return world.indexer.attachments[boundary.attachmentIndex].faceSpan;
+    return attachmentCrossSpan(world.indexer.attachments[boundary.attachmentIndex], corridor.axis);
   }
   const portal = world.indexer.portals[boundary.portalIndex];
   if (portal.kind === 'continue') {

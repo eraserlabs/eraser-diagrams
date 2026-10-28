@@ -254,6 +254,20 @@ describe('LayoutManager checkpoint/fork/restore', () => {
   });
 
   describe('restore', () => {
+    it('stages a fork snapshot without replacing the original baseline or sharing later mutations', () => {
+      const lm = makeLM();
+      const final = lm.fork();
+      final.resetEntities(final.getEntities().map((entity) => ({ ...entity, x: entity.x + 50 })));
+      lm.restore(final);
+      expect(lm.getEntityById('A')?.x).toBe(50);
+      expect(lm.getEntityById('A', false, false)?.x).toBe(0);
+      lm.updateEntity('A', { deltaX: 10 });
+      final.updateEntity('B', { deltaY: 20 });
+      expect(final.getEntityById('A')?.x).toBe(50);
+      expect(lm.getEntityById('A')?.x).toBe(60);
+      expect(lm.getEntityById('B')?.y).toBe(0);
+    });
+
     it('reverts staged state to checkpoint', () => {
       const lm = makeLM();
       const cpId = lm.checkpoint();

@@ -1,8 +1,9 @@
 import type { LayoutEntity } from '../../types.js';
 import type { RouteSearchRequest } from '../corridor/contract.js';
-import { buildFreeSpaceSubstrate } from '../corridor/freeSpaceSubstrate.js';
+import { buildFreeSpaceSubstrate, certifiedRunFrom } from '../corridor/freeSpaceSubstrate.js';
 import { planLandingZones } from '../corridor/landingZones.js';
 import type { PositionProps } from '../../types.js';
+import { describe, expect, it } from 'vitest';
 
 const bounds = { x: -20, y: -20, width: 400, height: 240 };
 const entities: LayoutEntity[] = [
@@ -43,8 +44,11 @@ describe('routing corridor external-caption obstacles', () => {
       captioned,
     ]);
 
-    expect([...substrate.x.travelCuts]).toEqual([-100, 0, 10, 30, 50, 200]);
-    expect([...substrate.y.travelCuts]).toEqual([-100, 0, 50, 79, 200]);
+    expect(certifiedRunFrom(substrate.y, 200, [10, 30], -1, 0)).toBe(79);
+    expect(certifiedRunFrom(substrate.y, 200, [0, 10], -1, 0)).toBe(50);
+    expect(certifiedRunFrom(substrate.y, 200, [30, 50], -1, 0)).toBe(50);
+    expect(certifiedRunFrom(substrate.x, -100, [50, 79], 1, 200)).toBe(10);
+    expect(certifiedRunFrom(substrate.x, 200, [50, 79], -1, -100)).toBe(30);
   });
 
   it('lets a neighboring face use the body span left uncovered by a narrow caption', () => {

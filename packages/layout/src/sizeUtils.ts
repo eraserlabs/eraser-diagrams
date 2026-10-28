@@ -1,49 +1,22 @@
 import type { Direction } from './types.js';
+import { detectExpandingOverlapsForContainer } from './overlaps.js';
 import {
   LayoutChange,
   LayoutEntity,
   LayoutConnection,
   LayoutRange,
   LayoutOptions,
+  PositionProps,
   Axis,
 } from './types.js';
 import { addPaddingToRange, makeRangeForEntityTextPlacement, rangeIncludes } from './rangeUtils.js';
 import type { LayoutManager } from './LayoutManager.js';
 import { isSameAxis } from './directionUtils.js';
 
-const EXPAND_BUFFER = 10;
-
 type GetDimensionsOptions = {
   entityRankSpacing?: LayoutOptions['entityRankSpacing'];
   excludeTextDimensions?: boolean;
 };
-
-function detectExpandingOverlapsForContainer(
-  layoutManager: LayoutManager,
-  container: LayoutEntity | null | undefined,
-  buffer = EXPAND_BUFFER,
-): LayoutEntity[] {
-  if (!container) {
-    return [];
-  }
-
-  const childIds = layoutManager.getChildIds(container.id, true);
-  const containerIds = layoutManager.getAllContainerIds(container.id);
-  const bufferRange = {
-    minX: container.x - buffer,
-    minY: container.y - buffer,
-    maxX: container.x + container.width + buffer,
-    maxY: container.y + container.height + buffer,
-  };
-
-  return layoutManager.findEntitiesInRange(
-    bufferRange,
-    (candidate) =>
-      !childIds?.has(candidate.id) &&
-      !containerIds.includes(candidate.id) &&
-      candidate.id !== container.id,
-  );
-}
 
 export function getDimensions(
   entities: LayoutEntity[],
@@ -191,6 +164,16 @@ export function getContainerSizeChanges(
   }
 
   return containerChange;
+}
+
+/** Inverse of {@link buildChanges}: position/size delta from one box to another. */
+export function getLayoutChangeBetween(before: PositionProps, after: PositionProps): LayoutChange {
+  return {
+    deltaX: after.x - before.x,
+    deltaY: after.y - before.y,
+    deltaWidth: after.width - before.width,
+    deltaHeight: after.height - before.height,
+  };
 }
 
 export function buildChanges<T extends LayoutEntity = LayoutEntity>(

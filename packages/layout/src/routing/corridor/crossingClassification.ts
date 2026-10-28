@@ -1,5 +1,6 @@
 import { faceChordsCross, type FaceChord } from '../measure/crossings.js';
 import type { Direction, PositionProps, XYPoint } from '../../types.js';
+import { isPointEndpoint } from './contract.js';
 import type { Route } from './route.js';
 import type { RouteCrossing } from './routeIndex.js';
 import type { CorridorWorld } from './world.js';
@@ -26,7 +27,9 @@ export function unexpectedCrossings(
     }
     const routeA = routes[crossing.a.routeIndex];
     const routeB = routes[crossing.b.routeIndex];
-    if (routeA && routeB && faceChordsCross(routeChord(world, routeA), routeChord(world, routeB))) {
+    const chordA = routeA && routeChord(world, routeA);
+    const chordB = routeB && routeChord(world, routeB);
+    if (chordA && chordB && faceChordsCross(chordA, chordB)) {
       expectedPairs.add(key);
     }
   }
@@ -41,7 +44,11 @@ function pairKey(crossing: RouteCrossing, routeCount: number): number {
   return lower * routeCount + upper;
 }
 
-function routeChord(world: Pick<CorridorWorld, 'entities'>, route: Route): FaceChord {
+/** A face-to-face chord, or undefined when either terminal is a faceless point. */
+function routeChord(world: Pick<CorridorWorld, 'entities'>, route: Route): FaceChord | undefined {
+  if (isPointEndpoint(route.from) || isPointEndpoint(route.to)) {
+    return undefined;
+  }
   return {
     from: faceCenter(world.entities[route.from.entityIndex], route.from.face),
     fromFace: route.from.face,

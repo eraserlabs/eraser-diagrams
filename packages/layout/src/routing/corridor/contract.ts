@@ -10,35 +10,6 @@ export interface Corridor {
   readonly rect: PositionProps;
 }
 
-/** One canonical, non-overlapping attribution interval along a corridor border. */
-export type CorridorBorderSpan =
-  | {
-      readonly span: AxisSpan;
-      readonly kind: 'entity';
-      readonly entityId: string;
-    }
-  | {
-      readonly span: AxisSpan;
-      readonly kind: 'diagram-border';
-    };
-
-export type CorridorBorderProfile =
-  | {
-      readonly axis: 'x';
-      readonly top: readonly CorridorBorderSpan[];
-      readonly bottom: readonly CorridorBorderSpan[];
-    }
-  | {
-      readonly axis: 'y';
-      readonly left: readonly CorridorBorderSpan[];
-      readonly right: readonly CorridorBorderSpan[];
-    };
-
-/** A corridor after immutable world-border attribution has been attached. */
-export interface ProfiledCorridor extends Corridor {
-  readonly borderProfile: CorridorBorderProfile;
-}
-
 /** One geometric boundary between corridor visits. */
 export type PortalRef =
   | {
@@ -62,7 +33,8 @@ export type PortalRef =
     };
 
 /** Pure world geometry connecting one entity face to one corridor. */
-export interface TerminalAttachment {
+export interface FaceTerminalAttachment {
+  readonly kind?: 'face';
   /** Stable hot-path identity and position in the world's attachment array. */
   readonly index: number;
   readonly entityIndex: number;
@@ -71,8 +43,31 @@ export interface TerminalAttachment {
   readonly faceSpan: AxisSpan;
 }
 
+/**
+ * A zero-extent terminal at an exact point, one per corridor containing the
+ * point. Fully pinned: the hosted track is the point's cross coordinate and
+ * the terminal plane is the point's travel coordinate.
+ */
+export interface PointTerminalAttachment {
+  readonly kind: 'point';
+  /** Stable hot-path identity and position in the world's attachment array. */
+  readonly index: number;
+  readonly corridorIndex: number;
+  readonly x: number;
+  readonly y: number;
+}
+
+export type TerminalAttachment = FaceTerminalAttachment | PointTerminalAttachment;
+
+export function isPointAttachment(
+  attachment: TerminalAttachment,
+): attachment is PointTerminalAttachment {
+  return attachment.kind === 'point';
+}
+
 /** Fixed endpoint facts supplied before corridor search. */
-export interface RouteEndpoint {
+export interface EntityRouteEndpoint {
+  readonly kind?: 'entity';
   readonly entityIndex: number;
   readonly face: Direction;
   /** Whether this endpoint needs extra clearance for a rendered arrowhead. */
@@ -85,6 +80,34 @@ export interface RouteEndpoint {
   readonly preferredTrack?: number;
   /** Endpoints on the same entity face with this group share one track. */
   readonly portGroup?: number;
+}
+
+/**
+ * A terminal that is just a point in space — a dragged endpoint mid-gesture or a
+ * free ('') connection end anchored by its stored geometry. Fully pinned: search
+ * may approach along any hosting corridor; emission lands exactly on the point.
+ */
+export interface PointRouteEndpoint {
+  readonly kind: 'point';
+  readonly x: number;
+  readonly y: number;
+  /** Whether this endpoint needs extra clearance for a rendered arrowhead. */
+  readonly hasArrowhead?: boolean;
+}
+
+export type RouteEndpoint = EntityRouteEndpoint | PointRouteEndpoint;
+
+export function isPointEndpoint(endpoint: RouteEndpoint): endpoint is PointRouteEndpoint {
+  return endpoint.kind === 'point';
+}
+
+export function pointAttachmentKey(x: number, y: number): string {
+  return `${x}:${y}`;
+}
+
+/** The entity an endpoint sits on; undefined for a point endpoint. */
+export function endpointEntityIndex(endpoint: RouteEndpoint): number | undefined {
+  return isPointEndpoint(endpoint) ? undefined : endpoint.entityIndex;
 }
 
 /** One routing job. Human-readable connection identity remains in the batch context. */

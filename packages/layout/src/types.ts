@@ -59,11 +59,6 @@ export interface LayoutEntity extends PositionProps {
   isContainer?: boolean;
   options?: Partial<LayoutOptions>;
   /**
-   * Allows specifying where the ports should be.
-   * E.g. for cloud architecture, we might want the right / left ports to be centered on the shape
-   **/
-  customPorts?: Record<Direction, Point>;
-  /**
    * For containers, we have text placement for the title, which should be blocking
    * It is relative because it doesn't really move freely around the entity
    */
@@ -148,14 +143,8 @@ export interface LayoutConnection {
   points: Point[];
   /** The port, in relative coordinates of the from entity */
   relativeFromPort?: RelativePortPosition;
-  /** Semantic slot identity for the from-side face occupancy */
-  fromPortIndex?: number;
-  fromPortTotal?: number;
   /** The port, in relative coordinates of the to entity */
   relativeToPort?: RelativePortPosition;
-  /** Semantic slot identity for the to-side face occupancy */
-  toPortIndex?: number;
-  toPortTotal?: number;
   /** Authored face hint: prefer this face for the from-endpoint. */
   authoredFromFace?: Direction;
   /** Authored face hint: prefer this face for the to-endpoint. */
@@ -256,7 +245,10 @@ export interface LayoutOptions {
    * In some cases, we want to skip the default container behavior on overlaps and do something special.
    */
   skipContainerOverlapBehavior?: boolean;
-  /** Body skipped from routing grid; `textPlacement` still acts as a soft block. */
+  /**
+   * Routing ignores the entity itself (dividers, BPMN lanes): lines may cross its body and
+   * its children route as children of its parent. Its label (`textPlacement`) still blocks.
+   */
   skipRoutingObstacle?: boolean;
 }
 
@@ -359,3 +351,15 @@ export type SortedOp =
   | { opType: 'move'; op: MovedEntity }
   | { opType: 'add'; op: NewEntity }
   | { opType: 'moveBlock'; op: MoveBlock };
+
+/** A resize handle: a side (`n`, `s`, `w`, `e`) or a corner (`nw`, `ne`, `sw`, `se`). */
+export type TransformHandleDirection = 'n' | 's' | 'w' | 'e' | 'nw' | 'ne' | 'sw' | 'se';
+
+/**
+ * Align-snapping guideline names.
+ * v0, 1, 2 = top, middle, bottom.
+ * h0, 1, 2 = left, middle, right.
+ * vfp, hfp = vertical, horizontal fixed points.
+ */
+export const GUIDELINE_NAME = ['h0', 'h1', 'h2', 'v0', 'v1', 'v2', 'hfp', 'vfp'] as const;
+export type GuidelineName = (typeof GUIDELINE_NAME)[number];

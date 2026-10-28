@@ -11,3 +11,5 @@ export class LayoutDuplicateError extends LayoutError {
     super(`${msg}: ${id}`);
   }
 }
+
+export class RoutingError extends LayoutError {}

@@ -1,6 +1,9 @@
 import { LayoutManager } from '../../LayoutManager.js';
+import { LayoutTree } from '../../LayoutTree.js';
+import type { PositionProps } from '../../types.js';
 import type { Corridor, PortalRef, RouteSearchRequest } from './contract.js';
 import { CorridorIndexer } from './corridorIndex.js';
+import { CorridorSpans } from './corridorSpans.js';
 import { constructDirectGapCorridors } from './directGapCorridorConstruction.js';
 import { type LandingZoneRect, planLandingZones } from './landingZones.js';
 import { overlapRect, snapEntitiesToGrid } from './geometry.js';
@@ -32,16 +35,29 @@ export function buildCorridorWorld(
           options: layoutManager.options,
           origin: layoutManager.origin,
         });
-  const base = buildBaseCorridorGeometry(routingManager);
-  const runways = planLandingZones(base.bounds, entities, requests, base.freeSpace);
+  const base = buildBaseCorridorGeometry(routingManager, requests);
+  const runways = planLandingZones(
+    base.bounds,
+    entities,
+    requests,
+    base.freeSpace,
+    base.externalTextEntities,
+  );
   const geometry = buildCorridorGeometry(routingManager, base, runways);
-  const attachments = buildTerminalAttachments(entities, geometry.corridors, requests);
+  const attachments = buildTerminalAttachments(
+    entities,
+    geometry.corridors,
+    requests,
+    geometry.spans,
+  );
   const indexer = new CorridorIndexer(
     geometry.corridors,
     geometry.portals,
     attachments,
     routingManager,
     base.bounds,
+    base.externalTextEntities,
+    geometry.spans,
   );
   return {
     bounds: base.bounds,
@@ -53,48 +69,6 @@ export function buildCorridorWorld(
     corridorEntryCosts: geometry.corridorEntryCosts,
     portalSearchTiers: geometry.portalSearchTiers,
   };
-}
-
-/**
- * One pass over the final corridors: axis partition and travel/cross spans as flat typed
- * arrays. Everything downstream (turn portals, continuations, search-tier metadata) reads
- * these instead of re-deriving per corridor.
- */
-interface CorridorScan {
-  readonly xIndices: readonly number[];
-  readonly yIndices: readonly number[];
-  readonly travelStarts: Int32Array;
-  readonly travelEnds: Int32Array;
-  readonly crossStarts: Int32Array;
-  readonly crossEnds: Int32Array;
-}
-
-function scanCorridors(corridors: readonly Corridor[]): CorridorScan {
-  const count = corridors.length;
-  const xIndices: number[] = [];
-  const yIndices: number[] = [];
-  const travelStarts = new Int32Array(count);
-  const travelEnds = new Int32Array(count);
-  const crossStarts = new Int32Array(count);
-  const crossEnds = new Int32Array(count);
-  for (let index = 0; index < count; index += 1) {
-    const corridor = corridors[index];
-    const rect = corridor.rect;
-    if (corridor.axis === 'x') {
-      xIndices.push(index);
-      travelStarts[index] = rect.x;
-      travelEnds[index] = rect.x + rect.width;
-      crossStarts[index] = rect.y;
-      crossEnds[index] = rect.y + rect.height;
-    } else {
-      yIndices.push(index);
-      travelStarts[index] = rect.y;
-      travelEnds[index] = rect.y + rect.height;
-      crossStarts[index] = rect.x;
-      crossEnds[index] = rect.x + rect.width;
-    }
-  }
-  return { xIndices, yIndices, travelStarts, travelEnds, crossStarts, crossEnds };
 }
 
 function buildCorridorGeometry(
@@ -109,12 +83,9 @@ function buildCorridorGeometry(
     runways,
   });
   const corridors = directConstruction.corridors;
-  const scan = scanCorridors(corridors);
+  const scan = new CorridorSpans(corridors);
   const turns = buildTurnPortals(corridors, scan.xIndices, scan.yIndices);
-  const continuationPortals = buildContinuationPortals(corridors, scan).map((portal, position) => ({
-    ...portal,
-    index: turns.length + position,
-  }));
+  const continuationPortals = buildContinuationPortals(corridors, scan, turns.length);
   const escapeCorridors = directConstruction.searchTiers;
   const portals: PortalRef[] = [...turns, ...continuationPortals];
   const portalSearchTiers = new Uint8Array(portals.length);
@@ -129,6 +100,7 @@ function buildCorridorGeometry(
   }
   return {
     corridors,
+    spans: scan,
     portals,
     corridorSearchTiers: directConstruction.searchTiers,
     corridorEntryCosts: directConstruction.entryCosts,
@@ -142,10 +114,17 @@ function buildTurnPortals(
   yIndices: readonly number[],
 ): Extract<PortalRef, { kind: 'turn' }>[] {
   const portals: Extract<PortalRef, { kind: 'turn' }>[] = [];
+  const yTree = new LayoutTree<PositionProps & { readonly index: number }>().load(
+    yIndices.map((index) => ({ ...corridors[index].rect, index })),
+  );
   for (const xIndex of xIndices) {
     const xRect = corridors[xIndex].rect;
-    for (const yIndex of yIndices) {
-      const rect = overlapRect(xRect, corridors[yIndex].rect, 0);
+    // Preserve corridor-index order: portal indexes are part of routing identity.
+    const candidates = yTree
+      .searchBounds(xRect.x, xRect.y, xRect.x + xRect.width, xRect.y + xRect.height)
+      .sort((left, right) => left.index - right.index);
+    for (const candidate of candidates) {
+      const rect = overlapRect(xRect, candidate, 0);
       if (!rect) {
         continue;
       }
@@ -153,7 +132,7 @@ function buildTurnPortals(
         kind: 'turn',
         index: portals.length,
         xCorridorIndex: xIndex,
-        yCorridorIndex: yIndex,
+        yCorridorIndex: candidate.index,
         rect,
       });
     }
@@ -161,11 +140,14 @@ function buildTurnPortals(
   return portals;
 }
 
-type PendingContinuationPortal = Omit<Extract<PortalRef, { kind: 'continue' }>, 'index'>;
+type PendingContinuationPortal = Omit<Extract<PortalRef, { kind: 'continue' }>, 'index'> & {
+  index: number;
+};
 
 function buildContinuationPortals(
   corridors: readonly Corridor[],
-  scan: CorridorScan,
+  scan: CorridorSpans,
+  firstIndex: number,
 ): PendingContinuationPortal[] {
   const starts = new Map<string, number[]>();
   const ends = new Map<string, number[]>();
@@ -197,6 +179,7 @@ function buildContinuationPortals(
       if (end > start) {
         result.push({
           kind: 'continue',
+          index: 0,
           axis: corridors[negative[left]].axis,
           negativeCorridorIndex: negative[left],
           positiveCorridorIndex: positive[right],
@@ -212,7 +195,7 @@ function buildContinuationPortals(
       }
     }
   }
-  return result.sort(
+  result.sort(
     (a, b) =>
       a.axis.localeCompare(b.axis) ||
       a.planeCoordinate - b.planeCoordinate ||
@@ -221,6 +204,10 @@ function buildContinuationPortals(
       a.negativeCorridorIndex - b.negativeCorridorIndex ||
       a.positiveCorridorIndex - b.positiveCorridorIndex,
   );
+  for (let position = 0; position < result.length; position += 1) {
+    result[position].index = firstIndex + position;
+  }
+  return result;
 }
 
 function append<K, T>(map: Map<K, T[]>, key: K, value: T): void {

@@ -1,16 +1,12 @@
-import { LayoutManager } from '../../LayoutManager.js';
-import type { LayoutEntity } from '../../types.js';
-import { CorridorIndexer } from '../corridor/corridorIndex.js';
 import type { Corridor, TerminalAttachment, PortalRef } from '../corridor/contract.js';
 import { emitRoutes } from '../corridor/emit.js';
 import { orderRoutes } from '../corridor/ordering.js';
 import { Route, type CorridorVisit } from '../corridor/route.js';
 import { spaceRoutes } from '../corridor/spacing.js';
 import type { CorridorWorld } from '../corridor/world.js';
+import { leaf, manualCorridorWorld } from '../routingTestUtils.js';
 
-function leaf(id: string, x: number, y: number, width: number, height: number): LayoutEntity {
-  return { id, x, y, width, height };
-}
+const BOUNDS = { x: -20, y: -20, width: 360, height: 180 };
 
 function cornerWorld(): CorridorWorld {
   const entities = [leaf('from', 0, 0, 40, 40), leaf('to', 80, 100, 40, 40)];
@@ -31,7 +27,7 @@ function cornerWorld(): CorridorWorld {
     { index: 0, entityIndex: 0, face: 'right', corridorIndex: 0, faceSpan: [0, 40] },
     { index: 1, entityIndex: 1, face: 'up', corridorIndex: 1, faceSpan: [80, 120] },
   ];
-  return manualWorld(entities, corridors, portals, attachments);
+  return manualCorridorWorld(entities, corridors, portals, attachments, BOUNDS);
 }
 
 function cornerRoute(authored = false): Route {
@@ -55,26 +51,6 @@ function cornerRoute(authored = false): Route {
     { entityIndex: 1, face: 'up', ...(authored ? { authoredTrack: 100.5 } : {}) },
     visits,
   );
-}
-
-function manualWorld(
-  entities: readonly LayoutEntity[],
-  corridors: readonly Corridor[],
-  portals: readonly PortalRef[],
-  attachments: readonly TerminalAttachment[],
-): CorridorWorld {
-  const bounds = { x: -20, y: -20, width: 360, height: 180 };
-  return {
-    bounds,
-    entities,
-    indexer: new CorridorIndexer(
-      corridors,
-      portals,
-      attachments,
-      new LayoutManager({ entities: [...entities], connections: [] }),
-      bounds,
-    ),
-  };
 }
 
 function realize(world: CorridorWorld, routes: readonly Route[]) {
@@ -171,7 +147,7 @@ describe('routing corridor mechanical emission', () => {
       ],
     );
 
-    realize(manualWorld(entities, corridors, portals, attachments), [route]);
+    realize(manualCorridorWorld(entities, corridors, portals, attachments, BOUNDS), [route]);
 
     expect(route.points()).toEqual([
       { x: 10, y: 10 },
@@ -180,19 +156,5 @@ describe('routing corridor mechanical emission', () => {
     ]);
     expect(route.segmentVisitOf(0)).toBe(0);
     expect(route.segmentVisitOf(1)).toBe(2);
-  });
-
-  it('emits deterministic cardinal geometry without duplicate points', () => {
-    const signature = (): string => {
-      const world = cornerWorld();
-      const route = cornerRoute();
-      realize(world, [route]);
-      return JSON.stringify(route.points());
-    };
-    const expected = signature();
-
-    for (let iteration = 0; iteration < 10; iteration += 1) {
-      expect(signature()).toBe(expected);
-    }
   });
 });

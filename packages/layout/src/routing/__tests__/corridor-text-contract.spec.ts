@@ -1,11 +1,10 @@
-import { LayoutManager } from '../../LayoutManager.js';
 import type { LayoutEntity, XYPoint } from '../../types.js';
-import { CorridorIndexer } from '../corridor/corridorIndex.js';
 import type { Corridor } from '../corridor/contract.js';
 import { placeLabels } from '../corridor/labelPlacement.js';
 import { Route } from '../corridor/route.js';
 import type { LabelSpec } from '../corridor/text.js';
 import type { CorridorWorld } from '../corridor/world.js';
+import { manualCorridorWorld } from '../routingTestUtils.js';
 
 const CORRIDOR: Corridor = {
   index: 0,
@@ -14,18 +13,7 @@ const CORRIDOR: Corridor = {
 };
 
 function emptyWorld(): CorridorWorld {
-  const bounds = { x: 0, y: 0, width: 300, height: 300 };
-  return {
-    bounds,
-    entities: [],
-    indexer: new CorridorIndexer(
-      [CORRIDOR],
-      [],
-      [],
-      new LayoutManager({ entities: [], connections: [] }),
-      bounds,
-    ),
-  };
+  return manualCorridorWorld([], [CORRIDOR], [], [], { x: 0, y: 0, width: 300, height: 300 });
 }
 
 function adjacentCorridorWorld(sharedContainerFace = false): CorridorWorld {
@@ -42,18 +30,7 @@ function adjacentCorridorWorld(sharedContainerFace = false): CorridorWorld {
     isContainer: true,
   };
   const entities = sharedContainerFace ? [container] : [];
-  const bounds = { x: 0, y: 0, width: 300, height: 120 };
-  return {
-    bounds,
-    entities,
-    indexer: new CorridorIndexer(
-      corridors,
-      [],
-      [],
-      new LayoutManager({ entities: [...entities], connections: [] }),
-      bounds,
-    ),
-  };
+  return manualCorridorWorld(entities, corridors, [], [], { x: 0, y: 0, width: 300, height: 120 });
 }
 
 function route(

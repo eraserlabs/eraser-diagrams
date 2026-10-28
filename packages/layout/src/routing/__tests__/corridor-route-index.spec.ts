@@ -4,17 +4,19 @@ import type { LineMergeQualityEvent } from '../corridor/qualityCost.js';
 import { Route } from '../corridor/route.js';
 import type { IndexedRouteSegment } from '../corridor/routeIndex.js';
 import { RouteIndexer } from '../corridor/routeIndex.js';
+import { collectGroupTitleQualityEvents } from '../corridor/groupTitleQuality.js';
 
 function emittedRoute(
   requestIndex: number,
   corridorIndex: number,
   nominalTrack: number,
   points: readonly XYPoint[],
+  endpoints: Partial<Pick<Route, 'from' | 'to'>> = {},
 ): Route {
   const route = new Route(
     requestIndex,
-    { entityIndex: requestIndex * 2, face: 'right' },
-    { entityIndex: requestIndex * 2 + 1, face: 'left' },
+    endpoints.from ?? { entityIndex: requestIndex * 2, face: 'right' },
+    endpoints.to ?? { entityIndex: requestIndex * 2 + 1, face: 'left' },
     [
       {
         corridorIndex,
@@ -77,6 +79,105 @@ function emittedRouteByVisit(
 }
 
 describe('routing corridor RouteIndexer', () => {
+  it('prices title ink once per route/title and attributes every crossed corridor', () => {
+    const route = emittedRouteByVisit(
+      0,
+      [4, 5],
+      [
+        { x: 0, y: 10 },
+        { x: 20, y: 10 },
+        { x: 40, y: 10 },
+      ],
+    );
+    const boundary = emittedRoute(1, 4, 5, [
+      { x: 0, y: 5 },
+      { x: 40, y: 5 },
+    ]);
+    const clear = emittedRoute(2, 4, 20, [
+      { x: 0, y: 20 },
+      { x: 40, y: 20 },
+    ]);
+    const indexer = new RouteIndexer([route, boundary, clear]);
+    const events = collectGroupTitleQualityEvents(
+      {
+        titles: [{ x: 10, y: 5, width: 20, height: 10 }],
+        intersectionCost: 100,
+        overlapCostPerPx: 2,
+      },
+      indexer,
+    );
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      kind: 'group-title',
+      overlapLength: 20,
+      cost: 140,
+      routeIndexes: [0],
+    });
+    expect(events[0].corridorIndexes?.slice().sort()).toEqual([4, 5]);
+    expect(events[0].visits?.slice().sort((a, b) => a.visitIndex - b.visitIndex)).toEqual([
+      { routeIndex: 0, visitIndex: 0 },
+      { routeIndex: 0, visitIndex: 1 },
+    ]);
+    expect(
+      collectGroupTitleQualityEvents(
+        {
+          titles: [{ x: 10, y: 5, width: 20, height: 10 }],
+          intersectionCost: 0,
+          overlapCostPerPx: 0,
+        },
+        indexer,
+      ),
+    ).toEqual([]);
+  });
+
+  it.each<[number, number, boolean, number]>([
+    [0, 7, false, 0],
+    [2, 7, false, 1],
+    [0, 8, false, 1],
+    [0, 7, true, 1],
+  ])(
+    'allows only grouped terminal overlap (entity %i, group %i, bent %s)',
+    (entityIndex, portGroup, bent, merges) => {
+      const left = emittedRoute(
+        0,
+        0,
+        0,
+        [
+          { x: 0, y: 0 },
+          { x: 40, y: 0 },
+          ...(bent
+            ? [
+                { x: 40, y: 40 },
+                { x: 100, y: 40 },
+              ]
+            : []),
+        ],
+        { from: { entityIndex: 0, face: 'right', portGroup: 7 } },
+      );
+      const right = emittedRoute(
+        1,
+        0,
+        0,
+        [
+          { x: 0, y: 0 },
+          { x: 60, y: 0 },
+          ...(bent
+            ? [
+                { x: 60, y: 40 },
+                { x: 100, y: 40 },
+              ]
+            : []),
+        ],
+        { from: { entityIndex, face: 'right', portGroup } },
+      );
+      expect(
+        collectGeometryQualityEvents([left, right]).events.filter(
+          (event) => event.kind === 'line-merge',
+        ),
+      ).toHaveLength(merges);
+    },
+  );
+
   it('requires non-fallback routes to be fully emitted', () => {
     const route = new Route(
       0,
