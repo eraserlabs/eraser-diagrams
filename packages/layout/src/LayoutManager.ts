@@ -35,8 +35,6 @@ import {
   copyInternalData,
 } from './layoutManagerUtils.js';
 import { LayoutDuplicateError, LayoutError, MissingEntityError } from './LayoutError.js';
-import { buildRanks, RankData } from './structure/ranks.js';
-import { getAxisForDirection } from './directionUtils.js';
 import { isOverlapping, makeRangeFromEntity } from './rangeUtils.js';
 import { LayoutAlignment } from './alignmentUtils.js';
 
@@ -948,16 +946,6 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
       midY: (baseDims.minY + baseDims.maxY) / 2,
     };
     return data.dims;
-  }
-
-  buildRanks(): RankData {
-    return buildRanks({
-      entitiesById: this.getEntityMapping(true),
-      containerMapping: this.getContainerMapping(true),
-      parentMapping: this.getParentMapping(true),
-      connections: this.getConnections(true),
-      scoreProperty: getAxisForDirection(this.primaryDirection),
-    });
   }
 
   get dims(): LayoutRange & { midX: number; midY: number } {

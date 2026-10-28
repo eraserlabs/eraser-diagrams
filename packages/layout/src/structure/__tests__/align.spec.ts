@@ -1,3 +1,4 @@
+import { buildLayoutRanks } from '../ranks.js';
 import { LayoutManager } from '../../LayoutManager.js';
 import { makeEntity, makeConnection, makeGroup } from '../../testUtils.js';
 import { align } from '../align.js';
@@ -13,7 +14,7 @@ describe('align', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = align({ repair: false, layoutManager, rankData });
 
@@ -27,7 +28,7 @@ describe('align', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = align({ repair: false, layoutManager, rankData });
 
@@ -45,7 +46,7 @@ describe('align', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = align({ repair: false, layoutManager, rankData });
 
@@ -67,7 +68,7 @@ describe('align', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = align({ repair: false, layoutManager, rankData });
 
@@ -90,7 +91,7 @@ describe('align', () => {
         primaryDirection: 'down',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = align({ repair: false, layoutManager, rankData });
 
@@ -112,7 +113,7 @@ describe('align', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = align({ repair: false, layoutManager, rankData });
 
@@ -139,7 +140,7 @@ describe('align', () => {
         primaryDirection: 'down',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = align({ repair: false, layoutManager, rankData });
 
@@ -168,7 +169,7 @@ describe('align', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = align({ repair: false, layoutManager, rankData });
 
@@ -203,7 +204,7 @@ describe('align', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       // Store original positions
       const originalPositions = layoutManager.getEntities().map((entity) => ({
@@ -241,7 +242,7 @@ describe('align', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       // Store original position of C
       const originalCPosition = { x: entityC.x, y: entityC.y };
@@ -274,7 +275,7 @@ describe('align', () => {
         primaryDirection: 'down',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       // Store original position of C
       const originalCPosition = { x: entityC.x, y: entityC.y };
@@ -310,7 +311,7 @@ describe('align', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = align({ repair: false, layoutManager, rankData });
 
@@ -342,7 +343,7 @@ describe('align', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = align({ repair: false, layoutManager, rankData });
 
@@ -372,7 +373,7 @@ describe('align', () => {
         primaryDirection: 'down',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = align({ repair: false, layoutManager, rankData });
 
@@ -402,7 +403,7 @@ describe('align', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = align({ repair: false, layoutManager, rankData });
 
@@ -459,7 +460,7 @@ describe('align', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       // Store original positions
       const originalEntityC = { x: entityC.x, y: entityC.y };
@@ -498,7 +499,7 @@ describe('align', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       // Act
       const result = align({ repair: false, layoutManager, rankData });
@@ -561,7 +562,7 @@ describe('align', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
       const originalProcessorX = processor.x;
 
       align({ repair: false, layoutManager, rankData });

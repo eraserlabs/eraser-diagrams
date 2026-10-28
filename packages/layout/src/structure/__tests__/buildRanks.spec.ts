@@ -1,3 +1,4 @@
+import { buildLayoutRanks } from '../ranks.js';
 import { vi } from 'vitest';
 import { makeEntity, makeGroup, makeConnection } from '../../testUtils.js';
 import { LayoutManager } from '../../LayoutManager.js';
@@ -251,7 +252,7 @@ describe('buildRanks', () => {
         primaryDirection: 'right',
       });
 
-      const { rankedNodes, parentMapping, containerMapping } = layoutManager.buildRanks();
+      const { rankedNodes, parentMapping, containerMapping } = buildLayoutRanks(layoutManager);
 
       // Top-level entities should have regular ranks
       expect(rankedNodes['A'].rank).toBe(0);
@@ -312,7 +313,7 @@ describe('buildRanks', () => {
         primaryDirection: 'right',
       });
 
-      const { rankedNodes } = layoutManager.buildRanks();
+      const { rankedNodes } = buildLayoutRanks(layoutManager);
 
       // Top-level rankings: A(0) -> container1(1) -> container2(2) -> D(3)
       expect(rankedNodes['A'].rank).toBe(0);
@@ -366,7 +367,7 @@ describe('buildRanks', () => {
         primaryDirection: 'right',
       });
 
-      const { rankedNodes } = layoutManager.buildRanks();
+      const { rankedNodes } = buildLayoutRanks(layoutManager);
 
       // Top-level structure
       expect(rankedNodes['A'].rank).toBe(0);
@@ -413,7 +414,7 @@ describe('buildRanks', () => {
         primaryDirection: 'right',
       });
 
-      const { rankedNodes, ranks } = layoutManager.buildRanks();
+      const { rankedNodes, ranks } = buildLayoutRanks(layoutManager);
 
       // Should have all entities
       expect(Object.keys(rankedNodes)).toHaveLength(7);
@@ -533,7 +534,7 @@ describe('buildRanks', () => {
         primaryDirection: 'right',
       });
 
-      const { rankedNodes, ranks } = layoutManager.buildRanks();
+      const { rankedNodes, ranks } = buildLayoutRanks(layoutManager);
 
       // Should have all entities
       expect(Object.keys(rankedNodes)).toHaveLength(6);
@@ -603,7 +604,7 @@ describe('buildRanks', () => {
         primaryDirection: 'right',
       });
 
-      const { rankedNodes, globalRanks } = layoutManager.buildRanks();
+      const { rankedNodes, globalRanks } = buildLayoutRanks(layoutManager);
 
       // There should be 3 global ranks
       expect(globalRanks.length).toBe(3);
@@ -639,7 +640,7 @@ describe('buildRanks', () => {
         primaryDirection: 'right',
       });
 
-      const { globalRanks, ranks } = layoutManager.buildRanks();
+      const { globalRanks, ranks } = buildLayoutRanks(layoutManager);
 
       expect(globalRanks.length).toBe(2);
       expect(globalRanks[0].nodes.map((n) => n.id)).toEqual(['A', 'D', 'B2', 'B3']);
@@ -668,7 +669,7 @@ describe('buildRanks', () => {
         primaryDirection: 'right',
       });
 
-      const { globalRanks } = layoutManager.buildRanks();
+      const { globalRanks } = buildLayoutRanks(layoutManager);
 
       expect(globalRanks.length).toBe(4);
       expect(globalRanks[0].nodes.map((n) => n.id)).toEqual(['A', 'D', 'B3']);
@@ -699,7 +700,7 @@ describe('buildRanks', () => {
         primaryDirection: 'right',
       });
 
-      const { rankedNodes, globalRanks } = layoutManager.buildRanks();
+      const { rankedNodes, globalRanks } = buildLayoutRanks(layoutManager);
 
       expect(globalRanks.length).toBe(2);
       expect(globalRanks[0].nodes.map((n) => n.id)).toEqual(['group', 'A', 'B']);
@@ -729,7 +730,7 @@ describe('buildRanks', () => {
         primaryDirection: 'right',
       });
 
-      const { rankedNodes, globalRanks } = layoutManager.buildRanks();
+      const { rankedNodes, globalRanks } = buildLayoutRanks(layoutManager);
 
       expect(globalRanks.length).toBe(3);
       expect(globalRanks[0].nodes.map((n) => n.id)).toEqual(['groupA', 'A']);
@@ -764,7 +765,7 @@ describe('buildRanks', () => {
         ],
       });
 
-      const { rankedNodes, globalRanks } = layoutManager.buildRanks();
+      const { rankedNodes, globalRanks } = buildLayoutRanks(layoutManager);
 
       expect(globalRanks.length).toBe(5);
       expect(globalRanks[0].nodes.map((n) => n.id)).toEqual(['before']);
@@ -803,7 +804,7 @@ describe('buildRanks', () => {
           ],
           primaryDirection: 'right',
         });
-        const { ranks, globalRanks } = layoutManager.buildRanks();
+        const { ranks, globalRanks } = buildLayoutRanks(layoutManager);
 
         // Global ranks
         expect(globalRanks.length).toBe(3);
@@ -838,7 +839,7 @@ describe('buildRanks', () => {
           ],
         });
 
-        const { rankedNodes, globalRanks, ranks } = layoutManager.buildRanks();
+        const { rankedNodes, globalRanks, ranks } = buildLayoutRanks(layoutManager);
 
         expect(rankedNodes['A1']).toMatchObject({
           globalRank: 0,
@@ -893,7 +894,7 @@ describe('buildRanks', () => {
         ],
       });
 
-      const { rankedNodes, ranks } = layoutManager.buildRanks();
+      const { rankedNodes, ranks } = buildLayoutRanks(layoutManager);
 
       // Group should be at rank 0
       expect(rankedNodes['group']).toMatchObject({

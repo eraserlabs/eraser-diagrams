@@ -1,3 +1,4 @@
+import { buildLayoutRanks } from '../ranks.js';
 import { LayoutManager } from '../../LayoutManager.js';
 import { makeEntity, makeConnection } from '../../testUtils.js';
 import { cutAndShift } from '../cutAndShift.js';
@@ -13,7 +14,7 @@ describe('cutAndShift', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = cutAndShift({ repair: false, layoutManager, rankData, idealAspectRatio: 1.0 });
 
@@ -27,7 +28,7 @@ describe('cutAndShift', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = cutAndShift({ repair: false, layoutManager, rankData, idealAspectRatio: 1.0 });
 
@@ -47,7 +48,7 @@ describe('cutAndShift', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = cutAndShift({ repair: false, layoutManager, rankData, idealAspectRatio: 1.0 });
 
@@ -124,7 +125,7 @@ describe('cutAndShift', () => {
         primaryDirection: 'right',
       });
 
-      const rankData = layoutManager.buildRanks();
+      const rankData = buildLayoutRanks(layoutManager);
 
       const result = cutAndShift({ repair: false, layoutManager, rankData, idealAspectRatio: 1.0 });
 
@@ -263,7 +264,7 @@ function makeHorizontalLayout(count: number, spacing = 150) {
     primaryDirection: 'right',
   });
 
-  const rankData = layoutManager.buildRanks();
+  const rankData = buildLayoutRanks(layoutManager);
 
   return { layoutManager, entities, connections, rankData };
 }
@@ -283,7 +284,7 @@ function makeVerticalLayout(count: number, spacing = 150) {
     primaryDirection: 'down',
   });
 
-  const rankData = layoutManager.buildRanks();
+  const rankData = buildLayoutRanks(layoutManager);
 
   return { layoutManager, entities, connections, rankData };
 }

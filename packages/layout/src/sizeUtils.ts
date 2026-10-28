@@ -1,5 +1,5 @@
 import type { Direction } from './types.js';
-import { detectExpandingOverlapsForContainer } from './overlaps.js';
+import { detectExpandingOverlapsForContainer } from './containerOverlaps.js';
 import {
   LayoutChange,
   LayoutEntity,

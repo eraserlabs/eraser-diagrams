@@ -1,3 +1,4 @@
+import { getAxisForDirection } from '../directionUtils.js';
 import { addToSet } from '../setUtils.js';
 import { PriorityQueue } from '../PriorityQueue.js';
 import { LayoutManager } from '../LayoutManager.js';
@@ -1000,4 +1001,15 @@ export function determineRelativeRanks(rankedNodeA: RankedNode, rankedNodeB: Ran
   }
 
   return 0;
+}
+
+/** Ranks for the layout's staged state, scored along its primary direction. */
+export function buildLayoutRanks(layoutManager: LayoutManager): RankData {
+  return buildRanks({
+    entitiesById: layoutManager.getEntityMapping(true),
+    containerMapping: layoutManager.getContainerMapping(true),
+    parentMapping: layoutManager.getParentMapping(true),
+    connections: layoutManager.getConnections(true),
+    scoreProperty: getAxisForDirection(layoutManager.primaryDirection),
+  });
 }
