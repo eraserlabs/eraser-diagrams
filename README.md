@@ -102,8 +102,8 @@ For those curious to dig deeper, under the hood, our framework is split into sev
 | [`@eraserlabs/diagrams`](./packages/diagrams) | Supplies the stock Eraser profile and orchestrates resolution, Chromium, fonts, icons, rendering, HTML output, and image snapshots through the Node API. |
 | [`@eraserlabs/diagrams-cli`](./packages/diagrams-cli/README.md) | The `eraser-diagrams` command: argument parsing, `eraser-diagrams.config.json`, batch rendering and reporting on top of `@eraserlabs/diagrams`. |
 | [`@eraserlabs/resolve`](./packages/resolve/README.md) | Validates diagram data and profile definitions, resolves icons and other references, normalizes content, and prepares trusted renderer input. |
-| [`@eraserlabs/render`](./packages/render/README.md) | Implements the HTML template fill, authoritative browser measurement, layout, and apply pipeline. See the [render contract](./packages/render/SPEC.md). |
-| [`@eraserlabs/layout`](./packages/layout/README.md) | Provides geometry and obstacle-aware orthogonal connection routing, including nested and partial routing; depends only on `@eraserlabs/utils`. |
+| [`@eraserlabs/render`](./packages/render/README.md) | Implements the HTML template fill, authoritative browser measurement, and apply pipeline, and draws the lines that `@eraserlabs/layout` routes (SVG paths, arcs, label gaps). See the [render contract](./packages/render/SPEC.md). |
+| [`@eraserlabs/layout`](./packages/layout/README.md) | Owns all layout and routing: entity placement, bumping, auto-layout and resize, and elbow (obstacle-aware, nested, partial), straight and arc connection routing with label placement; depends only on `@eraserlabs/utils`. |
 | [`@eraserlabs/protocol`](./packages/protocol/README.md) | The dependency-free reference distribution of MDP contracts, schema annotations, and machine-readable schemas. See the [MDP specification](./packages/protocol/SPEC.md). |
 | [`@eraserlabs/utils`](./packages/utils) | Dependency-free helpers shared across the Eraser packages: phase timing, set helpers, and small type guards. |
 

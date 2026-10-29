@@ -2,11 +2,9 @@
 
 ## Introduction
 
-`@eraserlabs/layout` is the layout package used by [`eraser-diagrams`](https://github.com/eraserlabs/eraser-diagrams). It can also be used independently as a connection router for diagrams whose entities have already been sized and positioned, with `@eraserlabs/utils` as its only dependency.
+`@eraserlabs/layout` is the layout package used by [`eraser-diagrams`](https://github.com/eraserlabs/eraser-diagrams). It holds all layout and routing logic: where entities go (placement, bumping, auto-layout, resize) and where connections go (routing and label placement). It can also be used independently as a connection router for diagrams whose entities have already been sized and positioned, with `@eraserlabs/utils` as its only dependency.
 
-Its main routine is the corridor router: it produces orthogonal routes, understands nested containers, avoids obstacles, and can route some or all connections in a diagram, respecting the current coordinates of lines that have already been routed.
-
-For lines that should not travel around anything, `straightConnectionEndpoints` computes the two terminal points of a single direct segment between the entities' drawn boundaries — the centre-to-centre sight line clipped to each outline, or to the bounding box when an entity has none, with an authored face pinning its endpoint to that face's port. It is a standalone function rather than a routing mode: straight connections are held out of the corridor batch entirely, which is how `eraser-diagrams` implements `connectorStyle: 'straight'`.
+Its main routine is `routeConnections`. Each connection has a style. `elbow` connections (the default) go to the corridor router: it produces orthogonal routes, understands nested containers, avoids obstacles, and can route some or all connections in a diagram, respecting the current coordinates of lines that have already been routed. `straight` and `arc` connections are one direct segment between the entities' drawn boundaries; an arc adds a `bend`, the signed distance from the chord's middle to its apex. When an entity moves, a straight line's bound end glides along the outline and an arc's bound end keeps its place on the entity.
 
 ## Why
 
@@ -18,8 +16,9 @@ We could not find a standalone router for arbitrary nested diagrams that also su
 
 ```ts
 import {
+  COMMIT_REPAIR,
   LayoutManager,
-  routeCorridorConnectionBatch,
+  routeConnections,
   type LayoutEntity,
   type NewConnection,
 } from '@eraserlabs/layout';
@@ -46,18 +45,28 @@ const entities: LayoutEntity[] = [
 
 const connections: NewConnection[] = [
   { id: 'client-api', from: 'client', to: 'api' },
+  {
+    id: 'client-services',
+    from: 'client',
+    to: 'services',
+    connectorStyle: 'arc',
+    bend: 40,
+  },
 ];
 
 const layoutManager = new LayoutManager({ entities, connections: [] });
 
-routeCorridorConnectionBatch({
+const { updates, fallbacks } = routeConnections({
   layoutManager,
   connectionsToRoute: connections,
+  repair: COMMIT_REPAIR,
 });
 
 const route = layoutManager.getConnectionById('client-api');
 ```
 
-`layoutManager` contains the positioned entities and any existing connections. Entity coordinates are absolute; `containerId` identifies nesting and `isContainer` identifies containers. `connectionsToRoute` selects the new or existing connections to route by their `from` and `to` entity IDs. The optional `options` field of the same argument object controls repair (`repair`, `repairTimeBudgetMs`), label placement (`labels`), port preservation (`preservePorts`), and whether unaffected routes are pinned (`pinUnaffectedRoutes`).
+`layoutManager` contains the positioned entities and any existing connections. Entity coordinates are absolute; `containerId` identifies nesting and `isContainer` identifies containers. `connectionsToRoute` selects the new or existing connections to route; alternatively, `updates` selects the connections that touch entities you moved in the manager's staged changes. `repair` limits how long the router spends improving routes: `false` for none, `{ timeBudgetMs }` for a time limit (`COMMIT_REPAIR` is 100 ms; `Infinity` makes the result independent of machine speed).
 
-Existing connections not included in `connectionsToRoute` remain fixed by default, enabling partial routing. Pass every connection to reroute a complete diagram. Each result is `{ connectionId, status }`, where `status` is `'valid'` for a connection that received a corridor route and `'fallback'` for one that fell back to direct geometry; the resulting polyline is available from the manager as an absolute `x` / `y` origin with relative `[x, y]` points.
+Connections that are not selected keep their points, which enables partial routing. A selected connection keeps its existing path when its attachments and clearance are still valid (`allowShift`, on by default). `updates` holds each routed connection's change, and `fallbacks` the ids of connections that got direct fallback geometry instead of a corridor route. Each polyline is an absolute `x` / `y` origin with relative `[x, y]` points.
+
+Every module is also reachable by its path, for example `@eraserlabs/layout/routing/directLine` or `@eraserlabs/layout/arcGeometry`.
