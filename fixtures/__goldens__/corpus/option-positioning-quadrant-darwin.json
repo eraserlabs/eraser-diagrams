@@ -8,7 +8,7 @@
       "x": 295,
       "y": 15,
       "width": 600,
-      "height": 59,
+      "height": 40,
       "hAlign": "center",
       "fontSize": 21
     },
@@ -30,7 +30,7 @@
       "x": 495,
       "y": 815,
       "width": 200,
-      "height": 39,
+      "height": 30,
       "hAlign": "center",
       "color": "gray"
     },
@@ -76,7 +76,7 @@
       "x": 135,
       "y": 90,
       "width": 300,
-      "height": 39,
+      "height": 25,
       "color": "gray"
     },
     {
@@ -86,7 +86,7 @@
       "x": 815,
       "y": 90,
       "width": 280,
-      "height": 39,
+      "height": 25,
       "hAlign": "right",
       "color": "gray"
     },
@@ -97,7 +97,7 @@
       "x": 135,
       "y": 765,
       "width": 320,
-      "height": 39,
+      "height": 25,
       "color": "gray"
     },
     {
@@ -107,7 +107,7 @@
       "x": 795,
       "y": 765,
       "width": 300,
-      "height": 39,
+      "height": 25,
       "hAlign": "right",
       "color": "gray"
     },
@@ -218,7 +218,7 @@
       "x": 915,
       "y": 635,
       "width": 180,
-      "height": 39
+      "height": 25
     },
     {
       "tag": "Shape",
@@ -239,7 +239,7 @@
       "x": 940,
       "y": 662,
       "width": 160,
-      "height": 38,
+      "height": 22,
       "color": "gray"
     },
     {
@@ -261,7 +261,7 @@
       "x": 940,
       "y": 687,
       "width": 160,
-      "height": 38,
+      "height": 22,
       "color": "gray"
     }
   ],
@@ -270,6 +270,6 @@
     "x": -1,
     "y": -1,
     "width": 1132,
-    "height": 871
+    "height": 862
   }
 }
