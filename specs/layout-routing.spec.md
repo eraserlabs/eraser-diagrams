@@ -84,7 +84,3 @@ An arc is a straight connection's two endpoints plus `bend`. The circle (center,
 - Elbow, manual label (`textLineOffset` set): when the corridor router gives the connection a new route, the label keeps its place along the line and its offset from it (`anchorFromStored`, `resolveManualLabel`). `[@test] ../packages/layout/src/routing/__tests__/routeConnections-styles.spec.ts`
 - Straight and arc, manual label (`textLineOffset` set): the label keeps its place along the line and its offset from it after the line moves. `[@test] ../packages/layout/src/routing/__tests__/manualLabelAnchor.spec.ts` `[@test] ../packages/layout/src/routing/__tests__/routeConnections-styles.spec.ts`
 - Straight and arc, automatic label: an arc's label centers on the apex. A straight line's label centers on the segment's middle, lifted clear when the segment is too short for it. `[@test] ../packages/layout/src/routing/__tests__/directLine.spec.ts`
-
-## Golden outputs
-
-- For every fixture in `fixtures/routing/`, routing all its connections in one batch with unbounded repair returns the recorded golden result (paths, label boxes, fallbacks). The goldens were recorded from the reference implementation before 0.5.0. `[@test] ../packages/layout/src/routing/__tests__/routing-goldens.spec.ts`
