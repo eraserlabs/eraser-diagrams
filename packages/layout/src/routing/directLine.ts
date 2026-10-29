@@ -22,7 +22,9 @@ import {
   getConnectorLabelRoute,
   isArcBend,
 } from '../arcGeometry.js';
-import type { OutlineDescriptor, PositionProps } from '../types.js';
+import { clipFacePointToOutline } from '../outline.js';
+import { getFaceCenterPoint } from '../portUtils.js';
+import type { Direction, OutlineDescriptor, PositionProps } from '../types.js';
 import { anchorFromStored, resolveManualLabel } from './manualLabelAnchor.js';
 import { labelPositionCenteredOnSegment } from './textPlacements.js';
 
@@ -208,6 +210,39 @@ export function centreSegment(from: DirectBox, to: DirectBox): [Point, Point] {
     return hits.reduce((best, p) => (near(p) < near(best) ? p : best));
   };
   return [leave(from, a, b), leave(to, b, a)];
+}
+
+/**
+ * A line with no path whose ends name faces: a named face puts that end on the face's midpoint,
+ * walked in to the drawn outline; a free end attaches where the line from its box's centre toward
+ * the other end leaves the box. The far end aims at the near one already resolved, so one named
+ * face tilts the whole segment toward it.
+ */
+export function faceAnchoredSegment(
+  from: DirectBox,
+  to: DirectBox,
+  fromFace: Direction | undefined,
+  toFace: Direction | undefined,
+): [Point, Point] {
+  const towardTarget = toFace ? facePoint(to, toFace) : centreOf(to);
+  const start = fromFace ? facePoint(from, fromFace) : boundaryToward(from, towardTarget);
+  const end = toFace ? towardTarget : boundaryToward(to, start);
+  return [start, end];
+}
+
+function facePoint(box: DirectBox, face: Direction): Point {
+  const [x, y] = getFaceCenterPoint({ id: '', ...box }, face);
+  const clipped = clipFacePointToOutline({ id: '', ...box }, face, { x, y });
+  return [clipped.x, clipped.y];
+}
+
+/** Where the ray from the box's centre toward `target` leaves its outline; the centre when it cannot. */
+function boundaryToward(box: DirectBox, target: Point): Point {
+  const c = centreOf(box);
+  const hits = crossings(box, c, target).filter(
+    (h) => (h[0] - c[0]) * (target[0] - c[0]) + (h[1] - c[1]) * (target[1] - c[1]) > 0,
+  );
+  return hits[0] ?? c;
 }
 
 /**

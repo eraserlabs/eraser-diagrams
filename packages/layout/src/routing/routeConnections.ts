@@ -38,6 +38,7 @@ import {
   bindingOf,
   centreSegment,
   directLabel,
+  faceAnchoredSegment,
   type DirectBox,
   type DirectLine,
   followBoxes,
@@ -734,7 +735,15 @@ function routeDirectConnection(
     const fromBox = after(connection.from);
     const toBox = after(connection.to);
     if (fromBox && toBox) {
-      ends = centreSegment(fromBox, toBox);
+      ends =
+        connection.authoredFromFace || connection.authoredToFace
+          ? faceAnchoredSegment(
+              fromBox,
+              toBox,
+              connection.authoredFromFace,
+              connection.authoredToFace,
+            )
+          : centreSegment(fromBox, toBox);
     }
   }
   const start = pins?.from ?? ends?.[0];

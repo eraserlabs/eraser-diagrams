@@ -24,6 +24,16 @@ export type {
 export type { RepairPolicy } from './routing/executeCorridorRouting.js';
 export { anchorFromStored, resolveManualLabel } from './routing/manualLabelAnchor.js';
 
+// arc geometry
+export {
+  ARC_BEND_SNAP_THRESHOLD,
+  defaultBendForChord,
+  getArcApex,
+  getArcPathD,
+  getArcPolyline,
+  isArcBend,
+} from './arcGeometry.js';
+
 // geometry
 export {
   addPaddingToRange,
