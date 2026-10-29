@@ -43,6 +43,7 @@ import {
   followBoxes,
   type Point as DirectPoint,
 } from './directLine.js';
+import { anchorFromStored, resolveManualLabel } from './manualLabelAnchor.js';
 import { hasMeasuredLabel } from './textPlacements.js';
 
 /**
@@ -151,7 +152,18 @@ export function routeConnections({
     pending.set(connection.id, { connection, endpointPins: pins });
   }
 
+  const manualLabels = new Map<string, ManualLabelSnapshot>();
+  for (const { connection } of pending.values()) {
+    const snapshot = manualLabelSnapshot(
+      routingLayout.getConnectionById(connection.id),
+      connection,
+    );
+    if (snapshot) {
+      manualLabels.set(connection.id, snapshot);
+    }
+  }
   const fallbacks = routeCorridorConnections(routingLayout, pending, repair, groupedPinnedPorts);
+  restoreManualLabels(routingLayout, manualLabels);
   const connectionUpdates = new Map<string, LayoutConnectionChange>();
   for (const connectionId of selected.keys()) {
     const change = stagedConnectionChange(routingLayout, connectionId);
@@ -742,4 +754,68 @@ function routeDirectConnection(
     relativeToPort: undefined,
     textPlacement: placed ?? label,
   };
+}
+
+interface ManualLabelSnapshot {
+  readonly oldRoute: DirectPoint[];
+  readonly oldCenter: DirectPoint;
+  readonly lineOffset: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+/**
+ * What a manually placed elbow label (one with `textLineOffset`) needs to keep its place along the
+ * line through a fresh route: the old route and the label's centre on it.
+ */
+function manualLabelSnapshot(
+  existing: LayoutConnection | undefined,
+  connection: NewConnection,
+): ManualLabelSnapshot | undefined {
+  const lineOffset = connection.textLineOffset ?? existing?.textLineOffset;
+  const label = connection.textPlacement ?? existing?.textPlacement;
+  if (lineOffset === undefined || !label || !existing || existing.points.length < 2) {
+    return undefined;
+  }
+  if (![label.x, label.y, label.width, label.height].every(Number.isFinite)) {
+    return undefined;
+  }
+  return {
+    oldRoute: existing.points.map(([px, py]) => [existing.x + px, existing.y + py] as const),
+    oldCenter: [label.x + label.width / 2, label.y + label.height / 2],
+    lineOffset,
+    width: label.width,
+    height: label.height,
+  };
+}
+
+/** Put each manual label back at its place along its line's new route. */
+function restoreManualLabels(
+  layoutManager: LayoutManager,
+  snapshots: ReadonlyMap<string, ManualLabelSnapshot>,
+): void {
+  for (const [connectionId, snapshot] of snapshots) {
+    const connection = layoutManager.getConnectionById(connectionId);
+    if (!connection || connection.points.length < 2) {
+      continue;
+    }
+    const newRoute = connection.points.map(
+      ([px, py]) => [connection.x + px, connection.y + py] as const,
+    );
+    const anchor = anchorFromStored(snapshot.oldRoute, snapshot.oldCenter, snapshot.lineOffset);
+    const resolved =
+      anchor &&
+      resolveManualLabel(newRoute, anchor, { width: snapshot.width, height: snapshot.height });
+    if (!resolved) {
+      continue;
+    }
+    layoutManager.updateConnection(connectionId, {
+      textPlacement: {
+        x: resolved.center[0] - snapshot.width / 2,
+        y: resolved.center[1] - snapshot.height / 2,
+        width: snapshot.width,
+        height: snapshot.height,
+      },
+    });
+  }
 }
