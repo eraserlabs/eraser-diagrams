@@ -1,5 +1,6 @@
 import {
   ARC_BEND_SNAP_THRESHOLD,
+  LayoutConnectionTextPlacementSource,
   LayoutManager,
   defaultBendForChord,
   getArcPathD,
@@ -270,7 +271,9 @@ function toConnections(
     const stored = externalText.has(element.id)
       ? storedLabelPlacement(element, measured)
       : undefined;
-    const label = stored ? { textPlacement: stored } : labelSize(measured);
+    const label = stored
+      ? { textPlacement: stored, textPlacementSource: LayoutConnectionTextPlacementSource.STORED }
+      : labelSize(measured);
     const lineOffset = manualLineOffset(element);
     const bend = element.props['bend'];
 
@@ -371,7 +374,11 @@ function labelSize(box: Box | undefined): Partial<LayoutConnection> {
     return {};
   }
 
-  return { textPlacement: { x: 0, y: 0, width: box.width, height: box.height } };
+  // An unplaced label: its size only, at NaN, for layout to place.
+  return {
+    textPlacement: { x: Number.NaN, y: Number.NaN, width: box.width, height: box.height },
+    textPlacementSource: LayoutConnectionTextPlacementSource.MEASURE,
+  };
 }
 
 function positiveDimension(value: unknown): number | undefined {
@@ -424,7 +431,9 @@ function toSceneLayout(
     const arc = arcOf(connection, points);
     const drawn = arc ? getArcPolyline(arc.start, arc.end, arc.bend) : points;
     polylines.push(drawn);
-    const placed = connection.textPlacement;
+    // A label layout left unplaced (a kept path whose label had only a size) falls back to the
+    // path midpoint, with no authoritative box.
+    const placed = isPlaced(connection.textPlacement) ? connection.textPlacement : undefined;
     connections[connection.id] = {
       d: arc
         ? getArcPathD(arc.start, arc.end, arc.bend)
@@ -456,6 +465,12 @@ function arcOf(
   const end = points[points.length - 1]!;
   const bend = isArcBend(connection.bend) ? connection.bend : defaultBendForChord(start, end);
   return Math.abs(bend) >= ARC_BEND_SNAP_THRESHOLD ? { start, end, bend } : undefined;
+}
+
+function isPlaced(
+  box: LayoutConnection['textPlacement'],
+): box is NonNullable<LayoutConnection['textPlacement']> {
+  return box !== undefined && [box.x, box.y, box.width, box.height].every(Number.isFinite);
 }
 
 function midpoint(points: Point[]): { x: number; y: number } {
