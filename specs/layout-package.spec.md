@@ -1,9 +1,10 @@
 ---
 name: Layout package boundary
-description: What @eraserlabs/layout exports, what it may import, and what it removed in 0.5.0
+description: What @eraserlabs/layout exports, what it may import, and what 0.5 removes
 targets:
   - ../packages/layout/src/index.ts
   - ../packages/layout/package.json
+  - ../packages/layout/README.md
 ---
 
 # Layout package boundary
@@ -13,44 +14,58 @@ targets:
 ## Dependencies
 
 - `packages/layout/src` imports no package except `@eraserlabs/utils`. Any other bare import fails the guard test. `[@test] ../packages/layout/src/__tests__/dependencies.spec.ts`
-- `packages/layout/package.json` lists exactly one runtime dependency, `@eraserlabs/utils`. `[@test] ../packages/layout/src/__tests__/dependencies.spec.ts`
+- `packages/layout/package.json` lists exactly one runtime dependency, `@eraserlabs/utils`, and no peer dependencies. `[@test] ../packages/layout/src/__tests__/dependencies.spec.ts`
+- The routing modules never reach editing code (`calculateChanges`, `bumpUtils`, `overlaps`, `structure/*` and the other editing helpers). `[@test] ../packages/layout/src/__tests__/dependencies.spec.ts`
 - Types that a caller passes in (resize handle directions, snap guideline names) are defined in this package, not imported from a caller. `[@test] ../packages/layout/src/__tests__/exports.spec.ts`
+- depcruise (`pnpm depcruise`) reports no circular imports.
 
 ## Public exports
 
-The package exports at least these names from its root. The final list is the set of names that the package's callers import; the export test pins it.
+The root exports the main API; every other module is reachable by its subpath, for example `@eraserlabs/layout/routing/directLine` (`package.json` `exports` has `"./*"`).
 
 ```ts
+// layout state and editing
+export { LayoutManager } from './LayoutManager.js';
+export { generateChanges, generateChangesForMove } from './calculateChanges.js';
+export { makeRoomForEntities } from './bumpUtils.js';
+export { getPositionForEntity } from './newPosition.js';
 // routing
-export { routeConnections } from './routing/routeConnections.js';
-export type {
-  RouteConnectionsArgs,
-  ConnectionRoutingRequest,
-  EndpointPins,
-  RoutingResult,
+export {
+  COMMIT_REPAIR,
+  isDirectConnection,
+  routeConnections,
 } from './routing/routeConnections.js';
 export type { RepairPolicy } from './routing/executeCorridorRouting.js';
 export {
   anchorFromStored,
   resolveManualLabel,
 } from './routing/manualLabelAnchor.js';
-// layout state and editing
-export { LayoutManager } from './LayoutManager.js';
-export { generateChanges, generateChangesForMove } from './calculateChanges.js';
-export { makeRoomForEntities } from './bumpUtils.js';
-export { getPositionForEntity } from './newPosition.js';
-// geometry kept from 0.4.x
+// arc geometry
+export {
+  ARC_BEND_SNAP_THRESHOLD,
+  defaultBendForChord,
+  getArcApex,
+  getArcPathD,
+  getArcPolyline,
+  isArcBend,
+} from './arcGeometry.js';
+// geometry kept from 0.4
+export {
+  intersectRanges,
+  makeRangeFromEntity /* and the other 0.4 range helpers */,
+} from './rangeUtils.js';
 export { createEntityOutline, roundedCornerGeometry } from './outline.js';
+export { GUIDELINE_NAME } from './types.js';
 ```
 
 `[@test] ../packages/layout/src/__tests__/exports.spec.ts`
 
-## Removed in 0.5.0
+## Removed in 0.5
 
 - `routeCorridorConnectionBatch` and its option and result types are removed. `routeConnections` replaces it. `[@test] ../packages/layout/src/__tests__/exports.spec.ts`
 - `straightConnectionEndpoints` and `StraightConnectionOptions` are removed. `routeConnections` routes straight lines. `[@test] ../packages/layout/src/__tests__/exports.spec.ts`
-- The package version is 0.5.0 and the changelog lists both removals.
+- The release that ships this bumps the package to 0.5.0 and lists both removals in its notes.
 
-## Type strictness
+## Type checking
 
-- All package sources compile under the repo's `tsconfig.base.json` (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `NodeNext` with `.js` import suffixes). The check is `tsc -b` in CI.
+- All package sources compile with `tsc -b` under `packages/layout/tsconfig.json` (strict, `NodeNext` with `.js` import suffixes; this package turns off `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` and `verbatimModuleSyntax` from the repo base).

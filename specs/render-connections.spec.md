@@ -3,8 +3,9 @@ name: Render connections
 description: How render converts a scene to layout input, calls routeConnections, and draws elbow, straight and arc connections
 targets:
   - ../packages/render/src/browser/route.ts
+  - ../packages/render/src/browser/index.ts
+  - ../packages/render/src/browser/types.ts
   - ../packages/render/src/browser/roundedPath.ts
-  - ../packages/render/src/browser/arcPath.ts
   - ../packages/render/src/browser/labelGap.ts
   - ../packages/render/src/scene.ts
   - ../packages/templates/src/schema/enums.ts
@@ -21,9 +22,9 @@ Render does not make routing decisions. It converts resolved entities and connec
 
 ## Conversion and routing call
 
-- Render passes every connection to `routeConnections`, with its `connectorStyle` and `bend`. It does not keep a separate list of straight connections, and it does not decide itself whether to keep an authored path. `[@test] ../packages/render/test/route.test.ts`
-- Render uses `{ timeBudgetMs: 100 }` as the repair policy. `[@test] ../packages/render/test/route.test.ts`
-- Manual labels reach layout as stored placements with `lineOffset`. Render does not save and restore them around the routing call. `[@test] ../packages/render/test/route.test.ts`
+- Render passes every connection whose endpoints resolve to `routeConnections`, with its `connectorStyle` (an unknown value is `elbow`), `bend`, authored points and label. It does not keep a separate list of straight connections, and it does not decide itself whether to keep an authored path. `[@test] ../packages/render/test/route.test.ts`
+- A stored label placement goes to layout as is, with `textLineOffset` when the label was placed by hand; a measured label with no stored placement passes only its size. Render does not save and restore manual labels around the routing call. `[@test] ../packages/render/test/route.test.ts`
+- The repair policy comes from the caller (`RunRequest.repair`). Absent, repair has no time limit, so the same request always routes the same way. `[@test] ../packages/render/test/route.test.ts`
 
 ## Drawing elbow and straight connections
 
@@ -31,17 +32,17 @@ Render does not make routing decisions. It converts resolved entities and connec
 
 ## Drawing arcs
 
-- `d` is `M start A r r 0 largeArc sweep end`, on the circle that the endpoints and `bend` define (the same circle that layout's `arcGeometry` derives). `[@test] ../packages/render/test/arc.spec.ts`
-- An arc whose `bend` is under 8 px draws as a straight segment. `[@test] ../packages/render/test/arc.spec.ts`
-- `points` holds the sampled curve, so consumers that read `points` (label gap, hit tests, fit) work on the curve. `[@test] ../packages/render/test/arc.spec.ts`
-- Arrowheads follow the tangent of the curve at each end, not the chord. `[@test] ../packages/render/test/arc.spec.ts`
-- The label box is the one that layout returns (apex, or the manual anchor). `[@test] ../packages/render/test/arc.spec.ts`
+- `d` is `M start A r r 0 largeArc sweep end`, on the circle that the endpoints and `bend` define (`getArcPathD` from layout). An arc with no `bend` uses the default bow for its chord. `[@test] ../packages/render/test/arc.test.ts`
+- An arc whose `bend` is under 8 px draws as a straight segment. `[@test] ../packages/render/test/arc.test.ts`
+- `points` holds the sampled curve, so consumers that read `points` (label gap, scene box) work on the curve. `[@test] ../packages/render/test/arc.test.ts`
+- Arrowheads are SVG markers with `orient="auto-start-reverse"` on the path, so on an arc they follow the curve's tangent, not the chord.
+- The label box is the one that layout returns (apex, or the manual anchor). `[@test] ../packages/render/test/arc.test.ts`
 
 ## Label gap
 
 - The stroke under a label is cut out with one mask on the anchor (`cutLabelGap`), never by a split of the path. Arrowheads stay whole. Nothing is cut when the label does not touch the line. `[@test] ../packages/render/test/label-gap.spec.ts`
-- For an arc, the mask field covers the arc's bulge. `[@test] ../packages/render/test/label-gap.spec.ts`
+- For an arc, the mask field covers the arc's bulge, because the scene box includes the sampled curve.
 
 ## Golden outputs
 
-- For every fixture in `fixtures/routing/`, the rendered SVG of each connection (`d`, label box, mask) matches the recorded golden. `[@test] ../packages/render/test/pipeline.spec.ts`
+- Routing changed in 0.5.0, so the visual goldens in `fixtures/__goldens__` (rendered by `packages/diagrams/test/goldens.spec.ts`, per platform) must be re-recorded with `pnpm snap:update` and reviewed by eye.

@@ -4,6 +4,13 @@ describe('layout package exports', () => {
   it('exports the routing, editing and geometry API from the root', () => {
     for (const name of [
       'routeConnections',
+      'isDirectConnection',
+      'getArcPathD',
+      'getArcPolyline',
+      'getArcApex',
+      'defaultBendForChord',
+      'isArcBend',
+      'ARC_BEND_SNAP_THRESHOLD',
       'COMMIT_REPAIR',
       'anchorFromStored',
       'resolveManualLabel',
