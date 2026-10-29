@@ -25,7 +25,7 @@ import {
 import { clipFacePointToOutline } from '../outline.js';
 import { getFaceCenterPoint } from '../portUtils.js';
 import type { Direction, OutlineDescriptor, PositionProps } from '../types.js';
-import { type LabelBox, moveManualLabel } from './manualLabelAnchor.js';
+import { moveManualLabel } from './manualLabelAnchor.js';
 import { labelPositionCenteredOnSegment } from './textPlacements.js';
 
 export type Point = readonly [number, number];
@@ -415,7 +415,7 @@ export function ontoOutline(box: DirectBox, p: Point): Point {
 /** A manually placed label: the line it was placed on, its box there, and its offset off the line. */
 export interface ManualLabel {
   readonly on: DirectLine;
-  readonly box: LabelBox;
+  readonly box: PositionProps;
   /** Signed perpendicular offset from the line. */
   readonly lineOffset: number;
 }
@@ -430,7 +430,7 @@ export function directLabel(
   line: DirectLine,
   size: { readonly width: number; readonly height: number },
   manual?: ManualLabel,
-): LabelBox | undefined {
+): PositionProps | undefined {
   const points = line.points;
   if (points.length < 2) {
     return undefined;

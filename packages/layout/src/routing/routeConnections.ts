@@ -8,6 +8,7 @@ import type {
   LayoutConnectionChange,
   LayoutEntity,
   NewConnection,
+  PositionProps,
   XYPoint,
 } from '../types.js';
 import { assignFaces, type RouteFaces } from './faces.js';
@@ -43,7 +44,7 @@ import {
   followBoxes,
   type Point as DirectPoint,
 } from './directLine.js';
-import { type LabelBox, moveManualLabel } from './manualLabelAnchor.js';
+import { moveManualLabel } from './manualLabelAnchor.js';
 import { hasMeasuredLabel } from './textPlacements.js';
 
 /**
@@ -740,7 +741,7 @@ function routeDirectConnection(
 
 interface ManualLabelSnapshot {
   readonly oldRoute: Point[];
-  readonly box: LabelBox;
+  readonly box: PositionProps;
   readonly lineOffset: number;
 }
 
