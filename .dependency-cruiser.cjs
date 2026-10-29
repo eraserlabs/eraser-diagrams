@@ -141,6 +141,36 @@ module.exports = {
       from: { path: '^packages/render/src' },
       to: { path: '^packages/(resolve|server|playground|templates)/' },
     },
+    {
+      name: 'layout-imports-utils-only',
+      comment:
+        'layout runs on its own in Node and in a browser bundle: its sources import each other and ' +
+        '@eraserlabs/utils, and no other package.',
+      severity: 'error',
+      from: { path: '^packages/layout/src', pathNot: '__tests__|[.]spec[.]ts$|TestUtils[.]ts$' },
+      to: { path: '^(node_modules|packages/(?!(layout|utils)/))' },
+    },
+    {
+      name: 'layout-no-node-builtins',
+      comment: 'layout is bundled into the render browser IIFE; no node:* builtins.',
+      severity: 'error',
+      from: { path: '^packages/layout/src', pathNot: '__tests__|[.]spec[.]ts$|TestUtils[.]ts$' },
+      to: { dependencyTypes: ['core'] },
+    },
+    {
+      name: 'layout-routing-no-editing',
+      comment:
+        'Routing never reaches editing code: placement, bumping, merging and auto-layout depend on ' +
+        'routing, not the other way round.',
+      severity: 'error',
+      from: { path: '^packages/layout/src/routing/', pathNot: '__tests__' },
+      to: {
+        path:
+          '^packages/layout/src/(calculateChanges|bumpUtils|moveUtils|newPosition|mergeOps|sortOps|' +
+          'modifyUtils|parentageUtils|overlaps)[.]ts$|^packages/layout/src/structure/',
+        reachable: true,
+      },
+    },
   ],
   options: {
     // Workspace `@eraserlabs/*` imports resolve through node_modules symlinks into each package's

@@ -13,10 +13,10 @@ targets:
 
 ## Dependencies
 
-- `packages/layout/src` imports no package except `@eraserlabs/utils`. Any other bare import fails the guard test. `[@test] ../packages/layout/src/__tests__/dependencies.spec.ts`
+- `packages/layout/src` imports no package except `@eraserlabs/utils`, and no `node:*` builtins. depcruise enforces this (`layout-imports-utils-only`, `layout-no-node-builtins`); CI runs `pnpm depcruise`.
 - `packages/layout/package.json` lists exactly one runtime dependency, `@eraserlabs/utils`, and no peer dependencies. `[@test] ../packages/layout/src/__tests__/dependencies.spec.ts`
-- The routing modules never reach editing code (`calculateChanges`, `bumpUtils`, `overlaps`, `structure/*` and the other editing helpers). `[@test] ../packages/layout/src/__tests__/dependencies.spec.ts`
-- Types that a caller passes in (resize handle directions, snap guideline names) are defined in this package, not imported from a caller. `[@test] ../packages/layout/src/__tests__/dependencies.spec.ts`
+- The routing modules never reach editing code (`calculateChanges`, `bumpUtils`, `overlaps`, `structure/*` and the other editing helpers), directly or through other modules. depcruise enforces this (`layout-routing-no-editing`).
+- Types that a caller passes in (resize handle directions, snap guideline names) are defined in this package, not imported from a caller. A type import from another package does not compile, because layout declares no other dependency.
 - depcruise (`pnpm depcruise`) reports no circular imports.
 
 ## Public exports
