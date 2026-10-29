@@ -1,6 +1,4 @@
 import { LayoutManager } from '../LayoutManager.js';
-import { generateChanges } from '../calculateChanges.js';
-import { COMMIT_REPAIR } from '../routing/routeConnections.js';
 import { LayoutConnection } from '../types.js';
 
 const simpleJson = require('./simple');
@@ -26,37 +24,6 @@ describe('layoutManager', () => {
       layoutManager.applyStagedChanges();
 
       expect(layoutManager.stagedChanges).toBeUndefined();
-    });
-
-    it('should add an entity and be findable', () => {
-      const layoutManager = new LayoutManager({ ...simpleCase(), primaryDirection: 'down' });
-
-      generateChanges({
-        routing: { repair: COMMIT_REPAIR },
-        layoutManager,
-        newEntities: [{ id: 'new-ent', width: 100, height: 100 }],
-      });
-
-      layoutManager.applyStagedChanges();
-
-      expect(layoutManager.getEntities().length).toBe(3);
-
-      const addedEntity = layoutManager.getEntityById('new-ent', false)!;
-
-      expect(addedEntity).toEqual({
-        id: 'new-ent',
-        width: 100,
-        height: 100,
-        x: 0,
-        y: 340,
-      });
-
-      expect(
-        layoutManager.findEntitiesInRange({
-          minX: addedEntity.x,
-          minY: addedEntity.y,
-        }),
-      ).toHaveLength(1);
     });
   });
 

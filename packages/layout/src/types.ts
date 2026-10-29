@@ -364,14 +364,3 @@ export type SortedOp =
   | { opType: 'add'; op: NewEntity }
   | { opType: 'moveBlock'; op: MoveBlock };
 
-/** A resize handle: a side (`n`, `s`, `w`, `e`) or a corner (`nw`, `ne`, `sw`, `se`). */
-export type TransformHandleDirection = 'n' | 's' | 'w' | 'e' | 'nw' | 'ne' | 'sw' | 'se';
-
-/**
- * Align-snapping guideline names.
- * v0, 1, 2 = top, middle, bottom.
- * h0, 1, 2 = left, middle, right.
- * vfp, hfp = vertical, horizontal fixed points.
- */
-export const GUIDELINE_NAME = ['h0', 'h1', 'h2', 'v0', 'v1', 'v2', 'hfp', 'vfp'] as const;
-export type GuidelineName = (typeof GUIDELINE_NAME)[number];
