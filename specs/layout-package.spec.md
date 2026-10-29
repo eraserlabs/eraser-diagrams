@@ -16,7 +16,7 @@ targets:
 - `packages/layout/src` imports no package except `@eraserlabs/utils`. Any other bare import fails the guard test. `[@test] ../packages/layout/src/__tests__/dependencies.spec.ts`
 - `packages/layout/package.json` lists exactly one runtime dependency, `@eraserlabs/utils`, and no peer dependencies. `[@test] ../packages/layout/src/__tests__/dependencies.spec.ts`
 - The routing modules never reach editing code (`calculateChanges`, `bumpUtils`, `overlaps`, `structure/*` and the other editing helpers). `[@test] ../packages/layout/src/__tests__/dependencies.spec.ts`
-- Types that a caller passes in (resize handle directions, snap guideline names) are defined in this package, not imported from a caller. `[@test] ../packages/layout/src/__tests__/exports.spec.ts`
+- Types that a caller passes in (resize handle directions, snap guideline names) are defined in this package, not imported from a caller. `[@test] ../packages/layout/src/__tests__/dependencies.spec.ts`
 - depcruise (`pnpm depcruise`) reports no circular imports.
 
 ## Public exports
@@ -58,12 +58,10 @@ export { createEntityOutline, roundedCornerGeometry } from './outline.js';
 export { GUIDELINE_NAME } from './types.js';
 ```
 
-`[@test] ../packages/layout/src/__tests__/exports.spec.ts`
-
 ## Removed in 0.5
 
-- `routeCorridorConnectionBatch` and its option and result types are removed. `routeConnections` replaces it. `[@test] ../packages/layout/src/__tests__/exports.spec.ts`
-- `straightConnectionEndpoints` and `StraightConnectionOptions` are removed. `routeConnections` routes straight lines. `[@test] ../packages/layout/src/__tests__/exports.spec.ts`
+- `routeCorridorConnectionBatch` and its option and result types are removed. `routeConnections` replaces it.
+- `straightConnectionEndpoints` and `StraightConnectionOptions` are removed. `routeConnections` routes straight lines.
 - The release that ships this bumps the package to 0.5.0 and lists both removals in its notes.
 
 ## Type checking
