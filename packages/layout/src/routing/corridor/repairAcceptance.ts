@@ -2,7 +2,7 @@ import { authoredEndpointsIntact } from './leafCuts.js';
 import type { Route } from './route.js';
 
 /**
- * The one identity veto every repair phase applies alongside the shared
+ * The identity veto the decision loop applies alongside the shared
  * compareRoutingQualityCosts gate when it accepts a realized candidate.
  *
  * The shared comparator ranks tiered magnitudes only. It cannot distinguish

@@ -1,28 +1,23 @@
 import type { Direction } from '../../types.js';
 import type { EndpointSide } from '../types.js';
+import { isPointEndpoint } from './contract.js';
 import type { RouteEndpoint, RouteSearchRequest } from './contract.js';
-import { collectEndpointQualityEvents } from './endpointQuality.js';
 import { assessFaceSlots, type FaceSlotAssessment } from './faceSlots.js';
 import { faceCrossSpan } from './geometry.js';
-import { leafCutKeys, type LeafRect } from './leafCuts.js';
+import { ROUTING_QUALITY_COSTS } from './qualityCost.js';
 import {
-  compareRoutingQualityCosts,
-  routingQualityCost,
-  type RoutingQualityCost,
-} from './qualityCost.js';
-import { realizeRoutes, reuseOptions, type RealizedRouteBatch } from './realize.js';
-import { violatesRepairIdentity } from './repairAcceptance.js';
-import { cloneRoute, Route } from './route.js';
-import type { IndependentContinuationBoundary } from './continuations.js';
+  replaceRepairRoutes,
+  type RepairContext,
+  type RepairProposal,
+  type RepairState,
+} from './repairProposal.js';
+import { Route } from './route.js';
 import { PORT_EDGE_PADDING_PX } from './spacing.js';
-import { searchRoute } from './topology.js';
 import type { CorridorWorld } from './world.js';
 
 const EPSILON = 1e-6;
 /** Faces below this slot charge are visually fine; repairing them cannot pay for itself. */
 const MIN_FACE_CHARGE = 0.15;
-/** Bounds candidate realizations per repair run; the deadline usually binds first. */
-const MAX_FACE_CANDIDATES = 12;
 
 interface FanPortSample {
   readonly routeIndex: number;
@@ -39,186 +34,86 @@ interface FanFace {
   readonly assessment: FaceSlotAssessment;
 }
 
-interface FanSpreadRepairOptions {
-  readonly deadlineAtMs: number;
-  readonly leaves: readonly LeafRect[];
-  readonly entityCount: number;
-  readonly protectedRouteIndexes?: ReadonlySet<number>;
-  readonly realization: {
-    readonly independentContinuations: readonly IndependentContinuationBoundary[];
-    readonly incrementalEmission: boolean;
-    readonly incrementalLineMerges: boolean;
-  };
-}
-
-interface FanSpreadRepairResult {
-  readonly batch: RealizedRouteBatch;
-  readonly topologies: readonly Route[];
-  readonly changed: boolean;
-  readonly accepted: boolean;
-}
-
 /**
- * Full-strength terminal-spacing repair: one face at a time, worst slot charge first, place
- * the face's endpoints exactly at their expected slot centers. Endpoint order is preserved
- * but corridors and continuations are not: a slot outside the terminal visit's feasible
- * window re-searches that route's topology with the slot injected as an authored track, so
- * the search chooses the terminal corridor that reaches the slot and realization rebuilds or
- * breaks continuations as needed. The injected mark is then stripped and the slot carried as
- * a spacing-side repair pin, keeping the port visible to quality measurement. Each face
- * candidate is re-realized whole and kept only when the standard shared gate (slot-mode
- * costs + identity veto) prices the entire diagram better.
+ * Move a face's ports together, preserving their order. A target outside its current
+ * terminal corridor re-searches that route; targets remain repair pins, not authored ports.
  */
-export function repairFanSpread(
-  world: CorridorWorld,
-  requests: readonly RouteSearchRequest[],
-  initialTopologies: readonly Route[],
-  initial: RealizedRouteBatch,
-  options: FanSpreadRepairOptions,
-): FanSpreadRepairResult {
-  let incumbent = initial;
-  let incumbentCost = slotModeCost(world, incumbent);
-  let topologies = [...initialTopologies];
-  let candidatesBuilt = 0;
-  let candidatesAccepted = 0;
-
-  const faces = slotChargedFaces(world, incumbent.routes);
-  for (const fanFace of faces) {
-    // Entering the phase at all grants the worst face one attempt; the deadline then
-    // governs every further face so a large diagram cannot run away.
-    if (candidatesBuilt > 0 && performance.now() >= options.deadlineAtMs) {
-      break;
-    }
-    if (candidatesBuilt >= MAX_FACE_CANDIDATES) {
-      break;
-    }
-    const anchors = straightCoupledAnchors(world, incumbent.routes, fanFace);
-    const targets = anchoredSlotTargets(fanFace, anchors);
-    const pins = new Map<string, number>();
-    fanFace.samples.forEach((sample, sampleIndex) => {
-      pins.set(pinKey(sample.routeIndex, sample.side), targets[sampleIndex]);
-    });
-    for (const [sampleIndex, anchor] of anchors) {
-      const sample = fanFace.samples[sampleIndex];
-      const oppositeSide: EndpointSide = sample.side === 'from' ? 'to' : 'from';
-      pins.set(pinKey(sample.routeIndex, oppositeSide), anchor);
-    }
-    const valveEndpoint = newWorstBandPinnedEndpoint(world, incumbent.routes, pins, fanFace);
-    if (valveEndpoint !== undefined) {
-      continue;
-    }
-
-    // Routes whose slot lies outside their current terminal corridor re-search topology.
-    const researched = new Map<number, Route>();
-    let blockedRouteIndex: number | undefined;
-    for (const [key, target] of pins) {
-      const { routeIndex, side } = parsePinKey(key);
-      const route = researched.get(routeIndex) ?? topologies[routeIndex];
-      const visit = side === 'from' ? route.visits[0] : route.visits[route.visits.length - 1];
-      if (
-        visit !== undefined &&
-        target >= visit.feasibleTrack[0] - EPSILON &&
-        target <= visit.feasibleTrack[1] + EPSILON
-      ) {
-        continue;
-      }
-      if (options.protectedRouteIndexes?.has(routeIndex) === true) {
-        blockedRouteIndex = routeIndex;
-        break;
-      }
-      const search = searchRoute(
-        world,
-        pinnedSearchRequest(requests[routeIndex], topologies[routeIndex], pins, routeIndex),
-        { preferCenteredTerminalAttachments: false },
-      );
-      if (search.fallback || !search.cost) {
-        blockedRouteIndex = routeIndex;
-        break;
-      }
-      researched.set(routeIndex, search.route);
-    }
-    if (blockedRouteIndex !== undefined) {
-      continue;
-    }
-
-    const candidateTopologies = topologies.map((route, routeIndex) => {
-      const base = researched.get(routeIndex) ?? route;
-      const fromPin = pins.get(pinKey(routeIndex, 'from'));
-      const toPin = pins.get(pinKey(routeIndex, 'to'));
-      if (fromPin === undefined && toPin === undefined && base === route) {
-        return cloneRoute(route);
-      }
-      // Endpoints come from the incumbent topology (never the search request) so injected
-      // authored marks are dropped and pins from earlier accepted faces are preserved.
-      return new Route(
-        route.requestIndex,
-        pinEndpoint(route.from, fromPin),
-        pinEndpoint(route.to, toPin),
-        base.visits,
-      );
-    });
-    candidatesBuilt += 1;
-    let candidate: RealizedRouteBatch;
-    try {
-      candidate = realizeRoutes(world, candidateTopologies, {
-        continuationCutSelection: 'exhaustive',
-        independentContinuations: options.realization.independentContinuations,
-        ...reuseOptions(
-          {
-            incrementalEmission: options.realization.incrementalEmission,
-            incrementalLineMerges: options.realization.incrementalLineMerges,
-          },
-          incumbent,
-        ),
-      });
-    } catch {
-      continue;
-    }
-    const candidateCost = slotModeCost(world, candidate);
-    const accepted =
-      compareRoutingQualityCosts(candidateCost, incumbentCost) < 0 &&
-      !violatesRepairIdentity(
-        candidate.routes,
-        leafCutKeys(
-          candidate.routes,
-          candidate.geometryQuality.index,
-          options.leaves,
-          options.entityCount,
-        ),
-        leafCutKeys(
-          incumbent.routes,
-          incumbent.geometryQuality.index,
-          options.leaves,
-          options.entityCount,
-        ),
-      );
-    if (accepted) {
-      incumbent = candidate;
-      incumbentCost = candidateCost;
-      topologies = candidateTopologies;
-      candidatesAccepted += 1;
-    }
+export function collectFaceProposals(context: RepairContext): RepairProposal[] {
+  if (context.mode === 'caps') {
+    return [];
   }
-
-  return {
-    batch: incumbent,
-    topologies,
-    changed: candidatesBuilt > 0,
-    accepted: candidatesAccepted > 0,
-  };
+  return slotChargedFaces(context.world, context.batch.routes)
+    .filter((face) =>
+      face.samples.every((sample) => !context.protectedRouteIndexes.has(sample.routeIndex)),
+    )
+    .map((face) => {
+      const routeIndexes = [...new Set(face.samples.map((sample) => sample.routeIndex))];
+      return {
+        kind: 'face',
+        key: `${face.entityIndex}:${face.face}`,
+        routeIndexes,
+        cost: {
+          invalid: 0,
+          cap: 0,
+          scalar: ROUTING_QUALITY_COSTS.portCentering * face.assessment.charge,
+        },
+        build: () => buildFaceProposal(context, face, routeIndexes),
+      };
+    });
 }
 
-/**
- * The shared-gate cost with the endpoint-quality source swapped for slot-mode events on both
- * sides. When the pipeline-wide event gate is on this is the ledger cost unchanged; when it
- * is off, only this phase prices the slot defect so other phases cannot repeatedly pursue it.
- */
-function slotModeCost(world: CorridorWorld, batch: RealizedRouteBatch): RoutingQualityCost {
-  const otherEvents = batch.quality.sources
-    .filter((source) => source.source !== 'emission:endpoint-quality')
-    .flatMap((source) => source.events);
-  const endpointQuality = collectEndpointQualityEvents(world, batch.routes, { slotEvents: true });
-  return routingQualityCost([...otherEvents, ...endpointQuality], batch.quality.scalarCosts);
+function buildFaceProposal(
+  context: RepairContext,
+  face: FanFace,
+  routeIndexes: readonly number[],
+): RepairState | undefined {
+  const { world, batch, topologies, requests } = context;
+  const anchors = straightCoupledAnchors(world, batch.routes, face);
+  const targets = anchoredSlotTargets(face, anchors);
+  const pins = new Map<string, number>();
+  face.samples.forEach((sample, index) => {
+    pins.set(pinKey(sample.routeIndex, sample.side), targets[index]);
+  });
+  for (const [index, anchor] of anchors) {
+    const sample = face.samples[index];
+    pins.set(pinKey(sample.routeIndex, sample.side === 'from' ? 'to' : 'from'), anchor);
+  }
+  const researched = new Map<number, Route>();
+  for (const [key, target] of pins) {
+    const { routeIndex, side } = parsePinKey(key);
+    const route = researched.get(routeIndex) ?? topologies[routeIndex];
+    const visit = side === 'from' ? route.visits[0] : route.visits[route.visits.length - 1];
+    if (
+      visit !== undefined &&
+      target >= visit.feasibleTrack[0] - EPSILON &&
+      target <= visit.feasibleTrack[1] + EPSILON
+    ) {
+      continue;
+    }
+    const search = context.search.search(
+      pinnedSearchRequest(requests[routeIndex], topologies[routeIndex], pins, routeIndex),
+      { preferCenteredTerminalAttachments: false },
+    );
+    if (search.fallback || !search.cost) {
+      return undefined;
+    }
+    researched.set(routeIndex, search.route);
+  }
+  const replacements = new Map<number, Route>();
+  for (const routeIndex of routeIndexes) {
+    const route = topologies[routeIndex];
+    // Keep incumbent endpoints so temporary search constraints do not become authored pins.
+    replacements.set(
+      routeIndex,
+      new Route(
+        route.requestIndex,
+        pinEndpoint(route.from, pins.get(pinKey(routeIndex, 'from'))),
+        pinEndpoint(route.to, pins.get(pinKey(routeIndex, 'to'))),
+        (researched.get(routeIndex) ?? route).visits,
+      ),
+    );
+  }
+  return replaceRepairRoutes(context, replacements, new Set(researched.keys()));
 }
 
 function pinKey(routeIndex: number, side: EndpointSide): string {
@@ -231,7 +126,10 @@ function parsePinKey(key: string): { routeIndex: number; side: EndpointSide } {
 }
 
 function pinEndpoint(endpoint: RouteEndpoint, pin: number | undefined): RouteEndpoint {
-  return pin === undefined ? endpoint : { ...endpoint, repairPinTrack: pin };
+  if (pin === undefined || isPointEndpoint(endpoint)) {
+    return endpoint;
+  }
+  return { ...endpoint, repairPinTrack: pin };
 }
 
 /**
@@ -247,45 +145,27 @@ function pinnedSearchRequest(
 ): RouteSearchRequest {
   const sideEndpoint = (side: EndpointSide): RouteEndpoint => {
     const endpoint = side === 'from' ? request.from : request.to;
-    const track = pins.get(pinKey(routeIndex, side)) ?? route[side].repairPinTrack;
+    if (isPointEndpoint(endpoint)) {
+      return endpoint;
+    }
+    const routed = route[side];
+    const track =
+      pins.get(pinKey(routeIndex, side)) ??
+      (isPointEndpoint(routed) ? undefined : routed.repairPinTrack);
     return track === undefined ? endpoint : { ...endpoint, authoredTrack: track };
   };
   return { ...request, from: sideEndpoint('from'), to: sideEndpoint('to') };
 }
 
-/** Worst-first list of faces whose slot charge is worth a candidate. */
+/** Faces whose slot charge is worth a candidate; the shared scheduler orders proposals. */
 function slotChargedFaces(world: CorridorWorld, routes: readonly Route[]): FanFace[] {
-  const groups = new Map<
-    string,
-    { entityIndex: number; face: Direction; samples: FanPortSample[] }
-  >();
-  routes.forEach((route, routeIndex) => {
-    if (route.visits.length === 0) {
-      return;
-    }
-    const ports = route.ports();
-    for (const side of ['from', 'to'] as const) {
-      const endpoint = route[side];
-      if (endpoint.authoredTrack !== undefined) {
-        continue;
-      }
-      const point = ports[side];
-      const coordinate = endpoint.face === 'left' || endpoint.face === 'right' ? point.y : point.x;
-      const key = `${endpoint.entityIndex}|${endpoint.face}`;
-      const group = groups.get(key) ?? {
-        entityIndex: endpoint.entityIndex,
-        face: endpoint.face,
-        samples: [],
-      };
-      group.samples.push({ routeIndex, side, coordinate });
-      groups.set(key, group);
-    }
-  });
   const faces: FanFace[] = [];
-  for (const group of groups.values()) {
-    const samples = [...group.samples].sort((left, right) => left.coordinate - right.coordinate);
-    const entity = (world.sourceEntities ?? world.entities)[group.entityIndex];
-    const span = faceCrossSpan(entity, group.face);
+  for (const [key, samples] of facePortRecords(routes)) {
+    const [entityKey, faceKey] = key.split('|');
+    const entityIndex = Number(entityKey);
+    const face = faceKey as Direction;
+    const entity = (world.sourceEntities ?? world.entities)[entityIndex];
+    const span = faceCrossSpan(entity, face);
     const assessment = assessFaceSlots(
       span,
       samples.map((sample) => sample.coordinate),
@@ -293,22 +173,16 @@ function slotChargedFaces(world: CorridorWorld, routes: readonly Route[]): FanFa
     if (assessment.charge < MIN_FACE_CHARGE) {
       continue;
     }
-    faces.push({ entityIndex: group.entityIndex, face: group.face, span, samples, assessment });
+    faces.push({ entityIndex, face, span, samples, assessment });
   }
-  return faces.sort((left, right) => right.assessment.charge - left.assessment.charge);
+  return faces;
 }
 
 /** Stock worst band starts here; the slot model's own charge also treats it as extreme. */
 const WORST_BAND_DEVIATION = 0.6;
 
-interface FacePortRecord {
-  readonly routeIndex: number;
-  readonly side: EndpointSide;
-  readonly coordinate: number;
-}
-
-function facePortRecords(routes: readonly Route[]): Map<string, FacePortRecord[]> {
-  const byFace = new Map<string, FacePortRecord[]>();
+function facePortRecords(routes: readonly Route[]): Map<string, FanPortSample[]> {
+  const byFace = new Map<string, FanPortSample[]>();
   routes.forEach((route, routeIndex) => {
     if (route.visits.length === 0) {
       return;
@@ -316,7 +190,7 @@ function facePortRecords(routes: readonly Route[]): Map<string, FacePortRecord[]
     const ports = route.ports();
     for (const side of ['from', 'to'] as const) {
       const endpoint = route[side];
-      if (endpoint.authoredTrack !== undefined) {
+      if (isPointEndpoint(endpoint) || endpoint.authoredTrack !== undefined) {
         continue;
       }
       const point = ports[side];
@@ -342,14 +216,9 @@ function convexCharge(deviation: number, halfSpan: number): number {
 }
 
 /**
- * The approved narrow joint solve: a route leaving this face straight into another face (or
- * into a face with no other ports) couples both faces' slot expectations through its one
- * shared track. The anchor is the integer track minimising the SUM of both convex slot
- * charges — both endpoints priced, so straight-but-off-centre loses to a Z whenever the far
- * face has capacity, and a genuinely shared optimum keeps the line straight at it. Anchors
- * that cannot stay on the far face, would reorder the far face's ports, or would land in the
- * worst band of either face are skipped: the route then fans out with ordinary bends and the
- * far port keeps its own face's expectation.
+ * Straight routes and solitary far ports can couple parallel faces. Pick the integer track
+ * minimizing both slot charges, preserving face bounds and far-port order. The shared repair
+ * objective judges the realized result, including any bends needed to reach these targets.
  */
 function straightCoupledAnchors(
   world: CorridorWorld,
@@ -368,7 +237,7 @@ function straightCoupledAnchors(
     const route = routes[sample.routeIndex];
     const oppositeSide: EndpointSide = sample.side === 'from' ? 'to' : 'from';
     const opposite = route[oppositeSide];
-    if (opposite.authoredTrack !== undefined) {
+    if (isPointEndpoint(opposite) || opposite.authoredTrack !== undefined) {
       return;
     }
     // A shared track only exists between parallel faces. A perpendicular far face's
@@ -419,7 +288,7 @@ function straightCoupledAnchors(
     const farNeighbourAfter = farPorts[farRank + 1]?.coordinate;
     // The anchor must physically sit on both faces and may not push the far port into the
     // worst band of its own expectation; the near face re-slices its remaining slots around
-    // the anchor, so its taste is checked by the final valve on the re-sliced arrangement.
+    // the anchor, and shared scoring judges the complete arrangement.
     if (
       anchor <= previousAnchor ||
       anchor < nearSpan[0] + PORT_EDGE_PADDING_PX ||
@@ -472,62 +341,4 @@ function anchoredSlotTargets(fanFace: FanFace, anchors: ReadonlyMap<number, numb
   }
   flushRun(count, faceEnd);
   return targets;
-}
-
-/**
- * Reject a candidate that moves a pinned endpoint into the worst band of its own face's slot
- * expectation when it was not already there. Returns the first violating endpoint, or undefined
- * when the candidate is clean.
- */
-function newWorstBandPinnedEndpoint(
-  world: CorridorWorld,
-  routes: readonly Route[],
-  pins: ReadonlyMap<string, number>,
-  fanFace: FanFace,
-): string | undefined {
-  const byFace = facePortRecords(routes);
-  const fanFaceKey = `${fanFace.entityIndex}|${fanFace.face}`;
-  for (const [faceKey, ports] of byFace) {
-    // The fan face's own ports sit on the joint-solve targets by construction; the valve
-    // protects the OTHER faces that partner pins drag.
-    if (faceKey === fanFaceKey) {
-      continue;
-    }
-    if (
-      ![...pins.keys()].some((key) =>
-        ports.some((port) => pinKey(port.routeIndex, port.side) === key),
-      )
-    ) {
-      continue;
-    }
-    const [entityIndex, face] = faceKey.split('|');
-    const span = faceCrossSpan(
-      (world.sourceEntities ?? world.entities)[Number(entityIndex)],
-      face as Direction,
-    );
-    const halfSpan = (span[1] - span[0]) / 2;
-    if (halfSpan <= 0) {
-      continue;
-    }
-    const before = assessFaceSlots(
-      span,
-      ports.map((port) => port.coordinate),
-    );
-    const pinnedCoordinates = ports
-      .map((port) => pins.get(pinKey(port.routeIndex, port.side)) ?? port.coordinate)
-      .sort((left, right) => left - right);
-    const after = assessFaceSlots(span, pinnedCoordinates);
-    for (let rank = 0; rank < ports.length; rank += 1) {
-      const wasPinned = pins.has(pinKey(ports[rank].routeIndex, ports[rank].side));
-      if (!wasPinned) {
-        continue;
-      }
-      const beforeDeviation = before.deviations[rank] / halfSpan;
-      const afterDeviation = after.deviations[rank] / halfSpan;
-      if (afterDeviation > WORST_BAND_DEVIATION && beforeDeviation <= WORST_BAND_DEVIATION) {
-        return `${faceKey} rank ${rank} (${beforeDeviation.toFixed(2)} -> ${afterDeviation.toFixed(2)})`;
-      }
-    }
-  }
-  return undefined;
 }

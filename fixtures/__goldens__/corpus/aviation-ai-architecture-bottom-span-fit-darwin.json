@@ -11,7 +11,7 @@
       "x": 25,
       "y": 15,
       "width": 814,
-      "height": 60
+      "height": 32
     },
     {
       "tag": "Textbox",
@@ -23,7 +23,7 @@
       "x": 25,
       "y": 53,
       "width": 326,
-      "height": 53
+      "height": 52
     },
     {
       "tag": "Group",
@@ -1017,7 +1017,7 @@
       "label": "Direct API",
       "color": "#D97706",
       "labelPlacement": {
-        "x": -375,
+        "x": -373,
         "y": 80,
         "width": 68,
         "height": 17
@@ -1038,11 +1038,11 @@
           "y": 16
         },
         {
-          "x": -131,
+          "x": -127,
           "y": 16
         },
         {
-          "x": -131,
+          "x": -127,
           "y": 88
         },
         {
@@ -1070,7 +1070,7 @@
         "height": 17
       },
       "id": "r3",
-      "x": 637,
+      "x": 641,
       "y": 640,
       "endArrowhead": "triangle",
       "lineStyle": "solid",
@@ -1095,7 +1095,7 @@
       "color": "#0F4C81",
       "lineStyle": "solid",
       "id": "r5",
-      "x": 645,
+      "x": 67,
       "y": 640,
       "endArrowhead": "triangle",
       "lineWidth": 0.75,
@@ -1118,7 +1118,7 @@
       "toPort": "top",
       "color": "#0F4C81",
       "id": "r6",
-      "x": 653,
+      "x": 649,
       "y": 830,
       "endArrowhead": "triangle",
       "lineStyle": "solid",

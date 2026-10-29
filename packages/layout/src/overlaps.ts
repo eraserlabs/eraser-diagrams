@@ -1,4 +1,4 @@
-import { addToSet } from '@eraserlabs/utils';
+import { addToSet } from './setUtils.js';
 import { DirectionActivation } from './directionUtils.js';
 import type { LayoutManager } from './LayoutManager.js';
 import type { LayoutEntity, LayoutRange, OverlapEntry } from './types.js';

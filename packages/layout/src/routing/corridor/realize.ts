@@ -1,6 +1,8 @@
+import { OPPOSITE_DIRECTION } from '../../directionUtils.js';
 import { midpoint } from '../../rangeUtils.js';
 import { emitRoutes, haveSameEmissionInputs } from './emit.js';
 import { collectEndpointQualityEvents } from './endpointQuality.js';
+import { collectGroupTitleQualityEvents } from './groupTitleQuality.js';
 import {
   collectGeometryQualityEvents,
   retainedLineMergesForUnchangedRoutes,
@@ -20,6 +22,7 @@ import {
   routingQualityTier,
   type WallTouchQualityEvent,
 } from './qualityCost.js';
+import { isPointEndpoint } from './contract.js';
 import { Route, cloneRoute } from './route.js';
 import {
   collectMissingRealizedSpacingQualityEvents,
@@ -42,57 +45,47 @@ export interface RealizedRouteBatch {
   readonly routes: readonly Route[];
   readonly ordering: OrderingResult;
   readonly spacing: SpacingResult;
-  readonly endpointQuality: readonly RoutingQualityEvent[];
   readonly geometryQuality: GeometryQualityResult;
-  readonly wallQuality: readonly RoutingQualityEvent[];
   readonly quality: RoutingQualitySnapshot;
   /** Present iff label specs were supplied; owns every placement and final route geometry. */
   readonly labels?: LabelPlacementResult;
 }
 
-/** Independent reuse layers for repeated realizations over one immutable world. */
-export interface RealizationReuseOptions {
-  /** Re-solve only seeded spacing corridors and their required continuation closure. */
-  readonly incrementalSpacing?: boolean;
-  /** Structurally share routes whose complete emitter inputs are unchanged. */
-  readonly incrementalEmission?: boolean;
-  /** Retain clean-clean merge facts and rescan only pairs involving changed routes. */
-  readonly incrementalLineMerges?: boolean;
-}
-
-export interface RealizeRouteOptions extends RealizationReuseOptions {
+export interface RealizeRouteOptions {
   readonly terminalCenterContinuations?: SpacingOptions['terminalCenterContinuations'];
   readonly independentContinuations?: SpacingOptions['independentContinuations'];
   readonly turnRetrackCorridors?: SpacingOptions['turnRetrackCorridors'];
   readonly continuationTrackClearance?: SpacingOptions['continuationTrackClearance'];
-  /** Initial realization is greedy; repair candidates explicitly retain exhaustive quality choice. */
-  readonly continuationCutSelection?: 'greedy' | 'exhaustive';
+  /** Initial realization takes the first improving cut; repair compares a ranked shortlist. */
+  readonly continuationCutSelection?: 'greedy' | 'best';
   /** Batch-owned label inputs keyed by route index. */
   readonly labelSpecs?: readonly LabelSpec[];
+  /** Re-solve only seeded spacing corridors and their required continuation closure. */
+  readonly incrementalSpacing?: boolean;
+  /**
+   * Structurally share routes whose complete emitter inputs are unchanged, retain their
+   * clean-clean merge facts, and rescan only pairs involving changed routes.
+   */
+  readonly incrementalEmission?: boolean;
   /** Earlier authoritative batch for the first pass of a same-topology repair realization. */
   readonly incrementalSpacingBaseline?: RealizedRouteBatch;
 }
 
 /**
- * Spread-ready reuse options for a repair-candidate realization over `baseline`.
- * Safe to emit unconditionally: when every reuse flag is falsy the baseline is
- * ignored (initialIncrementalSeed returns undefined), matching an empty spread.
+ * Reuse for a repair-candidate realization over `baseline`: emitted routes and clean
+ * line-merge facts are always reused; spacing reuse is the caller's policy.
  */
 export function reuseOptions(
-  reuse: RealizationReuseOptions,
   baseline: RealizedRouteBatch,
+  { incrementalSpacing }: { readonly incrementalSpacing: boolean },
 ): Pick<
   RealizeRouteOptions,
-  | 'incrementalSpacing'
-  | 'incrementalSpacingBaseline'
-  | 'incrementalEmission'
-  | 'incrementalLineMerges'
+  'incrementalSpacing' | 'incrementalSpacingBaseline' | 'incrementalEmission'
 > {
   return {
-    incrementalSpacing: reuse.incrementalSpacing,
+    incrementalSpacing,
     incrementalSpacingBaseline: baseline,
-    incrementalEmission: reuse.incrementalEmission,
-    incrementalLineMerges: reuse.incrementalLineMerges,
+    incrementalEmission: true,
   };
 }
 
@@ -101,9 +94,7 @@ interface SpacingPass {
   readonly ordering: OrderingResult;
   readonly spacing: SpacingResult;
   readonly missingContentions: readonly MissingSpacingContentionQualityEvent[];
-  readonly endpointQuality: readonly RoutingQualityEvent[];
   readonly geometryQuality: GeometryQualityResult;
-  readonly wallQuality: readonly RoutingQualityEvent[];
   readonly quality: RoutingQualitySnapshot;
 }
 
@@ -141,9 +132,24 @@ export function realizeRoutes(
   options: RealizeRouteOptions = {},
 ): RealizedRouteBatch {
   const spacingWorkspace = createSpacingRunWorkspace();
-  const greedyContinuationCuts = options.continuationCutSelection !== 'exhaustive';
-  const orderingRoutes = cloneTopologies(topologies);
-  const ordering = orderRoutes(world, orderingRoutes);
+  const greedyContinuationCuts = options.continuationCutSelection !== 'best';
+  const baseline = options.incrementalSpacingBaseline;
+  // Topology clones share immutable endpoint/visit inputs. Policy-only edits do
+  // not change ordering, so avoid rebuilding its pairwise comparisons.
+  const ordering =
+    baseline &&
+    topologies.length === baseline.routes.length &&
+    topologies.every((route, index) => {
+      const previous = baseline.routes[index];
+      return (
+        route.requestIndex === previous.requestIndex &&
+        route.from === previous.from &&
+        route.to === previous.to &&
+        route.visits === previous.visits
+      );
+    })
+      ? baseline.ordering
+      : orderRoutes(world, cloneTopologies(topologies));
   const initialIncremental = initialIncrementalSeed(options, topologies, ordering);
   const incumbent = certifySpacingPolicy(
     world,
@@ -178,15 +184,13 @@ export function realizeRoutes(
     terminalCenter.selected,
   );
 
-  const { routes, spacing, endpointQuality, geometryQuality, wallQuality, quality } = selected;
+  const { routes, spacing, geometryQuality, quality } = selected;
   const labels = options.labelSpecs ? placeLabels(world, routes, options.labelSpecs) : undefined;
   return {
     routes,
     ordering,
     spacing,
-    endpointQuality,
     geometryQuality,
-    wallQuality,
     quality,
     ...(labels ? { labels } : {}),
   };
@@ -217,15 +221,20 @@ function evaluateTerminalCenterCandidate(
   if (options.terminalCenterContinuations !== undefined || !hasTerminalCenterCandidate) {
     return { selected: incumbent, accepted: false };
   }
+  const candidateOptions: RealizeRouteOptions = {
+    ...options,
+    incrementalSpacing: true,
+    incrementalEmission: true,
+  };
   const centered = certifySpacingPolicy(
     world,
     topologies,
     ordering,
-    options,
+    candidateOptions,
     true,
     workspace,
     incrementalSeed(
-      options,
+      candidateOptions,
       incumbent,
       incumbent.spacing.continuations
         .filter((policy) => policy.terminalCenterCandidate)
@@ -254,68 +263,26 @@ function selectContinuationCuts(
       world,
       selected,
       selectedIndependentContinuations,
-      greedy,
-    );
-    if (!greedy) {
-      let best:
-        | {
-            readonly cut: IndependentContinuationBoundary;
-            readonly pass: SpacingPass;
-          }
-        | undefined;
-      for (const cut of cuts) {
-        let candidate: SpacingPass;
-        try {
-          candidate = certifySpacingPolicy(
-            world,
-            topologies,
-            ordering,
-            {
-              ...options,
-              independentContinuations: [...selectedIndependentContinuations, cut],
-            },
-            terminalCenterContinuations,
-            workspace,
-            incrementalSeed(options, selected, continuationCorridors(selected, cut)),
-          );
-        } catch {
-          continue;
-        }
-        if (!improvesContinuationFeasibility(candidate, selected)) {
-          continue;
-        }
-        if (!best || compareContinuationFeasibility(candidate, best.pass) < 0) {
-          best = { cut, pass: candidate };
-        }
-      }
-      if (!best) {
-        break;
-      }
-      selected = best.pass;
-      selectedIndependentContinuations = [...selectedIndependentContinuations, best.cut];
-      continue;
-    }
-
+    ).slice(0, MAX_CONTINUATION_CUT_VALIDATIONS_PER_ROUND);
     let accepted:
       | {
           readonly cut: IndependentContinuationBoundary;
           readonly pass: SpacingPass;
         }
       | undefined;
-    for (const cut of cuts.slice(0, MAX_CONTINUATION_CUT_VALIDATIONS_PER_ROUND)) {
+    for (const cut of cuts) {
       const candidateOptions: RealizeRouteOptions = {
         ...options,
         independentContinuations: [...selectedIndependentContinuations, cut],
-        incrementalEmission: true,
-        incrementalLineMerges: true,
+        incrementalEmission: greedy || options.incrementalEmission,
       };
-      const candidateSeed = continuationCandidateSeed(
-        selected,
-        continuationCorridors(selected, cut),
-      );
-      let solved: UncertifiedSpacingPolicy;
+      const corridors = continuationCorridors(selected, cut);
+      const candidateSeed = greedy
+        ? continuationCandidateSeed(selected, corridors)
+        : incrementalSeed(options, selected, corridors);
+      let candidate: SpacingPass;
       try {
-        solved = solveSpacingPolicy(
+        const solved = solveSpacingPolicy(
           world,
           topologies,
           ordering,
@@ -325,29 +292,32 @@ function selectContinuationCuts(
           workspace,
           candidateSeed,
         );
+        if (greedy && !improvesSpacingContinuationFeasibility(solved.spacing, selected.spacing)) {
+          continue;
+        }
+        candidate = certifySolvedSpacingPolicy(
+          world,
+          topologies,
+          ordering,
+          candidateOptions,
+          terminalCenterContinuations,
+          solved,
+          workspace,
+          candidateSeed,
+          greedy && strictContinuationSpacingViolation(solved.spacing) > 0,
+        );
       } catch {
         continue;
       }
-      const afterSpacingViolation = strictContinuationSpacingViolation(solved.spacing);
-      if (!improvesSpacingContinuationFeasibility(solved.spacing, selected.spacing)) {
-        continue;
-      }
-      const candidate = certifySolvedSpacingPolicy(
-        world,
-        topologies,
-        ordering,
-        candidateOptions,
-        terminalCenterContinuations,
-        solved,
-        workspace,
-        candidateSeed,
-        afterSpacingViolation > 0,
-      );
       if (!improvesContinuationFeasibility(candidate, selected)) {
         continue;
       }
-      accepted = { cut, pass: candidate };
-      break;
+      if (!accepted || compareContinuationFeasibility(candidate, accepted.pass) < 0) {
+        accepted = { cut, pass: candidate };
+      }
+      if (greedy) {
+        break;
+      }
     }
     if (!accepted) {
       break;
@@ -493,26 +463,21 @@ function finishSpacingPass(
   const { routes, ordering, spacing, qualityLedger } = solved;
   const reuse = reuseEmittedRoutes(
     routes,
-    options.incrementalEmission || options.incrementalLineMerges
-      ? incremental?.baseline.routes
-      : undefined,
-    options.incrementalEmission === true,
+    options.incrementalEmission ? incremental?.baseline.routes : undefined,
   );
   emitRoutes(
     world,
     reuse.routes,
-    options.incrementalEmission !== true || !reuse.changedRouteIndexes
-      ? {}
-      : { routeIndexes: reuse.changedRouteIndexes },
+    reuse.changedRouteIndexes ? { routeIndexes: reuse.changedRouteIndexes } : {},
   );
   const retainedLineMerges =
-    options.incrementalLineMerges && incremental && reuse.changedRouteIndexes
+    incremental && reuse.changedRouteIndexes
       ? retainedLineMergesForUnchangedRoutes(
           incremental.baseline.geometryQuality,
           reuse.changedRouteIndexes,
         )
       : undefined;
-  const lineMergeRouteIndexes = options.incrementalLineMerges
+  const lineMergeRouteIndexes = options.incrementalEmission
     ? (reuse.changedRouteIndexes ?? new Set<number>())
     : undefined;
   const geometryQuality = collectGeometryQualityEvents(
@@ -534,25 +499,36 @@ function finishSpacingPass(
     geometryQuality.index,
   );
   qualityLedger.replaceSource('spacing:realized-missing', 'spacing', missingContentions);
-  const wallQuality = collectWallQualityEvents(world, reuse.routes);
-  qualityLedger.replaceSource('emission:wall-quality', 'emission', wallQuality);
-  const endpointQuality = collectEndpointQualityEvents(world, reuse.routes);
-  qualityLedger.replaceSource('emission:endpoint-quality', 'emission', endpointQuality);
+  qualityLedger.replaceSource(
+    'emission:wall-quality',
+    'emission',
+    collectWallQualityEvents(world, reuse.routes),
+  );
+  qualityLedger.replaceSource(
+    'emission:endpoint-quality',
+    'emission',
+    collectEndpointQualityEvents(world, reuse.routes),
+  );
   qualityLedger.replaceSource(
     'emission:geometry-quality',
     'emission',
     geometryQuality.events,
     geometryQuality.scalarCosts,
   );
+  if (world.groupTitleAvoidance) {
+    qualityLedger.replaceSource(
+      'emission:group-title',
+      'emission',
+      collectGroupTitleQualityEvents(world.groupTitleAvoidance, geometryQuality.index),
+    );
+  }
   const quality = qualityLedger.snapshot();
   return {
     routes: reuse.routes,
     ordering,
     spacing,
     missingContentions,
-    endpointQuality,
     geometryQuality,
-    wallQuality,
     quality,
   };
 }
@@ -560,7 +536,6 @@ function finishSpacingPass(
 function reuseEmittedRoutes(
   routes: readonly Route[],
   baselineRoutes: readonly Route[] | undefined,
-  reuseUnchanged: boolean,
 ): EmissionReuse {
   if (!baselineRoutes) {
     return { routes };
@@ -572,7 +547,7 @@ function reuseEmittedRoutes(
   const sharedRoutes = routes.map((route, routeIndex) => {
     const baseline = baselineRoutes[routeIndex];
     if (haveSameEmissionInputs(route, baseline)) {
-      return reuseUnchanged ? baseline : route;
+      return baseline;
     }
     changedRouteIndexes.add(routeIndex);
     return route;
@@ -608,11 +583,7 @@ function incrementalSeed(
   baseline: Pick<SpacingPass, 'routes' | 'spacing' | 'geometryQuality'>,
   corridorIndexes: readonly number[],
 ): IncrementalPassSeed | undefined {
-  if (
-    !options.incrementalSpacing &&
-    !options.incrementalEmission &&
-    !options.incrementalLineMerges
-  ) {
+  if (!options.incrementalSpacing && !options.incrementalEmission) {
     return undefined;
   }
   const uniqueCorridorIndexes = [...new Set(corridorIndexes)];
@@ -638,10 +609,7 @@ function initialIncrementalSeed(
   ordering: OrderingResult,
 ): IncrementalPassSeed | undefined {
   const baseline = options.incrementalSpacingBaseline;
-  if (
-    !baseline ||
-    (!options.incrementalSpacing && !options.incrementalEmission && !options.incrementalLineMerges)
-  ) {
+  if (!baseline || (!options.incrementalSpacing && !options.incrementalEmission)) {
     return undefined;
   }
   const corridorIndexes = new Set<number>();
@@ -786,7 +754,6 @@ function infeasibleContinuationCuts(
   world: CorridorWorld,
   pass: SpacingPass,
   retained: readonly IndependentContinuationBoundary[],
-  ranked: boolean,
 ): IndependentContinuationBoundary[] {
   const offendingVisitsByRoute = new Map<number, Set<number>>();
   const paddedCandidateRanks = new Map<
@@ -844,20 +811,18 @@ function infeasibleContinuationCuts(
       ? [boundary]
       : [];
   });
-  return ranked
-    ? candidates.sort((left, right) => {
-        const leftRank = paddedCandidateRanks.get(continuationBoundaryKey(left));
-        const rightRank = paddedCandidateRanks.get(continuationBoundaryKey(right));
-        return (
-          Number(Boolean(rightRank)) - Number(Boolean(leftRank)) ||
-          (rightRank?.violation ?? 0) - (leftRank?.violation ?? 0) ||
-          (leftRank?.localRank ?? Number.POSITIVE_INFINITY) -
-            (rightRank?.localRank ?? Number.POSITIVE_INFINITY) ||
-          left.routeIndex - right.routeIndex ||
-          left.afterVisitIndex - right.afterVisitIndex
-        );
-      })
-    : candidates;
+  return candidates.sort((left, right) => {
+    const leftRank = paddedCandidateRanks.get(continuationBoundaryKey(left));
+    const rightRank = paddedCandidateRanks.get(continuationBoundaryKey(right));
+    return (
+      Number(Boolean(rightRank)) - Number(Boolean(leftRank)) ||
+      (rightRank?.violation ?? 0) - (leftRank?.violation ?? 0) ||
+      (leftRank?.localRank ?? Number.POSITIVE_INFINITY) -
+        (rightRank?.localRank ?? Number.POSITIVE_INFINITY) ||
+      left.routeIndex - right.routeIndex ||
+      left.afterVisitIndex - right.afterVisitIndex
+    );
+  });
 }
 
 function continuationBoundaryKey(boundary: IndependentContinuationBoundary): string {
@@ -865,10 +830,15 @@ function continuationBoundaryKey(boundary: IndependentContinuationBoundary): str
 }
 
 function isSevereEndpointMisalignment(world: CorridorWorld, route: Route): boolean {
+  const from = route.from;
+  const to = route.to;
+  if (isPointEndpoint(from) || isPointEndpoint(to)) {
+    return false;
+  }
   const ports = route.ports();
   const samples = [
-    { endpoint: route.from, point: ports.from },
-    { endpoint: route.to, point: ports.to },
+    { endpoint: from, point: ports.from },
+    { endpoint: to, point: ports.to },
   ].map(({ endpoint, point }) => {
     const span = faceCrossSpan(
       (world.sourceEntities ?? world.entities)[endpoint.entityIndex],
@@ -891,13 +861,13 @@ function isSevereEndpointMisalignment(world: CorridorWorld, route: Route): boole
 }
 
 function isDirectTerminalContinuationBridge(route: Route): boolean {
-  const oppositeFaces =
-    (route.from.face === 'left' && route.to.face === 'right') ||
-    (route.from.face === 'right' && route.to.face === 'left') ||
-    (route.from.face === 'up' && route.to.face === 'down') ||
-    (route.from.face === 'down' && route.to.face === 'up');
+  const from = route.from;
+  const to = route.to;
+  if (isPointEndpoint(from) || isPointEndpoint(to)) {
+    return false;
+  }
   return (
-    oppositeFaces &&
+    OPPOSITE_DIRECTION[from.face] === to.face &&
     route.visits.length > 1 &&
     route.visits
       .slice(1)

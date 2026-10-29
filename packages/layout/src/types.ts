@@ -59,11 +59,6 @@ export interface LayoutEntity extends PositionProps {
   isContainer?: boolean;
   options?: Partial<LayoutOptions>;
   /**
-   * Allows specifying where the ports should be.
-   * E.g. for cloud architecture, we might want the right / left ports to be centered on the shape
-   **/
-  customPorts?: Record<Direction, Point>;
-  /**
    * For containers, we have text placement for the title, which should be blocking
    * It is relative because it doesn't really move freely around the entity
    */
@@ -134,6 +129,9 @@ export interface DeletedEntity {
   id: string;
 }
 
+/** How a connection is drawn. */
+export type ConnectorStyle = 'elbow' | 'straight' | 'arc';
+
 export interface LayoutConnection {
   id: string;
   /** Source entity id, or `''` for a free (unbound) endpoint anchored by `points`. */
@@ -148,14 +146,8 @@ export interface LayoutConnection {
   points: Point[];
   /** The port, in relative coordinates of the from entity */
   relativeFromPort?: RelativePortPosition;
-  /** Semantic slot identity for the from-side face occupancy */
-  fromPortIndex?: number;
-  fromPortTotal?: number;
   /** The port, in relative coordinates of the to entity */
   relativeToPort?: RelativePortPosition;
-  /** Semantic slot identity for the to-side face occupancy */
-  toPortIndex?: number;
-  toPortTotal?: number;
   /** Authored face hint: prefer this face for the from-endpoint. */
   authoredFromFace?: Direction;
   /** Authored face hint: prefer this face for the to-endpoint. */
@@ -166,6 +158,15 @@ export interface LayoutConnection {
   toArrowhead?: boolean;
   /** If there is text, this is it's position (in absolute grid terms) */
   textPlacement?: PositionProps;
+  /**
+   * Signed perpendicular offset of a manually placed label from a straight or arc line; its
+   * presence keeps the label at its place along the line when the line moves.
+   */
+  textLineOffset?: number;
+  /** How the connection is drawn: `elbow` (default) is routed; `straight` and `arc` are one direct segment. */
+  connectorStyle?: ConnectorStyle;
+  /** An arc's signed distance from the chord's middle to its apex; absent uses the default bow. */
+  bend?: number;
   /** Whether textPlacement came from an authored label position or label measurement only. */
   textPlacementSource?: LayoutConnectionTextPlacementSource;
 }
@@ -256,7 +257,10 @@ export interface LayoutOptions {
    * In some cases, we want to skip the default container behavior on overlaps and do something special.
    */
   skipContainerOverlapBehavior?: boolean;
-  /** Body skipped from routing grid; `textPlacement` still acts as a soft block. */
+  /**
+   * Routing ignores the entity itself (dividers, BPMN lanes): lines may cross its body and
+   * its children route as children of its parent. Its label (`textPlacement`) still blocks.
+   */
   skipRoutingObstacle?: boolean;
 }
 
@@ -359,3 +363,4 @@ export type SortedOp =
   | { opType: 'move'; op: MovedEntity }
   | { opType: 'add'; op: NewEntity }
   | { opType: 'moveBlock'; op: MoveBlock };
+

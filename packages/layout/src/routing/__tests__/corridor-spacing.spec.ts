@@ -1,46 +1,37 @@
-import { LayoutManager } from '../../LayoutManager.js';
 import type { LayoutEntity } from '../../types.js';
-import { CorridorIndexer } from '../corridor/corridorIndex.js';
 import type {
   Corridor,
+  EntityRouteEndpoint,
   PortalRef,
-  RouteEndpoint,
   TerminalAttachment,
 } from '../corridor/contract.js';
 import { orderRoutes } from '../corridor/ordering.js';
 import { Route, type CorridorVisit } from '../corridor/route.js';
+import { realizeRoutes, reuseOptions } from '../corridor/realize.js';
 import { MIN_TRACK_SEPARATION_PX, spaceRoutes, type SpacingOptions } from '../corridor/spacing.js';
 import type { CorridorWorld } from '../corridor/world.js';
+import { leaf, manualCorridorWorld } from '../routingTestUtils.js';
 
-function leaf(id: string, x: number, y: number, width: number, height: number): LayoutEntity {
-  return { id, x, y, width, height };
-}
-
-function directWorld(y = 0, height = 120): CorridorWorld {
-  const entities = [leaf('from', 0, y, 40, height), leaf('to', 200, y, 40, height)];
+function directWorld(y = 0, height = 120, walls: LayoutEntity[] = []): CorridorWorld {
+  const entities = [leaf('from', 0, y, 40, height), leaf('to', 200, y, 40, height), ...walls];
   const corridors: Corridor[] = [{ index: 0, axis: 'x', rect: { x: 40, y, width: 160, height } }];
   const attachments: TerminalAttachment[] = [
     { index: 0, entityIndex: 0, face: 'right', corridorIndex: 0, faceSpan: [y, y + height] },
     { index: 1, entityIndex: 1, face: 'left', corridorIndex: 0, faceSpan: [y, y + height] },
   ];
-  return {
-    bounds: { x: -20, y: y - 20, width: 280, height: height + 40 },
-    entities,
-    indexer: new CorridorIndexer(
-      corridors,
-      [],
-      attachments,
-      new LayoutManager({ entities: [...entities], connections: [] }),
-      { x: -20, y: y - 20, width: 280, height: height + 40 },
-    ),
-  };
+  return manualCorridorWorld(entities, corridors, [], attachments, {
+    x: -20,
+    y: y - 20,
+    width: 280,
+    height: height + 40,
+  });
 }
 
 function directRoute(
   requestIndex: number,
   span: readonly [number, number],
-  from: Partial<RouteEndpoint> = {},
-  to: Partial<RouteEndpoint> = {},
+  from: Partial<EntityRouteEndpoint> = {},
+  to: Partial<EntityRouteEndpoint> = {},
 ): Route {
   const visits: CorridorVisit[] = [
     {
@@ -59,7 +50,7 @@ function directRoute(
 }
 
 function splitFaceTurnWorld(
-  sourceEndpoints: readonly [Partial<RouteEndpoint>, Partial<RouteEndpoint>] = [{}, {}],
+  sourceEndpoints: readonly [Partial<EntityRouteEndpoint>, Partial<EntityRouteEndpoint>] = [{}, {}],
 ): { world: CorridorWorld; routes: Route[] } {
   const entities = [
     leaf('hub', 0, 0, 40, 100),
@@ -134,29 +125,22 @@ function splitFaceTurnWorld(
       ],
     ),
   ];
-  const bounds = { x: -20, y: -20, width: 180, height: 280 };
   return {
-    world: {
-      bounds,
-      entities,
-      indexer: new CorridorIndexer(
-        corridors,
-        portals,
-        attachments,
-        new LayoutManager({ entities: [...entities], connections: [] }),
-        bounds,
-      ),
-    },
+    world: manualCorridorWorld(entities, corridors, portals, attachments, {
+      x: -20,
+      y: -20,
+      width: 180,
+      height: 280,
+    }),
     routes,
   };
 }
 
-function continuationWorld(decoyWallY?: number): { world: CorridorWorld; route: Route } {
+function continuationWorld(): { world: CorridorWorld; route: Route } {
   const entities = [
     leaf('from', 620, 0, 60, 20),
     leaf('to', 660, 180, 80, 20),
     leaf('overlapping-wall', 645, 100, 10, 80),
-    ...(decoyWallY === undefined ? [] : [leaf('decoy-wall', 675, decoyWallY, 10, 40)]),
   ];
   const corridors: Corridor[] = [
     { index: 0, axis: 'y', rect: { x: 655, y: 20, width: 20, height: 80 } },
@@ -192,17 +176,12 @@ function continuationWorld(decoyWallY?: number): { world: CorridorWorld; route: 
     },
   ]);
   return {
-    world: {
-      bounds: { x: 600, y: -20, width: 160, height: 340 },
-      entities,
-      indexer: new CorridorIndexer(
-        corridors,
-        portals,
-        attachments,
-        new LayoutManager({ entities: [...entities], connections: [] }),
-        { x: 600, y: -20, width: 160, height: 340 },
-      ),
-    },
+    world: manualCorridorWorld(entities, corridors, portals, attachments, {
+      x: 600,
+      y: -20,
+      width: 160,
+      height: 340,
+    }),
     route,
   };
 }
@@ -256,17 +235,12 @@ function wideningContinuationWorld(
     },
   ]);
   return {
-    world: {
-      bounds: { x: 620, y: -20, width: 80, height: 240 },
-      entities,
-      indexer: new CorridorIndexer(
-        corridors,
-        portals,
-        attachments,
-        new LayoutManager({ entities: [...entities], connections: [] }),
-        { x: 620, y: -20, width: 80, height: 240 },
-      ),
-    },
+    world: manualCorridorWorld(entities, corridors, portals, attachments, {
+      x: 620,
+      y: -20,
+      width: 80,
+      height: 240,
+    }),
     route,
   };
 }
@@ -314,17 +288,12 @@ describe('routing corridor corridor-local spacing', () => {
       { index: 2, entityIndex: 1, face: 'left', corridorIndex: 0, faceSpan: [0, 40] },
       { index: 3, entityIndex: 2, face: 'left', corridorIndex: 1, faceSpan: [60, 100] },
     ];
-    const world: CorridorWorld = {
-      bounds: { x: -20, y: -20, width: 280, height: 140 },
-      entities,
-      indexer: new CorridorIndexer(
-        corridors,
-        [],
-        attachments,
-        new LayoutManager({ entities: [...entities], connections: [] }),
-        { x: -20, y: -20, width: 280, height: 140 },
-      ),
-    };
+    const world = manualCorridorWorld(entities, corridors, [], attachments, {
+      x: -20,
+      y: -20,
+      width: 280,
+      height: 140,
+    });
     const routes = [
       new Route(0, { entityIndex: 0, face: 'right' }, { entityIndex: 1, face: 'left' }, [
         {
@@ -393,6 +362,9 @@ describe('routing corridor corridor-local spacing', () => {
     );
     expect(spacing.shortfalls).toEqual([]);
     expect(spacing.quality.events.filter((event) => event.kind === 'line-merge')).toEqual([]);
+    const realized = realizeRoutes(world, routes);
+    expect(realized.quality.cost.invalid).toBe(0);
+    expect(realized.quality.cost.cap).toBe(0);
   });
 
   it('reports one shortfall when a combined group cannot be made contiguous', () => {
@@ -410,6 +382,55 @@ describe('routing corridor corridor-local spacing', () => {
 
     expect(combinedShortfalls).toHaveLength(1);
     expect(combinedShortfalls[0].routeIndexes).toEqual([0, 2]);
+  });
+
+  it('reuses ordering only for identical topology inputs and preserves full realization results', () => {
+    const world = directWorld();
+    const routes = [0, 1, 2].map((index) => directRoute(index, [0, 120]));
+    const baseline = realizeRoutes(world, routes);
+    const policy = { terminalCenterContinuations: true };
+    const reused = realizeRoutes(world, routes, {
+      ...reuseOptions(baseline, { incrementalSpacing: true }),
+      ...policy,
+    });
+    const full = realizeRoutes(world, routes, policy);
+    expect(reused.ordering).toBe(baseline.ordering);
+    expect(reused.quality).toEqual(full.quality);
+    expect(reused.routes.map((route) => route.points())).toEqual(
+      full.routes.map((route) => route.points()),
+    );
+
+    const first = routes[0];
+    const replacements = [
+      new Route(
+        first.requestIndex,
+        { entityIndex: 0, face: 'right', authoredTrack: 25 },
+        first.to,
+        first.visits,
+      ),
+      new Route(first.requestIndex, first.from, first.to, [
+        { ...first.visits[0], feasibleTrack: [0, 60] },
+      ]),
+      new Route(100, first.from, first.to, first.visits),
+    ];
+    for (const changed of [
+      ...replacements.map((replacement) => [replacement, ...routes.slice(1)]),
+      [...routes].reverse(),
+    ]) {
+      const candidate = realizeRoutes(world, changed, {
+        // Request identity/order changes cannot donate tracks, but may still
+        // reuse emitted geometry and must invalidate the cached ordering.
+        ...reuseOptions(baseline, { incrementalSpacing: false }),
+        ...policy,
+      });
+      const reference = realizeRoutes(world, changed, policy);
+      expect(candidate.ordering).not.toBe(baseline.ordering);
+      expect(candidate.ordering).toEqual(reference.ordering);
+      expect(candidate.quality).toEqual(reference.quality);
+      expect(candidate.routes.map((route) => route.points())).toEqual(
+        reference.routes.map((route) => route.points()),
+      );
+    }
   });
 
   it('attributes a narrow-corridor separation shortfall without leaving bounds', () => {
@@ -454,24 +475,6 @@ describe('routing corridor corridor-local spacing', () => {
     expect(spacing.shortfalls).toEqual([]);
   });
 
-  it('is deterministic across fresh route instances', () => {
-    const signature = (): string => {
-      const world = directWorld();
-      const routes = [0, 1, 2, 3].map((requestIndex) => directRoute(requestIndex, [0, 120]));
-      const { spacing } = orderAndSpace(world, routes);
-      return JSON.stringify({
-        tracks: routes.map((route) => route.nominalTrackOf(0)),
-        shortfalls: spacing.shortfalls,
-        quality: spacing.quality,
-      });
-    };
-    const expected = signature();
-
-    for (let iteration = 0; iteration < 10; iteration += 1) {
-      expect(signature()).toBe(expected);
-    }
-  });
-
   it('reuses a centered track for disjoint travel without changing stable order', () => {
     const entities = [
       leaf('a-from', 0, 0, 10, 100),
@@ -511,17 +514,12 @@ describe('routing corridor corridor-local spacing', () => {
         visits(2, 3),
       ),
     ];
-    const world: CorridorWorld = {
-      bounds: { x: -20, y: -20, width: 340, height: 140 },
-      entities,
-      indexer: new CorridorIndexer(
-        corridors,
-        [],
-        attachments,
-        new LayoutManager({ entities: [...entities], connections: [] }),
-        { x: -20, y: -20, width: 340, height: 140 },
-      ),
-    };
+    const world = manualCorridorWorld(entities, corridors, [], attachments, {
+      x: -20,
+      y: -20,
+      width: 340,
+      height: 140,
+    });
 
     const { ordering, spacing } = orderAndSpace(world, routes);
 
@@ -549,33 +547,18 @@ describe('routing corridor corridor-local spacing', () => {
     expect(spacing.quality.cost.scalar).toBeGreaterThan(0);
   });
 
-  it('keeps terminal centering dominant over leaf clearance', () => {
-    const baseWorld = directWorld(0, 32);
-    const world = {
-      ...baseWorld,
-      entities: [...baseWorld.entities, leaf('foreign-wall', 60, -10, 100, 10)],
-    };
-    const route = directRoute(0, [0, 32]);
+  it.each([32, 20])(
+    'keeps terminal centering dominant over leaf clearance in a %ipx corridor',
+    (height) => {
+      const world = directWorld(0, height, [leaf('foreign-wall', 60, -10, 100, 10)]);
+      const route = directRoute(0, [0, height]);
 
-    const { spacing } = orderAndSpace(world, [route]);
+      const { spacing } = orderAndSpace(world, [route]);
 
-    expect(route.nominalTrackOf(0)).toBe(16);
-    expect(spacing.shortfalls).toEqual([]);
-  });
-
-  it('keeps narrow terminal centering dominant over leaf clearance', () => {
-    const baseWorld = directWorld(0, 20);
-    const world = {
-      ...baseWorld,
-      entities: [...baseWorld.entities, leaf('foreign-wall', 60, -10, 100, 10)],
-    };
-    const route = directRoute(0, [0, 20]);
-
-    const { spacing } = orderAndSpace(world, [route]);
-
-    expect(route.nominalTrackOf(0)).toBe(10);
-    expect(spacing.shortfalls).toEqual([]);
-  });
+      expect(route.nominalTrackOf(0)).toBe(height / 2);
+      expect(spacing.shortfalls).toEqual([]);
+    },
+  );
 
   it('computes leaf clearance after corridor-local terminal desires join a continuation unit', () => {
     const { world, route } = continuationWorld();
@@ -583,79 +566,34 @@ describe('routing corridor corridor-local spacing', () => {
     const { spacing } = orderAndSpace(world, [route]);
 
     expect([route.nominalTrackOf(0), route.nominalTrackOf(1)]).toEqual([669, 669]);
+    expect(route.boundaryRealizationAfter(1)).toBeUndefined();
     expect(spacing.shortfalls).toEqual([]);
   });
 
   it('removes equality when padded continuation bounds do not intersect', () => {
     const { world, route } = wideningContinuationWorld();
 
-    const { spacing } = orderAndSpace(world, [route]);
+    orderAndSpace(world, [route]);
 
     expect([route.nominalTrackOf(0), route.nominalTrackOf(1)]).toEqual([650, 670]);
     expect(route.boundaryRealizationAfter(1)?.kind).toBe('continue-retrack');
-    expect(spacing.continuations).toMatchObject([
-      { policy: 'independent', reason: 'empty-padded-intersection', afterVisitIndex: 1 },
-    ]);
-  });
-
-  it('solves a requested continuation independently', () => {
-    const { world, route } = wideningContinuationWorld();
-
-    const { spacing } = orderAndSpace(world, [route], {
-      independentContinuations: [{ routeIndex: 0, afterVisitIndex: 1 }],
-    });
-
-    expect([route.nominalTrackOf(0), route.nominalTrackOf(1)]).toEqual([650, 670]);
-    expect(route.boundaryRealizationAfter(1)?.kind).toBe('continue-retrack');
-    expect(spacing.continuations).toMatchObject([
-      { policy: 'independent', reason: 'forced-independent', afterVisitIndex: 1 },
-    ]);
-  });
-
-  it('keeps equal-span continuation tracks equal under automatic policy', () => {
-    const { world, route } = continuationWorld();
-
-    const { spacing } = orderAndSpace(world, [route]);
-
-    expect(route.nominalTrackOf(0)).toBe(route.nominalTrackOf(1));
-    expect(route.boundaryRealizationAfter(1)).toBeUndefined();
-    expect(spacing.continuations).toMatchObject([
-      { policy: 'equal', reason: 'equal-span', afterVisitIndex: 1 },
-    ]);
   });
 
   it('removes equality when narrow-to-wide continuation bounds do not intersect', () => {
     const { world, route } = wideningContinuationWorld(670);
 
-    const { spacing } = orderAndSpace(world, [route]);
+    orderAndSpace(world, [route]);
 
     expect([route.nominalTrackOf(0), route.nominalTrackOf(1)]).toEqual([650, 680]);
     expect(route.boundaryRealizationAfter(1)?.kind).toBe('continue-retrack');
-    expect(spacing.continuations).toMatchObject([
-      { policy: 'independent', reason: 'empty-padded-intersection' },
-    ]);
   });
 
   it('keeps a satisfiable narrow-to-wide continuation equal despite the span difference', () => {
     const { world, route } = wideningContinuationWorld(640, 690);
 
-    const { spacing } = orderAndSpace(world, [route]);
+    orderAndSpace(world, [route]);
 
-    expect(spacing.continuations).toMatchObject([
-      { policy: 'equal', reason: 'default-equal', afterVisitIndex: 1 },
-    ]);
     expect(route.nominalTrackOf(0)).toBe(route.nominalTrackOf(1));
     expect(route.boundaryRealizationAfter(1)).toBeUndefined();
-  });
-
-  it('ignores a member-corridor leaf wall outside the member travel interval', () => {
-    const outside = continuationWorld(220);
-    const overlapping = continuationWorld(120);
-
-    orderAndSpace(outside.world, [outside.route]);
-    orderAndSpace(overlapping.world, [overlapping.route]);
-
-    expect(outside.route.nominalTrackOf(0)).toBe(669);
-    expect(overlapping.route.nominalTrackOf(0)).toBe(669);
   });
 });

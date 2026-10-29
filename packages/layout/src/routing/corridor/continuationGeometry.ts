@@ -1,20 +1,8 @@
 import type { AxisSpan } from '../../types.js';
-import {
-  coordinateInSpan,
-  midpoint,
-  spanContains,
-  spanLength,
-  spansOverlapPositive,
-} from '../../rangeUtils.js';
+import { spansOverlapPositive } from '../../rangeUtils.js';
 import { continuationKey, type ContinuationBoundaryRef } from './continuations.js';
-import type { Corridor } from './contract.js';
-import {
-  boundaryTravelCoordinate,
-  corridorCrossSpan,
-  corridorTravelSpan,
-  possibleTravelInterval,
-  ROUTING_EPSILON,
-} from './geometry.js';
+import type { CorridorSpans } from './corridorSpans.js';
+import { boundaryTravelCoordinate, possibleTravelInterval, ROUTING_EPSILON } from './geometry.js';
 import type { BoundaryRealization, Route } from './route.js';
 import { WALL_HUG_CLEARANCE_PX } from './wallQuality.js';
 import type { CorridorWorld } from './world.js';
@@ -55,15 +43,15 @@ export function continuationBundlePlacement(
   continuation: ContinuationBoundaryRef,
 ): ContinuationBundlePlacement {
   const afterVisitIndex = continuation.afterVisitIndex;
-  const beforeCorridor = world.indexer.corridors[route.visits[afterVisitIndex - 1].corridorIndex];
-  const afterCorridor = world.indexer.corridors[route.visits[afterVisitIndex].corridorIndex];
-  const beforeCross = corridorCrossSpan(beforeCorridor);
-  const afterCross = corridorCrossSpan(afterCorridor);
+  const beforeCorridor = route.visits[afterVisitIndex - 1].corridorIndex;
+  const afterCorridor = route.visits[afterVisitIndex].corridorIndex;
+  const spans = world.indexer.spans;
   const hostVisitIndex = selectBoundaryHost(
+    spans,
     beforeCorridor,
     afterCorridor,
-    spanContains(beforeCross, afterCross, ROUTING_EPSILON),
-    spanContains(afterCross, beforeCross, ROUTING_EPSILON),
+    spans.crossContains(beforeCorridor, afterCorridor, ROUTING_EPSILON),
+    spans.crossContains(afterCorridor, beforeCorridor, ROUTING_EPSILON),
     afterVisitIndex,
   );
   const hostCorridorIndex = route.visits[hostVisitIndex].corridorIndex;
@@ -108,23 +96,15 @@ export function buildContinuationBoundaryRealizations(
     }
     const beforeCorridorIndex = route.visits[afterVisitIndex - 1].corridorIndex;
     const afterCorridorIndex = route.visits[afterVisitIndex].corridorIndex;
-    const beforeCorridor = world.indexer.corridors[beforeCorridorIndex];
-    const afterCorridor = world.indexer.corridors[afterCorridorIndex];
-    const beforeHosts = coordinateInSpan(
-      newTrack,
-      corridorCrossSpan(beforeCorridor),
-      ROUTING_EPSILON,
-    );
-    const afterHosts = coordinateInSpan(
-      oldTrack,
-      corridorCrossSpan(afterCorridor),
-      ROUTING_EPSILON,
-    );
+    const spans = world.indexer.spans;
+    const beforeHosts = spans.crossIncludes(beforeCorridorIndex, newTrack, ROUTING_EPSILON);
+    const afterHosts = spans.crossIncludes(afterCorridorIndex, oldTrack, ROUTING_EPSILON);
     const eventCoordinate = portal.planeCoordinate;
     if (beforeHosts || afterHosts) {
       const hostVisitIndex = selectBoundaryHost(
-        beforeCorridor,
-        afterCorridor,
+        spans,
+        beforeCorridorIndex,
+        afterCorridorIndex,
         beforeHosts,
         afterHosts,
         afterVisitIndex,
@@ -441,8 +421,9 @@ function boundaryDraft(
   const afterCorridorIndex = route.visits[afterVisitIndex].corridorIndex;
   const hostBefore = hostVisitIndex === afterVisitIndex - 1;
   const hostCorridor = world.indexer.corridors[hostCorridorIndex];
-  const hostTravel = corridorTravelSpan(hostCorridor);
-  const hostSide: -1 | 1 = midpoint(hostTravel) < eventCoordinate ? -1 : 1;
+  const travelStart = world.indexer.spans.travelStarts[hostCorridorIndex];
+  const travelEnd = world.indexer.spans.travelEnds[hostCorridorIndex];
+  const hostSide: -1 | 1 = (travelStart + travelEnd) / 2 < eventCoordinate ? -1 : 1;
   const farBoundary = hostBefore
     ? route.visits[hostVisitIndex].entry
     : route.visits[hostVisitIndex].exit;
@@ -461,7 +442,7 @@ function boundaryDraft(
   const maximumDepth = Math.min(
     tuning.boundaryShiftDepth,
     traversedDepth,
-    hostSide < 0 ? eventCoordinate - hostTravel[0] : hostTravel[1] - eventCoordinate,
+    hostSide < 0 ? eventCoordinate - travelStart : travelEnd - eventCoordinate,
   );
   return {
     routeIndex,
@@ -476,13 +457,15 @@ function boundaryDraft(
     mouthTrack: hostBefore ? toTrack : fromTrack,
     eventCoordinate,
     hostSide,
-    maximumDepth: Math.max(0, maximumDepth),
+    // Point terminals may bound the travel at an exact fractional pin; shifts stay on-grid.
+    maximumDepth: Math.max(0, Math.floor(maximumDepth + ROUTING_EPSILON)),
   };
 }
 
 function selectBoundaryHost(
-  before: Corridor,
-  after: Corridor,
+  spans: CorridorSpans,
+  before: number,
+  after: number,
   beforeHosts: boolean,
   afterHosts: boolean,
   afterVisitIndex: number,
@@ -493,7 +476,7 @@ function selectBoundaryHost(
   if (afterHosts && !beforeHosts) {
     return afterVisitIndex;
   }
-  return spanLength(corridorCrossSpan(before)) >= spanLength(corridorCrossSpan(after))
+  return spans.crossLength(before) >= spans.crossLength(after)
     ? afterVisitIndex - 1
     : afterVisitIndex;
 }

@@ -5,6 +5,7 @@ import {
   projectPointOntoPolyline,
   projectedHalfExtent,
 } from './polylineUtils.js';
+import type { PositionProps } from '../types.js';
 import type { Point } from './types.js';
 import { LABEL_LINE_GAP } from './textPlacements.js';
 
@@ -212,4 +213,30 @@ export function resolveManualLabel(
   const arcPos = anchorToArcPos(totalLength, anchor, capPx);
   const { center, orient } = centerAtArcPos(routeScene, totalLength, arcPos, anchor.offset, dims);
   return { center, orient, anchor: { ...anchor } };
+}
+
+
+/**
+ * Where a manual label goes on a line's new route: it keeps its place along the line and its offset
+ * off it, read from where `box` sat on `oldRoute`. Undefined when either route is degenerate.
+ */
+export function moveManualLabel(
+  oldRoute: readonly Readonly<Point>[],
+  box: PositionProps,
+  lineOffset: number,
+  newRoute: readonly Readonly<Point>[],
+  size: LabelDims,
+): PositionProps | undefined {
+  const center: Point = [box.x + box.width / 2, box.y + box.height / 2];
+  const anchor = anchorFromStored(oldRoute, center, lineOffset);
+  const resolved = anchor && resolveManualLabel(newRoute, anchor, size);
+  if (!resolved) {
+    return undefined;
+  }
+  return {
+    x: resolved.center[0] - size.width / 2,
+    y: resolved.center[1] - size.height / 2,
+    width: size.width,
+    height: size.height,
+  };
 }

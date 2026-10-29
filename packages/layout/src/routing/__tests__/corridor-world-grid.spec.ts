@@ -1,13 +1,9 @@
-import type { LayoutEntity } from '../../types.js';
 import { LayoutManager } from '../../LayoutManager.js';
 import type { RouteSearchRequest } from '../corridor/contract.js';
 import { realizeRoutes } from '../corridor/realize.js';
 import { buildCorridorWorld } from '../corridor/worldConstruction.js';
 import { searchRoutes } from '../corridor/topology.js';
-
-function leaf(id: string, x: number, y: number, width: number, height: number): LayoutEntity {
-  return { id, x, y, width, height };
-}
+import { leaf } from '../routingTestUtils.js';
 
 const request: RouteSearchRequest = {
   requestIndex: 0,
@@ -24,7 +20,6 @@ describe('routing corridor whole-pixel world grid', () => {
 
     // The caller's entities are never mutated; routing snaps into its own copies.
     expect(source.x).toBe(10.4);
-    expect(world.sourceEntities?.[0]).toBe(manager.getEntities()[0]);
     for (const entity of world.entities) {
       for (const value of [entity.x, entity.y, entity.width, entity.height]) {
         expect(Number.isInteger(value)).toBe(true);
@@ -39,16 +34,6 @@ describe('routing corridor whole-pixel world grid', () => {
         expect(Number.isInteger(value)).toBe(true);
       }
     }
-  });
-
-  it('reuses the caller view when the scene is already on-grid', () => {
-    const manager = new LayoutManager({
-      entities: [leaf('a', 0, 0, 40, 40), leaf('b', 150, 0, 40, 40)],
-      connections: [],
-    });
-    const world = buildCorridorWorld(manager, [request]);
-    expect(world.entities).toBe(manager.getEntities());
-    expect(world.sourceEntities).toBe(world.entities);
   });
 
   it('re-anchors emitted terminals to the true entity faces, tracks staying on-grid', () => {

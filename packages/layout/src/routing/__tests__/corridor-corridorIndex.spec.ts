@@ -1,76 +1,37 @@
 import { LayoutManager } from '../../LayoutManager.js';
-import type { LayoutEntity, LayoutRange } from '../../types.js';
-import type { Corridor } from '../corridor/contract.js';
+import type { LayoutEntity, PositionProps } from '../../types.js';
 import { CorridorIndexer } from '../corridor/corridorIndex.js';
+import { describe, expect, it } from 'vitest';
 
 describe('corridor indexer border profiles', () => {
-  it('attributes entities and diagram borders without profiling adjacent corridors', () => {
-    const bounds = { x: 0, y: 0, width: 100, height: 100 };
-    const entities: LayoutEntity[] = [
-      { id: 'leaf', x: 0, y: 0, width: 40, height: 10 },
-      { id: 'group', x: 40, y: 0, width: 60, height: 10, isContainer: true },
-    ];
-    const corridors: Corridor[] = [
-      { index: 0, axis: 'x', rect: { x: 0, y: 10, width: 100, height: 20 } },
-      { index: 1, axis: 'x', rect: { x: 20, y: 30, width: 50, height: 20 } },
-      { index: 2, axis: 'x', rect: { x: 40, y: -10, width: 60, height: 20 } },
-      { index: 3, axis: 'y', rect: { x: 0, y: 60, width: 10, height: 40 } },
-    ];
+  it.each([-2147483700, -100, -0, 0.25, 2147483700])(
+    'preserves diagram-border coverage at offset %s on either axis',
+    (offset) => {
+      const layoutManager = new LayoutManager({ entities: [], connections: [] });
+      const rect = { x: offset, y: offset, width: 100, height: 120 };
+      const indexer = new CorridorIndexer(
+        [
+          { index: 0, axis: 'x', rect },
+          { index: 1, axis: 'y', rect },
+        ],
+        [],
+        [],
+        layoutManager,
+        rect,
+      );
 
-    let rangeQueryCount = 0;
-    const layoutManager = new LayoutManager({ entities, connections: [] });
-    const findEntitiesInRange = layoutManager.findEntitiesInRange.bind(layoutManager);
-    layoutManager.findEntitiesInRange = (range: Partial<LayoutRange>) => {
-      rangeQueryCount += 1;
-      return findEntitiesInRange(range);
-    };
-
-    const indexer = new CorridorIndexer(corridors, [], [], layoutManager, bounds);
-
-    expect(rangeQueryCount).toBe(0);
-    expect(indexer.corridors[0].borderProfile).toEqual({
-      axis: 'x',
-      top: [
-        { span: [0, 40], kind: 'entity', entityId: 'leaf' },
-        { span: [40, 100], kind: 'entity', entityId: 'group' },
-      ],
-      bottom: [],
-    });
-    expect(rangeQueryCount).toBe(1);
-    expect(indexer.corridors[0].borderProfile).toBe(indexer.corridors[0].borderProfile);
-    expect(rangeQueryCount).toBe(1);
-    expect(indexer.corridors[3].borderProfile).toEqual({
-      axis: 'y',
-      left: [{ span: [60, 100], kind: 'diagram-border' }],
-      right: [],
-    });
-    expect(rangeQueryCount).toBe(2);
-  });
-
-  it('skips the entity index when both corridor sides are diagram borders', () => {
-    let rangeQueryCount = 0;
-    const layoutManager = new LayoutManager({ entities: [], connections: [] });
-    const findEntitiesInRange = layoutManager.findEntitiesInRange.bind(layoutManager);
-    layoutManager.findEntitiesInRange = (range: Partial<LayoutRange>) => {
-      rangeQueryCount += 1;
-      return findEntitiesInRange(range);
-    };
-
-    const indexer = new CorridorIndexer(
-      [{ index: 0, axis: 'x', rect: { x: 0, y: 0, width: 100, height: 100 } }],
-      [],
-      [],
-      layoutManager,
-      { x: 0, y: 0, width: 100, height: 100 },
-    );
-
-    expect(indexer.corridors[0].borderProfile).toEqual({
-      axis: 'x',
-      top: [{ span: [0, 100], kind: 'diagram-border' }],
-      bottom: [{ span: [0, 100], kind: 'diagram-border' }],
-    });
-    expect(rangeQueryCount).toBe(0);
-  });
+      expect(indexer.corridorBorderProfile(0)).toEqual({
+        negative: [offset, offset + 100],
+        positive: [offset, offset + 100],
+        diagramBorderSides: 3,
+      });
+      expect(indexer.corridorBorderProfile(1)).toEqual({
+        negative: [offset, offset + 120],
+        positive: [offset, offset + 120],
+        diagramBorderSides: 3,
+      });
+    },
+  );
 
   it('clips a separated caption spill out of corridor wall profiles', () => {
     const entity: LayoutEntity = {
@@ -89,10 +50,10 @@ describe('corridor indexer border profiles', () => {
       { x: -100, y: -100, width: 300, height: 300 },
     );
 
-    expect(indexer.corridors[0].borderProfile).toEqual({
-      axis: 'x',
-      top: [],
-      bottom: [],
+    expect(indexer.corridorBorderProfile(0)).toEqual({
+      negative: [],
+      positive: [],
+      diagramBorderSides: 0,
     });
     expect(indexer.wallFacesForCorridor(0)).toEqual([]);
   });
@@ -114,11 +75,46 @@ describe('corridor indexer border profiles', () => {
       { x: -100, y: -100, width: 300, height: 300 },
     );
 
-    expect(indexer.corridors[0].borderProfile).toEqual({
-      axis: 'x',
-      top: [],
-      bottom: [],
+    expect(indexer.corridorBorderProfile(0)).toEqual({
+      negative: [],
+      positive: [],
+      diagramBorderSides: 0,
     });
     expect(indexer.wallFacesForCorridor(0)).toEqual([]);
   });
+
+  it.each(['x', 'y'] as const)(
+    'unions overlapping and touching %s-wall spans while preserving gaps and clipping',
+    (axis) => {
+      const orient = (rect: PositionProps): PositionProps =>
+        axis === 'x' ? rect : { x: rect.y, y: rect.x, width: rect.height, height: rect.width };
+      const entities = [
+        { id: 'clipped-start', x: -10, y: 0, width: 30, height: 10 },
+        { id: 'duplicate', x: 0, y: 0, width: 20, height: 10 },
+        { id: 'nested', x: 5, y: 0, width: 10, height: 10 },
+        { id: 'overlap', x: 15, y: 0, width: 15, height: 10 },
+        { id: 'touch', x: 30, y: 0, width: 10, height: 10 },
+        { id: 'clipped-end', x: 50, y: 0, width: 70, height: 10 },
+        { id: 'point-only', x: 100, y: 30, width: 10, height: 10 },
+        { id: 'other-wall', x: 70, y: 30, width: 10, height: 10 },
+        { id: 'off-wall', x: 0, y: 1, width: 100, height: 8 },
+      ].map((entity) => ({ id: entity.id, ...orient(entity) }));
+      const negative = [0, 40, 50, 100];
+      const positive = [70, 80];
+      for (const ordered of [entities, [...entities].reverse()]) {
+        const indexer = new CorridorIndexer(
+          [{ index: 0, axis, rect: orient({ x: 0, y: 10, width: 100, height: 20 }) }],
+          [],
+          [],
+          new LayoutManager({ entities: ordered, connections: [] }),
+          { x: -100, y: -100, width: 300, height: 300 },
+        );
+        expect(indexer.corridorBorderProfile(0)).toEqual({
+          negative,
+          positive,
+          diagramBorderSides: 0,
+        });
+      }
+    },
+  );
 });

@@ -1,21 +1,31 @@
 import { PriorityQueue } from '../../PriorityQueue.js';
-import { clampToSpan, intersectSpans, midpoint, spanContains } from '../../rangeUtils.js';
+import {
+  axisOrthMin,
+  axisStart,
+  clampToSpan,
+  intersectSpans,
+  midpoint,
+  spanContains,
+} from '../../rangeUtils.js';
 import type { Axis, AxisSpan } from '../../types.js';
+import { isPointAttachment, isPointEndpoint } from './contract.js';
 import type {
   Corridor,
-  CorridorBorderSpan,
+  EntityRouteEndpoint,
+  PointRouteEndpoint,
   PortalRef,
   RouteEndpoint,
   RouteSearchRequest,
   TerminalAttachment,
 } from './contract.js';
 import {
-  corridorCrossSpan,
-  corridorTravelSpan,
   faceCrossSpan,
   faceNormalAxis,
   manhattanCoords,
+  attachmentCrossSpan,
+  crossSpanOf,
   terminalFacePlane,
+  travelSpanOf,
 } from './geometry.js';
 import { ordinaryBendCost } from './qualityCost.js';
 import { Route, type CorridorVisit, type VisitBoundary } from './route.js';
@@ -65,6 +75,8 @@ interface RouteTopologyCost {
   readonly corridorPenalty?: number;
   /** Estimated realization cost of retracking at same-axis continuation portals. */
   readonly portalPenalty?: number;
+  /** Soft family prices on actual, directed turns; never continuation portals. */
+  readonly turnPortalPenalty?: number;
   readonly total: number;
 }
 
@@ -97,16 +109,59 @@ interface RouteSearchOptions {
   readonly requiredCorridorIndex?: number;
   /** Additive prices charged whenever this search enters a corridor. */
   readonly corridorEntryPenalties?: ReadonlyMap<number, number>;
+  /** Key: 2 * portal.index + Number(incomingCorridor.axis === 'y'). */
+  readonly turnPortalPenalties?: ReadonlyMap<number, number>;
   /** Skip the small preference for centered terminal attachments. */
   readonly preferCenteredTerminalAttachments?: boolean;
 }
 
-interface ResolvedEndpoint {
-  readonly endpoint: RouteEndpoint;
+interface ResolvedEntityEndpoint {
+  readonly kind: 'entity';
+  readonly endpoint: EntityRouteEndpoint;
   readonly axis: Axis;
   readonly plane: number;
   readonly crossSpan: AxisSpan;
   readonly attachments: readonly TerminalAttachment[];
+}
+
+interface ResolvedPointEndpoint {
+  readonly kind: 'point';
+  readonly endpoint: PointRouteEndpoint;
+  readonly attachments: readonly TerminalAttachment[];
+}
+
+type ResolvedEndpoint = ResolvedEntityEndpoint | ResolvedPointEndpoint;
+
+/**
+ * The endpoint's hard cross coordinate in a corridor of the given axis, or
+ * undefined when the endpoint leaves the track to search/spacing. Point
+ * endpoints are always pinned; entity endpoints are pinned iff authored.
+ */
+function endpointPinnedCross(endpoint: ResolvedEndpoint, corridorAxis: Axis): number | undefined {
+  if (endpoint.kind === 'point') {
+    return axisOrthMin(endpoint.endpoint, corridorAxis);
+  }
+  return endpoint.endpoint.authoredTrack;
+}
+
+/** The endpoint's terminal plane on a corridor of the given travel axis. */
+function endpointPlane(endpoint: ResolvedEndpoint, corridorAxis: Axis): number {
+  if (endpoint.kind === 'point') {
+    return axisStart(endpoint.endpoint, corridorAxis);
+  }
+  return endpoint.plane;
+}
+
+/**
+ * Where the endpoint wants to attach on a corridor of the given axis: its pinned cross,
+ * else the entity's preferred track.
+ */
+function endpointDesiredCross(endpoint: ResolvedEndpoint, corridorAxis: Axis): number {
+  // Point endpoints are always pinned, so only entity endpoints reach the preferred track.
+  return (
+    endpointPinnedCross(endpoint, corridorAxis) ??
+    preferredEndpointTrack(endpoint as ResolvedEntityEndpoint)
+  );
 }
 
 interface SearchLabel {
@@ -120,6 +175,7 @@ interface SearchLabel {
   readonly sourceTerminal: number;
   readonly corridorPenalty: number;
   readonly portalPenalty: number;
+  readonly turnPortalPenalty: number;
   readonly cost: number;
   readonly estimatedTotal: number;
   readonly cameFrom: number;
@@ -151,9 +207,10 @@ type DominanceFields = Pick<
  * that has already bent.
  */
 function dominates(
+  world: CorridorWorld,
   dominator: DominanceFields,
   contender: DominanceFields,
-  corridor: CorridorWorld['indexer']['corridors'][number],
+  corridor: Corridor,
 ): boolean {
   return (
     (dominator.bendCount + dominator.predictedBendCount === 0) ===
@@ -161,6 +218,7 @@ function dominates(
     spanContains(dominator.feasibleTrack, contender.feasibleTrack, EPSILON) &&
     dominator.cost +
       sectionTravelCost(
+        world,
         corridor,
         dominator.representativeX,
         dominator.representativeY,
@@ -239,11 +297,10 @@ export function continuationBendPenalty(
   ) {
     return 0;
   }
-  const negativeSpan = corridorCrossSpan(world.indexer.corridors[portal.negativeCorridorIndex]);
-  const positiveSpan = corridorCrossSpan(world.indexer.corridors[portal.positiveCorridorIndex]);
+  const spans = world.indexer.spans;
   if (
-    spanContains(negativeSpan, positiveSpan, EPSILON) ||
-    spanContains(positiveSpan, negativeSpan, EPSILON)
+    spans.crossContains(portal.negativeCorridorIndex, portal.positiveCorridorIndex, EPSILON) ||
+    spans.crossContains(portal.positiveCorridorIndex, portal.negativeCorridorIndex, EPSILON)
   ) {
     return 0;
   }
@@ -284,6 +341,7 @@ export function searchRoute(
     options.hiddenPortalIndexes,
     options.requiredCorridorIndex,
     options.corridorEntryPenalties,
+    options.turnPortalPenalties,
     options.preferCenteredTerminalAttachments !== false,
   );
   runs.push(run);
@@ -302,6 +360,7 @@ export function searchRoute(
       options.hiddenPortalIndexes,
       options.requiredCorridorIndex,
       options.corridorEntryPenalties,
+      options.turnPortalPenalties,
       options.preferCenteredTerminalAttachments !== false,
     );
     runs.push(run);
@@ -317,6 +376,7 @@ export function searchRoute(
 
   const corridorPenalty = run.hit.corridorPenalty ?? 0;
   const portalPenalty = run.hit.portalPenalty ?? 0;
+  const turnPortalPenalty = run.hit.turnPortalPenalty ?? 0;
   const cost: RouteTopologyCost = {
     distance: run.hit.distance,
     bendCount: run.hit.bendCount,
@@ -324,6 +384,7 @@ export function searchRoute(
     terminal: run.hit.terminal,
     ...(corridorPenalty > EPSILON ? { corridorPenalty } : {}),
     ...(portalPenalty > EPSILON ? { portalPenalty } : {}),
+    ...(turnPortalPenalty > EPSILON ? { turnPortalPenalty } : {}),
     total: run.hit.total,
   };
   return {
@@ -358,6 +419,7 @@ function runSearch(
   hiddenPortalIndexes: ReadonlySet<number> | undefined,
   requiredCorridorIndex: number | undefined,
   corridorEntryPenalties: ReadonlyMap<number, number> | undefined,
+  turnPortalPenalties: ReadonlyMap<number, number> | undefined,
   preferCenteredTerminalAttachments: boolean,
 ): SearchRun {
   const { indexer } = world;
@@ -367,7 +429,7 @@ function runSearch(
   // attachment. Other faces retain the distance-sensitive alignment policy
   // and leave centering to spacing on the selected route.
   const sharedTerminalAlignmentWeight = shortTerminalGapWeight(source, target);
-  const wideColumnTerminalAlignmentWeight = (endpoint: ResolvedEndpoint): number => {
+  const wideColumnTerminalAlignmentWeight = (endpoint: ResolvedEntityEndpoint): number => {
     const entity = world.entities[endpoint.endpoint.entityIndex];
     const faceSpan = faceCrossSpan(entity, endpoint.endpoint.face);
     return entity.isContainer !== true &&
@@ -377,7 +439,9 @@ function runSearch(
       : 0;
   };
   const terminalAlignmentWeight = (endpoint: ResolvedEndpoint): number =>
-    !hasEndpointMarkerMetadata || world.entities[endpoint.endpoint.entityIndex].isContainer === true
+    endpoint.kind === 'point' ||
+    !hasEndpointMarkerMetadata ||
+    world.entities[endpoint.endpoint.entityIndex].isContainer === true
       ? sharedTerminalAlignmentWeight
       : Math.max(sharedTerminalAlignmentWeight, wideColumnTerminalAlignmentWeight(endpoint));
   const forceDirectContainerCentering = alignedTerminalCenters(world, source, target);
@@ -398,7 +462,11 @@ function runSearch(
     { endpoint, centering }: EndpointAlignment,
     attachment: TerminalAttachment,
   ): number => {
-    if (!preferCenteredTerminalAttachments) {
+    if (
+      !preferCenteredTerminalAttachments ||
+      endpoint.kind === 'point' ||
+      isPointAttachment(attachment)
+    ) {
       return 0;
     }
     const center = preferredEndpointTrack(endpoint);
@@ -440,6 +508,7 @@ function runSearch(
     sourceTerminal: number,
     corridorPenalty: number,
     portalPenalty: number,
+    turnPortalPenalty: number,
     cost: number,
     cameFrom: number,
     entry: VisitBoundary,
@@ -458,7 +527,7 @@ function runSearch(
     };
     for (const otherId of live) {
       const other = labels[otherId];
-      if (!other.dead && dominates(other, candidate, corridor)) {
+      if (!other.dead && dominates(world, other, candidate, corridor)) {
         return;
       }
     }
@@ -475,6 +544,7 @@ function runSearch(
       sourceTerminal,
       corridorPenalty,
       portalPenalty,
+      turnPortalPenalty,
       cost,
       estimatedTotal: cost + distanceToEndpoint(representativeX, representativeY, target),
       cameFrom,
@@ -490,7 +560,7 @@ function runSearch(
       if (other.dead) {
         continue;
       }
-      if (dominates(candidate, other, corridor)) {
+      if (dominates(world, candidate, other, corridor)) {
         other.dead = true;
       } else {
         live[survivorCount] = otherId;
@@ -506,14 +576,10 @@ function runSearch(
   };
 
   for (const attachment of source.attachments) {
-    const representativeTrack = clampToSpan(
-      source.endpoint.authoredTrack ?? preferredEndpointTrack(source),
-      attachment.faceSpan,
-    );
-    const feasibleTrack: AxisSpan =
-      source.endpoint.authoredTrack === undefined
-        ? attachment.faceSpan
-        : [representativeTrack, representativeTrack];
+    const axis = indexer.corridors[attachment.corridorIndex].axis;
+    const feasibleTrack = endpointTrack(source, attachment, axis);
+    const representativeCross = clampToSpan(endpointDesiredCross(source, axis), feasibleTrack);
+    const plane = endpointPlane(source, axis);
     const sourceTerminal = terminalAttachmentCost(sourceAlignment, attachment);
     const corridorPenalty = corridorEntryPenalty(
       world,
@@ -523,13 +589,14 @@ function runSearch(
     addLabel(
       attachment.corridorIndex,
       feasibleTrack,
-      source.axis === 'x' ? source.plane : representativeTrack,
-      source.axis === 'x' ? representativeTrack : source.plane,
+      axis === 'x' ? plane : representativeCross,
+      axis === 'x' ? representativeCross : plane,
       0,
       0,
       0,
       sourceTerminal,
       corridorPenalty,
+      0,
       0,
       sourceTerminal + corridorPenalty,
       -1,
@@ -559,16 +626,17 @@ function runSearch(
     const corridor = indexer.corridors[label.corridorIndex];
     const targetAttachments = targetsByCorridor[label.corridorIndex];
     if (targetAttachments && label.requiredCorridorVisited) {
+      const targetPinnedCross = endpointPinnedCross(target, corridor.axis);
       for (const attachment of targetAttachments) {
         const feasibleTrack = intersectSpans(
           label.feasibleTrack,
-          endpointTrack(target, attachment),
+          endpointTrack(target, attachment, corridor.axis),
           EPSILON,
         );
         if (
           !feasibleTrack ||
           (label.bendCount > 0 &&
-            target.endpoint.authoredTrack === undefined &&
+            targetPinnedCross === undefined &&
             (feasibleTrack[1] - feasibleTrack[0] <= EPSILON ||
               terminalTurnOverlapOnlyNearCorner(target, feasibleTrack)))
         ) {
@@ -576,13 +644,14 @@ function runSearch(
         }
         const finishCandidates = [clampToSpan(crossOf(corridor.axis, label), feasibleTrack)];
         const preferredFinish = clampToSpan(
-          target.endpoint.authoredTrack ?? preferredEndpointTrack(target),
+          endpointDesiredCross(target, corridor.axis),
           feasibleTrack,
         );
         pushDistinct(finishCandidates, preferredFinish);
+        const targetPlane = endpointPlane(target, corridor.axis);
         for (const finishCross of finishCandidates) {
-          const finishX = corridor.axis === 'x' ? target.plane : finishCross;
-          const finishY = corridor.axis === 'x' ? finishCross : target.plane;
+          const finishX = corridor.axis === 'x' ? targetPlane : finishCross;
+          const finishY = corridor.axis === 'x' ? finishCross : targetPlane;
           const incrementalDistance = manhattanCoords(
             label.representativeX,
             label.representativeY,
@@ -609,6 +678,7 @@ function runSearch(
             label.sourceTerminal +
             sourceTerminal +
             sectionTravelCost(
+              world,
               corridor,
               label.representativeX,
               label.representativeY,
@@ -630,11 +700,13 @@ function runSearch(
                   ordinaryBendCost(label.bendCount) -
                   terminal -
                   corridorPenalty -
-                  portalPenalty,
+                  portalPenalty -
+                  label.turnPortalPenalty,
               ),
               terminal,
               corridorPenalty,
               portalPenalty,
+              turnPortalPenalty: label.turnPortalPenalty,
               total,
             };
           }
@@ -697,8 +769,10 @@ function runSearch(
           label.sourceTerminal,
           label.corridorPenalty + corridorPenalty,
           portalPenalty,
+          label.turnPortalPenalty,
           label.cost +
             sectionTravelCost(
+              world,
               corridor,
               label.representativeX,
               label.representativeY,
@@ -716,24 +790,27 @@ function runSearch(
       }
       const reachableTrack = intersectSpans(
         label.feasibleTrack,
-        portalCrossSpan(portal, corridor.axis),
+        crossSpanOf(corridor.axis, portal.rect),
         EPSILON,
       );
+      const sourcePinnedCross = endpointPinnedCross(source, corridor.axis);
       if (
         !reachableTrack ||
         (reachableTrack[1] - reachableTrack[0] <= EPSILON &&
-          (label.bendCount > 0 || source.endpoint.authoredTrack === undefined)) ||
+          (label.bendCount > 0 || sourcePinnedCross === undefined)) ||
         (label.bendCount === 0 &&
-          source.endpoint.authoredTrack === undefined &&
+          sourcePinnedCross === undefined &&
           terminalTurnOverlapOnlyNearCorner(source, reachableTrack))
       ) {
         continue;
       }
 
-      const portalTravel = portalTravelSpan(portal, corridor.axis);
+      const portalTravel = travelSpanOf(corridor.axis, portal.rect);
       const turnCross = clampToSpan(crossOf(corridor.axis, label), reachableTrack);
       const otherCorridorIndex = indexer.otherCorridorIndex(portal, label.corridorIndex);
       const otherCorridor = indexer.corridors[otherCorridorIndex];
+      const turnPrice =
+        turnPortalPenalties?.get(2 * portal.index + Number(corridor.axis === 'y')) ?? 0;
       const corridorPenalty = corridorEntryPenalty(
         world,
         corridorEntryPenalties,
@@ -741,12 +818,16 @@ function runSearch(
       );
       const turnTravels = [clampToSpan(travelOf(corridor.axis, label), portalTravel)];
       for (const attachment of targetsByCorridor[otherCorridorIndex] ?? []) {
-        const targetSpan = intersectSpans(portalTravel, endpointTrack(target, attachment), EPSILON);
+        const targetSpan = intersectSpans(
+          portalTravel,
+          endpointTrack(target, attachment, otherCorridor.axis),
+          EPSILON,
+        );
         if (!targetSpan) {
           continue;
         }
         const targetTrack = clampToSpan(
-          target.endpoint.authoredTrack ?? preferredEndpointTrack(target),
+          endpointDesiredCross(target, otherCorridor.axis),
           targetSpan,
         );
         pushDistinct(turnTravels, targetTrack);
@@ -782,10 +863,12 @@ function runSearch(
           sourceTerminal,
           label.corridorPenalty + corridorPenalty,
           portalPenalty,
+          label.turnPortalPenalty + turnPrice,
           label.cost +
             sourceTerminal -
             label.sourceTerminal +
             sectionTravelCost(
+              world,
               corridor,
               label.representativeX,
               label.representativeY,
@@ -793,9 +876,16 @@ function runSearch(
               turnY,
             ) +
             terminalTransitionTrackNarrowingCost(source, label, reachableTrack) +
-            intermediateTurnTrackNarrowingCost(label, reachableTrack, otherCorridor, portal) +
+            intermediateTurnTrackNarrowingCost(
+              world,
+              label,
+              reachableTrack,
+              otherCorridor,
+              portal,
+            ) +
             bendIncrement +
-            corridorPenalty,
+            corridorPenalty +
+            turnPrice,
           labelId,
           { kind: 'portal', portalIndex: portal.index, mode: 'turn' },
           label.requiredCorridorVisited || otherCorridorIndex === requiredCorridorIndex,
@@ -820,7 +910,8 @@ function continuesOutwardFromSource(
   corridor: Corridor,
   plane: number,
 ): boolean {
-  if (label.bendCount > 0 || corridor.axis !== source.axis) {
+  // A point terminal has no face; travel away from it is legal in any direction.
+  if (source.kind === 'point' || label.bendCount > 0 || corridor.axis !== source.axis) {
     return true;
   }
   const currentTravel = corridor.axis === 'x' ? label.representativeX : label.representativeY;
@@ -906,7 +997,7 @@ function localVisitTrack(
   source?: ResolvedEndpoint,
   target?: ResolvedEndpoint,
 ): AxisSpan {
-  let feasibleTrack = corridorCrossSpan(corridor);
+  let feasibleTrack = world.indexer.spans.crossSpan(corridor.index);
   for (const boundary of [entry, exit]) {
     if (boundary.kind !== 'portal') {
       continue;
@@ -915,7 +1006,7 @@ function localVisitTrack(
     if (portal.kind === 'turn') {
       feasibleTrack = requireIntersection(
         feasibleTrack,
-        portalCrossSpan(portal, corridor.axis),
+        crossSpanOf(corridor.axis, portal.rect),
         `turn portal ${portal.index}`,
       );
     }
@@ -924,7 +1015,7 @@ function localVisitTrack(
     const attachment = terminalAttachment(world, entry, 'source');
     feasibleTrack = requireIntersection(
       feasibleTrack,
-      endpointTrack(source, attachment),
+      endpointTrack(source, attachment, corridor.axis),
       'source terminal',
     );
   }
@@ -932,7 +1023,7 @@ function localVisitTrack(
     const attachment = terminalAttachment(world, exit, 'target');
     feasibleTrack = requireIntersection(
       feasibleTrack,
-      endpointTrack(target, attachment),
+      endpointTrack(target, attachment, corridor.axis),
       'target terminal',
     );
   }
@@ -963,29 +1054,42 @@ function resolveEndpoint(
   endpoint: RouteEndpoint,
   hiddenAttachmentIndexes?: ReadonlySet<number>,
 ): ResolvedEndpoint {
+  const attachments = world.indexer
+    .attachmentsForEndpoint(endpoint)
+    .filter((attachmentIndex) => !hiddenAttachmentIndexes?.has(attachmentIndex))
+    .map((attachmentIndex) => world.indexer.attachments[attachmentIndex]);
+  if (isPointEndpoint(endpoint)) {
+    return { kind: 'point', endpoint, attachments };
+  }
   const entity = world.entities[endpoint.entityIndex];
   const axis = faceNormalAxis(endpoint.face);
   return {
+    kind: 'entity',
     endpoint,
     axis,
     plane: terminalFacePlane(entity, endpoint.face),
     crossSpan: faceCrossSpan(entity, endpoint.face),
-    attachments: world.indexer
-      .attachmentsForEndpoint(endpoint)
-      .filter((attachmentIndex) => !hiddenAttachmentIndexes?.has(attachmentIndex))
-      .map((attachmentIndex) => world.indexer.attachments[attachmentIndex]),
+    attachments,
   };
 }
 
-function endpointTrack(endpoint: ResolvedEndpoint, attachment: TerminalAttachment): AxisSpan {
-  if (endpoint.endpoint.authoredTrack === undefined) {
-    return attachment.faceSpan;
+function endpointTrack(
+  endpoint: ResolvedEndpoint,
+  attachment: TerminalAttachment,
+  corridorAxis: Axis,
+): AxisSpan {
+  const attachmentSpan = attachmentCrossSpan(attachment, corridorAxis);
+  if (endpoint.kind === 'point' || endpoint.endpoint.authoredTrack === undefined) {
+    return attachmentSpan;
   }
-  const track = clampToSpan(endpoint.endpoint.authoredTrack, attachment.faceSpan);
+  const track = clampToSpan(endpoint.endpoint.authoredTrack, attachmentSpan);
   return [track, track];
 }
 
 function terminalTurnOverlapOnlyNearCorner(endpoint: ResolvedEndpoint, overlap: AxisSpan): boolean {
+  if (endpoint.kind === 'point') {
+    return false;
+  }
   const overlapMidpoint = midpoint(overlap);
   return (
     overlapMidpoint <= endpoint.crossSpan[0] + TERMINAL_TURN_CORNER_CLEARANCE_PX + EPSILON ||
@@ -994,9 +1098,12 @@ function terminalTurnOverlapOnlyNearCorner(endpoint: ResolvedEndpoint, overlap: 
 }
 
 function distanceToEndpoint(x: number, y: number, endpoint: ResolvedEndpoint): number {
+  if (endpoint.kind === 'point') {
+    return manhattanCoords(x, y, endpoint.endpoint.x, endpoint.endpoint.y);
+  }
   let best = Number.POSITIVE_INFINITY;
   for (const attachment of endpoint.attachments) {
-    const targetSpan = endpointTrack(endpoint, attachment);
+    const targetSpan = endpointTrack(endpoint, attachment, endpoint.axis);
     const distance =
       endpoint.axis === 'x'
         ? Math.abs(x - endpoint.plane) + distanceToSpan(y, targetSpan)
@@ -1012,7 +1119,7 @@ function terminalAlignmentCost(
   track: number,
   singletonCenteringAllowed: boolean,
 ): number {
-  if (endpoint.endpoint.authoredTrack !== undefined) {
+  if (endpoint.kind === 'point' || endpoint.endpoint.authoredTrack !== undefined) {
     return 0;
   }
   const faceLength = endpoint.crossSpan[1] - endpoint.crossSpan[0];
@@ -1036,6 +1143,8 @@ function terminalAlignmentCost(
 
 function straightTerminalAlignmentCost(source: ResolvedEndpoint, target: ResolvedEndpoint): number {
   if (
+    source.kind === 'point' ||
+    target.kind === 'point' ||
     source.axis !== target.axis ||
     source.endpoint.authoredTrack !== undefined ||
     target.endpoint.authoredTrack !== undefined
@@ -1056,6 +1165,8 @@ function alignedTerminalCenters(
   target: ResolvedEndpoint,
 ): boolean {
   return (
+    source.kind === 'entity' &&
+    target.kind === 'entity' &&
     source.axis === target.axis &&
     world.entities[source.endpoint.entityIndex].isContainer === true &&
     world.entities[target.endpoint.entityIndex].isContainer === true &&
@@ -1065,12 +1176,12 @@ function alignedTerminalCenters(
   );
 }
 
-function preferredEndpointTrack(endpoint: ResolvedEndpoint): number {
+function preferredEndpointTrack(endpoint: ResolvedEntityEndpoint): number {
   return endpoint.endpoint.preferredTrack ?? midpoint(endpoint.crossSpan);
 }
 
 function shortTerminalGapWeight(source: ResolvedEndpoint, target: ResolvedEndpoint): number {
-  if (source.axis !== target.axis) {
+  if (source.kind === 'point' || target.kind === 'point' || source.axis !== target.axis) {
     return 0;
   }
   const normalGap = Math.abs(source.plane - target.plane);
@@ -1081,33 +1192,14 @@ function shortTerminalGapWeight(source: ResolvedEndpoint, target: ResolvedEndpoi
   );
 }
 
-function portalCrossSpan(portal: Extract<PortalRef, { kind: 'turn' }>, axis: Axis): AxisSpan {
-  return axis === 'x'
-    ? [portal.rect.y, portal.rect.y + portal.rect.height]
-    : [portal.rect.x, portal.rect.x + portal.rect.width];
-}
-
-function portalTravelSpan(portal: Extract<PortalRef, { kind: 'turn' }>, axis: Axis): AxisSpan {
-  return axis === 'x'
-    ? [portal.rect.x, portal.rect.x + portal.rect.width]
-    : [portal.rect.y, portal.rect.y + portal.rect.height];
-}
-
 function distanceToSpan(value: number, span: AxisSpan): number {
   return value < span[0] ? span[0] - value : value > span[1] ? value - span[1] : 0;
 }
 
-function wallAdjacentLength(
-  borders: readonly CorridorBorderSpan[],
-  low: number,
-  high: number,
-): number {
+function wallAdjacentLength(borders: readonly number[], low: number, high: number): number {
   let length = 0;
-  for (const border of borders) {
-    if (border.kind !== 'entity') {
-      continue;
-    }
-    const overlap = Math.min(high, border.span[1]) - Math.max(low, border.span[0]);
+  for (let index = 0; index < borders.length; index += 2) {
+    const overlap = Math.min(high, borders[index + 1]) - Math.max(low, borders[index]);
     if (overlap > 0) {
       length += overlap;
     }
@@ -1122,7 +1214,8 @@ function wallAdjacentLength(
  * pays by how far the corridor's centered track stays below the clearance target.
  */
 function sectionTravelCost(
-  corridor: CorridorWorld['indexer']['corridors'][number],
+  world: CorridorWorld,
+  corridor: Corridor,
   fromX: number,
   fromY: number,
   toX: number,
@@ -1138,11 +1231,10 @@ function sectionTravelCost(
   }
   const low = corridor.axis === 'x' ? Math.min(fromX, toX) : Math.min(fromY, toY);
   const high = corridor.axis === 'x' ? Math.max(fromX, toX) : Math.max(fromY, toY);
-  const profile = corridor.borderProfile;
+  const profile = world.indexer.corridorBorderProfile(corridor.index);
   const wallLength =
-    profile.axis === 'x'
-      ? wallAdjacentLength(profile.top, low, high) + wallAdjacentLength(profile.bottom, low, high)
-      : wallAdjacentLength(profile.left, low, high) + wallAdjacentLength(profile.right, low, high);
+    ((profile.diagramBorderSides & 1) === 0 ? wallAdjacentLength(profile.negative, low, high) : 0) +
+    ((profile.diagramBorderSides & 2) === 0 ? wallAdjacentLength(profile.positive, low, high) : 0);
   return distance + 0.5 * wallLength * deficit * deficit * NARROW_SECTION_WEIGHT;
 }
 
@@ -1166,6 +1258,7 @@ function terminalTransitionTrackNarrowingCost(
   reachable: AxisSpan,
 ): number {
   if (
+    source.kind === 'point' ||
     source.crossSpan[1] - source.crossSpan[0] > TERMINAL_TRANSITION_MAX_FACE_PX ||
     label.bendCount !== 0 ||
     label.entry.kind !== 'terminal' ||
@@ -1177,6 +1270,7 @@ function terminalTransitionTrackNarrowingCost(
 }
 
 function intermediateTurnTrackNarrowingCost(
+  world: CorridorWorld,
   label: SearchLabel,
   reachable: AxisSpan,
   nextCorridor: Corridor,
@@ -1189,11 +1283,11 @@ function intermediateTurnTrackNarrowingCost(
   ) {
     return 0;
   }
-  const nextTravel = corridorTravelSpan(nextCorridor);
-  const nextPortalTravel = portalTravelSpan(portal, nextCorridor.axis);
+  const spans = world.indexer.spans;
+  const nextPortalTravel = travelSpanOf(nextCorridor.axis, portal.rect);
   const onwardTravel = Math.max(
-    nextPortalTravel[0] - nextTravel[0],
-    nextTravel[1] - nextPortalTravel[1],
+    nextPortalTravel[0] - spans.travelStarts[nextCorridor.index],
+    spans.travelEnds[nextCorridor.index] - nextPortalTravel[1],
   );
   if (onwardTravel < INTERMEDIATE_TURN_MIN_ONWARD_TRAVEL_PX) {
     return 0;

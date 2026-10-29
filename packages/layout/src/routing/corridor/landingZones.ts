@@ -1,4 +1,6 @@
 import {
+  axisOrthMax,
+  axisOrthMin,
   intersectPositiveSpans,
   spanContains,
   spanLength,
@@ -6,8 +8,9 @@ import {
   spansEqual,
 } from '../../rangeUtils.js';
 import type { Axis, AxisSpan, Direction, LayoutEntity, PositionProps } from '../../types.js';
-import { touchExternalTextRangeToEntityClippedToBodyFace } from '../textPlacements.js';
+import { buildExternalTextEntities, type ExternalTextEntity } from './externalTextGeometry.js';
 import { OPPOSITE_DIRECTION } from '../../directionUtils.js';
+import { isPointEndpoint } from './contract.js';
 import type { RouteSearchRequest } from './contract.js';
 import { certifiedRunFrom, type FreeSpaceSubstrate } from './freeSpaceSubstrate.js';
 import {
@@ -18,7 +21,6 @@ import {
   outwardSign,
   rectsOverlap,
   terminalFacePlane,
-  crossSpanOf,
 } from './geometry.js';
 
 /**
@@ -52,9 +54,9 @@ export function planLandingZones(
   entities: readonly LayoutEntity[],
   requests: readonly RouteSearchRequest[],
   freeSpace: FreeSpaceSubstrate,
+  externalTextEntities: readonly ExternalTextEntity[] = buildExternalTextEntities(entities),
 ): readonly LandingZoneRect[] {
   const faces = usedFaces(entities, requests);
-  const nearest = faces.map((face, index) => nearestOpposingFace(faces, face, index));
   const handled = new Uint8Array(faces.length);
   const zoneRects: LandingZoneRect[] = [];
 
@@ -63,6 +65,14 @@ export function planLandingZones(
       handled[index] = 1;
     }
   }
+  const byDirection: Record<Direction, number[]> = { up: [], right: [], down: [], left: [] };
+  faces.forEach((face, index) => byDirection[face.face].push(index));
+  // Certified faces never enter pairing; keep them as candidates for the other faces.
+  const nearest = faces.map((face, index) =>
+    handled[index]
+      ? undefined
+      : nearestOpposingFace(faces, face, byDirection[OPPOSITE_DIRECTION[face.face]]),
+  );
 
   for (let index = 0; index < faces.length; index += 1) {
     if (handled[index]) {
@@ -78,20 +88,37 @@ export function planLandingZones(
       const opposite = faces[oppositeIndex];
       handled[index] = 1;
       handled[oppositeIndex] = 1;
-      const shared = sharedZone(face, opposite, entities);
+      const shared = sharedZone(face, opposite, entities, externalTextEntities);
       if (shared) {
         zoneRects.push({ ...shared, axis: faceNormalAxis(face.face) });
         continue;
       }
       const gap = Math.abs(opposite.plane - face.plane);
-      if (gap > LANDING_ZONE_MIN_DEPTH_PX * 2 && nestedFaceSpan(face, opposite, entities)) {
+      if (
+        gap > LANDING_ZONE_MIN_DEPTH_PX * 2 &&
+        nestedFaceSpan(face, opposite, entities, externalTextEntities)
+      ) {
         // Let the narrower face consume slack left by a shallow wider-face zone. The later
         // profile subtraction turns any overlap into two touching containment continuations.
         const [outer, inner] = spanContains(face.crossSpan, opposite.crossSpan, 0)
           ? [face, opposite]
           : [opposite, face];
-        addIndividualZone(zoneRects, outer, bounds, entities, preferredDepthForFace(outer));
-        addIndividualZone(zoneRects, inner, bounds, entities, preferredDepthForFace(inner));
+        addIndividualZone(
+          zoneRects,
+          outer,
+          bounds,
+          entities,
+          externalTextEntities,
+          preferredDepthForFace(outer),
+        );
+        addIndividualZone(
+          zoneRects,
+          inner,
+          bounds,
+          entities,
+          externalTextEntities,
+          preferredDepthForFace(inner),
+        );
         continue;
       }
       addIndividualZone(
@@ -99,6 +126,7 @@ export function planLandingZones(
         face,
         bounds,
         entities,
+        externalTextEntities,
         Math.min(preferredDepthForFace(face), gap / 2),
       );
       addIndividualZone(
@@ -106,12 +134,20 @@ export function planLandingZones(
         opposite,
         bounds,
         entities,
+        externalTextEntities,
         Math.min(preferredDepthForFace(opposite), gap / 2),
       );
       continue;
     }
     handled[index] = 1;
-    addIndividualZone(zoneRects, face, bounds, entities, preferredDepthForFace(face));
+    addIndividualZone(
+      zoneRects,
+      face,
+      bounds,
+      entities,
+      externalTextEntities,
+      preferredDepthForFace(face),
+    );
   }
 
   return zoneRects;
@@ -121,6 +157,7 @@ function nestedFaceSpan(
   first: UsedFace,
   second: UsedFace,
   entities: readonly LayoutEntity[],
+  externalTextEntities: readonly ExternalTextEntity[],
 ): boolean {
   if (spansEqual(first.crossSpan, second.crossSpan, 0)) {
     return false;
@@ -142,6 +179,7 @@ function nestedFaceSpan(
   return leafClear(
     expandRect(bridge, LANDING_ZONE_JOIN_CLEARANCE_PX),
     entities,
+    externalTextEntities,
     first.entityIndex,
     second.entityIndex,
   );
@@ -180,6 +218,10 @@ function usedFaces(
   >();
   for (const request of requests) {
     for (const endpoint of [request.from, request.to]) {
+      // Point terminals sit in free space and need no landing runway.
+      if (isPointEndpoint(endpoint)) {
+        continue;
+      }
       const key = `${endpoint.entityIndex}:${faceOrder(endpoint.face)}`;
       const existing = byKey.get(key) ?? {
         entityIndex: endpoint.entityIndex,
@@ -213,19 +255,14 @@ function usedFaces(
 function nearestOpposingFace(
   faces: readonly UsedFace[],
   source: UsedFace,
-  sourceIndex: number,
+  candidates: readonly number[],
 ): number | undefined {
   let best: number | undefined;
   let bestGap = Number.POSITIVE_INFINITY;
-  for (let index = 0; index < faces.length; index += 1) {
+  for (const index of candidates) {
     const candidate = faces[index];
     const gap = source.sign * (candidate.plane - source.plane);
-    if (
-      index === sourceIndex ||
-      candidate.face !== OPPOSITE_DIRECTION[source.face] ||
-      gap <= 0 ||
-      spanOverlapLength(source.crossSpan, candidate.crossSpan) <= 0
-    ) {
+    if (gap <= 0 || spanOverlapLength(source.crossSpan, candidate.crossSpan) <= 0) {
       continue;
     }
     if (gap < bestGap || (gap === bestGap && index < (best ?? index))) {
@@ -240,6 +277,7 @@ function sharedZone(
   first: UsedFace,
   second: UsedFace,
   entities: readonly LayoutEntity[],
+  externalTextEntities: readonly ExternalTextEntity[],
 ): PositionProps | undefined {
   const overlap = intersectPositiveSpans(first.crossSpan, second.crossSpan, 0);
   if (!overlap) {
@@ -255,7 +293,7 @@ function sharedZone(
     return undefined;
   }
   const rect = normalRect(first, Math.abs(second.plane - first.plane), overlap);
-  if (!leafClear(rect, entities, first.entityIndex, second.entityIndex)) {
+  if (!leafClear(rect, entities, externalTextEntities, first.entityIndex, second.entityIndex)) {
     return undefined;
   }
   return rect;
@@ -266,9 +304,10 @@ function addIndividualZone(
   face: UsedFace,
   bounds: PositionProps,
   entities: readonly LayoutEntity[],
+  externalTextEntities: readonly ExternalTextEntity[],
   requestedDepth: number,
 ): void {
-  const clearDepth = maximumClearDepth(face, bounds, entities);
+  const clearDepth = maximumClearDepth(face, bounds, entities, externalTextEntities);
   const depth = Math.floor(Math.min(requestedDepth, clearDepth) + FLOOR_EPSILON);
   if (depth > 0) {
     zoneRects.push({
@@ -282,6 +321,7 @@ function maximumClearDepth(
   face: UsedFace,
   bounds: PositionProps,
   entities: readonly LayoutEntity[],
+  externalTextEntities: readonly ExternalTextEntity[],
 ): number {
   const normalAxis = faceNormalAxis(face.face);
   const boundStart = normalAxis === 'x' ? bounds.x : bounds.y;
@@ -295,13 +335,13 @@ function maximumClearDepth(
     }
 
     result = determineLesserDistance(face, normalAxis, entity, result);
-    const text = touchExternalTextRangeToEntityClippedToBodyFace(entity);
-    if (text) {
-      result = determineLesserDistance(face, normalAxis, text, result);
-    }
-
     if (result <= 0) {
-      break;
+      return 0;
+    }
+  }
+  for (const text of externalTextEntities) {
+    if (text.entityIndex !== face.entityIndex && text.isContainer !== true) {
+      result = determineLesserDistance(face, normalAxis, text, result);
     }
   }
   return Math.max(0, result);
@@ -313,8 +353,10 @@ function determineLesserDistance(
   obstacle: PositionProps,
   currentDistance: number,
 ): number {
-  const obstacleCross = crossSpanOf(normalAxis, obstacle);
-  if (spanOverlapLength(face.crossSpan, obstacleCross) <= 0) {
+  if (
+    Math.min(face.crossSpan[1], axisOrthMax(obstacle, normalAxis)) <=
+    Math.max(face.crossSpan[0], axisOrthMin(obstacle, normalAxis))
+  ) {
     return currentDistance;
   }
   const start = normalAxis === 'x' ? obstacle.x : obstacle.y;
@@ -344,14 +386,24 @@ function normalRect(face: UsedFace, depth: number, crossSpan: AxisSpan): Positio
 function leafClear(
   rect: PositionProps,
   entities: readonly LayoutEntity[],
+  externalTextEntities: readonly ExternalTextEntity[],
   firstEntityIndex: number,
   secondEntityIndex?: number,
 ): boolean {
-  return entities.every((entity, index) => {
-    if (index === firstEntityIndex || index === secondEntityIndex || entity.isContainer === true) {
-      return true;
-    }
-    const text = touchExternalTextRangeToEntityClippedToBodyFace(entity);
-    return !rectsOverlap(rect, entity) && (!text || !rectsOverlap(rect, text));
-  });
+  return (
+    entities.every(
+      (entity, index) =>
+        index === firstEntityIndex ||
+        index === secondEntityIndex ||
+        entity.isContainer === true ||
+        !rectsOverlap(rect, entity),
+    ) &&
+    externalTextEntities.every(
+      (text) =>
+        text.entityIndex === firstEntityIndex ||
+        text.entityIndex === secondEntityIndex ||
+        text.isContainer === true ||
+        !rectsOverlap(rect, text),
+    )
+  );
 }

@@ -19,5 +19,7 @@ export const Relationship = connectionSchema('Relationship', {
   startArrowhead: Arrowhead,
   endArrowhead: { ...Arrowhead, default: 'triangle' },
   connectorStyle: { type: 'string', enum: [...CONNECTOR_STYLES] },
+  /** An arc's signed distance from the chord's middle to its apex, in px. */
+  bend: { type: 'number' },
   cornerStyle: { type: 'string', enum: [...CORNER_STYLES], default: 'elbow' },
 });
