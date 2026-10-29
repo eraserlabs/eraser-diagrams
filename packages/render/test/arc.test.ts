@@ -85,4 +85,16 @@ describe('routeScene with connectorStyle: arc', () => {
     expect(layout.connections['w']!.label.x).toBeCloseTo(ax, 6);
     expect(layout.connections['w']!.label.y).toBeCloseTo(ay, 6);
   });
+
+  it('puts the label of an arc with no bend on the apex of the curve it draws', () => {
+    const layout = routeScene(
+      nodes,
+      [wire('w', { connectorStyle: 'arc', points: authored })],
+      NO_INTRINSICS,
+      new Map([['w', [{ x: 0, y: 0, width: 40, height: 16 }]]]),
+    );
+    const [ax, ay] = getArcApex([100, 30], [300, 30], defaultBendForChord([100, 30], [300, 30]));
+    expect(layout.connections['w']!.label.x).toBeCloseTo(ax, 6);
+    expect(layout.connections['w']!.label.y).toBeCloseTo(ay, 6);
+  });
 });

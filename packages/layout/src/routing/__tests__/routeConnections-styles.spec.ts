@@ -201,4 +201,47 @@ describe('routeConnections style dispatch', () => {
     expect(label.x + 20).toBeCloseTo(expected.center[0], 6);
     expect(label.y + 8).toBeCloseTo(expected.center[1], 6);
   });
+
+  it('a manual elbow label follows the fallback route when corridor routing fails', () => {
+    vi.spyOn(execution, 'executeCorridorRouting').mockImplementation(() => {
+      throw new Error('routing failure');
+    });
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const elbow: LayoutConnection = {
+      id: 'e',
+      from: 'a',
+      to: 'b',
+      x: 100,
+      y: 30,
+      points: [
+        [0, 0],
+        [200, 0],
+      ],
+      textPlacement: { x: 130, y: -2, width: 40, height: 16 },
+      textLineOffset: 24,
+    };
+    const layout = layoutWith([box('a', 0, 0), box('b', 300, 0)], [elbow]);
+    layout.initiateChanges();
+    layout.updateEntity('b', { deltaY: 200 });
+    const { updates, fallbacks } = routeConnections({
+      layoutManager: layout,
+      repair: COMMIT_REPAIR,
+      updates: new Map([['b', { deltaY: 200 }]]),
+      allowShift: false,
+    });
+    expect(fallbacks.has('e')).toBe(true);
+    const route = absolute(layout.getConnectionById('e')!) as [number, number][];
+    const anchor = anchorFromStored(
+      [
+        [100, 30],
+        [300, 30],
+      ],
+      [150, 6],
+      24,
+    )!;
+    const expected = resolveManualLabel(route, anchor, { width: 40, height: 16 })!;
+    const label = updates.get('e')!.textPlacement!;
+    expect(label.x + 20).toBeCloseTo(expected.center[0], 6);
+    expect(label.y + 8).toBeCloseTo(expected.center[1], 6);
+  });
 });
