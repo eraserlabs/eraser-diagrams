@@ -1,9 +1,12 @@
 import {
+  ARC_BEND_SNAP_THRESHOLD,
   LayoutManager,
-  anchorFromStored,
-  resolveManualLabel,
-  routeCorridorConnectionBatch,
-  straightConnectionEndpoints,
+  defaultBendForChord,
+  getArcPathD,
+  getArcPolyline,
+  isArcBend,
+  routeConnections,
+  type ConnectorStyle,
   type Direction,
   type LayoutConnection,
   type LayoutEntity,
@@ -17,10 +20,11 @@ import type { ElementMeasure } from './measure.js';
 import { ELBOW_CORNER_RADIUS, toPathData } from './roundedPath.js';
 
 /**
- * The bridge onto `@eraserlabs/layout`'s corridor router. This package adapts to the router's
- * contracts, never the other way round: measured elements become `LayoutEntity`, connections become
- * `LayoutConnection`, and one `LayoutManager` per request carries the batch. The router commits its
- * geometry back onto that manager — nothing is returned but per-connection status.
+ * The bridge onto `@eraserlabs/layout`'s router. This package adapts to the layout's contracts,
+ * never the other way round: measured elements become `LayoutEntity`, connections become
+ * `LayoutConnection`, and one `LayoutManager` per request carries every connection into one
+ * `routeConnections` call. Layout makes every routing decision (which authored path to keep, how
+ * straight and arc lines attach, where labels go); this module only converts and draws.
  *
  * The dialect conventions the router keys off live here too (SPEC, "Elements"): `from`/`to` mark a
  * connection, `fromPort`/`toPort` hint its endpoint faces, `external-text` measures its label.
@@ -50,14 +54,6 @@ const FACE_BY_PORT: Record<string, Direction> = {
   left: 'left',
   right: 'right',
 };
-
-interface ManualLabelSnapshot {
-  oldRoute: Point[];
-  oldCenter: Point;
-  lineOffset: number;
-  width: number;
-  height: number;
-}
 
 /**
  * Measured `external-text` boxes per element, wrapper-relative. A connection's is its label; a
@@ -91,37 +87,15 @@ export function routeScene(
 ): SceneLayout {
   const entities = toEntities(sceneEntities, resolvedBoxes, externalText);
   const entitiesById = new Map(entities.map((entity) => [entity.id, entity]));
-  const { pinned, routed, straight, manualLabels } = toConnections(
-    sceneConnections,
-    entitiesById,
-    externalText,
-  );
-  const manager = new LayoutManager({ entities, connections: [...pinned, ...routed] });
+  const connections = toConnections(sceneConnections, entitiesById, externalText);
+  const manager = new LayoutManager({ entities, connections });
 
-  if (routed.length > 0) {
-    routeCorridorConnectionBatch({
+  if (connections.length > 0) {
+    routeConnections({
       layoutManager: manager,
-      // Label sizes ride on these copies alone: the router plans labels for what it routes, and
-      // adopted routes keep the geometry they arrived with.
-      connectionsToRoute: routed.map((connection) => ({
-        ...connection,
-        ...labelSize(externalText.get(connection.id)?.[0]),
-      })),
-      options: {
-        repair: true,
-        labels: true,
-        pinUnaffectedRoutes: true,
-        repairTimeBudgetMs: REPAIR_TIME_BUDGET_MS,
-      },
+      repair: { timeBudgetMs: REPAIR_TIME_BUDGET_MS },
+      connectionsToRoute: connections,
     });
-    restoreManualLabels(manager, manualLabels);
-  }
-
-  // Straight connections join the manager only after the batch has routed: the router adopts every
-  // incumbent's geometry into its orthogonal corridor world, and one diagonal segment would drop
-  // the entire batch to fallback routing.
-  for (const connection of straight) {
-    manager.addConnection(connection);
   }
 
   return toSceneLayout(manager, entities, cornerRadii(sceneConnections));
@@ -260,29 +234,18 @@ function textPlacement(boxes: Box[] | undefined): LayoutEntity['textPlacement'] 
 }
 
 /**
- * Split connections into three buckets. `straight` connections opt out of corridor routing
- * entirely (`connectorStyle: 'straight'`) and are held out of the manager until the batch has
- * routed. The rest split by whether the router can adopt their authored geometry. It adopts an unrouted
- * connection at its exact incumbent points but rejects geometry that is diagonal or cuts an entity
- * — and one rejection drops the entire batch to direct fallback, so anything it would refuse is
- * screened out here and routed fresh instead. A connection with an endpoint that resolves to
- * nothing collapses the batch the same way (resolve rejects those upstream; a library that permits
- * them still must not degrade every other route).
+ * Every connection with both endpoints resolved, in layout terms: its style and arc bend, its
+ * authored geometry (scene coordinates) when it has at least two points, and its label. A stored
+ * label placement is passed as is, with `textLineOffset` when the label was placed by hand; a
+ * measured label with no stored placement passes only its size, and layout places it. A connection
+ * whose endpoint resolves to nothing is left out (resolve rejects those upstream).
  */
 function toConnections(
   sceneConnections: ResolvedConnection[],
   entitiesById: Map<string, LayoutEntity>,
   externalText: Map<string, Box[]>,
-): {
-  pinned: LayoutConnection[];
-  routed: LayoutConnection[];
-  straight: LayoutConnection[];
-  manualLabels: Map<string, ManualLabelSnapshot>;
-} {
-  const pinned: LayoutConnection[] = [];
-  const routed: LayoutConnection[] = [];
-  const straight: LayoutConnection[] = [];
-  const manualLabels = new Map<string, ManualLabelSnapshot>();
+): LayoutConnection[] {
+  const connections: LayoutConnection[] = [];
 
   for (const element of sceneConnections) {
     const { from, to } = element.props;
@@ -291,97 +254,49 @@ function toConnections(
       continue;
     }
 
-    const base = { id: element.id, from, to, ...faceHints(element) };
-    // App vocabulary: authored points are element-origin-relative; the router works in scene
+    // App vocabulary: authored points are element-origin-relative; layout works in scene
     // coordinates.
     const authored = element.props['points'];
     const points = isAuthoredPointList(authored)
       ? authored.map(({ x, y }): Point => [(element.x ?? 0) + x, (element.y ?? 0) + y])
       : [];
-
-    if (element.props['connectorStyle'] === 'straight') {
-      straight.push(straightConnection(element, base, points, entitiesById, externalText));
-      continue;
-    }
-
-    if (!isAdoptable(points, entitiesById, from, to)) {
-      routed.push({ ...base, x: 0, y: 0, points: [] });
-      const manualLabel = externalText.has(element.id)
-        ? manualLabelSnapshot(element, points, externalText.get(element.id)?.[0])
-        : undefined;
-      if (manualLabel) {
-        manualLabels.set(element.id, manualLabel);
-      }
-      continue;
-    }
-
-    const [originX, originY] = points[0]!;
+    const [originX, originY] = points[0] ?? [0, 0];
     // A measured `external-text` role is the template-independent contract that this connection
     // paints a label. Templates are free to source that paint from any prop shape or name.
-    const textPlacement = externalText.has(element.id)
-      ? storedLabelPlacement(element, externalText.get(element.id)?.[0])
+    const measured = externalText.get(element.id)?.[0];
+    const stored = externalText.has(element.id)
+      ? storedLabelPlacement(element, measured)
       : undefined;
-    pinned.push({
-      ...base,
+    const label = stored ? { textPlacement: stored } : labelSize(measured);
+    const lineOffset = manualLineOffset(element);
+    const bend = element.props['bend'];
+
+    connections.push({
+      id: element.id,
+      from,
+      to,
+      ...faceHints(element),
+      connectorStyle: connectorStyleOf(element),
+      ...(isFiniteNumber(bend) ? { bend } : {}),
       x: originX,
       y: originY,
       points: points.map(([px, py]): Point => [px - originX, py - originY]),
-      ...(textPlacement ? { textPlacement } : {}),
+      ...label,
+      ...(stored && lineOffset !== undefined ? { textLineOffset: lineOffset } : {}),
     });
   }
 
-  return { pinned, routed, straight, manualLabels };
+  return connections;
 }
 
-/**
- * A straight connection is one direct segment, never a corridor route. Authored geometry is
- * adopted verbatim — orthogonality and entity cuts are elbow constraints, so any finite polyline
- * qualifies — and a connection without one attaches a fresh sight-line segment to both drawn
- * boundaries. Labels follow the pinned path's rule: a stored placement is authoritative, and
- * absence falls back to the path midpoint downstream.
- */
-function straightConnection(
-  element: ResolvedConnection,
-  base: Pick<LayoutConnection, 'id' | 'from' | 'to' | 'authoredFromFace' | 'authoredToFace'>,
-  points: Point[],
-  entitiesById: Map<string, LayoutEntity>,
-  externalText: Map<string, Box[]>,
-): LayoutConnection {
-  const absolute =
-    points.length >= 2
-      ? points
-      : straightConnectionEndpoints(entitiesById.get(base.from)!, entitiesById.get(base.to)!, {
-          ...(base.authoredFromFace ? { fromFace: base.authoredFromFace } : {}),
-          ...(base.authoredToFace ? { toFace: base.authoredToFace } : {}),
-        });
-  const [originX, originY] = absolute[0]!;
-  const textPlacement = externalText.has(element.id)
-    ? storedLabelPlacement(element, externalText.get(element.id)?.[0])
-    : undefined;
-
-  return {
-    ...base,
-    x: originX,
-    y: originY,
-    points: absolute.map(([px, py]): Point => [px - originX, py - originY]),
-    ...(textPlacement ? { textPlacement } : {}),
-  };
+/** `straight` and `arc` are exact opt-ins; an absent or unknown value is an elbow line. */
+function connectorStyleOf(element: ResolvedConnection): ConnectorStyle {
+  const style = element.props['connectorStyle'];
+  return style === 'straight' || style === 'arc' ? style : 'elbow';
 }
 
-/**
- * Capture enough pre-reroute state to reconstruct a manual label's whole-path anchor. An own,
- * finite `lineOffset` is the manual-placement sentinel — including zero. Auto labels intentionally
- * skip this path so stale authored x/y cannot replace the corridor router's fresh placement.
- */
-function manualLabelSnapshot(
-  element: ResolvedConnection,
-  oldRoute: Point[],
-  measured: Box | undefined,
-): ManualLabelSnapshot | undefined {
-  if (oldRoute.length < 2) {
-    return undefined;
-  }
-
+/** An own, finite `labelPlacement.lineOffset` marks a label placed by hand, zero included. */
+function manualLineOffset(element: ResolvedConnection): number | undefined {
   const stored = element.props['labelPlacement'];
   if (
     !isRecord(stored) ||
@@ -390,50 +305,7 @@ function manualLabelSnapshot(
   ) {
     return undefined;
   }
-
-  const placement = storedLabelPlacement(element, measured);
-  if (!placement) {
-    return undefined;
-  }
-
-  return {
-    oldRoute,
-    oldCenter: [placement.x + placement.width / 2, placement.y + placement.height / 2],
-    lineOffset: stored['lineOffset'],
-    width: placement.width,
-    height: placement.height,
-  };
-}
-
-/** Re-pin manually placed labels to their authored whole-path position after a fresh reroute. */
-function restoreManualLabels(
-  manager: LayoutManager,
-  snapshots: ReadonlyMap<string, ManualLabelSnapshot>,
-): void {
-  for (const [connectionId, snapshot] of snapshots) {
-    const connection = manager.getConnectionById(connectionId);
-    if (!connection) {
-      continue;
-    }
-
-    const newRoute = connection.points.map(([x, y]): Point => [connection.x + x, connection.y + y]);
-    const anchor = anchorFromStored(snapshot.oldRoute, snapshot.oldCenter, snapshot.lineOffset);
-    const resolved =
-      anchor &&
-      resolveManualLabel(newRoute, anchor, { width: snapshot.width, height: snapshot.height });
-    if (!resolved) {
-      continue;
-    }
-
-    manager.updateConnection(connectionId, {
-      textPlacement: {
-        x: resolved.center[0] - snapshot.width / 2,
-        y: resolved.center[1] - snapshot.height / 2,
-        width: snapshot.width,
-        height: snapshot.height,
-      },
-    });
-  }
+  return stored['lineOffset'];
 }
 
 /**
@@ -513,44 +385,6 @@ function isAuthoredPointList(value: unknown): value is AuthoredPoint[] {
   );
 }
 
-function isAdoptable(
-  points: Point[],
-  entitiesById: Map<string, LayoutEntity>,
-  from: string,
-  to: string,
-): boolean {
-  if (points.length < 2 || !isOrthogonal(points)) {
-    return false;
-  }
-
-  for (const [id, entity] of entitiesById) {
-    // Endpoints are where the route attaches, and container interiors are traversable by design —
-    // neither counts as an obstacle.
-    const routable = id === from || id === to || entity.isContainer === true;
-
-    if (!routable && cutsEntity(points, entity)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function isOrthogonal(points: Point[]): boolean {
-  return segments(points).every(([[ax, ay], [bx, by]]) => ax === bx || ay === by);
-}
-
-/** Interior crossings only — a segment running along an edge is not a cut. */
-function cutsEntity(points: Point[], entity: LayoutEntity): boolean {
-  return segments(points).some(
-    ([[ax, ay], [bx, by]]) =>
-      Math.min(ax, bx) < entity.x + entity.width &&
-      Math.max(ax, bx) > entity.x &&
-      Math.min(ay, by) < entity.y + entity.height &&
-      Math.max(ay, by) > entity.y,
-  );
-}
-
 function segments(points: Point[]): [Point, Point][] {
   return points.slice(1).map((point, index): [Point, Point] => [points[index]!, point]);
 }
@@ -584,11 +418,15 @@ function toSceneLayout(
       continue;
     }
 
-    polylines.push(points);
+    const arc = arcOf(connection, points);
+    const drawn = arc ? getArcPolyline(arc.start, arc.end, arc.bend) : points;
+    polylines.push(drawn);
     const placed = connection.textPlacement;
     connections[connection.id] = {
-      d: toPathData(points, radii.get(connection.id) ?? 0),
-      points,
+      d: arc
+        ? getArcPathD(arc.start, arc.end, arc.bend)
+        : toPathData(points, radii.get(connection.id) ?? 0),
+      points: drawn,
       label: placed
         ? { x: placed.x + placed.width / 2, y: placed.y + placed.height / 2 }
         : midpoint(points),
@@ -597,6 +435,24 @@ function toSceneLayout(
   }
 
   return { boxes, connections, scene: sceneBox(boxes, connections, polylines) };
+}
+
+/**
+ * An arc connection drawn as a curve: its two ends and its bend (its own, else the default bow for
+ * the chord). Undefined for any other connection, and for an arc whose bend is under the snap
+ * threshold, which draws as a straight segment.
+ */
+function arcOf(
+  connection: LayoutConnection,
+  points: Point[],
+): { start: Point; end: Point; bend: number } | undefined {
+  if (connection.connectorStyle !== 'arc') {
+    return undefined;
+  }
+  const start = points[0]!;
+  const end = points[points.length - 1]!;
+  const bend = isArcBend(connection.bend) ? connection.bend : defaultBendForChord(start, end);
+  return Math.abs(bend) >= ARC_BEND_SNAP_THRESHOLD ? { start, end, bend } : undefined;
 }
 
 function midpoint(points: Point[]): { x: number; y: number } {
