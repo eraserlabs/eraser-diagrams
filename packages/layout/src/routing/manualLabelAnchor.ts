@@ -213,3 +213,36 @@ export function resolveManualLabel(
   const { center, orient } = centerAtArcPos(routeScene, totalLength, arcPos, anchor.offset, dims);
   return { center, orient, anchor: { ...anchor } };
 }
+
+/** A label's box on the page: its top-left and size. */
+export interface LabelBox {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+/**
+ * Where a manual label goes on a line's new route: it keeps its place along the line and its offset
+ * off it, read from where `box` sat on `oldRoute`. Undefined when either route is degenerate.
+ */
+export function moveManualLabel(
+  oldRoute: readonly Readonly<Point>[],
+  box: LabelBox,
+  lineOffset: number,
+  newRoute: readonly Readonly<Point>[],
+  size: LabelDims,
+): LabelBox | undefined {
+  const center: Point = [box.x + box.width / 2, box.y + box.height / 2];
+  const anchor = anchorFromStored(oldRoute, center, lineOffset);
+  const resolved = anchor && resolveManualLabel(newRoute, anchor, size);
+  if (!resolved) {
+    return undefined;
+  }
+  return {
+    x: resolved.center[0] - size.width / 2,
+    y: resolved.center[1] - size.height / 2,
+    width: size.width,
+    height: size.height,
+  };
+}

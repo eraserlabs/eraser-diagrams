@@ -25,7 +25,7 @@ import {
 import { clipFacePointToOutline } from '../outline.js';
 import { getFaceCenterPoint } from '../portUtils.js';
 import type { Direction, OutlineDescriptor, PositionProps } from '../types.js';
-import { anchorFromStored, resolveManualLabel } from './manualLabelAnchor.js';
+import { type LabelBox, moveManualLabel } from './manualLabelAnchor.js';
 import { labelPositionCenteredOnSegment } from './textPlacements.js';
 
 export type Point = readonly [number, number];
@@ -41,16 +41,6 @@ export interface DirectBox extends PositionProps {
   readonly outline?: OutlineDescriptor;
 }
 
-/** Where a label sits: top-left relative to the line's first point, and an optional size. */
-export interface DirectLabelPlacement {
-  readonly x: number;
-  readonly y: number;
-  readonly width?: number;
-  readonly height?: number;
-  /** Signed perpendicular offset from the line; its presence marks a manually placed label. */
-  readonly lineOffset?: number;
-}
-
 /** A straight or arc line, with its points in absolute coordinates. */
 export interface DirectLine {
   readonly style: DirectStyle;
@@ -58,8 +48,6 @@ export interface DirectLine {
   readonly to?: string | null;
   readonly points: readonly Point[];
   readonly bend?: number | null;
-  readonly label?: string | null;
-  readonly labelPlacement?: DirectLabelPlacement | null;
 }
 
 const clamp = (value: number, min: number, max: number): number =>
@@ -424,59 +412,45 @@ export function ontoOutline(box: DirectBox, p: Point): Point {
 
 // ---- the label
 
-/** A label's box on the page: its top-left and size. */
-export interface LabelBox {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
+/** A manually placed label: the line it was placed on, its box there, and its offset off the line. */
+export interface ManualLabel {
+  readonly on: DirectLine;
+  readonly box: LabelBox;
+  /** Signed perpendicular offset from the line. */
+  readonly lineOffset: number;
 }
 
 /**
- * Where a straight or arc line's label goes on its new path: a manual label (`lineOffset` set)
- * keeps its place along the line and its offset off it, read from where it sat on `was`'s path; an
- * arc's other label centres on the apex; a straight line's on the segment's middle, lifted clear
- * when the segment is too short for it. Undefined for a line with no label or no path.
+ * Where a straight or arc line's label goes on the line's path: a manual label keeps its place
+ * along the line and its offset off it, read from where it sat on `manual.on`; an arc's other label
+ * centres on the apex; a straight line's on the segment's middle, lifted clear when the segment is
+ * too short for it. Undefined for a line with no path.
  */
 export function directLabel(
   line: DirectLine,
-  points: readonly Point[],
   size: { readonly width: number; readonly height: number },
-  was: DirectLine = line,
+  manual?: ManualLabel,
 ): LabelBox | undefined {
-  if (!line.label?.trim() || points.length < 2) {
+  const points = line.points;
+  if (points.length < 2) {
     return undefined;
   }
-  const route = labelRoute(line, points);
-  const placed = was.labelPlacement;
-  const lineOffset = placed?.lineOffset;
-  const previous = was.points;
-  if (placed && lineOffset !== undefined && previous.length >= 2) {
-    const first = previous[0]!;
-    const center: Point = [
-      first[0] + placed.x + (placed.width ?? size.width) / 2,
-      first[1] + placed.y + (placed.height ?? size.height) / 2,
-    ];
-    const anchor = anchorFromStored(labelRoute(was), center, lineOffset);
-    const resolved = anchor && resolveManualLabel(route, anchor, size);
-    if (resolved) {
-      return {
-        x: resolved.center[0] - size.width / 2,
-        y: resolved.center[1] - size.height / 2,
-        ...size,
-      };
-    }
+  const moved =
+    manual &&
+    moveManualLabel(labelRoute(manual.on), manual.box, manual.lineOffset, labelRoute(line), size);
+  if (moved) {
+    return moved;
   }
   const start = points[0]!;
   const end = points[points.length - 1]!;
   const bend = bendOf(line, points);
   if (bend !== undefined && Math.abs(bend) >= ARC_BEND_SNAP_THRESHOLD) {
     const [cx, cy] = getArcApex(start, end, bend);
-    return { x: cx - size.width / 2, y: cy - size.height / 2, ...size };
+    return { x: cx - size.width / 2, y: cy - size.height / 2, width: size.width, height: size.height };
   }
   const placedBox = labelPositionCenteredOnSegment(size, [
     { x: start[0], y: start[1] },
     { x: end[0], y: end[1] },
   ]);
-  return { x: placedBox.x, y: placedBox.y, ...size };
+  return { x: placedBox.x, y: placedBox.y, width: size.width, height: size.height };
 }

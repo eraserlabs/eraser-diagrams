@@ -43,7 +43,7 @@ import {
   followBoxes,
   type Point as DirectPoint,
 } from './directLine.js';
-import { anchorFromStored, resolveManualLabel } from './manualLabelAnchor.js';
+import { type LabelBox, moveManualLabel } from './manualLabelAnchor.js';
 import { hasMeasuredLabel } from './textPlacements.js';
 
 /**
@@ -693,26 +693,12 @@ function routeDirectConnection(
         })
       : [];
   const label = connection.textPlacement;
-  const first = stored[0];
   const was: DirectLine = {
     style: connection.connectorStyle === 'arc' ? 'arc' : 'straight',
     from: connection.from,
     to: connection.to,
     points: stored,
     bend: connection.bend ?? null,
-    label: label ? 'label' : null,
-    labelPlacement:
-      label && first
-        ? {
-            x: label.x - first[0],
-            y: label.y - first[1],
-            width: label.width,
-            height: label.height,
-            ...(connection.textLineOffset !== undefined
-              ? { lineOffset: connection.textLineOffset }
-              : {}),
-          }
-        : null,
   };
 
   let ends: [DirectPoint, DirectPoint] | undefined;
@@ -740,9 +726,10 @@ function routeDirectConnection(
     return undefined;
   }
   const points: Point[] = [[...start], [...end]];
-  const placed = label
-    ? directLabel({ ...was, points }, points, { width: label.width, height: label.height }, was)
-    : undefined;
+  const lineOffset = connection.textLineOffset;
+  const manual =
+    label && lineOffset !== undefined ? { on: was, box: label, lineOffset } : undefined;
+  const placed = label ? directLabel({ ...was, points }, label, manual) : undefined;
   return {
     ...connectionGeometryFromPoints(points),
     relativeFromPort: undefined,
@@ -752,11 +739,9 @@ function routeDirectConnection(
 }
 
 interface ManualLabelSnapshot {
-  readonly oldRoute: DirectPoint[];
-  readonly oldCenter: DirectPoint;
+  readonly oldRoute: Point[];
+  readonly box: LabelBox;
   readonly lineOffset: number;
-  readonly width: number;
-  readonly height: number;
 }
 
 /**
@@ -777,10 +762,8 @@ function manualLabelSnapshot(
   }
   return {
     oldRoute: absoluteConnectionPoints(existing),
-    oldCenter: [label.x + label.width / 2, label.y + label.height / 2],
+    box: label,
     lineOffset,
-    width: label.width,
-    height: label.height,
   };
 }
 
@@ -794,21 +777,10 @@ function restoreManualLabels(
     if (!connection || connection.points.length < 2) {
       continue;
     }
-    const newRoute = absoluteConnectionPoints(connection);
-    const anchor = anchorFromStored(snapshot.oldRoute, snapshot.oldCenter, snapshot.lineOffset);
-    const resolved =
-      anchor &&
-      resolveManualLabel(newRoute, anchor, { width: snapshot.width, height: snapshot.height });
-    if (!resolved) {
-      continue;
+    const { oldRoute, box, lineOffset } = snapshot;
+    const moved = moveManualLabel(oldRoute, box, lineOffset, absoluteConnectionPoints(connection), box);
+    if (moved) {
+      layoutManager.updateConnection(connectionId, { textPlacement: moved });
     }
-    layoutManager.updateConnection(connectionId, {
-      textPlacement: {
-        x: resolved.center[0] - snapshot.width / 2,
-        y: resolved.center[1] - snapshot.height / 2,
-        width: snapshot.width,
-        height: snapshot.height,
-      },
-    });
   }
 }

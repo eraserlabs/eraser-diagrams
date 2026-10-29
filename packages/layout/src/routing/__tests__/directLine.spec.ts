@@ -170,36 +170,36 @@ describe('the label of a straight or arc line', () => {
         [0, 0],
         [200, 0],
       ],
-      { label: 'calls' },
     );
-    expect(directLabel(straight, straight.points, size)).toEqual({ x: 80, y: -8, ...size });
+    expect(directLabel(straight, size)).toEqual({ x: 80, y: -8, ...size });
     const arc = line(
       [
         [0, 0],
         [200, 0],
       ],
-      { label: 'calls', bend: 50 },
+      { bend: 50 },
       'arc',
     );
-    const box = directLabel(arc, arc.points, size)!;
+    const box = directLabel(arc, size)!;
     // the apex is 50 off the chord's middle, on the side the bend's sign picks
     expect(box.x).toBeCloseTo(80, 4);
     expect(Math.abs(box.y + 8)).toBeCloseTo(50, 4);
   });
 
   it('a manual label keeps its place along the line, its offset off it, when the line moves', () => {
-    const was = line(
-      [
-        [0, 0],
-        [200, 0],
-      ],
-      { label: 'calls', labelPlacement: { x: 10, y: -30, width: 40, height: 16, lineOffset: 24 } },
-    );
-    const moved: [number, number][] = [
+    const was = line([
+      [0, 0],
+      [200, 0],
+    ]);
+    const moved = line([
       [0, 100],
       [200, 100],
-    ];
-    const box = directLabel(was, moved, size)!;
+    ]);
+    const box = directLabel(moved, size, {
+      on: was,
+      box: { x: 10, y: -30, width: 40, height: 16 },
+      lineOffset: 24,
+    })!;
     expect(box.x).toBeCloseTo(10, 0);
     expect(box.y).toBeLessThan(100 - 16);
   });
