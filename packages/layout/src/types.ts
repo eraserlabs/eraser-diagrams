@@ -129,6 +129,9 @@ export interface DeletedEntity {
   id: string;
 }
 
+/** How a connection is drawn. */
+export type ConnectorStyle = 'elbow' | 'straight' | 'arc';
+
 export interface LayoutConnection {
   id: string;
   /** Source entity id, or `''` for a free (unbound) endpoint anchored by `points`. */
@@ -155,6 +158,15 @@ export interface LayoutConnection {
   toArrowhead?: boolean;
   /** If there is text, this is it's position (in absolute grid terms) */
   textPlacement?: PositionProps;
+  /**
+   * Signed perpendicular offset of a manually placed label from a straight or arc line; its
+   * presence keeps the label at its place along the line when the line moves.
+   */
+  textLineOffset?: number;
+  /** How the connection is drawn: `elbow` (default) is routed; `straight` and `arc` are one direct segment. */
+  connectorStyle?: ConnectorStyle;
+  /** An arc's signed distance from the chord's middle to its apex; absent uses the default bow. */
+  bend?: number;
   /** Whether textPlacement came from an authored label position or label measurement only. */
   textPlacementSource?: LayoutConnectionTextPlacementSource;
 }

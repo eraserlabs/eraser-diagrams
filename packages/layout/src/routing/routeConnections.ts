@@ -34,6 +34,15 @@ import {
   type RepairPolicy,
 } from './executeCorridorRouting.js';
 import { finalizeShiftRoute, getShiftedConnection } from './shiftRouting.js';
+import {
+  bindingOf,
+  centreSegment,
+  directLabel,
+  type DirectBox,
+  type DirectLine,
+  followBoxes,
+  type Point as DirectPoint,
+} from './directLine.js';
 import { hasMeasuredLabel } from './textPlacements.js';
 
 /**
@@ -125,6 +134,15 @@ export function routeConnections({
     const existing = routingLayout.getConnectionById(input.id);
     const connection = existing ? { ...existing, ...input } : input;
     const pins = endpointPins ?? resolveEndpointPins?.(connection);
+    if (isDirectConnection(connection)) {
+      const change = routeDirectConnection(routingLayout, connection, pins);
+      if (change && existing) {
+        routingLayout.updateConnection(connection.id, change);
+      } else if (change) {
+        routingLayout.addConnection({ ...connection, ...change });
+      }
+      continue;
+    }
     const shifted = allowShift ? getShiftedConnection(routingLayout, connection, pins) : undefined;
     if (shifted && existing) {
       finalizeShiftRoute(routingLayout, connection, shifted);
@@ -634,4 +652,94 @@ function applyEndpointReanchor(
   }
   points[terminalIndex] = [...point];
   return true;
+}
+
+/** A straight or arc connection: drawn as one direct segment, never routed through corridors. */
+export function isDirectConnection(connection: Pick<NewConnection, 'connectorStyle'>): boolean {
+  return connection.connectorStyle === 'straight' || connection.connectorStyle === 'arc';
+}
+
+function directBox(entity: LayoutEntity | undefined): DirectBox | undefined {
+  if (!entity) {
+    return undefined;
+  }
+  return {
+    x: entity.x,
+    y: entity.y,
+    width: entity.width,
+    height: entity.height,
+    ...(entity.outline ? { outline: entity.outline } : {}),
+  };
+}
+
+/**
+ * Route a straight or arc connection: its bound ends follow their entities from where they were
+ * before the staged changes (a straight end by its focus binding, an arc end by its fixed anchor);
+ * a connection with no path runs centre to centre. Explicit pins win. Its label goes at the apex,
+ * the segment's middle, or a manual label's anchor.
+ */
+function routeDirectConnection(
+  layoutManager: LayoutManager,
+  connection: NewConnection,
+  pins: EndpointPins | undefined,
+): RoutedConnectionChange | undefined {
+  const before = (id: string) => directBox(layoutManager.getEntityById(id, false, false));
+  const after = (id: string) => directBox(layoutManager.getEntityById(id, false, true));
+  const stored =
+    connection.points && connection.points.length >= 2
+      ? connection.points.map(
+          ([px, py]) => [(connection.x ?? 0) + px, (connection.y ?? 0) + py] as const,
+        )
+      : [];
+  const label = connection.textPlacement;
+  const first = stored[0];
+  const was: DirectLine = {
+    style: connection.connectorStyle === 'arc' ? 'arc' : 'straight',
+    from: connection.from,
+    to: connection.to,
+    points: stored,
+    bend: connection.bend ?? null,
+    label: label ? 'label' : null,
+    labelPlacement:
+      label && first
+        ? {
+            x: label.x - first[0],
+            y: label.y - first[1],
+            width: label.width,
+            height: label.height,
+            ...(connection.textLineOffset !== undefined
+              ? { lineOffset: connection.textLineOffset }
+              : {}),
+          }
+        : null,
+  };
+
+  let ends: [DirectPoint, DirectPoint] | undefined;
+  if (stored.length >= 2) {
+    const beforeBox = (id: string) => before(id) ?? after(id);
+    ends = followBoxes(was, bindingOf(was, beforeBox), after);
+  } else {
+    const fromBox = after(connection.from);
+    const toBox = after(connection.to);
+    if (fromBox && toBox) {
+      ends = centreSegment(fromBox, toBox);
+    }
+  }
+  const start = pins?.from ?? ends?.[0];
+  const end = pins?.to ?? ends?.[1];
+  if (!start || !end) {
+    return undefined;
+  }
+  const points: DirectPoint[] = [start, end];
+  const placed = label
+    ? directLabel({ ...was, points }, points, { width: label.width, height: label.height }, was)
+    : undefined;
+  return {
+    x: start[0],
+    y: start[1],
+    points: points.map(([px, py]) => [px - start[0], py - start[1]] as Point),
+    relativeFromPort: undefined,
+    relativeToPort: undefined,
+    textPlacement: placed ?? label,
+  };
 }
