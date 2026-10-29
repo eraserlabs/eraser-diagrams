@@ -12,6 +12,7 @@ import {
   type LayoutEntity,
   type OutlineDescriptor,
   type OutlineVertex,
+  type RepairPolicy,
 } from '@eraserlabs/layout';
 import type { ResolvedConnection, ResolvedEntity } from '@eraserlabs/protocol';
 import type { Box, ConnectionGeometry, SceneLayout } from '@eraserlabs/render';
@@ -42,9 +43,10 @@ interface AuthoredPoint {
 const SCENE_PADDING = 16;
 
 /**
- * The router budgets repair by wall clock, which would make identical input produce different
- * routes under load. An infinite budget is an accepted value there and takes every deadline branch
- * out of play, so repair always runs to completion and routing stays a pure function of its input.
+ * The default repair budget. The router budgets repair by wall clock, which would make identical
+ * input produce different routes under load. An infinite budget takes every deadline branch out of
+ * play, so repair always runs to completion and routing stays a pure function of its input. A
+ * caller that needs speed over repeatability passes its own budget.
  */
 const REPAIR_TIME_BUDGET_MS = Number.POSITIVE_INFINITY;
 
@@ -84,6 +86,7 @@ export function routeScene(
   sceneConnections: ResolvedConnection[],
   resolvedBoxes: Map<string, Box>,
   externalText: Map<string, Box[]>,
+  repair: RepairPolicy = { timeBudgetMs: REPAIR_TIME_BUDGET_MS },
 ): SceneLayout {
   const entities = toEntities(sceneEntities, resolvedBoxes, externalText);
   const entitiesById = new Map(entities.map((entity) => [entity.id, entity]));
@@ -93,7 +96,7 @@ export function routeScene(
   if (connections.length > 0) {
     routeConnections({
       layoutManager: manager,
-      repair: { timeBudgetMs: REPAIR_TIME_BUDGET_MS },
+      repair,
       connectionsToRoute: connections,
     });
   }

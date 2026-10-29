@@ -502,3 +502,19 @@ describe("routeScene with connectorStyle: 'straight'", () => {
     expect(isOrthogonal(straight)).toBe(false);
   });
 });
+
+describe('routeScene repair budget', () => {
+  it('routes with the budget a caller passes, and with no repair at all', () => {
+    const entities = [node('a', 0, 0), node('o', 200, -40, 60, 140), node('b', 400, 0)];
+    const connections = [wire('w', 'a', 'b')];
+    const unbounded = routeScene(entities, connections, NO_INTRINSICS, NO_TEXT);
+    const budgeted = routeScene(entities, connections, NO_INTRINSICS, NO_TEXT, {
+      timeBudgetMs: 100,
+    });
+    const none = routeScene(entities, connections, NO_INTRINSICS, NO_TEXT, false);
+    for (const layout of [unbounded, budgeted, none]) {
+      expect(layout.connections['w']!.points.length).toBeGreaterThanOrEqual(2);
+    }
+    expect(budgeted.connections['w']!.d).toBe(unbounded.connections['w']!.d);
+  });
+});

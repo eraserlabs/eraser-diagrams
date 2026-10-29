@@ -87,13 +87,19 @@ async function run(request: RunRequest): Promise<RunResult> {
   let measures = measureScene(mounted, intrinsics);
   let finalExternalText = externalTextOf(measures);
   const provisional = deferConstrainedConnectionLabels(connections, mounted, finalExternalText);
-  let layout = routeScene(entities, connections, resolvedSizes, provisional.externalText);
+  let layout = routeScene(
+    entities,
+    connections,
+    resolvedSizes,
+    provisional.externalText,
+    request.repair,
+  );
 
   if (provisional.deferred) {
     constrainConnectionLabels(connections, mounted, layout);
     measures = measureScene(mounted, intrinsics);
     finalExternalText = externalTextOf(measures);
-    layout = routeScene(entities, connections, resolvedSizes, finalExternalText);
+    layout = routeScene(entities, connections, resolvedSizes, finalExternalText, request.repair);
   }
 
   // A changed final route can change its longest run. Stabilize that cap without an unbounded
@@ -105,7 +111,7 @@ async function run(request: RunRequest): Promise<RunResult> {
 
     measures = measureScene(mounted, intrinsics);
     finalExternalText = externalTextOf(measures);
-    layout = routeScene(entities, connections, resolvedSizes, finalExternalText);
+    layout = routeScene(entities, connections, resolvedSizes, finalExternalText, request.repair);
   }
   applyLayout(scene, mounted, layout, containmentZIndex(all), measures);
   attachContainerContent(all, measures, layout);
