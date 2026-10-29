@@ -39,7 +39,6 @@ import {
   centreSegment,
   directLabel,
   faceAnchoredSegment,
-  type DirectBox,
   type DirectLine,
   followBoxes,
   type Point as DirectPoint,
@@ -672,19 +671,6 @@ export function isDirectConnection(connection: Pick<NewConnection, 'connectorSty
   return connection.connectorStyle === 'straight' || connection.connectorStyle === 'arc';
 }
 
-function directBox(entity: LayoutEntity | undefined): DirectBox | undefined {
-  if (!entity) {
-    return undefined;
-  }
-  return {
-    x: entity.x,
-    y: entity.y,
-    width: entity.width,
-    height: entity.height,
-    ...(entity.outline ? { outline: entity.outline } : {}),
-  };
-}
-
 /**
  * Route a straight or arc connection: its bound ends follow their entities from where they were
  * before the staged changes (a straight end by its focus binding, an arc end by its fixed anchor);
@@ -696,13 +682,15 @@ function routeDirectConnection(
   connection: NewConnection,
   pins: EndpointPins | undefined,
 ): RoutedConnectionChange | undefined {
-  const before = (id: string) => directBox(layoutManager.getEntityById(id, false, false));
-  const after = (id: string) => directBox(layoutManager.getEntityById(id, false, true));
+  const before = (id: string) => layoutManager.getEntityById(id, false, false);
+  const after = (id: string) => layoutManager.getEntityById(id, false, true);
   const stored =
     connection.points && connection.points.length >= 2
-      ? connection.points.map(
-          ([px, py]) => [(connection.x ?? 0) + px, (connection.y ?? 0) + py] as const,
-        )
+      ? absoluteConnectionPoints({
+          x: connection.x ?? 0,
+          y: connection.y ?? 0,
+          points: connection.points,
+        })
       : [];
   const label = connection.textPlacement;
   const first = stored[0];
@@ -751,14 +739,12 @@ function routeDirectConnection(
   if (!start || !end) {
     return undefined;
   }
-  const points: DirectPoint[] = [start, end];
+  const points: Point[] = [[...start], [...end]];
   const placed = label
     ? directLabel({ ...was, points }, points, { width: label.width, height: label.height }, was)
     : undefined;
   return {
-    x: start[0],
-    y: start[1],
-    points: points.map(([px, py]) => [px - start[0], py - start[1]] as Point),
+    ...connectionGeometryFromPoints(points),
     relativeFromPort: undefined,
     relativeToPort: undefined,
     textPlacement: placed ?? label,
@@ -790,7 +776,7 @@ function manualLabelSnapshot(
     return undefined;
   }
   return {
-    oldRoute: existing.points.map(([px, py]) => [existing.x + px, existing.y + py] as const),
+    oldRoute: absoluteConnectionPoints(existing),
     oldCenter: [label.x + label.width / 2, label.y + label.height / 2],
     lineOffset,
     width: label.width,
@@ -808,9 +794,7 @@ function restoreManualLabels(
     if (!connection || connection.points.length < 2) {
       continue;
     }
-    const newRoute = connection.points.map(
-      ([px, py]) => [connection.x + px, connection.y + py] as const,
-    );
+    const newRoute = absoluteConnectionPoints(connection);
     const anchor = anchorFromStored(snapshot.oldRoute, snapshot.oldCenter, snapshot.lineOffset);
     const resolved =
       anchor &&
