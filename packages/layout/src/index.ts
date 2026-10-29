@@ -61,4 +61,4 @@ export type {
   TextPlacement,
   TransformHandleDirection,
 } from './types.js';
-export { GUIDELINE_NAME } from './types.js';
+export { GUIDELINE_NAME, LayoutConnectionTextPlacementSource } from './types.js';
