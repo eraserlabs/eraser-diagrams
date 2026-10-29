@@ -9,26 +9,21 @@ targets:
 
 # Layout package boundary
 
-`@eraserlabs/layout` holds all layout and routing logic: where boxes go (placement, bumping, auto-layout, resize) and where lines go (elbow, straight and arc routing, label placement). It has no DOM and no browser code, and it runs the same in Node and in a browser bundle.
+`@eraserlabs/layout` holds layout state (`LayoutManager`) and connection routing: elbow, straight and arc lines, and label placement. It has no DOM and no browser code, and it runs the same in Node and in a browser bundle. Entity placement, bumping, auto-layout and resize are not part of the package: callers position entities, and layout routes the connections between them.
 
 ## Dependencies
 
 - `packages/layout/src` imports no package except `@eraserlabs/utils`, and no `node:*` builtins. depcruise enforces this (`layout-imports-utils-only`, `layout-no-node-builtins`); CI runs `pnpm depcruise`.
 - `packages/layout/package.json` lists exactly one runtime dependency, `@eraserlabs/utils`, and no peer dependencies. `[@test] ../packages/layout/src/__tests__/dependencies.spec.ts`
-- The routing modules never reach editing code (`calculateChanges`, `bumpUtils`, `overlaps`, `structure/*` and the other editing helpers), directly or through other modules. depcruise enforces this (`layout-routing-no-editing`).
-- Types that a caller passes in (resize handle directions, snap guideline names) are defined in this package, not imported from a caller. A type import from another package does not compile, because layout declares no other dependency.
 - depcruise (`pnpm depcruise`) reports no circular imports.
 
 ## Public exports
 
-The root exports the main API; every other module is reachable by its subpath, for example `@eraserlabs/layout/routing/directLine` (`package.json` `exports` has `"./*"`).
+The root is the only entry point (`package.json` `exports` has only `"."`).
 
 ```ts
-// layout state and editing
+// layout state
 export { LayoutManager } from './LayoutManager.js';
-export { generateChanges, generateChangesForMove } from './calculateChanges.js';
-export { makeRoomForEntities } from './bumpUtils.js';
-export { getPositionForEntity } from './newPosition.js';
 // routing
 export {
   COMMIT_REPAIR,
@@ -55,7 +50,6 @@ export {
   makeRangeFromEntity /* and the other 0.4 range helpers */,
 } from './rangeUtils.js';
 export { createEntityOutline, roundedCornerGeometry } from './outline.js';
-export { GUIDELINE_NAME } from './types.js';
 ```
 
 ## Removed in 0.5
