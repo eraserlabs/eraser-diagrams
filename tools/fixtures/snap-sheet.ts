@@ -16,7 +16,7 @@ const ROOT = resolve(import.meta.dirname, '..', '..');
 const GOLDENS = join(ROOT, 'fixtures', '__goldens__');
 const RESULTS = join(ROOT, 'packages', 'diagrams', 'test-results');
 const OUT = join(RESULTS, 'goldens-sheet.html');
-const GROUPS = ['features', 'corpus'];
+const GROUPS = ['features'];
 
 interface Card {
   group: string;

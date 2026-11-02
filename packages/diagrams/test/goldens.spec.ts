@@ -1,7 +1,7 @@
 /**
- * Visual + measured-geometry goldens over the repo-root fixture corpus.
+ * Visual + measured-geometry goldens over the repo-root fixtures: a smoke test of the pipeline.
  *
- * Every fixture under fixtures/features and fixtures/corpus renders through the real pipeline
+ * Every fixture under fixtures/features renders through the real pipeline
  * (stock library, bundled fonts, live icon service behind a local disk cache) into a PNG and the
  * measured JSON. Both are compared against baselines in fixtures/__goldens__ by Playwright's own
  * snapshot machinery: pixel diff for the PNG, line diff for the JSON.
@@ -23,7 +23,7 @@ import { CHROMIUM_PATH } from './support/browser.js';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURES_ROOT = join(HERE, '..', '..', '..', 'fixtures');
 const ICON_CACHE_DIR = join(FIXTURES_ROOT, '.icon-cache');
-const GROUPS = ['features', 'corpus'] as const;
+const GROUPS = ['features'] as const;
 /** Sub-pixel text metrics are stable per machine; 0.01 px keeps the diff readable, not noisy. */
 const COORD_DECIMALS = 2;
 const MAX_DIFF_PIXEL_RATIO = 0.001;

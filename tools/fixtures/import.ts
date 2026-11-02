@@ -1,7 +1,7 @@
 /**
- * Import diagram exports into fixtures/corpus.
+ * Import diagram exports into fixtures/features.
  *
- *   pnpm fixtures:import <export.json>... [--out fixtures/corpus] [--name <kebab-name>]
+ *   pnpm fixtures:import <export.json>... [--out fixtures/features] [--name <kebab-name>]
  *
  * Accepts an `{ elements }` document or the app's `{ definition: { elements } }` export wrapper.
  * A bare element array is not a document and is refused. Normalizes what the stock library cannot take verbatim — geometry the schema forbids on
@@ -269,7 +269,7 @@ async function main(): Promise<void> {
   const { values, positionals } = parseArgs({
     allowPositionals: true,
     options: {
-      out: { type: 'string', default: 'fixtures/corpus' },
+      out: { type: 'string', default: 'fixtures/features' },
       name: { type: 'string' },
     },
   });

@@ -135,7 +135,7 @@ function eraserSources(): Plugin {
           input: readJson(`${fixturesDir}/features/${s.id}.json`),
         }));
 
-        // fixtures/features (probes not curated above) and fixtures/corpus (realistic diagrams) —
+        // fixtures/features (probes not curated above) —
         // the same inputs the CLI and the golden tests render. A scenario input is always the
         // document envelope the engine takes: `{ title, elements }` and the split form pass
         // through untouched, and only the app's `{ definition: { elements } }` export wrapper is
@@ -162,7 +162,6 @@ function eraserSources(): Plugin {
         return `export default ${JSON.stringify([
           ...contract,
           ...listDir('features', 'Feature fixtures'),
-          ...listDir('corpus', 'Corpus'),
         ])};`;
       }
 
