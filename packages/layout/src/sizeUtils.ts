@@ -1,6 +1,6 @@
 /**
  * Entity and container dimensions, plus helpers that apply a LayoutChange to an entity or a
- * connection. Container fit and move sizing live in advancedLayout/containerSizing.
+ * connection.
  */
 import type {
   LayoutChange,

@@ -40,10 +40,12 @@ export {
 export { createEntityOutline, roundedCornerGeometry } from './outline.js';
 export type { CornerGeometry, EntityOutline } from './outline.js';
 
+export type { Point } from './routing/types.js';
 export type {
   ConnectorStyle,
   Direction,
   LayoutConnection,
+  LayoutChange,
   LayoutConnectionChange,
   LayoutEntity,
   LayoutRange,

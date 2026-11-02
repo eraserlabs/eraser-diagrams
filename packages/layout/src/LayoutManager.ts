@@ -52,9 +52,8 @@ interface MakeGraphArgs<T extends LayoutEntity = LayoutEntity> {
 type PrebuiltState<T extends LayoutEntity> = Omit<InternalData<T>, 'entities' | 'tree' | 'dims'>;
 
 /**
- * Runs after fork() builds a new manager. Modules outside core that keep their own state per
- * manager (for example the alignment capture in advancedLayout) use it to copy that state to the
- * fork. Core itself registers no hooks.
+ * Runs after fork() builds a new manager. A caller that keeps its own state per manager uses it to
+ * copy that state onto the fork. The package itself registers no hooks.
  */
 export type LayoutForkHook = <T extends LayoutEntity>(
   source: LayoutManager<T>,
