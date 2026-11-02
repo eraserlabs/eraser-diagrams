@@ -363,4 +363,3 @@ export type SortedOp =
   | { opType: 'move'; op: MovedEntity }
   | { opType: 'add'; op: NewEntity }
   | { opType: 'moveBlock'; op: MoveBlock };
-

@@ -3,7 +3,7 @@ import { clamp } from '../rangeUtils.js';
 import { getEntityDimensions } from '../sizeUtils.js';
 import { RoutingError } from '../LayoutError.js';
 import { OPPOSITE_DIRECTION } from '../directionUtils.js';
-import { LayoutConnection, LayoutEntity, NewConnection } from '../types.js';
+import { LayoutConnection, LayoutEntity, NewConnection, type PositionProps } from '../types.js';
 import { EndpointSide, Point, RelativePortPosition } from './types.js';
 import { isExternalTextPlacement } from './textPlacements.js';
 
@@ -13,7 +13,7 @@ export function isFinitePoint(point: Point | undefined): point is Point {
 
 /** Rebase an absolute polyline on its first vertex. */
 export function connectionGeometryFromPoints(
-  points: readonly Point[],
+  points: readonly Readonly<Point>[],
 ): Pick<LayoutConnection, 'x' | 'y' | 'points'> {
   const [x, y] = points[0] ?? [0, 0];
   return { x, y, points: points.map(([px, py]): Point => [px - x, py - y]) };
@@ -187,6 +187,32 @@ export function getRelativePort(
 }
 
 /**
+ * Where a point sits on a box, as the fraction across and down it ([0, 0] is the top left corner).
+ * Unlike {@link getRelativePort} it neither clamps nor snaps to a face; a zero-size side reads 0.5.
+ */
+export function relativePoint(box: PositionProps, point: Readonly<Point>): Point {
+  return [
+    box.width === 0 ? 0.5 : (point[0] - box.x) / box.width,
+    box.height === 0 ? 0.5 : (point[1] - box.y) / box.height,
+  ];
+}
+
+/** Whether two connections' stored geometry is the same absolute path. */
+export function samePath(
+  left: Pick<LayoutConnection, 'x' | 'y' | 'points'>,
+  right: Pick<LayoutConnection, 'x' | 'y' | 'points'>,
+): boolean {
+  const a = absoluteConnectionPoints(left);
+  const b = absoluteConnectionPoints(right);
+  return a.length === b.length && a.every(([x, y], i) => x === b[i]![0] && y === b[i]![1]);
+}
+
+/** The point at a fraction across and down a box (the inverse of {@link relativePoint}). */
+export function absolutePoint(box: PositionProps, relative: Readonly<Point>): Point {
+  return [box.x + box.width * relative[0], box.y + box.height * relative[1]];
+}
+
+/**
  * Whole-pixel absolute point of a relative port: the one rule for snapping stored ports onto the
  * routing grid. See the round-trip note on {@link getRelativePort}.
  */
@@ -194,10 +220,7 @@ export function getAbsolutePortPoint(
   entity: LayoutEntity,
   relativePortPoint: RelativePortPosition,
 ): Point {
-  return roundPoint([
-    entity.x + entity.width * relativePortPoint[0],
-    entity.y + entity.height * relativePortPoint[1],
-  ]);
+  return roundPoint(absolutePoint(entity, relativePortPoint));
 }
 
 export function determineDirectionFromConnectionEnd(

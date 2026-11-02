@@ -9,13 +9,14 @@ import {
   crossings,
   directLabel,
   type DirectBox,
-  type DirectLine,
   focusOf,
   followBoxes,
+  keepManualLabel,
   onOutline,
   ontoOutline,
   snapToFocus,
 } from '../directLine.js';
+import type { LayoutConnection } from '../../types.js';
 
 const box = (
   _id: string,
@@ -32,15 +33,18 @@ const box = (
   ...(shape ? { shape } : {}),
 });
 
+/** A connection from box `a` to box `b`, its points absolute (the connection sits at 0,0). */
 const line = (
   points: [number, number][],
-  extra: Partial<DirectLine> = {},
+  extra: Partial<LayoutConnection> = {},
   style: 'straight' | 'arc' = 'straight',
-): DirectLine => ({
+) => ({
   from: 'a',
   to: 'b',
+  x: 0,
+  y: 0,
   points,
-  style,
+  connectorStyle: style,
   ...extra,
 });
 
@@ -165,12 +169,10 @@ describe('the label of a straight or arc line', () => {
   const size = { width: 40, height: 16 };
 
   it("a straight line's label centres on its middle; an arc's on its apex", () => {
-    const straight = line(
-      [
-        [0, 0],
-        [200, 0],
-      ],
-    );
+    const straight = line([
+      [0, 0],
+      [200, 0],
+    ]);
     expect(directLabel(straight, size)).toEqual({ x: 80, y: -8, ...size });
     const arc = line(
       [
@@ -195,11 +197,11 @@ describe('the label of a straight or arc line', () => {
       [0, 100],
       [200, 100],
     ]);
-    const box = directLabel(moved, size, {
-      on: was,
-      box: { x: 10, y: -30, width: 40, height: 16 },
-      lineOffset: 24,
-    })!;
+    const box = keepManualLabel(
+      { ...was, textPlacement: { x: 10, y: -30, width: 40, height: 16 }, textLineOffset: 24 },
+      moved,
+      size,
+    )!;
     expect(box.x).toBeCloseTo(10, 0);
     expect(box.y).toBeLessThan(100 - 16);
   });

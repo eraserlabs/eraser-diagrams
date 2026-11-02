@@ -7,10 +7,10 @@
  * Nearly coincident endpoints attenuate the visible bend without changing its
  * stored value, letting the arc collapse continuously as endpoints cross.
  *
- * @note Pure math with no imports, safe in Node and in a browser.
+ * @note Pure math (its only import is a type), safe in Node and in a browser.
  */
 
-export type ArcPoint = readonly [number, number];
+import type { Point } from './routing/types.js';
 
 /**
  * Below this many pixels of bend the arc renders as a straight line and the
@@ -21,7 +21,7 @@ export const ARC_BEND_SNAP_THRESHOLD = 8;
 
 const ARC_MIN_CHORD_LENGTH = 32;
 
-const getBendScale = (start: ArcPoint, end: ArcPoint): number =>
+const getBendScale = (start: Readonly<Point>, end: Readonly<Point>): number =>
   Math.min(1, Math.hypot(end[0] - start[0], end[1] - start[1]) / ARC_MIN_CHORD_LENGTH);
 
 /** A connector is treated as an arc when it carries a numeric `bend`. */
@@ -33,13 +33,16 @@ export const snapBend = (bend: number): number =>
   Math.abs(bend) < ARC_BEND_SNAP_THRESHOLD ? 0 : bend;
 
 /** The chord midpoint between the two endpoints. */
-export const getChordMidpoint = (start: ArcPoint, end: ArcPoint): ArcPoint => [
+export const getChordMidpoint = (start: Readonly<Point>, end: Readonly<Point>): Readonly<Point> => [
   (start[0] + end[0]) / 2,
   (start[1] + end[1]) / 2,
 ];
 
 /** Unit perpendicular to the chord (rotated +90°, i.e. (-dy, dx) normalized). */
-export const getChordPerp = (start: ArcPoint, end: ArcPoint): ArcPoint | null => {
+export const getChordPerp = (
+  start: Readonly<Point>,
+  end: Readonly<Point>,
+): Readonly<Point> | null => {
   const dx = end[0] - start[0];
   const dy = end[1] - start[1];
   const len = Math.hypot(dx, dy);
@@ -50,7 +53,11 @@ export const getChordPerp = (start: ArcPoint, end: ArcPoint): ArcPoint | null =>
 };
 
 /** Apex of the arc, attenuated for nearly coincident endpoints to avoid full-loop flips. */
-export const getArcApex = (start: ArcPoint, end: ArcPoint, bend: number): ArcPoint => {
+export const getArcApex = (
+  start: Readonly<Point>,
+  end: Readonly<Point>,
+  bend: number,
+): Readonly<Point> => {
   const mid = getChordMidpoint(start, end);
   const perp = getChordPerp(start, end);
   if (!perp) {
@@ -64,7 +71,11 @@ export const getArcApex = (start: ArcPoint, end: ArcPoint, bend: number): ArcPoi
  * Recover the signed bend from a (dragged) apex point: the component of the
  * apex's offset from the chord midpoint along the chord perpendicular.
  */
-export const bendFromApex = (start: ArcPoint, end: ArcPoint, apex: ArcPoint): number => {
+export const bendFromApex = (
+  start: Readonly<Point>,
+  end: Readonly<Point>,
+  apex: Readonly<Point>,
+): number => {
   const mid = getChordMidpoint(start, end);
   const perp = getChordPerp(start, end);
   if (!perp) {
@@ -74,13 +85,17 @@ export const bendFromApex = (start: ArcPoint, end: ArcPoint, apex: ArcPoint): nu
 };
 
 /** A sensible default bow when a connector is first switched to arc. */
-export const defaultBendForChord = (start: ArcPoint, end: ArcPoint): number => {
+export const defaultBendForChord = (start: Readonly<Point>, end: Readonly<Point>): number => {
   const len = Math.hypot(end[0] - start[0], end[1] - start[1]);
   return Math.max(ARC_BEND_SNAP_THRESHOLD * 3, len * 0.2);
 };
 
 /** Circumcenter of three points, or null when they are collinear. */
-const circumcenter = (a: ArcPoint, b: ArcPoint, c: ArcPoint): ArcPoint | null => {
+const circumcenter = (
+  a: Readonly<Point>,
+  b: Readonly<Point>,
+  c: Readonly<Point>,
+): Readonly<Point> | null => {
   const ax = a[0];
   const ay = a[1];
   const bx = b[0];
@@ -100,7 +115,7 @@ const circumcenter = (a: ArcPoint, b: ArcPoint, c: ArcPoint): ArcPoint | null =>
 };
 
 export interface ArcCircle {
-  center: ArcPoint;
+  center: Readonly<Point>;
   radius: number;
   /** SVG arc-flags for `A radius radius 0 largeArc sweep endX endY`. */
   largeArc: 0 | 1;
@@ -122,7 +137,7 @@ const normalizeDelta = (delta: number): number => {
 };
 
 interface ArcAngles {
-  center: ArcPoint;
+  center: Readonly<Point>;
   radius: number;
   /** Angle (radians) of the start endpoint about the center. */
   startAngle: number;
@@ -134,7 +149,11 @@ interface ArcAngles {
  * Center, radius and the signed angular sweep (start → apex → end) for the
  * circular arc. Null when the arc degenerates to a straight line.
  */
-const getArcAngles = (start: ArcPoint, end: ArcPoint, bend: number): ArcAngles | null => {
+const getArcAngles = (
+  start: Readonly<Point>,
+  end: Readonly<Point>,
+  bend: number,
+): ArcAngles | null => {
   if (Math.abs(bend) < 1e-6) {
     return null;
   }
@@ -165,7 +184,11 @@ const getArcAngles = (start: ArcPoint, end: ArcPoint, bend: number): ArcAngles |
  * `start` through the apex to `end`. Returns null when the arc degenerates to a
  * straight line (zero/near-zero bend or coincident endpoints).
  */
-export const getArcCircle = (start: ArcPoint, end: ArcPoint, bend: number): ArcCircle | null => {
+export const getArcCircle = (
+  start: Readonly<Point>,
+  end: Readonly<Point>,
+  bend: number,
+): ArcCircle | null => {
   const angles = getArcAngles(start, end, bend);
   if (!angles) {
     return null;
@@ -180,7 +203,7 @@ export const getArcCircle = (start: ArcPoint, end: ArcPoint, bend: number): ArcC
   };
 };
 
-const distanceToSegment = (p: ArcPoint, a: ArcPoint, b: ArcPoint): number => {
+const distanceToSegment = (p: Readonly<Point>, a: Readonly<Point>, b: Readonly<Point>): number => {
   const dx = b[0] - a[0];
   const dy = b[1] - a[1];
   const lenSq = dx * dx + dy * dy;
@@ -199,9 +222,9 @@ const distanceToSegment = (p: ArcPoint, a: ArcPoint, b: ArcPoint): number => {
  * hit-testing arc connectors directly from `points + bend`.
  */
 export const distanceToArc = (
-  p: ArcPoint,
-  start: ArcPoint,
-  end: ArcPoint,
+  p: Readonly<Point>,
+  start: Readonly<Point>,
+  end: Readonly<Point>,
   bend: number,
 ): number => {
   const angles = Math.abs(bend) < ARC_BEND_SNAP_THRESHOLD ? null : getArcAngles(start, end, bend);
@@ -240,8 +263,8 @@ export const distanceToArc = (
  * extrema within the sweep so even strongly bent arcs are fully contained.
  */
 export const getArcBoundingBox = (
-  start: ArcPoint,
-  end: ArcPoint,
+  start: Readonly<Point>,
+  end: Readonly<Point>,
   bend: number,
 ): [number, number, number, number] => {
   let minX = Math.min(start[0], end[0]);
@@ -284,8 +307,8 @@ export const ARC_LABEL_ROUTE_SAMPLES = 32;
  * of the straight chord. Output shares the caller's coordinate frame.
  */
 export const getArcPolyline = (
-  start: ArcPoint,
-  end: ArcPoint,
+  start: Readonly<Point>,
+  end: Readonly<Point>,
   bend: number,
   samples: number = ARC_LABEL_ROUTE_SAMPLES,
 ): [number, number][] => {
@@ -314,7 +337,7 @@ export const getArcPolyline = (
  * caller's coordinate frame.
  */
 export const getConnectorLabelRoute = (
-  points: readonly ArcPoint[],
+  points: readonly Readonly<Point>[],
   bend: number | undefined | null,
 ): [number, number][] => {
   if (points.length === 2 && isArcBend(bend) && Math.abs(bend) >= ARC_BEND_SNAP_THRESHOLD) {
@@ -328,7 +351,7 @@ export const getConnectorLabelRoute = (
  * back to a straight `M…L…` when the bend is below the snap threshold or the
  * geometry degenerates, so callers can use this for both arc and straight.
  */
-export const getArcPathD = (start: ArcPoint, end: ArcPoint, bend: number): string => {
+export const getArcPathD = (start: Readonly<Point>, end: Readonly<Point>, bend: number): string => {
   const move = `M ${start[0]} ${start[1]}`;
   const straight = `${move} L ${end[0]} ${end[1]}`;
   if (Math.abs(bend) < ARC_BEND_SNAP_THRESHOLD) {

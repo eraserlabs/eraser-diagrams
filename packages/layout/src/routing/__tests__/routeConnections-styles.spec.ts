@@ -4,6 +4,7 @@ import type { LayoutConnection, LayoutEntity, NewConnection } from '../../types.
 import { COMMIT_REPAIR, routeConnections } from '../routeConnections.js';
 import * as execution from '../executeCorridorRouting.js';
 import { anchorFromStored, resolveManualLabel } from '../manualLabelAnchor.js';
+import { absoluteConnectionPoints as absolute } from '../points.js';
 
 /**
  * routeConnections reads each connection's style: elbow connections go to the corridor router,
@@ -16,9 +17,6 @@ const box = (id: string, x: number, y: number, width = 100, height = 60): Layout
   width,
   height,
 });
-
-const absolute = (connection: Pick<LayoutConnection, 'x' | 'y' | 'points'>) =>
-  connection.points.map(([px, py]) => [connection.x + px, connection.y + py]);
 
 function layoutWith(entities: LayoutEntity[], connections: LayoutConnection[] = []) {
   return new LayoutManager({ entities, connections, primaryDirection: 'right' });
@@ -103,7 +101,7 @@ describe('routeConnections style dispatch', () => {
         },
       ],
     });
-    const label = updates.get('s')!.textPlacement!;
+    const label = (updates.get('s') as LayoutConnection).textPlacement!;
     expect(label.x).toBeCloseTo(180, 4);
     expect(label.width).toBe(40);
   });
@@ -135,7 +133,7 @@ describe('routeConnections style dispatch', () => {
         ['b', { deltaY: 100 }],
       ]),
     });
-    const label = updates.get('s')!.textPlacement!;
+    const label = (updates.get('s') as LayoutConnection).textPlacement!;
     expect(label.x).toBeCloseTo(110, 0);
     expect(label.y).toBeLessThan(130 - 16);
   });
@@ -187,7 +185,7 @@ describe('routeConnections style dispatch', () => {
       updates: new Map([['b', { deltaY: 200 }]]),
       allowShift: false,
     });
-    const label = updates.get('e')!.textPlacement!;
+    const label = (updates.get('e') as LayoutConnection).textPlacement!;
     const route = absolute(layout.getConnectionById('e')!) as [number, number][];
     const anchor = anchorFromStored(
       [
@@ -240,8 +238,102 @@ describe('routeConnections style dispatch', () => {
       24,
     )!;
     const expected = resolveManualLabel(route, anchor, { width: 40, height: 16 })!;
-    const label = updates.get('e')!.textPlacement!;
+    const label = (updates.get('e') as LayoutConnection).textPlacement!;
     expect(label.x + 20).toBeCloseTo(expected.center[0], 6);
     expect(label.y + 8).toBeCloseTo(expected.center[1], 6);
+  });
+
+  it('a manual elbow label keeps its place along the line when the line is stretched (shift path)', () => {
+    const elbow: LayoutConnection = {
+      id: 'e',
+      from: 'a',
+      to: 'b',
+      x: 100,
+      y: 30,
+      points: [
+        [0, 0],
+        [200, 0],
+      ],
+      textPlacement: { x: 90, y: -2, width: 40, height: 16 },
+      textLineOffset: 24,
+    };
+    const layout = layoutWith([box('a', 0, 0), box('b', 300, 0)], [elbow]);
+    layout.initiateChanges();
+    layout.updateEntity('b', { deltaX: 120 });
+    const { updates } = routeConnections({
+      layoutManager: layout,
+      repair: COMMIT_REPAIR,
+      updates: new Map([['b', { deltaX: 120 }]]),
+    });
+    const route = absolute(layout.getConnectionById('e')!);
+    expect(route).toEqual([
+      [100, 30],
+      [420, 30],
+    ]);
+    const anchor = anchorFromStored(
+      [
+        [100, 30],
+        [300, 30],
+      ],
+      [110, 6],
+      24,
+    )!;
+    const expected = resolveManualLabel(route, anchor, { width: 40, height: 16 })!;
+    const label = (updates.get('e') as LayoutConnection).textPlacement!;
+    expect(label.x + 20).toBeCloseTo(expected.center[0], 6);
+    expect(label.y + 8).toBeCloseTo(expected.center[1], 6);
+  });
+
+  it('an existing direct connection keeps the style and bend a caller passes', () => {
+    const line: LayoutConnection = {
+      id: 's',
+      from: 'a',
+      to: 'b',
+      x: 100,
+      y: 30,
+      points: [
+        [0, 0],
+        [200, 0],
+      ],
+      connectorStyle: 'straight',
+    };
+    const layout = layoutWith([box('a', 0, 0), box('b', 300, 0)], [line]);
+    routeConnections({
+      layoutManager: layout,
+      repair: COMMIT_REPAIR,
+      connectionsToRoute: [{ ...line, connectorStyle: 'arc', bend: 70 }],
+    });
+    const stored = layout.getConnectionById('s')!;
+    expect(stored.connectorStyle).toBe('arc');
+    expect(stored.bend).toBe(70);
+  });
+
+  it('a manual label on a straight connection stays where it is when the path does not change', () => {
+    const line: LayoutConnection = {
+      id: 's',
+      from: 'a',
+      to: 'b',
+      x: 100,
+      y: 30,
+      points: [
+        [0, 0],
+        [200, 0],
+      ],
+      connectorStyle: 'straight',
+      textPlacement: { x: 110, y: -2, width: 40, height: 16 },
+      textLineOffset: 24,
+    };
+    const layout = layoutWith([box('a', 0, 0), box('b', 300, 0)], [line]);
+    routeConnections({
+      layoutManager: layout,
+      repair: COMMIT_REPAIR,
+      connectionsToRoute: [{ connection: line, endpointPins: { from: [100, 30], to: [300, 30] } }],
+    });
+    expect(layout.getConnectionById('s')!.textPlacement).toEqual({
+      x: 110,
+      y: -2,
+      width: 40,
+      height: 16,
+    });
   });
 });

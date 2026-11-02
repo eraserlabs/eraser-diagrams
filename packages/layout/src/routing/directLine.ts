@@ -1,7 +1,9 @@
 /**
  * Straight and arc connections: one direct segment between the two ends, never the elbow
  * router's path. An arc is the same two points and a `bend`, the signed offset of its apex off the
- * chord's middle (arcGeometry). Pure: lines and boxes in, points and a label out.
+ * chord's middle (arcGeometry). Pure: connections and boxes in, points and a label out. A line is
+ * read from its `LayoutConnection` fields (`from`, `to`, `x`, `y`, `points`, `connectorStyle`,
+ * `bend`).
  *
  * Where the ends attach:
  * - a line with no path yet runs centre to centre, cut where it leaves each box;
@@ -22,16 +24,18 @@ import {
   getConnectorLabelRoute,
   isArcBend,
 } from '../arcGeometry.js';
-import { clipFacePointToOutline } from '../outline.js';
 import { getFaceCenterPoint } from '../portUtils.js';
-import type { Direction, OutlineDescriptor, PositionProps } from '../types.js';
-import { moveManualLabel } from './manualLabelAnchor.js';
+import { clamp } from '../rangeUtils.js';
+import { clipFacePointToOutline } from '../outline.js';
+import type { Direction, LayoutConnection, OutlineDescriptor, PositionProps } from '../types.js';
+import { anchorFromStored, resolveManualLabel } from './manualLabelAnchor.js';
+import { absoluteConnectionPoints, absolutePoint, relativePoint } from './points.js';
 import { labelPositionCenteredOnSegment } from './textPlacements.js';
+import type { Point } from './types.js';
 
-export type Point = readonly [number, number];
-
-/** A connector style that is drawn as one direct segment. */
-export type DirectStyle = 'straight' | 'arc';
+/** The connection fields the path and label geometry reads; binding to boxes also reads `from` and `to`. */
+type Line = Pick<LayoutConnection, 'x' | 'y' | 'points' | 'connectorStyle' | 'bend'>;
+type BoundLine = Line & Pick<LayoutConnection, 'from' | 'to'>;
 
 /** What the geometry reads of a box: its place and size, and its drawn shape. */
 export interface DirectBox extends PositionProps {
@@ -41,40 +45,24 @@ export interface DirectBox extends PositionProps {
   readonly outline?: OutlineDescriptor;
 }
 
-/** A straight or arc line, with its points in absolute coordinates. */
-export interface DirectLine {
-  readonly style: DirectStyle;
-  readonly from?: string | null;
-  readonly to?: string | null;
-  readonly points: readonly Point[];
-  readonly bend?: number | null;
-}
-
-const clamp = (value: number, min: number, max: number): number =>
-  Math.min(max, Math.max(min, value));
-
 /**
  * An arc's bend: its own, else the bow a chord gets the first time it is drawn as an arc; none
- * for a straight line.
+ * for a straight or elbow line.
  */
-export function bendOf(
-  line: DirectLine,
-  points: readonly Point[] = line.points,
-): number | undefined {
-  if (line.style !== 'arc' || points.length < 2) {
+export function bendOf(line: Line): number | undefined {
+  if (line.connectorStyle !== 'arc' || line.points.length < 2) {
     return undefined;
   }
-  return isArcBend(line.bend)
-    ? line.bend
-    : defaultBendForChord(points[0]!, points[points.length - 1]!);
+  if (isArcBend(line.bend)) {
+    return line.bend;
+  }
+  const points = absoluteConnectionPoints(line);
+  return defaultBendForChord(points[0]!, points[points.length - 1]!);
 }
 
-/** The path a label rides on: an arc's curve, sampled; a straight line's own points. */
-export function labelRoute(
-  line: DirectLine,
-  points: readonly Point[] = line.points,
-): [number, number][] {
-  return getConnectorLabelRoute(points, bendOf(line, points));
+/** The path a label rides on: an arc's curve, sampled; any other line's own points. */
+export function labelRoute(line: Line): Point[] {
+  return getConnectorLabelRoute(absoluteConnectionPoints(line), bendOf(line));
 }
 
 // ---- the outline
@@ -88,7 +76,7 @@ function ellipseOutline(box: PositionProps): Point[] {
   const [cx, cy] = centreOf(box);
   return Array.from({ length: ELLIPSE_STEPS }, (_, i) => {
     const t = (2 * Math.PI * i) / ELLIPSE_STEPS;
-    return [cx + (box.width / 2) * Math.cos(t), cy + (box.height / 2) * Math.sin(t)] as const;
+    return [cx + (box.width / 2) * Math.cos(t), cy + (box.height / 2) * Math.sin(t)];
   });
 }
 
@@ -110,9 +98,7 @@ export function outlineOf(box: DirectBox): Point[] {
     return ellipseOutline(box);
   }
   if (box.outline?.kind === 'polygon' && box.outline.vertices.length >= 3) {
-    return box.outline.vertices.map(
-      ([vx, vy]) => [x + (vx / 100) * w, y + (vy / 100) * h] as const,
-    );
+    return box.outline.vertices.map(([vx, vy]): Point => [x + (vx / 100) * w, y + (vy / 100) * h]);
   }
   return [
     [x, y],
@@ -122,13 +108,13 @@ export function outlineOf(box: DirectBox): Point[] {
   ];
 }
 
-const cross = (a: Point, b: Point): number => a[0] * b[1] - a[1] * b[0];
+const cross = (a: Readonly<Point>, b: Readonly<Point>): number => a[0] * b[1] - a[1] * b[0];
 
 /**
  * Where the line through `a` and `b` crosses the box's outline, nearest `a` first. Empty when the
  * line misses the box.
  */
-export function crossings(box: DirectBox, a: Point, b: Point): Point[] {
+export function crossings(box: DirectBox, a: Readonly<Point>, b: Readonly<Point>): Point[] {
   const d: Point = [b[0] - a[0], b[1] - a[1]];
   if (Math.hypot(d[0], d[1]) < 1e-9) {
     return [];
@@ -160,7 +146,7 @@ export function crossings(box: DirectBox, a: Point, b: Point): Point[] {
 }
 
 /** Is the point strictly inside the box's outline (not on it)? Exact for convex outlines. */
-function inside(box: DirectBox, p: Point): boolean {
+function inside(box: DirectBox, p: Readonly<Point>): boolean {
   const outline = outlineOf(box);
   let sign = 0;
   for (let i = 0; i < outline.length; i++) {
@@ -201,6 +187,26 @@ export function centreSegment(from: DirectBox, to: DirectBox): [Point, Point] {
 }
 
 /**
+ * The two ends a straight or arc line is laid on: a line with a path keeps its first and last
+ * points (an elbow's corners drop out); a line with no path yet takes `fresh`, the segment the
+ * caller gives for its boxes (`centreSegment`). Undefined when it has neither.
+ */
+export function directEnds(
+  points: readonly Readonly<Point>[],
+  fresh: [Point, Point] | undefined,
+): [Point, Point] | undefined {
+  if (points.length >= 2) {
+    const first = points[0]!;
+    const last = points[points.length - 1]!;
+    return [
+      [first[0], first[1]],
+      [last[0], last[1]],
+    ];
+  }
+  return fresh;
+}
+
+/**
  * A line with no path whose ends name faces: a named face puts that end on the face's midpoint,
  * walked in to the drawn outline; a free end attaches where the line from its box's centre toward
  * the other end leaves the box. The far end aims at the near one already resolved, so one named
@@ -218,14 +224,15 @@ export function faceAnchoredSegment(
   return [start, end];
 }
 
+/** A face's midpoint, walked in to the box's drawn outline when it has one. */
 function facePoint(box: DirectBox, face: Direction): Point {
-  const [x, y] = getFaceCenterPoint({ id: '', ...box }, face);
+  const [x, y] = getFaceCenterPoint(box, face);
   const clipped = clipFacePointToOutline({ id: '', ...box }, face, { x, y });
   return [clipped.x, clipped.y];
 }
 
 /** Where the ray from the box's centre toward `target` leaves its outline; the centre when it cannot. */
-function boundaryToward(box: DirectBox, target: Point): Point {
+function boundaryToward(box: DirectBox, target: Readonly<Point>): Point {
   const c = centreOf(box);
   const hits = crossings(box, c, target).filter(
     (h) => (h[0] - c[0]) * (target[0] - c[0]) + (h[1] - c[1]) * (target[1] - c[1]) > 0,
@@ -244,13 +251,13 @@ export interface Focus {
 }
 
 /** How far the outline reaches from the centre along the unit normal `n` (the support of the shape). */
-function reach(box: DirectBox, n: Point): number {
+function reach(box: DirectBox, n: Readonly<Point>): number {
   const c = centreOf(box);
   return Math.max(...outlineOf(box).map((v) => n[0] * (v[0] - c[0]) + n[1] * (v[1] - c[1])));
 }
 
 /** The focus binding of the end at `edge`, the line coming from `adjacent`. */
-export function focusOf(box: DirectBox, adjacent: Point, edge: Point): Focus {
+export function focusOf(box: DirectBox, adjacent: Readonly<Point>, edge: Readonly<Point>): Focus {
   const length = Math.hypot(edge[0] - adjacent[0], edge[1] - adjacent[1]);
   if (length < 1e-9) {
     return { focus: 0, far: false };
@@ -270,7 +277,7 @@ export function focusOf(box: DirectBox, adjacent: Point, edge: Point): Focus {
  * `adjacent` that grazes the box shrunk by the focus about its centre (on the focus's side), where
  * it crosses the outline. Null when it misses the box.
  */
-export function snapToFocus(box: DirectBox, focus: Focus, adjacent: Point): Point | null {
+export function snapToFocus(box: DirectBox, focus: Focus, adjacent: Readonly<Point>): Point | null {
   const c = centreOf(box);
   let through: Point = c;
   if (focus.focus !== 0) {
@@ -299,22 +306,10 @@ export function snapToFocus(box: DirectBox, focus: Focus, adjacent: Point): Poin
   return focus.far ? (hits[1] ?? hits[0]!) : hits[0]!;
 }
 
-/** An arc end's fixed anchor: the fraction across and down its box the end sits at. */
-export function anchorOf(box: PositionProps, p: Point): Point {
-  return [
-    box.width === 0 ? 0.5 : (p[0] - box.x) / box.width,
-    box.height === 0 ? 0.5 : (p[1] - box.y) / box.height,
-  ];
-}
-
-/** The point at a fixed anchor of the box as it is now. */
-export function anchorPoint(box: PositionProps, anchor: Point): Point {
-  return [box.x + anchor[0] * box.width, box.y + anchor[1] * box.height];
-}
-
 /** How each bound end of a straight or arc line holds to its box. */
 export interface EndBinding {
   readonly focus: Focus;
+  /** An arc end's fixed anchor: the fraction across and down its box (relativePoint). */
   readonly anchor: Point;
 }
 export interface DirectBinding {
@@ -324,22 +319,24 @@ export interface DirectBinding {
 
 /** The line's bindings, read from where its ends are now. */
 export function bindingOf(
-  line: DirectLine,
+  line: BoundLine,
   boxOf: (id: string) => DirectBox | undefined,
 ): DirectBinding {
-  const pts = line.points;
-  if (pts.length < 2) {
+  const points = absoluteConnectionPoints(line);
+  if (points.length < 2) {
     return {};
   }
-  const start = pts[0]!;
-  const end = pts[pts.length - 1]!;
+  const start = points[0]!;
+  const end = points[points.length - 1]!;
   const fromBox = line.from ? boxOf(line.from) : undefined;
   const toBox = line.to ? boxOf(line.to) : undefined;
   return {
     ...(fromBox
-      ? { from: { focus: focusOf(fromBox, end, start), anchor: anchorOf(fromBox, start) } }
+      ? { from: { focus: focusOf(fromBox, end, start), anchor: relativePoint(fromBox, start) } }
       : {}),
-    ...(toBox ? { to: { focus: focusOf(toBox, start, end), anchor: anchorOf(toBox, end) } } : {}),
+    ...(toBox
+      ? { to: { focus: focusOf(toBox, start, end), anchor: relativePoint(toBox, end) } }
+      : {}),
   };
 }
 
@@ -350,21 +347,21 @@ export function bindingOf(
  * snapped (the line misses the box) stays where it was.
  */
 export function followBoxes(
-  line: DirectLine,
+  line: BoundLine,
   binding: DirectBinding,
   boxOf: (id: string) => DirectBox | undefined,
 ): [Point, Point] {
-  const pts = line.points;
-  const start = pts[0]!;
-  const end = pts[pts.length - 1]!;
+  const points = absoluteConnectionPoints(line);
+  const start = points[0]!;
+  const end = points[points.length - 1]!;
   const fromBox = line.from ? boxOf(line.from) : undefined;
   const toBox = line.to ? boxOf(line.to) : undefined;
   const from = fromBox && binding.from ? { box: fromBox, ...binding.from } : null;
   const to = toBox && binding.to ? { box: toBox, ...binding.to } : null;
-  if (line.style === 'arc') {
+  if (line.connectorStyle === 'arc') {
     return [
-      from ? anchorPoint(from.box, from.anchor) : start,
-      to ? anchorPoint(to.box, to.anchor) : end,
+      from ? absolutePoint(from.box, from.anchor) : start,
+      to ? absolutePoint(to.box, to.anchor) : end,
     ];
   }
   if (from && to) {
@@ -384,73 +381,95 @@ export function followBoxes(
  * A bound end left inside its box (a line drawn from deep inside one) put where the line leaves
  * the box, toward the line's other end; anywhere else it stays.
  */
-export function onOutline(box: DirectBox, end: Point, other: Point): Point {
+export function onOutline(box: DirectBox, end: Readonly<Point>, other: Readonly<Point>): Point {
   if (!inside(box, end)) {
-    return end;
+    return [end[0], end[1]];
   }
   const hits = crossings(box, end, other);
   const ahead = hits.filter(
     (p) => (p[0] - end[0]) * (other[0] - end[0]) + (p[1] - end[1]) * (other[1] - end[1]) >= 0,
   );
-  return ahead[0] ?? end;
+  return ahead[0] ?? [end[0], end[1]];
 }
 
 /**
  * A bound end placed outside its box's outline but on the box (an ellipse's corner) brought in to
  * the outline, toward the centre; an end on or inside the outline stays where it was put.
  */
-export function ontoOutline(box: DirectBox, p: Point): Point {
+export function ontoOutline(box: DirectBox, p: Readonly<Point>): Point {
   if (inside(box, p)) {
-    return p;
+    return [p[0], p[1]];
   }
   const c = centreOf(box);
   const hits = crossings(box, p, c).filter(
     (h) => (h[0] - p[0]) * (c[0] - p[0]) + (h[1] - p[1]) * (c[1] - p[1]) >= 0,
   );
-  return hits[0] ?? p;
+  return hits[0] ?? [p[0], p[1]];
 }
 
 // ---- the label
 
-/** A manually placed label: the line it was placed on, its box there, and its offset off the line. */
-export interface ManualLabel {
-  readonly on: DirectLine;
-  readonly box: PositionProps;
-  /** Signed perpendicular offset from the line. */
-  readonly lineOffset: number;
-}
-
 /**
- * Where a straight or arc line's label goes on the line's path: a manual label keeps its place
- * along the line and its offset off it, read from where it sat on `manual.on`; an arc's other label
- * centres on the apex; a straight line's on the segment's middle, lifted clear when the segment is
- * too short for it. Undefined for a line with no path.
+ * Where a straight or arc line's label goes automatically: an arc's label centres on the apex; a
+ * straight line's on the segment's middle, lifted clear when the segment is too short for it.
+ * Undefined for a line with no path.
  */
 export function directLabel(
-  line: DirectLine,
+  line: Line,
   size: { readonly width: number; readonly height: number },
-  manual?: ManualLabel,
 ): PositionProps | undefined {
-  const points = line.points;
+  const points = absoluteConnectionPoints(line);
   if (points.length < 2) {
     return undefined;
   }
-  const moved =
-    manual &&
-    moveManualLabel(labelRoute(manual.on), manual.box, manual.lineOffset, labelRoute(line), size);
-  if (moved) {
-    return moved;
-  }
   const start = points[0]!;
   const end = points[points.length - 1]!;
-  const bend = bendOf(line, points);
+  const bend = bendOf(line);
   if (bend !== undefined && Math.abs(bend) >= ARC_BEND_SNAP_THRESHOLD) {
     const [cx, cy] = getArcApex(start, end, bend);
-    return { x: cx - size.width / 2, y: cy - size.height / 2, width: size.width, height: size.height };
+    return {
+      x: cx - size.width / 2,
+      y: cy - size.height / 2,
+      width: size.width,
+      height: size.height,
+    };
   }
   const placedBox = labelPositionCenteredOnSegment(size, [
     { x: start[0], y: start[1] },
     { x: end[0], y: end[1] },
   ]);
   return { x: placedBox.x, y: placedBox.y, width: size.width, height: size.height };
+}
+
+/**
+ * A manually placed label (`textLineOffset` set) carried from `previous` onto `next`, the same
+ * connection after its path changed: it keeps its place along the line and its offset from it. Any
+ * connection style; an arc's label rides its curve. Undefined when `previous` has no manual label
+ * or either path is degenerate.
+ */
+export function keepManualLabel(
+  previous: Line & Pick<LayoutConnection, 'textPlacement' | 'textLineOffset'>,
+  next: Line,
+  size: { readonly width: number; readonly height: number } | undefined = previous.textPlacement,
+): PositionProps | undefined {
+  const box = previous.textPlacement;
+  const lineOffset = previous.textLineOffset;
+  if (lineOffset === undefined || !box || !size) {
+    return undefined;
+  }
+  if (![box.x, box.y, box.width, box.height].every(Number.isFinite)) {
+    return undefined;
+  }
+  const center: Point = [box.x + box.width / 2, box.y + box.height / 2];
+  const anchor = anchorFromStored(labelRoute(previous), center, lineOffset);
+  const resolved = anchor && resolveManualLabel(labelRoute(next), anchor, size);
+  if (!resolved) {
+    return undefined;
+  }
+  return {
+    x: resolved.center[0] - size.width / 2,
+    y: resolved.center[1] - size.height / 2,
+    width: size.width,
+    height: size.height,
+  };
 }

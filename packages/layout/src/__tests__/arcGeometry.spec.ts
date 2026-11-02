@@ -1,6 +1,6 @@
+import type { Point } from '../routing/types.js';
 import {
   ARC_BEND_SNAP_THRESHOLD,
-  ArcPoint,
   bendFromApex,
   distanceToArc,
   getArcApex,
@@ -20,12 +20,12 @@ import {
  * an arc that actually passes through the apex on the intended side.
  */
 function svgArcCenter(
-  start: ArcPoint,
-  end: ArcPoint,
+  start: Readonly<Point>,
+  end: Readonly<Point>,
   radius: number,
   largeArc: 0 | 1,
   sweep: 0 | 1,
-): ArcPoint {
+): Readonly<Point> {
   const midX = (start[0] - end[0]) / 2;
   const midY = (start[1] - end[1]) / 2;
   const r = radius;
@@ -39,12 +39,12 @@ function svgArcCenter(
 }
 
 describe('arcGeometry', () => {
-  const S: ArcPoint = [0, 0];
-  const E: ArcPoint = [100, 0];
+  const S: Readonly<Point> = [0, 0];
+  const E: Readonly<Point> = [100, 0];
 
   it.each([9000, -9000])('fully contains a strongly bent diagonal arc (%s)', (bend) => {
-    const start: ArcPoint = [20, 35];
-    const end: ArcPoint = [110, 240];
+    const start: Readonly<Point> = [20, 35];
+    const end: Readonly<Point> = [110, 240];
     const bounds = getArcBoundingBox(start, end, bend);
     for (const point of getArcPolyline(start, end, bend, 10000)) {
       expect(point[0]).toBeGreaterThanOrEqual(bounds[0] - 1e-7);
@@ -79,7 +79,7 @@ describe('arcGeometry', () => {
       (bend) => {
         let previous = getArcApex([400, 300], [399, 300.001], bend);
         for (let i = -99; i <= 100; i++) {
-          const end: ArcPoint = [400 + i / 100, 300.001];
+          const end: Readonly<Point> = [400 + i / 100, 300.001];
           const apex = getArcApex([400, 300], end, bend);
           expect(Math.hypot(apex[0] - previous[0], apex[1] - previous[1])).toBeLessThan(0.1);
           expect(bendFromApex([400, 300], end, apex)).toBeCloseTo(bend);
@@ -250,7 +250,7 @@ describe('arcGeometry', () => {
     });
 
     it('returns the raw points for a multi-point connector even with a bend', () => {
-      const elbow: ArcPoint[] = [
+      const elbow: Readonly<Point>[] = [
         [0, 0],
         [0, 50],
         [100, 50],

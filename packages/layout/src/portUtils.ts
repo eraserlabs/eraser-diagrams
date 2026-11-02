@@ -1,8 +1,8 @@
-import type { Direction, LayoutEntity, Port } from './types.js';
+import type { Direction, Port, PositionProps } from './types.js';
 import { Point } from './routing/types.js';
 
 /** Midpoint of the entity box's `face`, snapped outward to whole pixels. */
-export function getFaceCenterPoint(entity: LayoutEntity, face: Direction): Point {
+export function getFaceCenterPoint(entity: PositionProps, face: Direction): Point {
   switch (face) {
     case 'up': {
       return [Math.round(entity.x + entity.width / 2), Math.floor(entity.y)];

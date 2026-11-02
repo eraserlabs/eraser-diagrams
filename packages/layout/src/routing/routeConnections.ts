@@ -8,7 +8,6 @@ import type {
   LayoutConnectionChange,
   LayoutEntity,
   NewConnection,
-  PositionProps,
   XYPoint,
 } from '../types.js';
 import { assignFaces, type RouteFaces } from './faces.js';
@@ -21,6 +20,7 @@ import {
   getRelativePort,
   isFinitePoint,
   roundPoint,
+  samePath,
   storedEndpoint,
 } from './points.js';
 import type { EndpointSide, Point, RelativePortPosition, RoutedConnectionChange } from './types.js';
@@ -40,11 +40,9 @@ import {
   centreSegment,
   directLabel,
   faceAnchoredSegment,
-  type DirectLine,
   followBoxes,
-  type Point as DirectPoint,
+  keepManualLabel,
 } from './directLine.js';
-import { moveManualLabel } from './manualLabelAnchor.js';
 import { hasMeasuredLabel } from './textPlacements.js';
 
 /**
@@ -132,14 +130,25 @@ export function routeConnections({
 
   const routingLayout = selected.size ? makeRoutingLayout(layoutManager) : layoutManager;
   const pending = new Map<string, ConnectionRoutingRequest>();
+  // every selected line as it was: a manual label keeps its place along the line whichever way the
+  // line is routed (shifted, direct or searched), and stays where it is when the path is kept as is
+  const manualLabels = new Map<string, LayoutConnection>();
   for (const { connection: input, endpointPins } of selected.values()) {
     const existing = routingLayout.getConnectionById(input.id);
     const connection = existing ? { ...existing, ...input } : input;
     const pins = endpointPins ?? resolveEndpointPins?.(connection);
+    if (existing) {
+      manualLabels.set(existing.id, {
+        ...existing,
+        textPlacement: input.textPlacement ?? existing.textPlacement,
+        textLineOffset: input.textLineOffset ?? existing.textLineOffset,
+      });
+    }
     if (isDirectConnection(connection)) {
       const change = routeDirectConnection(routingLayout, connection, pins);
       if (change && existing) {
-        routingLayout.updateConnection(connection.id, change);
+        // the caller's fields are staged with the geometry, as on the shift path
+        finalizeShiftRoute(routingLayout, connection, change);
       } else if (change) {
         routingLayout.addConnection({ ...connection, ...change });
       }
@@ -153,18 +162,14 @@ export function routeConnections({
     pending.set(connection.id, { connection, endpointPins: pins });
   }
 
-  const manualLabels = new Map<string, ManualLabelSnapshot>();
-  for (const { connection } of pending.values()) {
-    const snapshot = manualLabelSnapshot(
-      routingLayout.getConnectionById(connection.id),
-      connection,
-    );
-    if (snapshot) {
-      manualLabels.set(connection.id, snapshot);
+  const fallbacks = routeCorridorConnections(routingLayout, pending, repair, groupedPinnedPorts);
+  for (const [connectionId, previous] of manualLabels) {
+    const routed = routingLayout.getConnectionById(connectionId);
+    const kept = routed && !samePath(previous, routed) && keepManualLabel(previous, routed);
+    if (kept) {
+      routingLayout.updateConnection(connectionId, { textPlacement: kept });
     }
   }
-  const fallbacks = routeCorridorConnections(routingLayout, pending, repair, groupedPinnedPorts);
-  restoreManualLabels(routingLayout, manualLabels);
   const connectionUpdates = new Map<string, LayoutConnectionChange>();
   for (const connectionId of selected.keys()) {
     const change = stagedConnectionChange(routingLayout, connectionId);
@@ -675,8 +680,9 @@ export function isDirectConnection(connection: Pick<NewConnection, 'connectorSty
 /**
  * Route a straight or arc connection: its bound ends follow their entities from where they were
  * before the staged changes (a straight end by its focus binding, an arc end by its fixed anchor);
- * a connection with no path runs centre to centre. Explicit pins win. Its label goes at the apex,
- * the segment's middle, or a manual label's anchor.
+ * a connection with no path runs centre to centre. Explicit pins win. An automatic label goes at
+ * the apex or the segment's middle; a manual label is moved along the line afterwards, as on every
+ * other path.
  */
 function routeDirectConnection(
   layoutManager: LayoutManager,
@@ -685,27 +691,17 @@ function routeDirectConnection(
 ): RoutedConnectionChange | undefined {
   const before = (id: string) => layoutManager.getEntityById(id, false, false);
   const after = (id: string) => layoutManager.getEntityById(id, false, true);
-  const stored =
-    connection.points && connection.points.length >= 2
-      ? absoluteConnectionPoints({
-          x: connection.x ?? 0,
-          y: connection.y ?? 0,
-          points: connection.points,
-        })
-      : [];
-  const label = connection.textPlacement;
-  const was: DirectLine = {
-    style: connection.connectorStyle === 'arc' ? 'arc' : 'straight',
-    from: connection.from,
-    to: connection.to,
-    points: stored,
-    bend: connection.bend ?? null,
+  const line = {
+    ...connection,
+    x: connection.x ?? 0,
+    y: connection.y ?? 0,
+    points: connection.points ?? [],
   };
 
-  let ends: [DirectPoint, DirectPoint] | undefined;
-  if (stored.length >= 2) {
+  let ends: [Point, Point] | undefined;
+  if (line.points.length >= 2) {
     const beforeBox = (id: string) => before(id) ?? after(id);
-    ends = followBoxes(was, bindingOf(was, beforeBox), after);
+    ends = followBoxes(line, bindingOf(line, beforeBox), after);
   } else {
     const fromBox = after(connection.from);
     const toBox = after(connection.to);
@@ -726,62 +722,16 @@ function routeDirectConnection(
   if (!start || !end) {
     return undefined;
   }
-  const points: Point[] = [[...start], [...end]];
-  const lineOffset = connection.textLineOffset;
-  const manual =
-    label && lineOffset !== undefined ? { on: was, box: label, lineOffset } : undefined;
-  const placed = label ? directLabel({ ...was, points }, label, manual) : undefined;
+  const geometry = connectionGeometryFromPoints([start, end]);
+  const label = connection.textPlacement;
   return {
-    ...connectionGeometryFromPoints(points),
+    ...geometry,
     relativeFromPort: undefined,
     relativeToPort: undefined,
-    textPlacement: placed ?? label,
+    // a manual label stays as it is here: the pass after routing moves it along the line if the path changed
+    textPlacement:
+      label && connection.textLineOffset === undefined
+        ? (directLabel({ ...line, ...geometry }, label) ?? label)
+        : label,
   };
-}
-
-interface ManualLabelSnapshot {
-  readonly oldRoute: Point[];
-  readonly box: PositionProps;
-  readonly lineOffset: number;
-}
-
-/**
- * What a manually placed elbow label (one with `textLineOffset`) needs to keep its place along the
- * line through a fresh route: the old route and the label's centre on it.
- */
-function manualLabelSnapshot(
-  existing: LayoutConnection | undefined,
-  connection: NewConnection,
-): ManualLabelSnapshot | undefined {
-  const lineOffset = connection.textLineOffset ?? existing?.textLineOffset;
-  const label = connection.textPlacement ?? existing?.textPlacement;
-  if (lineOffset === undefined || !label || !existing || existing.points.length < 2) {
-    return undefined;
-  }
-  if (![label.x, label.y, label.width, label.height].every(Number.isFinite)) {
-    return undefined;
-  }
-  return {
-    oldRoute: absoluteConnectionPoints(existing),
-    box: label,
-    lineOffset,
-  };
-}
-
-/** Put each manual label back at its place along its line's new route. */
-function restoreManualLabels(
-  layoutManager: LayoutManager,
-  snapshots: ReadonlyMap<string, ManualLabelSnapshot>,
-): void {
-  for (const [connectionId, snapshot] of snapshots) {
-    const connection = layoutManager.getConnectionById(connectionId);
-    if (!connection || connection.points.length < 2) {
-      continue;
-    }
-    const { oldRoute, box, lineOffset } = snapshot;
-    const moved = moveManualLabel(oldRoute, box, lineOffset, absoluteConnectionPoints(connection), box);
-    if (moved) {
-      layoutManager.updateConnection(connectionId, { textPlacement: moved });
-    }
-  }
 }
