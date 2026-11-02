@@ -26,7 +26,7 @@ import {
 } from '../arcGeometry.js';
 import { getFaceCenterPoint } from '../portUtils.js';
 import { clamp } from '../rangeUtils.js';
-import { clipFacePointToOutline, createEntityOutline } from '../outline.js';
+import { clipFacePointToOutline } from '../outline.js';
 import type { Direction, LayoutConnection, OutlineDescriptor, PositionProps } from '../types.js';
 import { anchorFromStored, resolveManualLabel } from './manualLabelAnchor.js';
 import { absoluteConnectionPoints, absolutePoint, relativePoint } from './points.js';
@@ -168,22 +168,6 @@ function inside(box: DirectBox, p: Readonly<Point>): boolean {
 // ---- where the ends attach
 
 /**
- * Where the ray from `c`, inside the box, toward `toward` leaves the box's outline descriptor:
- * exact on rounded corners and on a true ellipse, where `outlineOf`'s polygon is not. Undefined
- * when a named `shape` sets the outline, the box has no descriptor, or the ray misses.
- */
-function exactExit(box: DirectBox, c: Readonly<Point>, toward: Readonly<Point>): Point | undefined {
-  if (!box.outline || box.shape === 'ellipse' || box.shape === 'diamond') {
-    return undefined;
-  }
-  const hit = createEntityOutline(box.outline, box)?.intersectRay(
-    { x: c[0], y: c[1] },
-    { x: toward[0] - c[0], y: toward[1] - c[1] },
-  );
-  return hit ? [hit.x, hit.y] : undefined;
-}
-
-/**
  * A line with no path yet, from one box to the other: centre to centre, each end where that line
  * leaves its box (the crossing nearer the other centre); a centre when it never leaves (boxes on
  * top of each other).
@@ -192,10 +176,6 @@ export function centreSegment(from: DirectBox, to: DirectBox): [Point, Point] {
   const a = centreOf(from);
   const b = centreOf(to);
   const leave = (box: DirectBox, c: Point, toward: Point): Point => {
-    const exact = exactExit(box, c, toward);
-    if (exact) {
-      return exact;
-    }
     const hits = crossings(box, c, toward);
     if (hits.length === 0) {
       return c;
@@ -254,10 +234,6 @@ function facePoint(box: DirectBox, face: Direction): Point {
 /** Where the ray from the box's centre toward `target` leaves its outline; the centre when it cannot. */
 function boundaryToward(box: DirectBox, target: Readonly<Point>): Point {
   const c = centreOf(box);
-  const exact = exactExit(box, c, target);
-  if (exact) {
-    return exact;
-  }
   const hits = crossings(box, c, target).filter(
     (h) => (h[0] - c[0]) * (target[0] - c[0]) + (h[1] - c[1]) * (target[1] - c[1]) > 0,
   );

@@ -240,26 +240,4 @@ describe('an outline descriptor', () => {
     close(s, centreSegment(box('a', 0, 0, 100, 100, 'diamond'), box('b', 300, 300, 100, 100))[0]);
     expect(s[0] + s[1]).toBeCloseTo(150, 4);
   });
-
-  it("a rounded rectangle's end sits on its corner arc, not on the box's sharp corner", () => {
-    const rounded: DirectBox = {
-      x: 0,
-      y: 0,
-      width: 100,
-      height: 100,
-      outline: {
-        kind: 'polygon',
-        vertices: [
-          [0, 0],
-          [100, 0],
-          [100, 100],
-          [0, 100],
-        ],
-        cornerRadius: 20,
-      },
-    };
-    // the diagonal leaves through the bottom-right corner arc: centre (80, 80), radius 20
-    const [s] = centreSegment(rounded, box('b', 300, 300, 100, 100));
-    close(s, [80 + 20 / Math.SQRT2, 80 + 20 / Math.SQRT2]);
-  });
 });

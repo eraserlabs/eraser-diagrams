@@ -179,8 +179,7 @@ export function executeCorridorRouting(
         if (!(error instanceof CorridorRouteError)) {
           throw error;
         }
-        // `process` is absent in a plain browser bundle.
-        if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') {
+        if (process.env.NODE_ENV !== 'production') {
           console.error('Corridor routes failed; dropping them from the batch', error);
         }
         failed = [...new Set(error.routeIndexes)];

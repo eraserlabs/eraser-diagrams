@@ -326,8 +326,7 @@ function routeCorridorConnections(
   } catch (error) {
     // Unexpected solver failures still get the same ordinary fallback geometry.
     // Fallback construction and committing deliberately sit outside this catch.
-    // `process` is absent in a plain browser bundle.
-    if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV !== 'production') {
       console.error('Corridor routing failed; falling back for', [...pending.keys()], error);
     }
   }

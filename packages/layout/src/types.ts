@@ -159,8 +159,8 @@ export interface LayoutConnection {
   /** If there is text, this is it's position (in absolute grid terms) */
   textPlacement?: PositionProps;
   /**
-   * Signed perpendicular offset of a manually placed label from its line (any connector style);
-   * its presence keeps the label at its place along the line when the line moves.
+   * Signed perpendicular offset of a manually placed label from a straight or arc line; its
+   * presence keeps the label at its place along the line when the line moves.
    */
   textLineOffset?: number;
   /** How the connection is drawn: `elbow` (default) is routed; `straight` and `arc` are one direct segment. */

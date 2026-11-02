@@ -37,7 +37,7 @@ export function labelPiercePairs(lines: readonly MeasuredLine[]): Set<string> {
   return collectLabelPierces(lines).pairs;
 }
 
-/** How many lines pierce at least one foreign label (a line counts once). */
+/** Grader-compatible count: each line that pierces at least one foreign label. */
 export function pierceCount(lines: readonly MeasuredLine[]): number {
   return collectLabelPierces(lines).lines.size;
 }

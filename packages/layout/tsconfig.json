@@ -15,7 +15,6 @@
     "src/**/__tests__/**",
     "src/**/*.spec.ts",
     "src/**/*.test.ts",
-    "src/routing/routingTestUtils.ts",
-    "src/testUtils.ts"
+    "src/routing/routingTestUtils.ts"
   ]
 }

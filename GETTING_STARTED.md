@@ -274,8 +274,7 @@ Connection (`Relationship`) properties:
 | `label` | string | Inline-markdown line label. |
 | `startArrowhead`, `endArrowhead` | string \| null | `arrow`, `bar`, `dot`, `triangle`, `crowFootSingle`, `crowFootMany`. An absent `startArrowhead` means no arrowhead; an absent `endArrowhead` on a `Relationship` defaults to `triangle`. Pass `null` to opt out of that default. (On a `DatabaseRelationship` an absent pair comes from `relType`.) |
 | `fromPort`, `toPort` | string | Pin an endpoint to a side: `top`, `right`, `bottom`, `left`. |
-| `connectorStyle` | string | How the route travels: `elbow` (orthogonal segments, default), `straight` (one direct line between the shapes) or `arc` (one curved line between the shapes). |
-| `bend` | number | For an `arc`: the signed distance in px from the middle of the straight line between the ends to the arc's apex. Omitted, the arc gets a default bow. |
+| `connectorStyle` | string | How the route travels: `elbow` (orthogonal segments, default) or `straight` (one direct line between the shapes). |
 | `cornerStyle` | string | How route corners are painted: `elbow` (rounded, default) or `straight` (square). |
 | `lineStyle`, `lineWidth`, `color` | string / number / string | `solid`/`dashed`/`dotted`, stroke width, stroke color (a palette token or any CSS color, as above). The label follows `color` too. |
 | `labelColor` | string | Label text colour on its own. Unset, the label follows `color`. |
