@@ -18,7 +18,7 @@
  */
 import type { Route } from './route.js';
 import type { CorridorWorld } from './world.js';
-import { boundaryTravelCoordinate, endpointPoint } from './geometry.js';
+import { boundaryTravelCoordinate, routeEndpointPosition } from './geometry.js';
 
 const EPSILON = 1e-6;
 
@@ -139,7 +139,7 @@ function occupancies(
   // The route ends here. Pin its terminal port at its true position: cross for band comparisons,
   // travel for the turn-order rule when the cross coordinates tie.
   const terminal = step === 1 ? route.to : route.from;
-  const point = endpointPoint(world.entities, terminal);
+  const point = routeEndpointPosition(world.entities, terminal);
   const cross = sharedAxis === 'x' ? point.y : point.x;
   const travel = sharedAxis === 'x' ? point.x : point.y;
   out.push({
@@ -531,10 +531,10 @@ function routeTravelDirection(world: CorridorWorld, route: Route, index: number)
     const travelOf = (point: { x: number; y: number }): number =>
       corridor.axis === 'x' ? point.x : point.y;
     if (chainReachesStart(route, index - 1)) {
-      before = travelOf(endpointPoint(world.entities, route.from));
+      before = travelOf(routeEndpointPosition(world.entities, route.from));
     }
     if (chainReachesEnd(route, index + 1)) {
-      after = travelOf(endpointPoint(world.entities, route.to));
+      after = travelOf(routeEndpointPosition(world.entities, route.to));
     }
   }
   return after > before + EPSILON ? 1 : after < before - EPSILON ? -1 : 0;

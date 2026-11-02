@@ -1,57 +1,66 @@
-import { isHorizontal, legacyDirectionToDirection, OPPOSITE_DIRECTION } from '../directionUtils.js';
-import { LayoutManager } from '../LayoutManager.js';
 import { clipFacePointToOutline } from '../outline.js';
-import { getAbsolutePortPoint, getPortAsPoint, getRelativePort } from '../portUtils.js';
-import type { Direction, LayoutConnection, LayoutEntity, NewConnection } from '../types.js';
-import { detectEnterFace, detectExitFace } from './faces.js';
-import type { Point, RelativePortPosition } from './types.js';
+import { isHorizontal, OPPOSITE_DIRECTION } from '../directionUtils.js';
+import { LayoutManager } from '../LayoutManager.js';
+import { getFaceCenterPoint } from '../portUtils.js';
+import type { Direction, LayoutEntity, NewConnection } from '../types.js';
+import {
+  authoredEndpointFace,
+  connectionGeometryFromPoints,
+  determineDirectionsFromPoints,
+  getAbsolutePortPoint,
+  getRelativePort,
+  isFinitePoint,
+  storedEndpoint,
+} from './points.js';
+import { hasMeasuredLabel, resolveConnectionLabelRelativePlacement } from './textPlacements.js';
+import { outwardSign } from './corridor/geometry.js';
+import type { Point, RelativePortPosition, RoutedConnectionChange } from './types.js';
 
 const FALLBACK_DETOUR_SIZE = 20;
 
-export interface RoughFallbackConnectionOptions {
+interface RoughFallbackConnectionOptions {
   readonly fromFace?: Direction;
   readonly toFace?: Direction;
   readonly startPoint?: Point;
   readonly endPoint?: Point;
 }
 
-export type RoughFallbackConnectionChange = Pick<
-  LayoutConnection,
-  'x' | 'y' | 'points' | 'relativeFromPort' | 'relativeToPort'
->;
-
 /**
  * Builds deliberately rough but mathematically usable fallback geometry. The route honors
- * both terminal faces when possible, never depends on a corridor world, and always contains
+ * both terminal faces, never depends on a corridor world, and always contains
  * at least two finite points. Product-validity classification belongs to the caller.
  */
 export function makeRoughFallbackConnectionChange(
   layoutManager: LayoutManager,
   connection: NewConnection,
-  options: RoughFallbackConnectionOptions = {},
-): RoughFallbackConnectionChange {
+  options: RoughFallbackConnectionOptions,
+): RoutedConnectionChange {
   const entitiesById = layoutManager.getEntitiesMapping();
   const fromEntity = connection.from ? entitiesById[connection.from] : undefined;
   const toEntity = connection.to ? entitiesById[connection.to] : undefined;
-  const stored = storedAbsolutePoints(connection);
-  const fromFace = resolveFromFace(layoutManager, connection, fromEntity, toEntity, options);
-  const toFace = resolveToFace(layoutManager, connection, fromEntity, toEntity, options);
+  const fromFace =
+    options.fromFace ?? authoredEndpointFace(connection, 'from') ?? layoutManager.primaryDirection;
+  const toFace =
+    options.toFace ??
+    authoredEndpointFace(connection, 'to') ??
+    OPPOSITE_DIRECTION[layoutManager.primaryDirection];
   const faceStart = entityFacePoint(fromEntity, fromFace);
   const faceEnd = entityFacePoint(toEntity, toFace);
   const start =
     finitePointOrUndefined(options.startPoint) ??
     relativeEndpointPoint(fromEntity, connection.relativeFromPort) ??
     faceStart ??
-    stored[0] ??
+    storedEndpoint(connection, 'from') ??
     ([0, 0] as Point);
   const end =
     finitePointOrUndefined(options.endPoint) ??
     relativeEndpointPoint(toEntity, connection.relativeToPort) ??
     faceEnd ??
-    stored.at(-1) ??
+    storedEndpoint(connection, 'to') ??
     ([start[0] + 10, start[1]] as Point);
   const absolutePoints = makeRoughFallbackPoints(start, end, fromFace, toFace);
-  // Only self-derived face points walk to the drawn boundary; authored geometry stays verbatim.
+  // An entity with an outline (a non-rectangular shape): only self-derived face points walk to
+  // the drawn boundary; authored geometry stays verbatim. Without an outline this is a no-op.
   if (fromEntity && start === faceStart) {
     const clipped = clipFacePointToOutline(fromEntity, fromFace, { x: start[0], y: start[1] });
     absolutePoints[0] = [clipped.x, clipped.y];
@@ -60,18 +69,22 @@ export function makeRoughFallbackConnectionChange(
     const clipped = clipFacePointToOutline(toEntity, toFace, { x: end[0], y: end[1] });
     absolutePoints[absolutePoints.length - 1] = [clipped.x, clipped.y];
   }
+  const geometry = connectionGeometryFromPoints(absolutePoints);
+  const label = connection.textPlacement;
+  const relativeLabel = hasMeasuredLabel(label)
+    ? resolveConnectionLabelRelativePlacement(geometry.points, label)
+    : undefined;
   return {
-    ...absolutePointsChange(absolutePoints),
-    relativeFromPort: fromEntity
-      ? (connection.relativeFromPort ?? getRelativePort(fromEntity, start, fromFace))
-      : undefined,
-    relativeToPort: toEntity
-      ? (connection.relativeToPort ?? getRelativePort(toEntity, end, toFace))
+    ...geometry,
+    relativeFromPort: fromEntity ? getRelativePort(fromEntity, start, fromFace) : undefined,
+    relativeToPort: toEntity ? getRelativePort(toEntity, end, toFace) : undefined,
+    textPlacement: relativeLabel
+      ? { ...relativeLabel, x: geometry.x + relativeLabel.x, y: geometry.y + relativeLabel.y }
       : undefined,
   };
 }
 
-/** Absolute fallback polyline used by the manager-independent emergency path as well. */
+/** May cross obstacles, but endpoint directions must survive the editor round trip. */
 export function makeRoughFallbackPoints(
   start: Point,
   end: Point,
@@ -94,97 +107,57 @@ export function makeRoughFallbackPoints(
       const bend: Point = fromHorizontal ? [end[0], start[1]] : [start[0], end[1]];
       absolutePoints = [start, bend, end];
     }
-  } else if (deltaX !== 0 || deltaY !== 0) {
-    absolutePoints = [start, end];
   } else {
-    const fromOffset = directionOffset(fromFace);
-    const toOffset = directionOffset(toFace);
-    const first: Point = [start[0] + fromOffset[0], start[1] + fromOffset[1]];
-    const last: Point = [end[0] + toOffset[0], end[1] + toOffset[1]];
-
-    if (first[0] === last[0] || first[1] === last[1]) {
-      const detour: Point =
-        first[1] === last[1]
-          ? [first[0], first[1] + FALLBACK_DETOUR_SIZE]
-          : [first[0] + FALLBACK_DETOUR_SIZE, first[1]];
-      const beforeLast: Point = first[1] === last[1] ? [last[0], detour[1]] : [detour[0], last[1]];
-      absolutePoints = [start, first, detour, beforeLast, last, end];
-    } else {
-      absolutePoints = [start, first, [first[0], last[1]], last, end];
-    }
+    absolutePoints = [start, end];
   }
 
-  return absolutePoints.filter(
+  absolutePoints = absolutePoints.filter(
     (point, index) =>
       index === 0 ||
       point[0] !== absolutePoints[index - 1][0] ||
       point[1] !== absolutePoints[index - 1][1],
   );
-}
+  if (absolutePoints.length > 1) {
+    const { startDirection, endDirection } = determineDirectionsFromPoints(absolutePoints);
+    if (startDirection === fromFace && endDirection === toFace) {
+      return absolutePoints;
+    }
+  }
 
-function resolveFromFace(
-  layoutManager: LayoutManager,
-  connection: NewConnection,
-  fromEntity: LayoutEntity | undefined,
-  toEntity: LayoutEntity | undefined,
-  options: RoughFallbackConnectionOptions,
-): Direction {
-  return (
-    options.fromFace ??
-    legacyDirectionToDirection(connection.authoredFromFace) ??
-    faceFromRelativePort(connection.relativeFromPort) ??
-    (fromEntity && toEntity
-      ? detectExitFace(fromEntity, toEntity, isHorizontal(layoutManager))
-      : layoutManager.primaryDirection)
-  );
-}
-
-function resolveToFace(
-  layoutManager: LayoutManager,
-  connection: NewConnection,
-  fromEntity: LayoutEntity | undefined,
-  toEntity: LayoutEntity | undefined,
-  options: RoughFallbackConnectionOptions,
-): Direction {
-  return (
-    options.toFace ??
-    legacyDirectionToDirection(connection.authoredToFace) ??
-    faceFromRelativePort(connection.relativeToPort) ??
-    (fromEntity && toEntity
-      ? detectEnterFace(toEntity, fromEntity, isHorizontal(layoutManager))
-      : OPPOSITE_DIRECTION[layoutManager.primaryDirection])
-  );
+  // Give each terminal an outward stub before connecting them. A backwards
+  // segment would otherwise be reinterpreted as a port on the opposite face.
+  const fromAxis = isHorizontal(fromFace) ? 0 : 1;
+  const toAxis = isHorizontal(toFace) ? 0 : 1;
+  const fromOffset = directionOffset(fromFace);
+  const toOffset = directionOffset(toFace);
+  const first: Point = [start[0] + fromOffset[0], start[1] + fromOffset[1]];
+  const last: Point = [end[0] + toOffset[0], end[1] + toOffset[1]];
+  // Keep intervening bends nonzero, even for coincident endpoints/stub tips.
+  if (first[fromAxis] === last[fromAxis]) {
+    first[fromAxis] += fromOffset[fromAxis];
+  }
+  if (first[toAxis] === last[toAxis]) {
+    last[toAxis] += toOffset[toAxis];
+  }
+  if (fromAxis !== toAxis) {
+    const bend: Point = fromAxis === 0 ? [first[0], last[1]] : [last[0], first[1]];
+    return [start, first, bend, last, end];
+  }
+  const crossAxis = fromAxis === 0 ? 1 : 0;
+  const cross = Math.max(start[crossAxis], end[crossAxis]) + FALLBACK_DETOUR_SIZE;
+  const afterFirst: Point = [...first];
+  const beforeLast: Point = [...last];
+  afterFirst[crossAxis] = beforeLast[crossAxis] = cross;
+  return [start, first, afterFirst, beforeLast, last, end];
 }
 
 function directionOffset(direction: Direction): Point {
-  switch (direction) {
-    case 'up':
-      return [0, -FALLBACK_DETOUR_SIZE];
-    case 'down':
-      return [0, FALLBACK_DETOUR_SIZE];
-    case 'left':
-      return [-FALLBACK_DETOUR_SIZE, 0];
-    case 'right':
-      return [FALLBACK_DETOUR_SIZE, 0];
-  }
-}
-
-function faceFromRelativePort(port: RelativePortPosition | undefined): Direction | undefined {
-  if (!port) {
-    return undefined;
-  }
-  const [x, y] = port;
-  const distances: readonly [Direction, number][] = [
-    ['up', y],
-    ['down', 1 - y],
-    ['left', x],
-    ['right', 1 - x],
-  ];
-  return distances.reduce((best, candidate) => (candidate[1] < best[1] ? candidate : best))[0];
+  const offset = outwardSign(direction) * FALLBACK_DETOUR_SIZE;
+  return isHorizontal(direction) ? [offset, 0] : [0, offset];
 }
 
 function entityFacePoint(entity: LayoutEntity | undefined, face: Direction): Point | undefined {
-  return entity ? getPortAsPoint(entity, face, false) : undefined;
+  return entity ? getFaceCenterPoint(entity, face) : undefined;
 }
 
 function relativeEndpointPoint(
@@ -194,29 +167,9 @@ function relativeEndpointPoint(
   if (!entity || !port) {
     return undefined;
   }
-  return finitePointOrUndefined(getAbsolutePortPoint(entity, port));
-}
-
-function storedAbsolutePoints(connection: NewConnection): Point[] {
-  if (!connection.points || !Number.isFinite(connection.x) || !Number.isFinite(connection.y)) {
-    return [];
-  }
-  return connection.points
-    .map(([x, y]): Point => [connection.x! + x, connection.y! + y])
-    .filter((point) => finitePointOrUndefined(point) !== undefined);
-}
-
-function absolutePointsChange(
-  absolutePoints: readonly Point[],
-): Pick<LayoutConnection, 'x' | 'y' | 'points'> {
-  const start = absolutePoints[0] ?? ([0, 0] as Point);
-  return {
-    x: start[0],
-    y: start[1],
-    points: absolutePoints.map(([x, y]): Point => [x - start[0], y - start[1]]),
-  };
+  return getAbsolutePortPoint(entity, port);
 }
 
 function finitePointOrUndefined(point: Point | undefined): Point | undefined {
-  return point && Number.isFinite(point[0]) && Number.isFinite(point[1]) ? point : undefined;
+  return isFinitePoint(point) ? point : undefined;
 }

@@ -462,14 +462,14 @@
       "from": "collector",
       "to": "postgres",
       "x": 740,
-      "y": 264,
+      "y": 282,
       "label": "write",
       "endArrowhead": "arrow",
       "lineStyle": "solid",
       "color": "#2563eb",
       "labelPlacement": {
         "x": -18,
-        "y": 77,
+        "y": 68,
         "width": 36,
         "height": 17
       },
@@ -482,7 +482,7 @@
         },
         {
           "x": 0,
-          "y": 171
+          "y": 153
         }
       ]
     },

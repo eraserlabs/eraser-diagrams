@@ -25,16 +25,16 @@ export function ordinaryBendCost(bendCount: number): number {
         (bendCount - 1) * ROUTING_QUALITY_COSTS.additionalOrdinaryBend;
 }
 
-export type RoutingQualityStage = 'topology' | 'spacing' | 'text' | 'emission' | 'repair';
+export type RoutingQualityStage = 'spacing' | 'emission';
 export type RoutingQualityTier = 'invalid' | 'cap' | 'scalar';
 export type RoutingQualityEventKind =
   | 'backtrack'
   | 'crossing'
   | 'face-fan-symmetry'
+  | 'group-title'
   | 'line-merge'
   | 'missing-spacing-contention'
   | 'near-face-turn'
-  | 'port-centering'
   | 'sibling-symmetry'
   | 'spacing-deficit'
   | 'terminal-direction'
@@ -46,10 +46,10 @@ const QUALITY_TIER_BY_KIND: Readonly<Record<RoutingQualityEventKind, RoutingQual
   backtrack: 'scalar',
   crossing: 'scalar',
   'face-fan-symmetry': 'scalar',
+  'group-title': 'scalar',
   'line-merge': 'cap',
   'missing-spacing-contention': 'invalid',
   'near-face-turn': 'scalar',
-  'port-centering': 'scalar',
   'sibling-symmetry': 'scalar',
   'spacing-deficit': 'scalar',
   'terminal-direction': 'cap',

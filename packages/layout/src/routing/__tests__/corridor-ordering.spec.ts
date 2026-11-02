@@ -1,34 +1,9 @@
-import { LayoutManager } from '../../LayoutManager.js';
-import type { LayoutEntity } from '../../types.js';
-import { CorridorIndexer } from '../corridor/corridorIndex.js';
 import type { Corridor, PortalRef, TerminalAttachment } from '../corridor/contract.js';
 import { orderRoutes } from '../corridor/ordering.js';
 import { Route, type CorridorVisit } from '../corridor/route.js';
-import type { CorridorWorld } from '../corridor/world.js';
+import { leaf, manualCorridorWorld } from '../routingTestUtils.js';
 
-function leaf(id: string, x: number, y: number, width: number, height: number): LayoutEntity {
-  return { id, x, y, width, height };
-}
-
-function world(
-  entities: readonly LayoutEntity[],
-  corridors: readonly Corridor[],
-  portals: readonly PortalRef[],
-  attachments: readonly TerminalAttachment[],
-): CorridorWorld {
-  const bounds = { x: -100, y: -100, width: 400, height: 400 };
-  return {
-    bounds,
-    entities,
-    indexer: new CorridorIndexer(
-      corridors,
-      portals,
-      attachments,
-      new LayoutManager({ entities: [...entities], connections: [] }),
-      bounds,
-    ),
-  };
-}
+const BOUNDS = { x: -100, y: -100, width: 400, height: 400 };
 
 function route(
   requestIndex: number,
@@ -40,6 +15,59 @@ function route(
 }
 
 describe('routing corridor ordering', () => {
+  it.each(['point', 'entity'] as const)(
+    'assigns singleton %s-terminal visits order zero while retaining corridor and route indexes',
+    (terminalKind) => {
+      const entities = [leaf('from', -20, 0, 20, 100), leaf('to', 100, 0, 20, 100)];
+      const corridors: Corridor[] = [0, 40, 80].map((y, index) => ({
+        index,
+        axis: 'x',
+        rect: { x: 0, y, width: 100, height: 20 },
+      }));
+      const attachments: TerminalAttachment[] = [];
+      const routes = [2, 0].map((corridorIndex, routeIndex) => {
+        const y = corridors[corridorIndex].rect.y + 10;
+        const from =
+          terminalKind === 'point'
+            ? { kind: 'point' as const, x: 0, y }
+            : { entityIndex: 0, face: 'right' as const, authoredTrack: y };
+        const to =
+          terminalKind === 'point'
+            ? { kind: 'point' as const, x: 100, y }
+            : { entityIndex: 1, face: 'left' as const, authoredTrack: y };
+        attachments.push(
+          from.kind === 'point'
+            ? { ...from, index: routeIndex * 2, corridorIndex }
+            : { ...from, index: routeIndex * 2, corridorIndex, faceSpan: [y - 10, y + 10] },
+          to.kind === 'point'
+            ? { ...to, index: routeIndex * 2 + 1, corridorIndex }
+            : { ...to, index: routeIndex * 2 + 1, corridorIndex, faceSpan: [y - 10, y + 10] },
+        );
+        return route(10 - routeIndex, from, to, [
+          {
+            corridorIndex,
+            entry: { kind: 'terminal', attachmentIndex: routeIndex * 2 },
+            exit: { kind: 'terminal', attachmentIndex: routeIndex * 2 + 1 },
+            feasibleTrack: [y, y],
+          },
+        ]);
+      });
+
+      const routeWorld = manualCorridorWorld(
+        terminalKind === 'point' ? [] : entities,
+        corridors,
+        [],
+        attachments,
+        BOUNDS,
+      );
+      expect(orderRoutes(routeWorld, routes).groups).toEqual([
+        { corridorIndex: 0, members: [{ routeIndex: 1, visitIndex: 0, order: 0 }] },
+        { corridorIndex: 2, members: [{ routeIndex: 0, visitIndex: 0, order: 0 }] },
+      ]);
+      expect(routes.map((candidate) => candidate.orderOf(0))).toEqual([0, 0]);
+    },
+  );
+
   it('fans a shared face toward opposite endpoints in geometric order', () => {
     const entities = [
       leaf('hub', 0, 0, 40, 120),
@@ -72,7 +100,10 @@ describe('routing corridor ordering', () => {
       ),
     );
 
-    const result = orderRoutes(world(entities, corridors, [], attachments), routes);
+    const result = orderRoutes(
+      manualCorridorWorld(entities, corridors, [], attachments, BOUNDS),
+      routes,
+    );
 
     expect(result.groups[0].members.map((member) => member.routeIndex)).toEqual([0, 1, 2]);
     expect(routes.map((candidate) => candidate.orderOf(0))).toEqual([0, 1, 2]);
@@ -135,10 +166,10 @@ describe('routing corridor ordering', () => {
       ],
     );
 
-    const result = orderRoutes(world(entities, corridors, portals, attachments), [
-      towardDownFace,
-      towardLeftFace,
-    ]);
+    const result = orderRoutes(
+      manualCorridorWorld(entities, corridors, portals, attachments, BOUNDS),
+      [towardDownFace, towardLeftFace],
+    );
 
     expect(result.groups[0].members.map((member) => member.routeIndex)).toEqual([0, 1]);
   });
@@ -206,7 +237,10 @@ describe('routing corridor ordering', () => {
       },
     ]);
 
-    const result = orderRoutes(world(entities, corridors, portals, attachments), [down, up]);
+    const result = orderRoutes(
+      manualCorridorWorld(entities, corridors, portals, attachments, BOUNDS),
+      [down, up],
+    );
     const shared = result.groups.find((group) => group.corridorIndex === 0);
 
     expect(shared?.members.map((member) => member.routeIndex)).toEqual([1, 0]);
@@ -248,7 +282,7 @@ describe('routing corridor ordering', () => {
       { index: 1, entityIndex: 1, face: 'down', corridorIndex: 1, faceSpan: [100, 120] },
       { index: 2, entityIndex: 2, face: 'up', corridorIndex: 2, faceSpan: [40, 80] },
     ];
-    const corridorWorld = world(entities, corridors, portals, attachments);
+    const corridorWorld = manualCorridorWorld(entities, corridors, portals, attachments, BOUNDS);
     const left = route(0, { entityIndex: 0, face: 'down' }, { entityIndex: 2, face: 'up' }, [
       {
         corridorIndex: 0,
@@ -320,7 +354,10 @@ describe('routing corridor ordering', () => {
       ],
     );
 
-    const result = orderRoutes(world(entities, corridors, [], attachments), [upper, lower]);
+    const result = orderRoutes(manualCorridorWorld(entities, corridors, [], attachments, BOUNDS), [
+      upper,
+      lower,
+    ]);
 
     expect(result.groups[0].members.map((member) => member.routeIndex)).toEqual([0, 1]);
   });
@@ -381,7 +418,7 @@ describe('routing corridor ordering', () => {
       ),
     );
 
-    orderRoutes(world(entities, corridors, portals, attachments), routes);
+    orderRoutes(manualCorridorWorld(entities, corridors, portals, attachments, BOUNDS), routes);
 
     expect(
       routes.map((candidate) => candidate.visits.map((_, index) => candidate.orderOf(index))),
@@ -423,7 +460,10 @@ describe('routing corridor ordering', () => {
       ),
     ];
 
-    const result = orderRoutes(world(entities, corridors, [], attachments), routes);
+    const result = orderRoutes(
+      manualCorridorWorld(entities, corridors, [], attachments, BOUNDS),
+      routes,
+    );
 
     expect(result.groups[0].members.map((member) => member.routeIndex)).toEqual([0, 1]);
   });
@@ -458,7 +498,10 @@ describe('routing corridor ordering', () => {
       visits,
     );
 
-    const result = orderRoutes(world(entities, corridors, [], attachments), [late, early]);
+    const result = orderRoutes(manualCorridorWorld(entities, corridors, [], attachments, BOUNDS), [
+      late,
+      early,
+    ]);
 
     expect(result.groups[0].members.map((member) => member.routeIndex)).toEqual([1, 0]);
   });

@@ -1,6 +1,5 @@
 import type { LayoutEntity } from '../../types.js';
 import { LayoutManager } from '../../LayoutManager.js';
-import { CorridorIndexer } from '../corridor/corridorIndex.js';
 import type {
   Corridor,
   PortalRef,
@@ -9,11 +8,18 @@ import type {
 } from '../corridor/contract.js';
 import { buildCorridorWorld } from '../corridor/worldConstruction.js';
 import { searchRoute } from '../corridor/topology.js';
+import { guideFamilyRoutes } from '../corridor/familyGuidance.js';
+import { adoptRoute } from '../corridor/adoptRoutes.js';
+import { createRepairSearch } from '../corridor/repairSearch.js';
+import { realizeRoutes } from '../corridor/realize.js';
 import {
   PORTAL_SEARCH_TIER_ESCAPE,
   PORTAL_SEARCH_TIER_PREFERRED,
   type CorridorWorld,
 } from '../corridor/world.js';
+import { leaf, manualCorridorWorld } from '../routingTestUtils.js';
+
+const MANUAL_BOUNDS = { x: -20, y: -20, width: 80, height: 140 };
 
 function buildWorld(
   entities: readonly LayoutEntity[],
@@ -23,10 +29,6 @@ function buildWorld(
     new LayoutManager({ entities: [...entities], connections: [] }),
     requests,
   );
-}
-
-function leaf(id: string, x: number, y: number, width: number, height: number): LayoutEntity {
-  return { id, x, y, width, height };
 }
 
 function request(
@@ -55,31 +57,182 @@ function search(entities: readonly LayoutEntity[], routeRequest: RouteSearchRequ
   return searchRoute(buildWorld(entities, [routeRequest]), routeRequest);
 }
 
-function manualWorld(
-  entities: readonly LayoutEntity[],
-  corridors: readonly Corridor[],
-  portals: readonly PortalRef[],
-  attachments: readonly TerminalAttachment[],
-  options: {
-    readonly portalSearchTiers?: Uint8Array;
-  } = {},
-): CorridorWorld {
-  const bounds = { x: -20, y: -20, width: 80, height: 140 };
-  return {
-    bounds,
-    entities,
-    indexer: new CorridorIndexer(
-      corridors,
-      portals,
-      attachments,
-      new LayoutManager({ entities: [...entities], connections: [] }),
-      bounds,
-    ),
-    portalSearchTiers: options.portalSearchTiers,
-  };
-}
-
 describe('routing corridor feasible-interval topology', () => {
+  it.each([false, true])(
+    'guides local same-face turns from frozen seeds (reversed=%s)',
+    (reversed) => {
+      const entities = [
+        leaf('shared', 0, 0, 10, 20),
+        leaf('leader', 40, 100, 20, 20),
+        leaf('follower', 20, 100, 40, 20),
+        leaf('straight', 100, 0, 20, 20),
+      ];
+      const corridors: Corridor[] = [
+        { index: 0, axis: 'x', rect: { x: 10, y: 0, width: 90, height: 20 } },
+        { index: 1, axis: 'y', rect: { x: 20, y: 0, width: 20, height: 100 } },
+        { index: 2, axis: 'y', rect: { x: 40, y: 0, width: 20, height: 100 } },
+      ];
+      const portals: PortalRef[] = [
+        {
+          index: 0,
+          kind: 'turn',
+          xCorridorIndex: 0,
+          yCorridorIndex: 1,
+          rect: { x: 20, y: 0, width: 20, height: 20 },
+        },
+        {
+          index: 1,
+          kind: 'turn',
+          xCorridorIndex: 0,
+          yCorridorIndex: 2,
+          rect: { x: 40, y: 0, width: 20, height: 20 },
+        },
+      ];
+      const attachments: TerminalAttachment[] = [
+        { index: 0, entityIndex: 0, face: 'right', corridorIndex: 0, faceSpan: [0, 20] },
+        { index: 1, entityIndex: 1, face: 'up', corridorIndex: 2, faceSpan: [40, 60] },
+        { index: 2, entityIndex: 2, face: 'up', corridorIndex: 1, faceSpan: [20, 40] },
+        { index: 3, entityIndex: 2, face: 'up', corridorIndex: 2, faceSpan: [40, 60] },
+        { index: 4, entityIndex: 3, face: 'left', corridorIndex: 0, faceSpan: [0, 20] },
+      ];
+      const requests = [
+        request(0, 1, 'right', 'up'),
+        request(0, 2, 'right', 'up'),
+        request(0, 3, 'right', 'left'),
+      ].map((routeRequest, requestIndex) => ({
+        ...routeRequest,
+        requestIndex,
+        ...(reversed ? { from: routeRequest.to, to: routeRequest.from } : {}),
+      }));
+      const world = manualCorridorWorld(entities, corridors, portals, attachments, {
+        x: -20,
+        y: -20,
+        width: 160,
+        height: 160,
+      });
+      const seeds = requests.map((routeRequest) => searchRoute(world, routeRequest));
+      const leaderPoints: [number, number][] = [
+        [10, 10],
+        [50, 10],
+        [50, 100],
+      ];
+      const adoptedLeader = adoptRoute(
+        world,
+        requests[0],
+        reversed ? leaderPoints.reverse() : leaderPoints,
+        { pinTracks: true },
+      );
+      expect(adoptedLeader).toBeDefined();
+      expect(
+        adoptedLeader!.visits.every((visit) => visit.feasibleTrack[0] === visit.feasibleTrack[1]),
+      ).toBe(true);
+      // A real adoption has point-valued track bands and no search cost.
+      seeds[0] = { ...seeds[0], route: adoptedLeader!, cost: undefined };
+      const options = { penalty: 1000, localRadius: 200 };
+      const guided = guideFamilyRoutes(world, requests, seeds, new Set([0]), options);
+      expect(guided.traces.find((trace) => trace.requestIndex === 1)).toMatchObject({
+        leaderRequestIndexes: [0],
+        seedSurcharge: 1000,
+        searched: true,
+        accepted: true,
+        candidateSurcharge: 0,
+      });
+      expect(guided.searchResults[0]).toBe(seeds[0]);
+      expect(guided.searchResults[2]).toBe(seeds[2]);
+      const reordered = guideFamilyRoutes(
+        world,
+        [...requests].reverse(),
+        [...seeds].reverse(),
+        new Set([0]),
+        options,
+      );
+      expect(reordered.searchResults.slice().reverse()).toEqual(guided.searchResults);
+      expect(
+        guideFamilyRoutes(world, requests, seeds, new Set([0, 1]), options).searchResults,
+      ).toEqual(seeds);
+      expect(
+        guideFamilyRoutes(world, requests, seeds, new Set([0]), { ...options, localRadius: 5 })
+          .searchResults,
+      ).toEqual(seeds);
+      expect(
+        guideFamilyRoutes(world, requests, seeds, new Set([0]), { ...options, penalty: 0 })
+          .searchResults,
+      ).toEqual(seeds);
+    },
+  );
+
+  it('prices directed actual turns without affecting authored tracks', () => {
+    const from = request(0, 1, 'right', 'up', { from: 20, to: 220 });
+    const world = buildWorld([leaf('from', 0, 0, 40, 40), leaf('to', 200, 200, 40, 40)], [from]);
+    const baseline = searchRoute(world, from);
+    const prices = new Map(world.indexer.portals.map((portal) => [2 * portal.index, 7]));
+    const priced = searchRoute(world, from, { turnPortalPenalties: prices });
+    expect(priced.route.visits).toEqual(baseline.route.visits);
+    expect(priced.cost).toEqual({
+      ...baseline.cost,
+      turnPortalPenalty: 7,
+      total: baseline.cost!.total + 7,
+    });
+    const reversed = { ...from, from: from.to, to: from.from };
+    expect(searchRoute(world, reversed, { turnPortalPenalties: prices })).toEqual(
+      searchRoute(world, reversed),
+    );
+  });
+
+  it('reuses exact repair searches without sharing realized geometry or changed requests', () => {
+    const original = request(0, 1, 'right', 'left');
+    const pinned = request(0, 1, 'right', 'left', { from: 12, to: 12 });
+    const world = buildWorld(
+      [leaf('from', 0, 0, 40, 40), leaf('to', 200, 0, 40, 40)],
+      [original, pinned],
+    );
+    const cache = createRepairSearch(world);
+    const first = cache.search(original, { hiddenPortalIndexes: new Set() });
+    const realized = realizeRoutes(world, [first.route]);
+    expect(realized.routes[0].hasRealization()).toBe(true);
+    expect(first.route.hasRealization()).toBe(false);
+    expect(cache.search(original, { hiddenPortalIndexes: new Set() })).toBe(first);
+    expect(
+      cache.search(
+        { ...original, from: { ...original.from }, to: { ...original.to } },
+        { hiddenPortalIndexes: new Set() },
+      ),
+    ).toBe(first);
+    const changed = cache.search(pinned, { hiddenPortalIndexes: new Set() });
+    expect(changed).not.toBe(first);
+    expect(changed).toEqual(searchRoute(world, pinned, { hiddenPortalIndexes: new Set() }));
+    expect(cache.metrics).toEqual({ searches: 2, cacheHits: 2 });
+    expect(createRepairSearch(world).search(original)).not.toBe(first);
+  });
+
+  it('keeps repair restrictions and prices distinct and reuses failed searches', () => {
+    const routeRequest = request(0, 1, 'right', 'left');
+    const world = buildWorld(
+      [leaf('from', 0, 0, 40, 40), leaf('to', 200, 0, 40, 40)],
+      [routeRequest],
+    );
+    const cache = createRepairSearch(world);
+    const options: Parameters<typeof searchRoute>[2][] = [
+      {},
+      { hiddenPortalIndexes: new Set([0]) },
+      { hiddenAttachmentIndexes: new Set([0]) },
+      { requiredCorridorIndex: 0 },
+      { corridorEntryPenalties: new Map([[0, 1]]) },
+      { corridorEntryPenalties: new Map([[0, 2]]) },
+      { preferCenteredTerminalAttachments: false },
+      { hiddenAttachmentIndexes: new Set(world.indexer.attachments.map(({ index }) => index)) },
+    ];
+    const results = options.map((option) => {
+      const result = cache.search(routeRequest, option);
+      expect(result).toEqual(searchRoute(world, routeRequest, option));
+      expect(cache.search(routeRequest, option)).toBe(result);
+      return result;
+    });
+    expect(new Set(results).size).toBe(options.length);
+    expect(results.at(-1)?.fallback).toBe(true);
+    expect(cache.metrics).toEqual({ searches: options.length, cacheHits: options.length });
+  });
+
   it('uses one visit and no bends for a direct face-to-face route', () => {
     const routeRequest = request(0, 1, 'right', 'left');
     const result = search([leaf('from', 0, 0, 40, 40), leaf('to', 200, 0, 40, 40)], routeRequest);
@@ -110,7 +263,10 @@ describe('routing corridor feasible-interval topology', () => {
     ];
     const routeRequest = request(0, 1, 'right', 'left');
 
-    const result = searchRoute(manualWorld(entities, corridors, [], attachments), routeRequest);
+    const result = searchRoute(
+      manualCorridorWorld(entities, corridors, [], attachments, MANUAL_BOUNDS),
+      routeRequest,
+    );
 
     expect(result.fallback).toBe(false);
     expect(result.route.visits.map((visit) => visit.corridorIndex)).toEqual([1]);
@@ -130,7 +286,7 @@ describe('routing corridor feasible-interval topology', () => {
       { index: 3, entityIndex: 1, face: 'left', corridorIndex: 1, faceSpan: [40, 60] },
     ];
     const routeRequest = request(0, 1, 'right', 'left');
-    const world = manualWorld(entities, corridors, [], attachments);
+    const world = manualCorridorWorld(entities, corridors, [], attachments, MANUAL_BOUNDS);
 
     const result = searchRoute(world, routeRequest, {
       hiddenAttachmentIndexes: new Set([1, 3]),
@@ -163,15 +319,16 @@ describe('routing corridor feasible-interval topology', () => {
 
   it('continues a far-off aligned route without taking a cheap bounce', () => {
     const routeRequest = request(0, 1, 'right', 'left');
-    const result = search(
+    const world = buildWorld(
       [
         leaf('from', 0, 0, 40, 40),
         leaf('to', 600, 0, 40, 40),
         leaf('above', 200, -100, 60, 80),
         leaf('below', 400, 60, 60, 80),
       ],
-      routeRequest,
+      [routeRequest],
     );
+    const result = searchRoute(world, routeRequest);
 
     expect(result.fallback).toBe(false);
     // The straight run crosses several continuation portals but must stay bend-free.
@@ -183,6 +340,16 @@ describe('routing corridor feasible-interval topology', () => {
       terminal: 0,
       total: 560,
     });
+    const prices = new Map(
+      world.indexer.portals.flatMap(
+        (portal) =>
+          [
+            [2 * portal.index, 100],
+            [2 * portal.index + 1, 100],
+          ] as [number, number][],
+      ),
+    );
+    expect(searchRoute(world, routeRequest, { turnPortalPenalties: prices })).toEqual(result);
   });
 
   it('requires a real detour when authored tracks cannot meet in one corridor', () => {
@@ -207,7 +374,10 @@ describe('routing corridor feasible-interval topology', () => {
       { index: 1, entityIndex: 1, face: 'left', corridorIndex: 0, faceSpan: [20, 30] },
     ];
     const routeRequest = request(0, 1, 'right', 'left');
-    const result = searchRoute(manualWorld(entities, corridors, [], attachments), routeRequest);
+    const result = searchRoute(
+      manualCorridorWorld(entities, corridors, [], attachments, MANUAL_BOUNDS),
+      routeRequest,
+    );
 
     expect(result.fallback).toBe(true);
     expect(result.fallbackReason).toBe('unreachable');
@@ -258,7 +428,7 @@ describe('routing corridor feasible-interval topology', () => {
     ];
     const routeRequest = request(0, 1, 'right', 'left');
     const result = searchRoute(
-      manualWorld(entities, corridors, portals, attachments),
+      manualCorridorWorld(entities, corridors, portals, attachments, MANUAL_BOUNDS),
       routeRequest,
     );
 
@@ -296,7 +466,7 @@ describe('routing corridor feasible-interval topology', () => {
     const routeRequest = request(0, 1, 'right', 'left');
 
     const result = searchRoute(
-      manualWorld(entities, corridors, portals, attachments),
+      manualCorridorWorld(entities, corridors, portals, attachments, MANUAL_BOUNDS),
       routeRequest,
     );
 
@@ -333,7 +503,7 @@ describe('routing corridor feasible-interval topology', () => {
     ];
 
     const result = searchRoute(
-      manualWorld(entities, corridors, portals, attachments),
+      manualCorridorWorld(entities, corridors, portals, attachments, MANUAL_BOUNDS),
       request(0, 1, 'right', 'left'),
     );
 
@@ -384,7 +554,7 @@ describe('routing corridor feasible-interval topology', () => {
       { index: 1, entityIndex: 1, face: 'left', corridorIndex: 3, faceSpan: [0, 100] },
     ];
     const routeRequest = request(0, 1, 'right', 'left');
-    const world = manualWorld(entities, corridors, portals, attachments);
+    const world = manualCorridorWorld(entities, corridors, portals, attachments, MANUAL_BOUNDS);
 
     const result = searchRoute(world, routeRequest, { requiredCorridorIndex: 2 });
 
@@ -431,9 +601,10 @@ describe('routing corridor feasible-interval topology', () => {
     ];
     const routeRequest = request(0, 1, 'right', 'left');
     const result = searchRoute(
-      manualWorld(entities, corridors, portals, attachments, {
+      {
+        ...manualCorridorWorld(entities, corridors, portals, attachments, MANUAL_BOUNDS),
         portalSearchTiers: Uint8Array.of(PORTAL_SEARCH_TIER_ESCAPE),
-      }),
+      },
       routeRequest,
     );
 
@@ -481,13 +652,14 @@ describe('routing corridor feasible-interval topology', () => {
     ];
     const routeRequest = request(0, 1, 'right', 'left');
     const result = searchRoute(
-      manualWorld(entities, corridors, portals, attachments, {
+      {
+        ...manualCorridorWorld(entities, corridors, portals, attachments, MANUAL_BOUNDS),
         portalSearchTiers: Uint8Array.of(
           PORTAL_SEARCH_TIER_PREFERRED,
           PORTAL_SEARCH_TIER_PREFERRED,
           PORTAL_SEARCH_TIER_ESCAPE,
         ),
-      }),
+      },
       routeRequest,
     );
 
@@ -535,13 +707,14 @@ describe('routing corridor feasible-interval topology', () => {
       { index: 1, entityIndex: 1, face: 'left', corridorIndex: 1, faceSpan: [10, 30] },
     ];
     const routeRequest = request(0, 1, 'right', 'left');
-    const world = manualWorld(entities, corridors, portals, attachments, {
+    const world: CorridorWorld = {
+      ...manualCorridorWorld(entities, corridors, portals, attachments, MANUAL_BOUNDS),
       portalSearchTiers: Uint8Array.of(
         PORTAL_SEARCH_TIER_PREFERRED,
         PORTAL_SEARCH_TIER_PREFERRED,
         PORTAL_SEARCH_TIER_ESCAPE,
       ),
-    });
+    };
 
     const incumbent = searchRoute(world, routeRequest);
     const candidate = searchRoute(world, routeRequest, {

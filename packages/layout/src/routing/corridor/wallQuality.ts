@@ -12,6 +12,7 @@ import {
   type WallHugQualityEvent,
   type WallTouchQualityEvent,
 } from './qualityCost.js';
+import { endpointEntityIndex } from './contract.js';
 import type { Route } from './route.js';
 import type { CorridorWorld } from './world.js';
 
@@ -81,6 +82,9 @@ function collectTerminalStub(
     return;
   }
   const { bendPointIndex, distance } = stub;
+  if (distance >= TERMINAL_STUB_IDEAL_PX) {
+    return;
+  }
   const achievable = freeDepthAhead(world, route, points, endpointSide, bendPointIndex);
   const effectiveIdeal = Math.min(TERMINAL_STUB_IDEAL_PX, achievable);
   const penalty = anchorCurve(distance, effectiveIdeal);
@@ -117,7 +121,7 @@ function freeDepthAhead(
   endpointSide: EndpointSide,
   bendPointIndex: number,
 ): number {
-  const endpoint = route[endpointSide];
+  const ownEntityIndex = endpointEntityIndex(route[endpointSide]);
   const port = endpointSide === 'from' ? points[0] : points[points.length - 1];
   const bend = points[bendPointIndex];
   const stubAxis = segmentAxis(port, bend);
@@ -127,7 +131,7 @@ function freeDepthAhead(
   const crossCoordinate = stubAxis === 'x' ? port.y : port.x;
   let depth = Number.POSITIVE_INFINITY;
   for (let entityIndex = 0; entityIndex < world.entities.length; entityIndex += 1) {
-    if (entityIndex === endpoint.entityIndex) {
+    if (entityIndex === ownEntityIndex) {
       continue;
     }
     const entity = world.entities[entityIndex];
@@ -197,8 +201,8 @@ function collectRouteWallHugs(
   seen: Set<string>,
   events: WallHugQualityEvent[],
 ): void {
-  const ownFrom = route.from.entityIndex;
-  const ownTo = route.to.entityIndex;
+  const ownFrom = endpointEntityIndex(route.from);
+  const ownTo = endpointEntityIndex(route.to);
   for (let segmentIndex = 0; segmentIndex + 1 < points.length; segmentIndex += 1) {
     const from = points[segmentIndex];
     const to = points[segmentIndex + 1];

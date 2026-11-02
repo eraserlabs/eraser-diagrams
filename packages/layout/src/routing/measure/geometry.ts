@@ -48,6 +48,41 @@ export function axisOf(a: XYPoint, b: XYPoint): 'x' | 'y' | undefined {
   return undefined;
 }
 
+/** One cardinal polyline segment: travel axis, constant cross coordinate, travel extent. */
+export interface OrientedSegment {
+  readonly line: MeasuredLine;
+  readonly segmentIndex: number;
+  readonly axis: 'x' | 'y';
+  /** Constant perpendicular-axis coordinate. */
+  readonly lane: number;
+  readonly lo: number;
+  readonly hi: number;
+}
+
+/** Line-major cardinal segments. Diagonals are skipped; a zero-length segment reads as 'x'. */
+export function orientedSegments(lines: readonly MeasuredLine[]): OrientedSegment[] {
+  const segments: OrientedSegment[] = [];
+  for (const line of lines) {
+    for (let segmentIndex = 0; segmentIndex + 1 < line.points.length; segmentIndex += 1) {
+      const from = line.points[segmentIndex];
+      const to = line.points[segmentIndex + 1];
+      const axis = axisOf(from, to);
+      if (!axis) {
+        continue;
+      }
+      segments.push({
+        line,
+        segmentIndex,
+        axis,
+        lane: axis === 'x' ? from.y : from.x,
+        lo: Math.min(from[axis], to[axis]),
+        hi: Math.max(from[axis], to[axis]),
+      });
+    }
+  }
+  return segments;
+}
+
 export function dedupe(points: XYPoint[]): XYPoint[] {
   const out: XYPoint[] = [];
   for (const p of points) {

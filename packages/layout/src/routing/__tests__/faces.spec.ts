@@ -1,5 +1,5 @@
 import { LayoutManager } from '../../LayoutManager.js';
-import { assignFaces, type FaceSelectionRequest } from '../faces.js';
+import { assignFaces } from '../faces.js';
 import type { LayoutEntity } from '../../types.js';
 
 describe('assignFaces sibling consensus', () => {
@@ -18,9 +18,9 @@ describe('assignFaces sibling consensus', () => {
     ]);
 
     expect(assignments).toMatchObject([
-      { from: 'right', to: 'left', reasons: { from: 'strict-axis', to: 'strict-axis' } },
-      { from: 'right', to: 'left', reasons: { from: 'sibling', to: 'sibling' } },
-      { from: 'right', to: 'left', reasons: { from: 'sibling', to: 'sibling' } },
+      { from: 'right', to: 'left' },
+      { from: 'right', to: 'left' },
+      { from: 'right', to: 'left' },
     ]);
   });
 
@@ -40,8 +40,8 @@ describe('assignFaces sibling consensus', () => {
 
     expect(assignments).toMatchObject([
       { from: 'right', to: 'left' },
-      { from: 'right', to: 'left', reasons: { from: 'sibling', to: 'sibling' } },
-      { from: 'down', to: 'up', reasons: { from: 'strict-axis', to: 'strict-axis' } },
+      { from: 'right', to: 'left' },
+      { from: 'down', to: 'up' },
     ]);
   });
 
@@ -53,7 +53,7 @@ describe('assignFaces sibling consensus', () => {
     ]);
 
     expect(faces(layoutManager, [['route', 'source', 'target']])).toMatchObject([
-      { from: 'down', to: 'up', reasons: { from: 'aspect', to: 'aspect' } },
+      { from: 'down', to: 'up' },
     ]);
   });
 
@@ -72,7 +72,7 @@ describe('assignFaces sibling consensus', () => {
       ]),
     ).toMatchObject([
       { from: 'right', to: 'left' },
-      { from: 'up', to: 'down', reasons: { from: 'aspect', to: 'aspect' } },
+      { from: 'up', to: 'down' },
     ]);
   });
 });
@@ -81,16 +81,11 @@ function faces(
   layoutManager: LayoutManager,
   definitions: readonly (readonly [string, string, string])[],
 ) {
-  const requests: FaceSelectionRequest[] = definitions.map(([connId, from, to]) => ({
-    connId,
-    from,
-    to,
-  }));
-  return assignFaces(
+  const assigned = assignFaces(
     layoutManager,
-    requests,
     definitions.map(([id, from, to]) => ({ id, from, to })),
   );
+  return definitions.map(([id]) => assigned.get(id));
 }
 
 function testLayoutManager(entities: readonly LayoutEntity[]): LayoutManager {

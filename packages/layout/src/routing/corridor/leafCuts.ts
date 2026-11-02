@@ -1,6 +1,6 @@
 import type { PositionProps } from '../../types.js';
-import { AUTHORED_PORT_TOLERANCE_PX } from './contract.js';
-import { segmentPiercesRect } from './geometry.js';
+import { AUTHORED_PORT_TOLERANCE_PX, endpointEntityIndex, isPointEndpoint } from './contract.js';
+import { expandRect, segmentPiercesRect } from './geometry.js';
 import type { Route } from './route.js';
 import type { RouteIndexer } from './routeIndex.js';
 import type { CorridorWorld } from './world.js';
@@ -20,12 +20,7 @@ export function leafRects(world: CorridorWorld): LeafRect[] {
     if (entity.isContainer) {
       continue;
     }
-    const rect = {
-      x: entity.x + ENTITY_CUT_INSET_PX,
-      y: entity.y + ENTITY_CUT_INSET_PX,
-      width: entity.width - 2 * ENTITY_CUT_INSET_PX,
-      height: entity.height - 2 * ENTITY_CUT_INSET_PX,
-    };
+    const rect = expandRect(entity, -ENTITY_CUT_INSET_PX);
     if (rect.width > 0 && rect.height > 0) {
       result.push({ entityIndex, rect });
     }
@@ -48,7 +43,8 @@ export function leafCutKeys(
     for (const segment of index.unsortedSegmentsInRect(leaf.rect)) {
       const route = routes[segment.routeIndex];
       const own =
-        route.from.entityIndex === leaf.entityIndex || route.to.entityIndex === leaf.entityIndex;
+        endpointEntityIndex(route.from) === leaf.entityIndex ||
+        endpointEntityIndex(route.to) === leaf.entityIndex;
       const lastSegmentIndex = index.segmentsForRoute(segment.routeIndex).length - 1;
       if (own && (segment.segmentIndex === 0 || segment.segmentIndex === lastSegmentIndex)) {
         continue;
@@ -72,6 +68,15 @@ export function authoredEndpointsIntact(routes: readonly Route[]): boolean {
       [route.from, ports.from],
       [route.to, ports.to],
     ] as const) {
+      if (isPointEndpoint(endpoint)) {
+        if (
+          Math.abs(point.x - endpoint.x) > AUTHORED_PORT_TOLERANCE_PX ||
+          Math.abs(point.y - endpoint.y) > AUTHORED_PORT_TOLERANCE_PX
+        ) {
+          return false;
+        }
+        continue;
+      }
       if (endpoint.authoredTrack === undefined) {
         continue;
       }

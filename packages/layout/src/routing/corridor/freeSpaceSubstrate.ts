@@ -1,5 +1,5 @@
-import { touchExternalTextRangeToEntityClippedToBodyFace } from '../textPlacements.js';
 import type { Axis, AxisSpan, LayoutEntity, PositionProps } from '../../types.js';
+import { buildExternalTextEntities } from './externalTextGeometry.js';
 import {
   addUniqueNumber,
   insertIntoSortedBy,
@@ -33,16 +33,18 @@ const compareObstacles = (left: FreeSpaceObstacle, right: FreeSpaceObstacle): nu
 export function buildFreeSpaceSubstrate(
   bounds: PositionProps,
   entities: readonly LayoutEntity[],
+  externalTextEntities: readonly LayoutEntity[] = buildExternalTextEntities(entities),
 ): FreeSpaceSubstrate {
   return {
-    x: buildAxisFreeSpace(bounds, entities, 'x'),
-    y: buildAxisFreeSpace(bounds, entities, 'y'),
+    x: buildAxisFreeSpace(bounds, entities, externalTextEntities, 'x'),
+    y: buildAxisFreeSpace(bounds, entities, externalTextEntities, 'y'),
   };
 }
 
 function buildAxisFreeSpace(
   bounds: PositionProps,
   entities: readonly LayoutEntity[],
+  externalTextEntities: readonly LayoutEntity[],
   axis: Axis,
 ): AxisFreeSpace {
   const travelStart = axis === 'x' ? bounds.x : bounds.y;
@@ -53,10 +55,9 @@ function buildAxisFreeSpace(
   const obstacles: FreeSpaceObstacle[] = [];
   for (const entity of entities) {
     appendRect(entity, entity.isContainer !== true, axis, travelCuts, obstacles);
-    const text = touchExternalTextRangeToEntityClippedToBodyFace(entity);
-    if (text) {
-      appendRect(text, true, axis, travelCuts, obstacles);
-    }
+  }
+  for (const text of externalTextEntities) {
+    appendRect(text, true, axis, travelCuts, obstacles);
   }
   const starts = new Map<number, FreeSpaceObstacle[]>();
   const ends = new Map<number, FreeSpaceObstacle[]>();

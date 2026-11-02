@@ -10,7 +10,7 @@
       "typeface": "rough",
       "fontSize": 28,
       "text": "rough — The five boxing wizards jump quickly.",
-      "height": 70
+      "height": 36
     },
     {
       "tag": "Textbox",
@@ -21,7 +21,7 @@
       "typeface": "clean",
       "fontSize": 28,
       "text": "clean — The five boxing wizards jump quickly.",
-      "height": 70
+      "height": 35
     },
     {
       "tag": "Textbox",
@@ -32,7 +32,7 @@
       "typeface": "mono",
       "fontSize": 28,
       "text": "mono — The five boxing wizards jump quickly.",
-      "height": 105
+      "height": 106
     },
     {
       "tag": "Shape",

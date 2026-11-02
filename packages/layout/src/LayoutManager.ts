@@ -1,6 +1,5 @@
 import type { Direction } from './types.js';
 import { LayoutTree } from './LayoutTree.js';
-import { calculateAllOverlaps, calculateOverlaps } from './overlaps.js';
 import { applyConnectionChanges, applySizeChanges, getDimensions } from './sizeUtils.js';
 import { DEFAULT_OPTIONS } from './constants.js';
 import {
@@ -12,7 +11,6 @@ import {
   LayoutOptions,
   ContainerMapping,
   ParentMapping,
-  OverlapEntry,
   LayoutConnectionChange,
   TextPlacement,
 } from './types.js';
@@ -38,7 +36,6 @@ import {
 } from './layoutManagerUtils.js';
 import { LayoutDuplicateError, LayoutError, MissingEntityError } from './LayoutError.js';
 import { isOverlapping, makeRangeFromEntity } from './rangeUtils.js';
-import { LayoutAlignment } from './alignmentUtils.js';
 
 interface MakeGraphArgs<T extends LayoutEntity = LayoutEntity> {
   entities: T[];
@@ -54,6 +51,23 @@ interface MakeGraphArgs<T extends LayoutEntity = LayoutEntity> {
 /** @internal Pre-built state passed by fork() to skip rebuilding mappings */
 type PrebuiltState<T extends LayoutEntity> = Omit<InternalData<T>, 'entities' | 'tree' | 'dims'>;
 
+/**
+ * Runs after fork() builds a new manager. Modules outside core that keep their own state per
+ * manager (for example the alignment capture in advancedLayout) use it to copy that state to the
+ * fork. Core itself registers no hooks.
+ */
+export type LayoutForkHook = <T extends LayoutEntity>(
+  source: LayoutManager<T>,
+  fork: LayoutManager<T>,
+) => void;
+
+const forkHooks = new Set<LayoutForkHook>();
+
+/** Adds a hook that fork() runs on every new fork. Adding the same hook twice has no effect. */
+export function registerLayoutForkHook(hook: LayoutForkHook): void {
+  forkHooks.add(hook);
+}
+
 export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
   public primaryDirection: Direction = 'right';
   public stagedChanges: LayoutChanges<T> | undefined;
@@ -63,12 +77,6 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
   };
 
   public options: LayoutOptions;
-
-  private _alignment: LayoutAlignment;
-
-  public get alignment(): LayoutAlignment {
-    return this._alignment;
-  }
 
   /**
    * Base data state. All persistent mutable data lives here.
@@ -114,8 +122,6 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
     if (args.origin) {
       this.origin = args.origin;
     }
-
-    this._alignment = new LayoutAlignment(() => this.getEntities());
   }
 
   /**
@@ -230,14 +236,6 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
     }
 
     return containers;
-  }
-
-  calculateOverlaps(movingEntityIds: Set<string>): OverlapEntry[] {
-    return calculateOverlaps(this, movingEntityIds);
-  }
-
-  calculateAllOverlaps(): OverlapEntry[] {
-    return calculateAllOverlaps(this);
   }
 
   hasEntitiesInRange(range: Partial<LayoutRange>): boolean {
@@ -670,25 +668,26 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
       },
       data,
     );
-    fork._alignment = this.alignment.copyFor(() => fork.getEntities());
+    for (const hook of forkHooks) {
+      hook(this, fork);
+    }
     return fork;
   }
 
   /**
-   * Restore staged state to a previously saved checkpoint.
+   * Restore staged state from a checkpoint or another manager's current snapshot.
    * This replaces the current staged state (initiating changes if needed).
    */
-  restore(checkpointId: string): void {
-    const state = this._checkpoints.get(checkpointId);
-    if (!state) {
-      throw new LayoutError(`Checkpoint "${checkpointId}" not found`);
+  restore(snapshot: string | LayoutManager<T>): void {
+    const source = typeof snapshot === 'string' ? this._checkpoints.get(snapshot) : snapshot;
+    if (!source) {
+      throw new LayoutError(`Checkpoint "${snapshot}" not found`);
     }
-
+    const state = source instanceof LayoutManager ? source._getData() : source;
     this._stagedData = copyInternalData(this._data, state);
 
-    // Restore staged changes from checkpoint (already deep copied at checkpoint time)
-    this.stagedChanges = state.stagedChanges
-      ? deepCopyStagedChanges(state.stagedChanges)
+    this.stagedChanges = source.stagedChanges
+      ? deepCopyStagedChanges(source.stagedChanges)
       : makeStagedChanges<T>();
   }
 

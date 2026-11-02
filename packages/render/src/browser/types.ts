@@ -1,3 +1,4 @@
+import type { RepairPolicy } from '@eraserlabs/layout';
 import type { ResolvedConnection, ResolvedEntity, Theme } from '@eraserlabs/protocol';
 
 /** Page-lifetime configuration: injected once per page by the orchestrator, reused per request. */
@@ -21,4 +22,9 @@ export interface RunRequest {
   connections: ResolvedConnection[];
   /** Icon name → sanitized SVG sidecar. */
   icons: Record<string, string>;
+  /**
+   * How long layout may spend repairing routes. Absent means no limit, so the same request always
+   * routes the same way; an interactive caller can pass a budget such as `{ timeBudgetMs: 100 }`.
+   */
+  repair?: RepairPolicy;
 }

@@ -1,5 +1,5 @@
 import type { LayoutManager } from '../../LayoutManager.js';
-import { spansOverlapPositive, subtractSpan } from '../../rangeUtils.js';
+import { axisOrthMax, axisOrthMin, spansOverlapPositive, subtractSpan } from '../../rangeUtils.js';
 import type { Axis, AxisSpan, LayoutEntity, PositionProps } from '../../types.js';
 import type { Corridor } from './contract.js';
 import {
@@ -245,10 +245,10 @@ function buildEntityIndexes(
     x: [bounds.x, bounds.x + bounds.width],
     y: [bounds.y, bounds.y + bounds.height],
   };
-  appendWall(sides.x.negative, crossSpanOf('x', bounds)[0], fullTravel.x, -1, false);
-  appendWall(sides.x.positive, crossSpanOf('x', bounds)[1], fullTravel.x, -1, false);
-  appendWall(sides.y.negative, crossSpanOf('y', bounds)[0], fullTravel.y, -1, false);
-  appendWall(sides.y.positive, crossSpanOf('y', bounds)[1], fullTravel.y, -1, false);
+  appendWall(sides.x.negative, bounds.y, fullTravel.x, -1, false);
+  appendWall(sides.x.positive, bounds.y + bounds.height, fullTravel.x, -1, false);
+  appendWall(sides.y.negative, bounds.x, fullTravel.y, -1, false);
+  appendWall(sides.y.positive, bounds.x + bounds.width, fullTravel.y, -1, false);
   const boundaries: Record<Axis, ContainerTravelBoundary[]> = { x: [], y: [] };
   const crossEdgesX: number[] = [];
   const crossEdgesY: number[] = [];
@@ -260,7 +260,8 @@ function buildEntityIndexes(
     indexById.set(entity.id, entityIndex);
     const isContainer = entity.isContainer === true;
     for (const axis of ['x', 'y'] as const) {
-      const [crossStart, crossEnd] = crossSpanOf(axis, entity);
+      const crossStart = axisOrthMin(entity, axis);
+      const crossEnd = axisOrthMax(entity, axis);
       const travel = travelSpanOf(axis, entity);
       addEntityWall(sides[axis].negative, entity, entityIndex, axis, crossEnd, travel, false);
       addEntityWall(sides[axis].positive, entity, entityIndex, axis, crossStart, travel, false);
@@ -531,14 +532,16 @@ function buildGapRuns(
         let start = group[0].travel[0];
         let end = group[0].travel[1];
         const cross = group[0].cross;
+        const canBridge = !crossesParallelContainerBoundary(axis, cross, containerCrossEdges);
         for (let index = 1; index < group.length; index += 1) {
           const next = group[index];
-          const candidateTravel: AxisSpan = [start, Math.max(end, next.travel[1])];
+          // Both runs are already certified. Only an intervening gap needs a new walk.
           if (
-            freeSpaceContains(freeSpace[axis], candidateTravel, cross) &&
-            !crossesParallelContainerBoundary(axis, cross, containerCrossEdges)
+            canBridge &&
+            (next.travel[0] <= end ||
+              freeSpaceContains(freeSpace[axis], [end, next.travel[0]], cross))
           ) {
-            end = candidateTravel[1];
+            end = Math.max(end, next.travel[1]);
           } else {
             result[axis].push(
               claimForGapRun(axis, [start, end], cross, freeSpace, containerCrossEdges, boundaries),
@@ -722,10 +725,106 @@ function partitionAtoms(
   } as CoalesceState;
   for (const axis of ['x', 'y'] as const) {
     const sortedClaims = claims[axis].sort((left, right) => left.travel[0] - right.travel[0]);
-    const tables = buildPartitionTables(atoms[axis], sortedClaims, freeSpace[axis].travelCuts);
-    partitionAxisAtoms(axis, atoms[axis], sortedClaims, tables, state);
+    const runs = partitionRuns(atoms[axis], sortedClaims);
+    const tables = buildPartitionTables(runs, sortedClaims, freeSpace[axis].travelCuts);
+    partitionAxisRuns(axis, runs, sortedClaims, tables, state);
   }
   return finalizeCoalescedPieces(state, boundaries);
+}
+
+interface PartitionRun {
+  readonly cross: AxisSpan;
+  readonly startSlabIndex: number;
+  endSlabIndex: number;
+  readonly claims: number[];
+}
+
+/**
+ * Skip unrelated substrate cuts without changing cross boundaries or gap seeds.
+ * First-seen run order preserves travel order within every emitted cross lane:
+ * runs covering the same cross-span cannot overlap in travel.
+ */
+function partitionRuns(atoms: readonly FreeAtom[], claims: readonly DirectClaim[]): PartitionRun[] {
+  const runs: PartitionRun[] = [];
+  const tails = new Map<number, Map<number, PartitionRun>>();
+  const activeClaims: number[] = [];
+  const slabRuns: PartitionRun[] = [];
+  let nextClaimIndex = 0;
+  let slabAtomStart = 0;
+  while (slabAtomStart < atoms.length) {
+    const firstAtom = atoms[slabAtomStart];
+    const { slabIndex } = firstAtom;
+    const slabTs = firstAtom.travel[0];
+    const slabTe = firstAtom.travel[1];
+    let slabAtomEnd = slabAtomStart + 1;
+    while (slabAtomEnd < atoms.length && atoms[slabAtomEnd].slabIndex === slabIndex) {
+      slabAtomEnd += 1;
+    }
+    let keep = 0;
+    for (const claimIndex of activeClaims) {
+      if (claims[claimIndex].travel[1] > slabTs) {
+        activeClaims[keep] = claimIndex;
+        keep += 1;
+      }
+    }
+    activeClaims.length = keep;
+    while (nextClaimIndex < claims.length && claims[nextClaimIndex].travel[0] < slabTe) {
+      activeClaims.push(nextClaimIndex);
+      nextClaimIndex += 1;
+    }
+
+    for (let atomIndex = slabAtomStart; atomIndex < slabAtomEnd; atomIndex += 1) {
+      const atom = atoms[atomIndex];
+      let byEnd = tails.get(atom.cross[0]);
+      if (!byEnd) {
+        byEnd = new Map();
+        tails.set(atom.cross[0], byEnd);
+      }
+      let run = byEnd.get(atom.cross[1]);
+      if (run && run.endSlabIndex === slabIndex) {
+        run.endSlabIndex = slabIndex + 1;
+      } else {
+        run = {
+          cross: atom.cross,
+          startSlabIndex: slabIndex,
+          endSlabIndex: slabIndex + 1,
+          claims: [],
+        };
+        byEnd.set(atom.cross[1], run);
+        runs.push(run);
+      }
+      slabRuns[atomIndex - slabAtomStart] = run;
+    }
+    // A slab's atoms are disjoint and cross-ordered. Preserve the existing local
+    // distribution instead of querying every claim again for each completed run.
+    for (const claimIndex of activeClaims) {
+      const claim = claims[claimIndex];
+      if (claim.travel[1] <= slabTs) {
+        continue;
+      }
+      const cross = claim.cross;
+      let low = slabAtomStart;
+      let high = slabAtomEnd;
+      while (low < high) {
+        const mid = (low + high) >> 1;
+        if (atoms[mid].cross[1] <= cross[0]) {
+          low = mid + 1;
+        } else {
+          high = mid;
+        }
+      }
+      for (let index = low; index < slabAtomEnd && atoms[index].cross[0] < cross[1]; index += 1) {
+        const relevant = slabRuns[index - slabAtomStart].claims;
+        // A run's cross-span never changes and travel is contiguous. Older active
+        // claims were already captured; newly arriving claims have larger IDs.
+        if (relevant.length === 0 || claimIndex > relevant[relevant.length - 1]) {
+          relevant.push(claimIndex);
+        }
+      }
+    }
+    slabAtomStart = slabAtomEnd;
+  }
+  return runs;
 }
 
 /**
@@ -739,14 +838,14 @@ function partitionAtoms(
 interface PartitionTables {
   readonly travelCoords: Int32Array;
   /** Interned indices into `travelCoords`, not coordinates - this is why the tables exist. */
-  readonly atomTravelStart: Int32Array;
-  readonly atomTravelEnd: Int32Array;
+  readonly runTravelStart: Int32Array;
+  readonly runTravelEnd: Int32Array;
   readonly claimTravelStart: Int32Array;
   readonly claimTravelEnd: Int32Array;
 }
 
 function buildPartitionTables(
-  atoms: readonly FreeAtom[],
+  runs: readonly PartitionRun[],
   claims: readonly DirectClaim[],
   travelCuts: Int32Array,
 ): PartitionTables {
@@ -773,12 +872,12 @@ function buildPartitionTables(
       baseToExt[baseIndex] = baseIndex + inserted;
     }
   }
-  const atomTravelStart = new Int32Array(atoms.length);
-  const atomTravelEnd = new Int32Array(atoms.length);
-  for (let index = 0; index < atoms.length; index += 1) {
-    const startCut = atoms[index].slabIndex;
-    atomTravelStart[index] = baseToExt === null ? startCut : baseToExt[startCut];
-    atomTravelEnd[index] = baseToExt === null ? startCut + 1 : baseToExt[startCut + 1];
+  const runTravelStart = new Int32Array(runs.length);
+  const runTravelEnd = new Int32Array(runs.length);
+  for (let index = 0; index < runs.length; index += 1) {
+    const { startSlabIndex, endSlabIndex } = runs[index];
+    runTravelStart[index] = baseToExt === null ? startSlabIndex : baseToExt[startSlabIndex];
+    runTravelEnd[index] = baseToExt === null ? endSlabIndex : baseToExt[endSlabIndex];
   }
   const claimTravelStart = new Int32Array(claims.length);
   const claimTravelEnd = new Int32Array(claims.length);
@@ -789,8 +888,8 @@ function buildPartitionTables(
   }
   return {
     travelCoords,
-    atomTravelStart,
-    atomTravelEnd,
+    runTravelStart,
+    runTravelEnd,
     claimTravelStart,
     claimTravelEnd,
   };
@@ -823,69 +922,41 @@ function mergeSortedCoords(base: Int32Array, overlay: readonly number[]): Int32A
   return merged;
 }
 
-function partitionAxisAtoms(
+function partitionAxisRuns(
   axis: Axis,
-  atoms: readonly FreeAtom[],
+  runs: readonly PartitionRun[],
   claims: readonly DirectClaim[],
   tables: PartitionTables,
   state: CoalesceState,
 ): void {
   const { travelCoords, claimTravelStart, claimTravelEnd } = tables;
   const survivors = state.survivors[axis];
-  let nextClaimIndex = 0;
-  const activeClaims: number[] = [];
-  let activeSlabStart = -1;
-  const relevant: number[] = [];
   const open: number[] = [];
   const travelCutIdx: number[] = [];
   const crossCuts: number[] = [];
-  for (let atomIndex = 0; atomIndex < atoms.length; atomIndex += 1) {
-    const atomTs = tables.atomTravelStart[atomIndex];
-    const atomTe = tables.atomTravelEnd[atomIndex];
-    const atomCross = atoms[atomIndex].cross;
-    const atomCs = atomCross[0];
-    const atomCe = atomCross[1];
-    if (activeSlabStart !== atomTs) {
-      activeSlabStart = atomTs;
-      let keep = 0;
-      for (let index = 0; index < activeClaims.length; index += 1) {
-        if (claimTravelEnd[activeClaims[index]] > atomTs) {
-          activeClaims[keep] = activeClaims[index];
-          keep += 1;
-        }
-      }
-      activeClaims.length = keep;
-      while (nextClaimIndex < claims.length && claimTravelStart[nextClaimIndex] < atomTe) {
-        activeClaims.push(nextClaimIndex);
-        nextClaimIndex += 1;
-      }
-    }
-    // One pass: claims that actually hit this atom, plus the travel events they induce.
-    relevant.length = 0;
-    travelCutIdx.length = 0;
-    travelCutIdx.push(atomTs, atomTe);
-    for (let index = 0; index < activeClaims.length; index += 1) {
-      const claimIndex = activeClaims[index];
+  for (let runIndex = 0; runIndex < runs.length; runIndex += 1) {
+    const runTs = tables.runTravelStart[runIndex];
+    const runTe = tables.runTravelEnd[runIndex];
+    const runCross = runs[runIndex].cross;
+    const runCs = runCross[0];
+    const runCe = runCross[1];
+    const relevant = runs[runIndex].claims;
+    travelCutIdx.length = 2;
+    travelCutIdx[0] = runTs;
+    travelCutIdx[1] = runTe;
+    for (const claimIndex of relevant) {
       const claimTs = claimTravelStart[claimIndex];
       const claimTe = claimTravelEnd[claimIndex];
-      if (claimTs >= atomTe || claimTe <= atomTs) {
-        continue;
-      }
-      const claimCross = claims[claimIndex].cross;
-      if (claimCross[0] >= atomCe || claimCross[1] <= atomCs) {
-        continue;
-      }
-      relevant.push(claimIndex);
-      if (claimTs > atomTs && claimTs < atomTe) {
+      if (claimTs > runTs && claimTs < runTe) {
         addUniqueNumber(travelCutIdx, claimTs, 0);
       }
-      if (claimTe > atomTs && claimTe < atomTe) {
+      if (claimTe > runTs && claimTe < runTe) {
         addUniqueNumber(travelCutIdx, claimTe, 0);
       }
     }
 
-    // Sweep along travel. `relevant` is start-ordered (subset of the sliding window), so
-    // each claim enters `open` once and leaves once — no per-slice rescan of activeClaims.
+    // Sweep along travel. `relevant` is start-ordered, so each claim enters `open`
+    // once and leaves once without rescanning all relevant claims for every slice.
     let nextRelevant = 0;
     open.length = 0;
     for (let travelIndex = 0; travelIndex < travelCutIdx.length - 1; travelIndex += 1) {
@@ -904,20 +975,20 @@ function partitionAxisAtoms(
       }
       open.length = openCount;
 
-      crossCuts.length = 0;
-      crossCuts.push(atomCs, atomCe);
+      crossCuts.length = 2;
+      crossCuts[0] = runCs;
+      crossCuts[1] = runCe;
       for (let index = 0; index < open.length; index += 1) {
         const claimCross = claims[open[index]].cross;
         const claimCs = claimCross[0];
         const claimCe = claimCross[1];
-        if (claimCs > atomCs && claimCs < atomCe) {
+        if (claimCs > runCs && claimCs < runCe) {
           addUniqueNumber(crossCuts, claimCs, 0);
         }
-        if (claimCe > atomCs && claimCe < atomCe) {
+        if (claimCe > runCs && claimCe < runCe) {
           addUniqueNumber(crossCuts, claimCe, 0);
         }
       }
-      const travel: AxisSpan = [travelCoords[sliceTs], travelCoords[sliceTe]];
       for (let crossIndex = 0; crossIndex < crossCuts.length - 1; crossIndex += 1) {
         const cellCs = crossCuts[crossIndex];
         const cellCe = crossCuts[crossIndex + 1];
@@ -937,7 +1008,16 @@ function partitionAxisAtoms(
             rank = SOURCE_RANK.gap;
           }
         }
-        emitCoalescePiece(state, survivors, axis, travel, [cellCs, cellCe], rank);
+        emitCoalescePiece(
+          state,
+          survivors,
+          axis,
+          travelCoords[sliceTs],
+          travelCoords[sliceTe],
+          cellCs,
+          cellCe,
+          rank,
+        );
       }
     }
   }
@@ -1012,15 +1092,17 @@ function emitCoalescePiece(
   state: CoalesceState,
   survivors: CoalescePiece[],
   axis: Axis,
-  travel: AxisSpan,
-  cross: AxisSpan,
+  ts: number,
+  te: number,
+  cs: number,
+  ce: number,
   rank: number,
 ): void {
-  const lane = coalesceLaneOf(state, axis, cross[0], cross[1]);
+  const lane = coalesceLaneOf(state, axis, cs, ce);
   const tail = lane[lane.length - 1];
-  if (tail !== undefined && travel[0] <= tail.te) {
-    if (travel[1] > tail.te) {
-      tail.te = travel[1];
+  if (tail !== undefined && ts <= tail.te) {
+    if (te > tail.te) {
+      tail.te = te;
     }
     if (rank > tail.rank) {
       tail.rank = rank;
@@ -1029,10 +1111,10 @@ function emitCoalescePiece(
   }
   const piece: CoalescePiece = {
     axis,
-    ts: travel[0],
-    te: travel[1],
-    cs: cross[0],
-    ce: cross[1],
+    ts,
+    te,
+    cs,
+    ce,
     rank,
     alive: true,
     lane,

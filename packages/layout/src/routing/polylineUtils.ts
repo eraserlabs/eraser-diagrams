@@ -23,7 +23,7 @@ export function distanceToLineSegment(point: Readonly<Point>, line: LineSegment2
   return Math.hypot(deltaX, deltaY);
 }
 
-/** Arc-length midpoint using the existing layout origin convention. */
+/** Arc-length midpoint using the existing layout/excalidraw origin convention. */
 export function getLineMidPoint(points: readonly Readonly<Point>[]): Readonly<Point> {
   if (points.length < 2) {
     if (process.env.NODE_ENV !== 'production') {

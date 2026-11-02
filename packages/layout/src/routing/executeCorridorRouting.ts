@@ -1,179 +1,206 @@
 import { TimeTracker } from '@eraserlabs/utils';
 import { LayoutManager } from '../LayoutManager.js';
 import { adoptRoute } from './corridor/adoptRoutes.js';
-import type { LabelPlacementResult } from './corridor/labelPlacement.js';
-import { placeLabels } from './corridor/labelPlacement.js';
+import {
+  guideFamilyRoutes,
+  type FamilyGuidanceOptions,
+  type FamilyGuidanceTrace,
+} from './corridor/familyGuidance.js';
+import { withGroupTitleAvoidance, type GroupTitleOptions } from './corridor/groupTitleQuality.js';
+import { placeLabels, type LabelPlacementResult } from './corridor/labelPlacement.js';
 import {
   repairProductionRoutes,
-  type ProductionRepairOptions,
-  type ProductionRepairResult,
+  type ProductionRepairDiagnostics,
 } from './corridor/productionRepair.js';
 import { realizeRoutes, type RealizedRouteBatch } from './corridor/realize.js';
+import { CorridorRouteError } from './corridor/route.js';
 import { buildCorridorWorld } from './corridor/worldConstruction.js';
 import type { LabelSpec } from './corridor/text.js';
 import { searchRoute, type RouteSearchResult } from './corridor/topology.js';
 import type { RouteSearchRequest } from './corridor/contract.js';
 import type { CorridorWorld } from './corridor/world.js';
 
-export interface ExecuteCorridorRoutingOptions {
-  /** Run the accepted production repair composition after initial realization. */
-  readonly repair?: boolean;
-  /** Options consumed by the authoritative production repair composition. */
-  readonly repairOptions?: ProductionRepairOptions;
-  /** Measured labels to place against the final repaired geometry. */
-  readonly labelSpecs?: readonly LabelSpec[];
-  /** Existing route geometry to adopt at the corresponding request index. */
-  readonly adoptedRoutes?: ReadonlyMap<
-    number,
-    {
-      readonly points: readonly (readonly [number, number])[];
-      readonly pinTracks?: boolean;
-    }
-  >;
+export interface CorridorRoutingRequest extends RouteSearchRequest {
+  /** Exact incumbent geometry: participate without moving or changing topology. */
+  readonly adoptedPoints?: readonly (readonly [number, number])[];
+  readonly labelSize?: LabelSpec['size'];
 }
 
-export interface CorridorRoutingTiming {
-  readonly world: number;
-  readonly search: number;
-  readonly realization: number;
-  readonly repair: number;
-  readonly labels: number;
-  readonly total: number;
-}
+/** Production repair after spacing: off, or on within a cooperative wall-clock budget. */
+export type RepairPolicy = false | { readonly timeBudgetMs: number };
 
 export interface CorridorRoutingResult {
   readonly status: 'completed';
   readonly world: CorridorWorld;
+  /** Original requestIndex for each dense output slot, after adoption and recovery. */
+  readonly activeRequestIndexes: readonly number[];
+  readonly failedRequestIndexes: readonly number[];
   readonly searchResults: readonly RouteSearchResult[];
-  readonly initialTopologies: readonly RouteSearchResult['route'][];
-  readonly initialRealization: RealizedRouteBatch;
   readonly realization: RealizedRouteBatch;
-  readonly productionRepair?: ProductionRepairResult;
+  readonly repairDiagnostics?: ProductionRepairDiagnostics;
+  readonly familyGuidance?: { readonly traces: readonly FamilyGuidanceTrace[]; reverted?: string };
   readonly labels?: LabelPlacementResult;
-  readonly timing: CorridorRoutingTiming;
+  readonly timing: Readonly<Record<string, number>>;
 }
 
-export interface CorridorRoutingFallbackResult {
+interface CorridorRoutingFailure {
   readonly status: 'fallback';
-  readonly world: CorridorWorld;
-  readonly searchResults: readonly RouteSearchResult[];
-  readonly timing: CorridorRoutingTiming;
-}
-
-export type CorridorRoutingExecution = CorridorRoutingResult | CorridorRoutingFallbackResult;
-
-export class CorridorAdoptionError extends Error {
-  constructor(readonly routeIndexes: readonly number[]) {
-    super(`Could not adopt corridor routes: ${routeIndexes.join(', ')}`);
-  }
+  readonly failedRequestIndexes: readonly number[];
+  readonly timing: Readonly<Record<string, number>>;
 }
 
 /**
- * Execute the authoritative corridor-routing pipeline. Callers own request
- * construction and committing the returned geometry to their data model.
+ * Solve a batch, dropping attributed route failures and retrying peers. This is
+ * the only owner of dense solver indexes. Failed incumbent adoptions are omitted,
+ * never rerouted; incumbents alone are never solved. Callers provide fallback
+ * geometry for failed selections.
  */
 export function executeCorridorRouting(
   layoutManager: LayoutManager,
-  requests: readonly RouteSearchRequest[],
-  options: ExecuteCorridorRoutingOptions = {},
-): CorridorRoutingExecution | undefined {
+  requests: readonly CorridorRoutingRequest[],
+  {
+    repair,
+    groupTitleAvoidance = { corridorPenalty: 0, intersectionCost: 100, overlapCostPerPx: 1 },
+    familyGuidance = { penalty: 2, localRadius: 200 },
+  }: {
+    readonly repair: RepairPolicy;
+    /** Exact title costs by default; false disables them for comparisons. */
+    readonly groupTitleAvoidance?: GroupTitleOptions | false;
+    /** Gentle local same-face fan guidance; false disables it for comparisons. */
+    readonly familyGuidance?: FamilyGuidanceOptions | false;
+  },
+): CorridorRoutingResult | CorridorRoutingFailure {
   const tracker = new TimeTracker();
-  if (requests.length === 0) {
-    return undefined;
-  }
+  const failedRequestIndexes: number[] = [];
+  let active = [...requests];
 
-  const world = buildCorridorWorld(layoutManager, requests);
-  tracker.mark('world');
-  const guardedTopologyIndexes = new Set<number>();
-  const searchResults: RouteSearchResult[] = [];
-  const failedAdoptionRouteIndexes: number[] = [];
-  for (let routeIndex = 0; routeIndex < requests.length; routeIndex += 1) {
-    const request = requests[routeIndex];
-    const adopted = options.adoptedRoutes?.get(routeIndex);
-    if (adopted === undefined) {
-      searchResults.push(searchRoute(world, request));
-      continue;
+  while (active.some((request) => request.adoptedPoints === undefined)) {
+    const world = withGroupTitleAvoidance(
+      buildCorridorWorld(layoutManager, active),
+      groupTitleAvoidance || undefined,
+    );
+    tracker.mark('world');
+    const participating: CorridorRoutingRequest[] = [];
+    const adoptedRouteIndexes = new Set<number>();
+    const searchResults: RouteSearchResult[] = [];
+    for (const input of active) {
+      const request = { ...input, requestIndex: participating.length };
+      let result: RouteSearchResult;
+      if (input.adoptedPoints) {
+        const route = adoptRoute(world, request, input.adoptedPoints, { pinTracks: true });
+        if (!route) {
+          continue;
+        }
+        adoptedRouteIndexes.add(request.requestIndex);
+        result = {
+          route,
+          fallback: false,
+          searchPass: 'preferred',
+          metrics: { expansions: 0, maxQueue: 0, maxLabelsPerCorridor: 0, passCount: 0 },
+        };
+      } else {
+        result = searchRoute(world, request);
+      }
+      participating.push(input);
+      searchResults.push(result);
     }
-    const route = adoptRoute(world, request, adopted.points, {
-      pinTracks: adopted.pinTracks,
-    });
-    if (route === undefined) {
-      failedAdoptionRouteIndexes.push(routeIndex);
-      continue;
-    }
-    guardedTopologyIndexes.add(routeIndex);
-    searchResults.push({
-      route,
-      fallback: false,
-      searchPass: 'preferred',
-      metrics: {
-        expansions: 0,
-        maxQueue: 0,
-        maxLabelsPerCorridor: 0,
-        passCount: 0,
-      },
-    });
-  }
-  if (failedAdoptionRouteIndexes.length > 0) {
-    throw new CorridorAdoptionError(failedAdoptionRouteIndexes);
-  }
-  tracker.mark('search');
-  const timings = tracker.timings;
-  if (searchResults.some((result) => result.fallback)) {
-    return {
-      status: 'fallback',
-      world,
-      searchResults,
-      timing: {
-        world: timings['world'],
-        search: timings['search'],
-        realization: 0,
-        repair: 0,
-        labels: 0,
-        total: tracker.totalMs(),
-      },
-    };
-  }
+    active = participating;
+    tracker.mark('search');
 
-  const initialTopologies = searchResults.map((result) => result.route);
-  // The fallback scan and the topology projection above are not billed to any phase.
-  tracker.reset();
-  const initialRealization = realizeRoutes(world, initialTopologies);
-  tracker.mark('realization');
-  const productionRepair =
-    options.repair !== false
-      ? repairProductionRoutes(world, requests, initialTopologies, initialRealization, {
-          ...options.repairOptions,
-          guardedTopologyIndexes: new Set([
-            ...(options.repairOptions?.guardedTopologyIndexes ?? []),
-            ...guardedTopologyIndexes,
-          ]),
-        })
-      : undefined;
-  tracker.mark('repair');
-  const realization = productionRepair ?? initialRealization;
-  const labels =
-    options.labelSpecs && options.labelSpecs.length > 0
-      ? placeLabels(world, realization.routes, options.labelSpecs)
-      : undefined;
-  tracker.mark('labels');
+    let failed = searchResults.flatMap((result, index) => (result.fallback ? [index] : []));
+    if (failed.length === 0) {
+      try {
+        const denseRequests = active.map((request, requestIndex) => ({ ...request, requestIndex }));
+        const guided = familyGuidance
+          ? guideFamilyRoutes(
+              world,
+              denseRequests,
+              searchResults,
+              adoptedRouteIndexes,
+              familyGuidance,
+            )
+          : undefined;
+        if (guided) {
+          tracker.mark('familyGuidance');
+        }
+        let selectedResults = guided?.searchResults ?? searchResults;
+        const guidanceDiagnostics: CorridorRoutingResult['familyGuidance'] = guided
+          ? { traces: guided.traces }
+          : undefined;
+        const realizeAndRepair = (results: readonly RouteSearchResult[]) => {
+          const topologies = results.map((result) => result.route);
+          const initial = realizeRoutes(world, topologies);
+          tracker.mark('realization');
+          const repaired =
+            repair === false
+              ? undefined
+              : repairProductionRoutes(world, denseRequests, topologies, initial, {
+                  timeBudgetMs: repair.timeBudgetMs,
+                  adoptedRouteIndexes,
+                });
+          tracker.mark('repair');
+          return { realization: repaired ?? initial, repairDiagnostics: repaired?.diagnostics };
+        };
+        let solved: ReturnType<typeof realizeAndRepair>;
+        try {
+          solved = realizeAndRepair(selectedResults);
+        } catch (error) {
+          if (
+            !(error instanceof CorridorRouteError) ||
+            !guided?.traces.some((trace) => trace.accepted)
+          ) {
+            throw error;
+          }
+          // A soft topology preference must not make ordinary routable lines disappear.
+          guidanceDiagnostics!.reverted = error.message;
+          selectedResults = searchResults;
+          solved = realizeAndRepair(selectedResults);
+        }
+        const { realization, repairDiagnostics } = solved;
+        const labelSpecs = active.flatMap((request, routeIndex): LabelSpec[] =>
+          request.labelSize ? [{ routeIndex, size: request.labelSize }] : [],
+        );
+        const labels =
+          labelSpecs.length > 0 ? placeLabels(world, realization.routes, labelSpecs) : undefined;
+        tracker.mark('labels');
+        return {
+          status: 'completed',
+          world,
+          activeRequestIndexes: active.map((request) => request.requestIndex),
+          failedRequestIndexes,
+          searchResults: selectedResults,
+          realization,
+          repairDiagnostics,
+          ...(guidanceDiagnostics ? { familyGuidance: guidanceDiagnostics } : {}),
+          labels,
+          timing: { ...tracker.timings, total: tracker.totalMs() },
+        };
+      } catch (error) {
+        if (!(error instanceof CorridorRouteError)) {
+          throw error;
+        }
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('Corridor routes failed; dropping them from the batch', error);
+        }
+        failed = [...new Set(error.routeIndexes)];
+        if (
+          failed.length === 0 ||
+          failed.some((index) => !Number.isInteger(index) || index < 0 || index >= active.length)
+        ) {
+          throw error;
+        }
+      }
+    }
+    const failedIndexes = new Set(failed);
+    for (const index of failed) {
+      failedRequestIndexes.push(active[index].requestIndex);
+    }
+    active = active.filter((_, index) => !failedIndexes.has(index));
+  }
 
   return {
-    status: 'completed',
-    world,
-    searchResults,
-    initialTopologies,
-    initialRealization,
-    realization,
-    ...(productionRepair ? { productionRepair } : {}),
-    ...(labels ? { labels } : {}),
-    timing: {
-      world: timings['world'],
-      search: timings['search'],
-      realization: timings['realization'],
-      repair: timings['repair'],
-      labels: timings['labels'],
-      total: tracker.totalMs(),
-    },
+    status: 'fallback',
+    failedRequestIndexes,
+    timing: { ...tracker.timings, total: tracker.totalMs() },
   };
 }

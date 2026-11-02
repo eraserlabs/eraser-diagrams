@@ -9,7 +9,7 @@ import {
   type RoutingQualityScalarCosts,
   type RoutingQualityVisitRef,
 } from './qualityCost.js';
-import type { Route } from './route.js';
+import { shareTerminalPortGroup, type Route } from './route.js';
 import { RouteIndexer, type IndexedRouteSegment, type RouteCrossing } from './routeIndex.js';
 
 export interface GeometryQualityResult {
@@ -53,6 +53,7 @@ export function collectGeometryQualityEvents(
   const crossings = index.properCrossings();
   const retainedLineMerges = options.retainedLineMerges ?? [];
   const discoveredLineMerges = emittedLineMerges(
+    routes,
     index,
     [...existingEvents, ...retainedLineMerges],
     options.lineMergeRouteIndexes,
@@ -121,6 +122,7 @@ export function collectGeometryQualityEvents(
 }
 
 function emittedLineMerges(
+  routes: readonly Route[],
   index: RouteIndexer,
   existingEvents: readonly RoutingQualityEvent[],
   routeIndexes?: ReadonlySet<number>,
@@ -136,6 +138,16 @@ function emittedLineMerges(
     }
   }
   const visit = (segment: IndexedRouteSegment, candidate: IndexedRouteSegment): void => {
+    if (
+      shareTerminalPortGroup(
+        routes[segment.routeIndex],
+        segment.segmentIndex,
+        routes[candidate.routeIndex],
+        candidate.segmentIndex,
+      )
+    ) {
+      return;
+    }
     const first =
       segment.routeIndex < candidate.routeIndex ||
       (segment.routeIndex === candidate.routeIndex && segment.visitIndex <= candidate.visitIndex)

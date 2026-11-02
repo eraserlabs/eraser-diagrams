@@ -7,7 +7,6 @@ import {
   type SpacingKernelUnit,
   solveSpacingKernel,
 } from '../corridor/spacingKernel.js';
-import type { CorridorBorderSpan, ProfiledCorridor } from '../corridor/contract.js';
 import type { TrackDesire } from '../corridor/spacingObjective.js';
 
 function unit(
@@ -67,37 +66,18 @@ describe('routing corridor spacing kernel desire priorities', () => {
     expect(solved.tracks).toEqual([42, 50, 58]);
   });
 
-  it('lets a terminal desire suppress the corridor fallback', () => {
-    const solved = solveSpacingKernel(
-      [unit([center(), { kind: 'terminal', track: 70, weight: 0.25 }])],
-      [],
-    );
+  it.each([
+    ['terminal', 70, 0.25],
+    ['u-turn', 20, 4],
+    ['terminal-lead', 30, 2],
+    ['terminal-window', 30, 2],
+  ] as const)('lets a %s desire suppress the corridor fallback', (kind, track, weight) => {
+    const solved = solveSpacingKernel([unit([center(), { kind, track, weight }])], []);
 
-    expect(solved.tracks).toEqual([70]);
+    expect(solved.tracks).toEqual([track]);
     expect([...solved.unitCosts]).toEqual([0]);
     expect(solved.objective).toBe(0);
   });
-
-  it('lets a U-turn desire suppress the corridor fallback', () => {
-    const solved = solveSpacingKernel(
-      [unit([center(), { kind: 'u-turn', track: 20, weight: 4 }])],
-      [],
-    );
-
-    expect(solved.tracks).toEqual([20]);
-    expect([...solved.unitCosts]).toEqual([0]);
-    expect(solved.objective).toBe(0);
-  });
-
-  it.each(['terminal-lead', 'terminal-window'] as const)(
-    'lets a %s desire suppress the corridor fallback',
-    (kind) => {
-      const solved = solveSpacingKernel([unit([center(), { kind, track: 30, weight: 2 }])], []);
-
-      expect(solved.tracks).toEqual([30]);
-      expect(solved.objective).toBe(0);
-    },
-  );
 
   it('captures the solved semantic objective without reintroducing the corridor fallback', () => {
     const solved = solveSpacingKernel(
@@ -116,7 +96,7 @@ describe('routing corridor spacing kernel desire priorities', () => {
     expect(solved.objective).toBe(300);
   });
 
-  it('keeps an ordinary pack centered when a strong U-turn has room beside it', () => {
+  it('keeps an ordinary pack centered when a differently targeted route has room beside it', () => {
     const units = [
       unit([{ kind: 'corridor-ideal', track: 20, weight: 4 }]),
       unit([center()]),
@@ -377,69 +357,33 @@ describe('routing corridor spacing kernel projection', () => {
   });
 });
 
-function border(kind: CorridorBorderSpan['kind'], start = 0, end = 100) {
-  return kind === 'entity'
-    ? ({ kind, span: [start, end] as const, entityId: 'entity' } as const)
-    : ({ kind, span: [start, end] as const } as const);
-}
-
-function profiledX(
-  top: readonly CorridorBorderSpan[],
-  bottom: readonly CorridorBorderSpan[],
-): ProfiledCorridor {
-  return {
-    index: 0,
-    axis: 'x',
-    rect: { x: 0, y: 0, width: 100, height: 100 },
-    borderProfile: { axis: 'x', top, bottom },
-  };
-}
-
-function profiledY(
-  left: readonly CorridorBorderSpan[],
-  right: readonly CorridorBorderSpan[],
-): ProfiledCorridor {
-  return {
-    index: 0,
-    axis: 'y',
-    rect: { x: 0, y: 0, width: 100, height: 100 },
-    borderProfile: { axis: 'y', left, right },
-  };
-}
-
 describe('routing corridor corridor ideal producer', () => {
-  it('centers between entities or through open space', () => {
-    expect(corridorIdealTrack(profiledX([border('entity')], [border('entity')]), [0, 100])).toBe(
-      50,
-    );
-    expect(corridorIdealTrack(profiledX([], []), [0, 100])).toBe(50);
-    expect(
-      corridorIdealTrack(
-        profiledX([border('diagram-border')], [border('diagram-border')]),
-        [0, 100],
-      ),
-    ).toBe(50);
+  it.each([
+    [[0, 100], [0, 100], 0, 50],
+    [[], [], 0, 50],
+    [[0, 100], [0, 100], 3, 50],
+    [[0, 100], [], 0, 50],
+    [[], [0, 100], 0, 50],
+    [[0, 100], [0, 100], 1, 4],
+    [[0, 100], [0, 100], 2, 96],
+  ] as const)(
+    'balances wall coverage %j / %j with diagram sides %i at track %i',
+    (negative, positive, diagramSides, expected) => {
+      const profile = { negative, positive, diagramBorderSides: diagramSides };
+      expect(corridorIdealTrack(0, 100, profile, [0, 100])).toBe(expected);
+    },
+  );
+
+  it('ignores entity walls outside the run span', () => {
+    const profile = { negative: [70, 100], positive: [0, 100], diagramBorderSides: 2 };
+    expect(corridorIdealTrack(0, 100, profile, [0, 60])).toBe(50);
+    expect(corridorIdealTrack(0, 100, profile, [0, 100])).toBe(96);
   });
 
-  it('centers one-sided entity runs whose far border is a phantom plane', () => {
-    expect(corridorIdealTrack(profiledX([border('entity')], []), [0, 100])).toBe(50);
-    expect(corridorIdealTrack(profiledX([], [border('entity')]), [0, 100])).toBe(50);
-    expect(corridorIdealTrack(profiledY([border('entity')], []), [0, 100])).toBe(50);
-  });
-
-  it('places entity-boundary runs four pixels from the diagram side', () => {
-    expect(
-      corridorIdealTrack(profiledX([border('diagram-border')], [border('entity')]), [0, 100]),
-    ).toBe(4);
-    expect(
-      corridorIdealTrack(profiledX([border('entity')], [border('diagram-border')]), [0, 100]),
-    ).toBe(96);
-  });
-
-  it('reduces each side over only the run span', () => {
-    const corridor = profiledX([border('entity', 70, 100)], []);
-    expect(corridorIdealTrack(corridor, [0, 60])).toBe(50);
+  it('centers partial entity coverage when the far border is a phantom plane', () => {
+    const profile = { negative: [70, 100], positive: [], diagramBorderSides: 0 };
+    expect(corridorIdealTrack(0, 100, profile, [0, 60])).toBe(50);
     // Entity overlaps the run but the far border stays phantom: still centered.
-    expect(corridorIdealTrack(corridor, [0, 100])).toBe(50);
+    expect(corridorIdealTrack(0, 100, profile, [0, 100])).toBe(50);
   });
 });

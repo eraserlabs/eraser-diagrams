@@ -67,7 +67,7 @@ export const BADGE_PLACEMENTS = [
   'end',
 ] as const;
 
-export const CONNECTOR_STYLES = ['elbow', 'straight'] as const;
+export const CONNECTOR_STYLES = ['elbow', 'straight', 'arc'] as const;
 
 export const CORNER_STYLES = ['straight', 'elbow'] as const;
 

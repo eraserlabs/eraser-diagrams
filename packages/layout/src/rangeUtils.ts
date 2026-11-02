@@ -97,15 +97,6 @@ export function isOverlapping(rangeA: LayoutRange, rangeB: LayoutRange): boolean
   );
 }
 
-/** Inclusive intersection; touching edges/points are kept, disjoint ranges return undefined. */
-export function intersectRanges(a: LayoutRange, b: LayoutRange): LayoutRange | undefined {
-  const minX = Math.max(a.minX, b.minX);
-  const maxX = Math.min(a.maxX, b.maxX);
-  const minY = Math.max(a.minY, b.minY);
-  const maxY = Math.min(a.maxY, b.maxY);
-  return minX <= maxX && minY <= maxY ? { minX, maxX, minY, maxY } : undefined;
-}
-
 export function rangeIncludes(maybeOuter: LayoutRange, maybeInner: LayoutRange): boolean {
   return (
     maybeOuter.minX <= maybeInner.minX &&
@@ -221,6 +212,19 @@ export function clamp(value: number, lower: number, upper: number): number {
   return Math.min(Math.max(value, lower), upper);
 }
 
+/** Round a box by its absolute edges so its position and dimensions stay consistent. */
+export function roundPositionPropsToGrid<T extends PositionProps>(props: T): T {
+  const x = Math.round(props.x);
+  const y = Math.round(props.y);
+  return {
+    ...props,
+    x,
+    y,
+    width: Math.round(props.x + props.width) - x,
+    height: Math.round(props.y + props.height) - y,
+  };
+}
+
 export const axisStart = (b: { x: number; y: number }, axis: Axis): number =>
   axis === 'x' ? b.x : b.y;
 export const axisEnd = (b: PositionProps, axis: Axis): number =>
@@ -289,4 +293,13 @@ export function subtractSpans(
     available.push([cursor, bounds[1]]);
   }
   return available;
+}
+
+/** The overlap of two ranges, or undefined when they do not overlap. */
+export function intersectRanges(a: LayoutRange, b: LayoutRange): LayoutRange | undefined {
+  const minX = Math.max(a.minX, b.minX);
+  const maxX = Math.min(a.maxX, b.maxX);
+  const minY = Math.max(a.minY, b.minY);
+  const maxY = Math.min(a.maxY, b.maxY);
+  return minX <= maxX && minY <= maxY ? { minX, maxX, minY, maxY } : undefined;
 }

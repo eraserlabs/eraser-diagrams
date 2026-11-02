@@ -1,7 +1,8 @@
 /*
- * Portions adapted from RBush 4.0.1 (MIT) and Quickselect 3.0.0 (ISC), both by
- * Vladimir Agafonkin. Substantially modified by Eraser. See
- * ../../THIRD_PARTY_NOTICES.md for provenance and the complete license notices.
+ * This implementation is derived from RBush by Volodymyr Agafonkin. RBush's
+ * core implementation is byte-identical from 3.0.1 through 4.0.1. The
+ * bulk-loading selection routine is derived from Quickselect 3.0.0, also by
+ * Volodymyr Agafonkin. See README.md and the license files in this directory.
  */
 
 import type { LayoutRange, PositionProps } from '../types.js';

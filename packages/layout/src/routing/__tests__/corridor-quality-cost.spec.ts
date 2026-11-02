@@ -1,3 +1,5 @@
+import type { LayoutEntity } from '../../types.js';
+import { collectEndpointQualityEvents } from '../corridor/endpointQuality.js';
 import {
   compareRoutingQualityCosts,
   ordinaryBendCost,
@@ -8,6 +10,8 @@ import {
   type RoutingQualityEvent,
   type RoutingQualityEventKind,
 } from '../corridor/qualityCost.js';
+import { Route } from '../corridor/route.js';
+import { manualCorridorWorld } from '../routingTestUtils.js';
 
 const event = (
   kind: RoutingQualityEventKind,
@@ -16,6 +20,54 @@ const event = (
 ): RoutingQualityEvent => ({ kind, cost, routeIndexes });
 
 describe('routing corridor progressive quality cost', () => {
+  function faceRoutes(coordinates: readonly number[], authored = false) {
+    const entity: LayoutEntity = { id: 'face', x: 0, y: 0, width: 40, height: 200 };
+    const bounds = { x: 40, y: 0, width: 100, height: 200 };
+    const world = manualCorridorWorld(
+      [entity],
+      [{ index: 0, axis: 'x', rect: bounds }],
+      [],
+      [],
+      bounds,
+    );
+    const routes = coordinates.map((coordinate, routeIndex) => {
+      const from = { x: 40, y: coordinate };
+      const to = { x: 140, y: coordinate };
+      const route = new Route(
+        routeIndex,
+        { entityIndex: 0, face: 'right', authoredTrack: authored ? coordinate : undefined },
+        { kind: 'point', ...to },
+        [
+          {
+            corridorIndex: 0,
+            entry: { kind: 'terminal', attachmentIndex: 0 },
+            exit: { kind: 'terminal', attachmentIndex: 1 },
+            feasibleTrack: [0, 200],
+          },
+        ],
+      );
+      route.beginRealization();
+      route.setOrder([routeIndex]);
+      route.setNominalTracks([coordinate]);
+      route.setGeometry({ from, to }, [from, to], [0]);
+      return route;
+    });
+    return { routes, events: collectEndpointQualityEvents(world, routes) };
+  }
+
+  it('charges centered-but-crowded fans once and leaves ideal face slots free', () => {
+    expect(faceRoutes([50, 150]).events).toEqual([]);
+    const { events } = faceRoutes([90, 110]);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ kind: 'face-fan-symmetry', routeIndexes: [0, 1] });
+    expect(events[0].cost).toBeGreaterThan(0);
+  });
+
+  it('leaves nearly centered and authored ports free', () => {
+    expect(faceRoutes([101]).events).toEqual([]);
+    expect(faceRoutes([10], true).events).toEqual([]);
+  });
+
   it('charges a strong first bend and cheaper later bends', () => {
     expect([0, 1, 2, 3, 4].map(ordinaryBendCost)).toEqual([0, 48, 72, 96, 120]);
   });
@@ -45,7 +97,7 @@ describe('routing corridor progressive quality cost', () => {
     const ledger = new RoutingQualityLedger();
     ledger.replaceSource('spacing:corridor:3', 'spacing', [event('crossing', 30)]);
     ledger.replaceSource('spacing:corridor:3', 'spacing', [event('crossing', 12)]);
-    ledger.replaceSource('topology:crossing', 'topology', [event('crossing', 4)]);
+    ledger.replaceSource('emission:crossing', 'emission', [event('crossing', 4)]);
 
     expect(ledger.snapshot().cost).toEqual({ invalid: 0, cap: 0, scalar: 16 });
     ledger.removeStage('spacing');

@@ -1,7 +1,32 @@
 import type { AxisSpan, XYPoint } from '../../types.js';
 import type { EndpointSide } from '../types.js';
-import { AUTHORED_PORT_TOLERANCE_PX, type RouteEndpoint } from './contract.js';
+import {
+  AUTHORED_PORT_TOLERANCE_PX,
+  isPointEndpoint,
+  type EntityRouteEndpoint,
+  type RouteEndpoint,
+} from './contract.js';
 import { samePoint } from './geometry.js';
+
+/** Batch routes (dense request indexes) that must leave the strict realization batch. */
+export class CorridorRouteError extends Error {
+  readonly routeIndexes: readonly number[];
+
+  constructor(routeIndexes: readonly number[], message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'CorridorRouteError';
+    this.routeIndexes = routeIndexes;
+  }
+}
+
+/** Attribute a route-local invariant failure to the route it broke. */
+export function routeFailure(route: Route, error: unknown): CorridorRouteError {
+  return new CorridorRouteError(
+    [route.requestIndex],
+    error instanceof Error ? error.message : String(error),
+    { cause: error },
+  );
+}
 
 export type VisitBoundary =
   | {
@@ -286,6 +311,57 @@ export class Route {
   }
 }
 
+/** Grouped ports may share their straight terminal runs, but not overlaps after a bend. */
+export function shareTerminalPortGroup(
+  left: Route,
+  leftSegmentIndex: number,
+  right: Route,
+  rightSegmentIndex: number,
+): boolean {
+  for (const side of ['from', 'to'] as const) {
+    const endpoint = left[side];
+    if (isPointEndpoint(endpoint) || endpoint.portGroup === undefined) {
+      continue;
+    }
+    for (const otherSide of ['from', 'to'] as const) {
+      const other = right[otherSide];
+      if (
+        !isPointEndpoint(other) &&
+        endpoint.entityIndex === other.entityIndex &&
+        endpoint.face === other.face &&
+        endpoint.portGroup === other.portGroup &&
+        isTerminalRun(left, leftSegmentIndex, side, endpoint) &&
+        isTerminalRun(right, rightSegmentIndex, otherSide, other)
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function isTerminalRun(
+  route: Route,
+  segmentIndex: number,
+  side: EndpointSide,
+  endpoint: EntityRouteEndpoint,
+): boolean {
+  const points = route.points();
+  const cross = endpoint.face === 'left' || endpoint.face === 'right' ? 'y' : 'x';
+  const terminalIndex = side === 'from' ? 0 : points.length - 1;
+  const step = side === 'from' ? -1 : 1;
+  for (
+    let index = side === 'from' ? segmentIndex + 1 : segmentIndex;
+    index !== terminalIndex;
+    index += step
+  ) {
+    if (points[index][cross] !== points[terminalIndex][cross]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function validateVisit(requestIndex: number, visitIndex: number, visit: CorridorVisit): void {
   if (!Number.isInteger(visit.corridorIndex) || visit.corridorIndex < 0) {
     throw new Error(`route ${requestIndex}: invalid corridor for visit ${visitIndex}`);
@@ -298,12 +374,18 @@ function validateVisit(requestIndex: number, visitIndex: number, visit: Corridor
   validateBoundary(requestIndex, visitIndex, 'exit', visit.exit);
 }
 
-/** Topology-only clone; optional `requestIndex` remaps the batch slot. */
-export function cloneRoute(route: Route, requestIndex: number = route.requestIndex): Route {
-  return new Route(requestIndex, route.from, route.to, route.visits);
+/** Topology-only clone. */
+export function cloneRoute(route: Route): Route {
+  return new Route(route.requestIndex, route.from, route.to, route.visits);
 }
 
 function validateEndpoint(requestIndex: number, side: EndpointSide, endpoint: RouteEndpoint): void {
+  if (isPointEndpoint(endpoint)) {
+    if (!Number.isFinite(endpoint.x) || !Number.isFinite(endpoint.y)) {
+      throw new Error(`route ${requestIndex}: invalid ${side} point terminal`);
+    }
+    return;
+  }
   if (!Number.isInteger(endpoint.entityIndex) || endpoint.entityIndex < 0) {
     throw new Error(`route ${requestIndex}: invalid ${side} entity index`);
   }
@@ -454,6 +536,11 @@ function validateSegmentProvenance(
 function authoredTracksOnAxis(from: RouteEndpoint, to: RouteEndpoint, axis: 'x' | 'y'): number[] {
   const result: number[] = [];
   for (const endpoint of [from, to]) {
+    if (isPointEndpoint(endpoint)) {
+      // Exact pins keep fractional point terminals; the authored tolerance admits their tracks.
+      result.push(axis === 'x' ? endpoint.x : endpoint.y);
+      continue;
+    }
     const trackAxis = endpoint.face === 'left' || endpoint.face === 'right' ? 'y' : 'x';
     if (trackAxis === axis && endpoint.authoredTrack !== undefined) {
       result.push(endpoint.authoredTrack);

@@ -8,7 +8,7 @@
       "x": 675,
       "y": 15,
       "width": 900,
-      "height": 62,
+      "height": 50,
       "fontSize": 24,
       "hAlign": "center",
       "color": "#0F6E7A",
@@ -1427,28 +1427,20 @@
       "color": "#0B5563",
       "label": "requests",
       "x": 505,
-      "y": 325,
+      "y": 266,
       "points": [
         {
           "x": 0,
           "y": 0
         },
         {
-          "x": 26,
-          "y": 0
-        },
-        {
-          "x": 26,
-          "y": -70
-        },
-        {
           "x": 75,
-          "y": -70
+          "y": 0
         }
       ],
       "labelPlacement": {
-        "x": -4,
-        "y": -43,
+        "x": 3,
+        "y": -8,
         "width": 60,
         "height": 17
       }

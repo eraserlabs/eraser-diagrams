@@ -6,10 +6,20 @@ import type {
   PositionProps,
   XYPoint,
 } from '../../types.js';
-import { clamp, makePropsFromRange, midpoint } from '../../rangeUtils.js';
+import {
+  axisEnd,
+  axisOrthMax,
+  axisOrthMin,
+  axisStart,
+  clamp,
+  makePropsFromRange,
+  roundPositionPropsToGrid,
+} from '../../rangeUtils.js';
 import { makeExternalTextRange } from '../textPlacements.js';
-import type { Corridor, RouteEndpoint } from './contract.js';
+import { isPointAttachment } from './contract.js';
+import type { EntityRouteEndpoint, RouteEndpoint, TerminalAttachment } from './contract.js';
 import type { Route, VisitBoundary } from './route.js';
+import type { Corridor } from './contract.js';
 import type { CorridorWorld } from './world.js';
 
 /** Shared geometric tolerance for routing-corridor span/rect comparisons. */
@@ -53,24 +63,20 @@ function isEntityOnGrid(entity: LayoutEntity): boolean {
 }
 
 function snapEntityToGrid<T extends LayoutEntity>(entity: T): T {
-  const x = Math.round(entity.x);
-  const y = Math.round(entity.y);
-  const snapped: T = {
-    ...entity,
-    x,
-    y,
-    width: Math.round(entity.x + entity.width) - x,
-    height: Math.round(entity.y + entity.height) - y,
-  };
+  const snapped = roundPositionPropsToGrid(entity);
   const title = entity.textPlacement;
   if (title !== undefined) {
-    const titleX = Math.round(entity.x + title.relativeX);
-    const titleY = Math.round(entity.y + title.relativeY);
+    const titleBox = roundPositionPropsToGrid({
+      x: entity.x + title.relativeX,
+      y: entity.y + title.relativeY,
+      width: title.width,
+      height: title.height,
+    });
     snapped.textPlacement = {
-      relativeX: titleX - x,
-      relativeY: titleY - y,
-      width: Math.round(entity.x + title.relativeX + title.width) - titleX,
-      height: Math.round(entity.y + title.relativeY + title.height) - titleY,
+      relativeX: titleBox.x - snapped.x,
+      relativeY: titleBox.y - snapped.y,
+      width: titleBox.width,
+      height: titleBox.height,
     };
   }
   return snapped;
@@ -103,9 +109,11 @@ export function terminalFacePlane(entity: LayoutEntity, face: Direction): number
     return bodyPlane;
   }
   const text = makePropsFromRange(textRange);
-  const bodyCross = faceCrossSpan(entity, face);
-  const textCross = faceCrossSpan(text, face);
-  if (Math.min(bodyCross[1], textCross[1]) <= Math.max(bodyCross[0], textCross[0])) {
+  const axis = faceNormalAxis(face);
+  if (
+    Math.min(axisOrthMax(entity, axis), axisOrthMax(text, axis)) <=
+    Math.max(axisOrthMin(entity, axis), axisOrthMin(text, axis))
+  ) {
     return bodyPlane;
   }
   if (face === 'right') {
@@ -142,19 +150,6 @@ export function travelSpanOf(axis: Axis, rect: PositionProps): AxisSpan {
 /** Cross span of a rect for a corridor axis (orthogonal to travel). */
 export function crossSpanOf(axis: Axis, rect: PositionProps): AxisSpan {
   return axis === 'x' ? [rect.y, rect.y + rect.height] : [rect.x, rect.x + rect.width];
-}
-
-export function corridorCrossSpan(corridor: Corridor): AxisSpan {
-  return crossSpanOf(corridor.axis, corridor.rect);
-}
-
-export function corridorTravelSpan(corridor: Corridor): AxisSpan {
-  return travelSpanOf(corridor.axis, corridor.rect);
-}
-
-export function corridorCenter(corridor: Corridor): number {
-  const cross = corridorCrossSpan(corridor);
-  return midpoint(cross);
 }
 
 export function axisPoint(axis: Axis, travel: number, track: number): XYPoint {
@@ -209,13 +204,6 @@ export function pointInRect(point: XYPoint, rect: PositionProps): boolean {
     point.x <= rect.x + rect.width + ROUTING_EPSILON &&
     point.y >= rect.y - ROUTING_EPSILON &&
     point.y <= rect.y + rect.height + ROUTING_EPSILON
-  );
-}
-
-export function containsRect(outer: PositionProps, inner: PositionProps): boolean {
-  return (
-    pointInRect(inner, outer) &&
-    pointInRect({ x: inner.x + inner.width, y: inner.y + inner.height }, outer)
   );
 }
 
@@ -289,6 +277,15 @@ export function compareNumber(left: number, right: number, epsilon = 0): number 
   return Math.abs(left - right) <= epsilon ? 0 : left - right;
 }
 
+/** Cross-axis span an attachment admits on its hosting corridor. */
+export function attachmentCrossSpan(attachment: TerminalAttachment, corridorAxis: Axis): AxisSpan {
+  if (isPointAttachment(attachment)) {
+    const cross = axisOrthMin(attachment, corridorAxis);
+    return [cross, cross];
+  }
+  return attachment.faceSpan;
+}
+
 export function boundaryTravelCoordinate(
   world: CorridorWorld,
   corridor: Corridor,
@@ -296,7 +293,9 @@ export function boundaryTravelCoordinate(
 ): number {
   if (boundary.kind === 'terminal') {
     const attachment = world.indexer.attachments[boundary.attachmentIndex];
-    return terminalFacePlane(world.entities[attachment.entityIndex], attachment.face);
+    return isPointAttachment(attachment)
+      ? axisStart(attachment, corridor.axis)
+      : terminalFacePlane(world.entities[attachment.entityIndex], attachment.face);
   }
   const portal = world.indexer.portals[boundary.portalIndex];
   if (portal.kind === 'continue') {
@@ -316,7 +315,7 @@ export function possibleTravelInterval(
   desiredTracks: Float64Array,
 ): AxisSpan {
   const visit = route.visits[visitIndex];
-  const entrySpan = boundaryTravelInterval(
+  const entry = provisionalBoundaryTravelCoordinate(
     world,
     corridor,
     visit.entry,
@@ -325,7 +324,7 @@ export function possibleTravelInterval(
     desiredTracks,
     'entry',
   );
-  const exitSpan = boundaryTravelInterval(
+  const exit = provisionalBoundaryTravelCoordinate(
     world,
     corridor,
     visit.exit,
@@ -334,10 +333,10 @@ export function possibleTravelInterval(
     desiredTracks,
     'exit',
   );
-  return [Math.min(entrySpan[0], exitSpan[0]), Math.max(entrySpan[1], exitSpan[1])];
+  return [Math.min(entry, exit), Math.max(entry, exit)];
 }
 
-function boundaryTravelInterval(
+function provisionalBoundaryTravelCoordinate(
   world: CorridorWorld,
   corridor: Corridor,
   boundary: VisitBoundary,
@@ -345,35 +344,36 @@ function boundaryTravelInterval(
   visitIndex: number,
   desiredTracks: Float64Array,
   side: 'entry' | 'exit',
-): AxisSpan {
+): number {
   if (boundary.kind === 'portal') {
     const portal = world.indexer.portals[boundary.portalIndex];
     if (portal.kind === 'continue') {
-      const plane = boundaryTravelCoordinate(world, corridor, boundary);
-      return [plane, plane];
+      return portal.planeCoordinate;
     }
-    const portalTravel: AxisSpan =
-      corridor.axis === 'x'
-        ? [portal.rect.x, portal.rect.x + portal.rect.width]
-        : [portal.rect.y, portal.rect.y + portal.rect.height];
     const adjacentVisitIndex = side === 'entry' ? visitIndex - 1 : visitIndex + 1;
     if (adjacentVisitIndex < 0 || adjacentVisitIndex >= route.visits.length) {
       throw new Error(`route ${route.requestIndex}: turn has no adjacent visit`);
     }
-    const travel = clamp(desiredTracks[adjacentVisitIndex], portalTravel[0], portalTravel[1]);
-    return [travel, travel];
+    return clamp(
+      desiredTracks[adjacentVisitIndex],
+      axisStart(portal.rect, corridor.axis),
+      axisEnd(portal.rect, corridor.axis),
+    );
   }
-  const travel = boundaryTravelCoordinate(world, corridor, boundary);
-  return [travel, travel];
+  return boundaryTravelCoordinate(world, corridor, boundary);
 }
 
-export function endpointPoint(
+/** Absolute position of any route endpoint: the exact point, or the entity port. */
+export function routeEndpointPosition(
   entities: readonly PositionProps[],
   endpoint: RouteEndpoint,
-  track = endpointTrackCoordinate(entities[endpoint.entityIndex], endpoint),
 ): XYPoint {
+  if (endpoint.kind === 'point') {
+    return { x: endpoint.x, y: endpoint.y };
+  }
   const entity = entities[endpoint.entityIndex];
   const plane = facePlane(entity, endpoint.face);
+  const track = endpointTrackCoordinate(entity, endpoint);
   return endpoint.face === 'left' || endpoint.face === 'right'
     ? { x: plane, y: track }
     : { x: track, y: plane };
@@ -384,6 +384,9 @@ export function endpointCrossCoordinate(
   endpoint: RouteEndpoint,
   referenceFace: Direction,
 ): number {
+  if (endpoint.kind === 'point') {
+    return axisOrthMin(endpoint, faceNormalAxis(referenceFace));
+  }
   const entity = entities[endpoint.entityIndex];
   const endpointPlane = terminalFacePlane(entity, endpoint.face);
   const endpointTrack = endpointTrackCoordinate(entity, endpoint);
@@ -393,7 +396,11 @@ export function endpointCrossCoordinate(
   return endpoint.face === 'left' || endpoint.face === 'right' ? endpointPlane : endpointTrack;
 }
 
-function endpointTrackCoordinate(entity: PositionProps, endpoint: RouteEndpoint): number {
+/** Cross-axis coordinate of an entity endpoint: its authored track, else the face center. */
+export function endpointTrackCoordinate(
+  entity: PositionProps,
+  endpoint: EntityRouteEndpoint,
+): number {
   if (endpoint.authoredTrack !== undefined) {
     return endpoint.authoredTrack;
   }

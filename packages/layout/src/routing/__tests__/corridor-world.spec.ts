@@ -1,18 +1,19 @@
-import type { LayoutEntity } from '../../types.js';
+import type { Direction, LayoutEntity } from '../../types.js';
 import { LayoutManager } from '../../LayoutManager.js';
-import type { RouteSearchRequest } from '../corridor/contract.js';
+import { isPointAttachment } from '../corridor/contract.js';
+import type { Corridor, FaceTerminalAttachment, RouteSearchRequest } from '../corridor/contract.js';
 import { buildCorridorWorld } from '../corridor/worldConstruction.js';
 import { buildBaseCorridorGeometry, buildTerminalAttachments } from '../corridor/world.js';
+import { overlapRect } from '../corridor/geometry.js';
+import { certifiedRunFrom } from '../corridor/freeSpaceSubstrate.js';
+import { withGroupTitleAvoidance } from '../corridor/groupTitleQuality.js';
+import { leaf } from '../routingTestUtils.js';
 
 function buildWorld(entities: readonly LayoutEntity[], requests: readonly RouteSearchRequest[]) {
   return buildCorridorWorld(
     new LayoutManager({ entities: [...entities], connections: [] }),
     requests,
   );
-}
-
-function leaf(id: string, x: number, y: number, width: number, height: number): LayoutEntity {
-  return { id, x, y, width, height };
 }
 
 function request(
@@ -30,6 +31,67 @@ function request(
 }
 
 describe('routing corridor world', () => {
+  it('shares construction for exact title costs and the optional corridor hint', () => {
+    const world = buildWorld(
+      [
+        {
+          id: 'group',
+          x: 100,
+          y: 200,
+          width: 300,
+          height: 200,
+          isContainer: true,
+          textPlacement: { relativeX: 10, relativeY: 10, width: 200, height: 20 },
+        },
+      ],
+      [],
+    );
+    expect(withGroupTitleAvoidance(world)).toBe(world);
+    const originalCosts = world.corridorEntryCosts?.slice();
+    const options = { corridorPenalty: 0, intersectionCost: 100, overlapCostPerPx: 1 };
+    const exact = withGroupTitleAvoidance(world, options);
+    const hinted = withGroupTitleAvoidance(world, { ...options, corridorPenalty: 2 });
+    expect(exact.indexer).toBe(world.indexer);
+    expect(hinted.indexer).toBe(world.indexer);
+    expect(exact.corridorEntryCosts).toBe(world.corridorEntryCosts);
+    expect(exact.groupTitleAvoidance?.titles).toEqual([{ x: 110, y: 210, width: 200, height: 20 }]);
+    expect(hinted.groupTitleAvoidance?.titles).toEqual(exact.groupTitleAvoidance?.titles);
+    expect(
+      [...hinted.corridorEntryCosts!].some(
+        (cost, index) => cost - (originalCosts?.[index] ?? 0) === 2,
+      ),
+    ).toBe(true);
+    expect(world.corridorEntryCosts).toEqual(originalCosts);
+  });
+
+  it('keeps every positive-area turn overlap in corridor-index order', () => {
+    const world = buildWorld(
+      [
+        leaf('a', -100, -40, 40, 40),
+        leaf('b', 20, -40, 40, 40),
+        leaf('c', -60, 40, 40, 80),
+        leaf('d', 60, 120, 80, 40),
+      ],
+      [request(0, 3, 'right', 'up')],
+    );
+    // Exhaustive reference: the spatial query must retain membership and stable IDs.
+    const corridors = world.indexer.corridors;
+    const expected = corridors
+      .filter((corridor) => corridor.axis === 'x')
+      .flatMap((x) =>
+        corridors
+          .filter((corridor) => corridor.axis === 'y')
+          .flatMap((y) => {
+            const rect = overlapRect(x.rect, y.rect, 0);
+            return rect ? [{ xCorridorIndex: x.index, yCorridorIndex: y.index, rect }] : [];
+          }),
+      )
+      .map((portal, index) => ({ kind: 'turn', index, ...portal }));
+
+    expect(expected.length).toBeGreaterThan(0);
+    expect(world.indexer.portals.filter((portal) => portal.kind === 'turn')).toEqual(expected);
+  });
+
   it('does not attach an inward corridor at a traversable container face', () => {
     const entities: LayoutEntity[] = [
       { id: 'group', x: 0, y: 0, width: 100, height: 100, isContainer: true },
@@ -45,12 +107,37 @@ describe('routing corridor world', () => {
 
     expect(
       attachments
-        .filter((attachment) => attachment.entityIndex === 0)
+        .filter(
+          (attachment): attachment is FaceTerminalAttachment =>
+            !isPointAttachment(attachment) && attachment.entityIndex === 0,
+        )
         .map((attachment) => ({
           corridorIndex: attachment.corridorIndex,
           faceSpan: attachment.faceSpan,
         })),
     ).toEqual([{ corridorIndex: 0, faceSpan: [0, 100] }]);
+  });
+
+  it('preserves face coordinates on grid, fractional, and out-of-Int32 attachments', () => {
+    const faces: readonly Direction[] = ['up', 'right', 'down', 'left'];
+    for (const offset of [-2147483700, -100, -0, 0.25, 2147483700]) {
+      const entities = [leaf('source', offset, offset, 40, 40)];
+      const corridors: Corridor[] = [
+        { index: 10, axis: 'y', rect: { x: offset, y: offset - 40, width: 40, height: 40 } },
+        { index: 20, axis: 'x', rect: { x: offset + 40, y: offset, width: 40, height: 40 } },
+        { index: 30, axis: 'y', rect: { x: offset, y: offset + 40, width: 40, height: 40 } },
+        { index: 40, axis: 'x', rect: { x: offset - 40, y: offset, width: 40, height: 40 } },
+      ];
+      const requests = faces.map((face) => request(0, 0, face, face));
+      const expected = faces.map((face, index) => ({
+        index,
+        entityIndex: 0,
+        face,
+        corridorIndex: (index + 1) * 10,
+        faceSpan: [offset, offset + 40],
+      }));
+      expect(buildTerminalAttachments(entities, corridors, requests)).toEqual(expected);
+    }
   });
 
   it('filters shared attachments for an authored track with 0.5px tolerance', () => {
@@ -65,7 +152,7 @@ describe('routing corridor world', () => {
     expect(farWorld.indexer.attachmentsForEndpoint(far.from)).toHaveLength(0);
   });
 
-  it('shares free slabs without treating container guide cuts as obstacles', () => {
+  it('keeps container interiors and boundaries traversable on both axes', () => {
     const container: LayoutEntity = {
       id: 'group',
       x: 0,
@@ -76,36 +163,12 @@ describe('routing corridor world', () => {
     };
     const base = buildBaseCorridorGeometry(
       new LayoutManager({ entities: [container], connections: [] }),
+      [],
     );
 
-    expect([...base.freeSpace.x.travelCuts]).toEqual([-20, 0, 100, 120]);
-    expect([...base.freeSpace.x.slabOffsets]).toEqual([0, 1, 2, 3]);
-    expect([...base.freeSpace.x.crossSpans]).toEqual([-20, 120, -20, 120, -20, 120]);
-  });
-
-  it('builds byte-stable arrays and answers indexed queries', () => {
-    const entities = [leaf('a', 0, 0, 40, 40), leaf('b', 120, 80, 40, 40)];
-    const requests = [request(0, 1, 'right', 'left')];
-    const first = buildWorld(entities, requests);
-    const second = buildWorld(entities, requests);
-    expect({
-      corridors: first.indexer.corridors,
-      portals: first.indexer.portals,
-      attachments: first.indexer.attachments,
-    }).toEqual({
-      corridors: second.indexer.corridors,
-      portals: second.indexer.portals,
-      attachments: second.indexer.attachments,
-    });
-
-    const portal = first.indexer.portals[0];
-    expect(portal.kind).toBe('turn');
-    if (portal.kind !== 'turn') {
-      throw new Error('turn portal expected');
+    for (const axis of ['x', 'y'] as const) {
+      expect(certifiedRunFrom(base.freeSpace[axis], -20, [0, 100], 1, 120)).toBe(120);
+      expect(certifiedRunFrom(base.freeSpace[axis], 120, [0, 100], -1, -20)).toBe(-20);
     }
-    expect(first.indexer.portalsFrom(portal.xCorridorIndex)).toContain(portal);
-    expect(first.indexer.otherCorridorIndex(portal, portal.xCorridorIndex)).toBe(
-      portal.yCorridorIndex,
-    );
   });
 });

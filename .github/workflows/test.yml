@@ -21,4 +21,6 @@ jobs:
       # Several vitest suites drive real Chromium (diagrams, cli, server).
       - run: pnpm --filter @eraserlabs/diagrams exec playwright install chromium --with-deps
       - run: pnpm build
+      # Package boundaries (.dependency-cruiser.cjs); needs the built dist/ to resolve workspace imports.
+      - run: pnpm depcruise
       - run: pnpm test

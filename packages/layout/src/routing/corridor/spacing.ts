@@ -10,13 +10,9 @@ import {
   spanLength,
   spansOverlapPositive,
 } from '../../rangeUtils.js';
-import type {
-  Corridor,
-  CorridorBorderSpan,
-  PortalRef,
-  ProfiledCorridor,
-  RouteEndpoint,
-} from './contract.js';
+import { isPointEndpoint } from './contract.js';
+import type { Corridor, EntityRouteEndpoint, RouteEndpoint } from './contract.js';
+import type { CorridorBorderProfile } from './borderProfile.js';
 import {
   buildContinuationBoundaryRealizations,
   continuationBundlePlacement,
@@ -42,8 +38,7 @@ import {
 } from './continuations.js';
 import {
   boundaryTravelCoordinate,
-  corridorCenter,
-  corridorCrossSpan,
+  crossSpanOf,
   endpointCrossCoordinate,
   faceCrossSpan,
   possibleTravelInterval,
@@ -62,7 +57,15 @@ import {
   type RoutingQualityVisitRef,
   type SpacingDeficitQualityEvent,
 } from './qualityCost.js';
-import type { BoundaryRealization, Route, VisitBoundary } from './route.js';
+import {
+  CorridorRouteError,
+  routeFailure,
+  shareTerminalPortGroup,
+  type BoundaryRealization,
+  type CorridorVisit,
+  type Route,
+  type VisitBoundary,
+} from './route.js';
 import type { RouteIndexer } from './routeIndex.js';
 import {
   canFitOrderedSpacingGap,
@@ -99,33 +102,6 @@ export interface SpacingRunWorkspace {
   readonly trackUnitUnionFind: UnionFind;
   readonly contentionUnionFind: UnionFind;
   readonly kernel: SpacingKernelWorkspace;
-}
-
-/** A corridor-local solve failed; every listed route must leave the strict realization batch. */
-export class CorridorSpacingError extends Error {
-  readonly corridorIndex: number;
-  readonly corridorIndexes: readonly number[];
-  readonly routeIndexes: readonly number[];
-
-  constructor(
-    corridorIndexes: number | readonly number[],
-    routeIndexes: readonly number[],
-    message: string,
-    options?: ErrorOptions,
-  ) {
-    const uniqueCorridorIndexes = [
-      ...new Set(typeof corridorIndexes === 'number' ? [corridorIndexes] : corridorIndexes),
-    ].sort((left, right) => left - right);
-    const corridorLabel =
-      uniqueCorridorIndexes.length === 1
-        ? `corridor ${uniqueCorridorIndexes[0]}`
-        : `corridors ${uniqueCorridorIndexes.join(',')}`;
-    super(`${corridorLabel}: ${message}`, options);
-    this.name = 'CorridorSpacingError';
-    this.corridorIndex = uniqueCorridorIndexes[0];
-    this.corridorIndexes = uniqueCorridorIndexes;
-    this.routeIndexes = [...new Set(routeIndexes)].sort((left, right) => left - right);
-  }
 }
 
 /** Mutable scratch explicitly owned by one synchronous realization or spacing call. */
@@ -277,7 +253,7 @@ interface TrackUnit extends SpacingKernelUnit {
 interface TerminalMember {
   readonly routeIndex: number;
   readonly visitIndex: number;
-  readonly endpoint: RouteEndpoint;
+  readonly endpoint: EntityRouteEndpoint;
   readonly opposite: RouteEndpoint;
 }
 
@@ -705,10 +681,14 @@ function commitSpacing(routes: readonly Route[], solved: UncommittedSpacingResul
     if (route.visits.length === 0) {
       return;
     }
-    route.setNominalTracks(
-      solved.tracksByRoute[routeIndex],
-      solved.boundaryRealizationsByRoute[routeIndex],
-    );
+    try {
+      route.setNominalTracks(
+        solved.tracksByRoute[routeIndex],
+        solved.boundaryRealizationsByRoute[routeIndex],
+      );
+    } catch (error) {
+      throw routeFailure(route, error);
+    }
   });
 }
 
@@ -747,6 +727,15 @@ function boundaryIdentity(boundary: VisitBoundary): string {
 }
 
 function sameSpacingEndpoint(left: RouteEndpoint, right: RouteEndpoint): boolean {
+  if (isPointEndpoint(left) || isPointEndpoint(right)) {
+    return (
+      isPointEndpoint(left) &&
+      isPointEndpoint(right) &&
+      left.x === right.x &&
+      left.y === right.y &&
+      left.hasArrowhead === right.hasArrowhead
+    );
+  }
   return (
     left.entityIndex === right.entityIndex &&
     left.face === right.face &&
@@ -758,8 +747,13 @@ function sameSpacingEndpoint(left: RouteEndpoint, right: RouteEndpoint): boolean
 }
 
 /** Inside spacing, a repair pin behaves exactly like an authored port; authored wins ties. */
-function spacingPinTrack(endpoint: RouteEndpoint): number | undefined {
+function spacingPinTrack(endpoint: EntityRouteEndpoint): number | undefined {
   return endpoint.authoredTrack ?? endpoint.repairPinTrack;
+}
+
+/** Point terminals are always pinned; entity terminals are pinned iff authored or repaired. */
+function isPinnedEndpoint(endpoint: RouteEndpoint): boolean {
+  return isPointEndpoint(endpoint) || spacingPinTrack(endpoint) !== undefined;
 }
 
 function expandStraightContinuationCorridors(
@@ -907,10 +901,9 @@ function solveIndependentCorridor(
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (error instanceof InfeasibleSpacingComponentError) {
-      throw new CorridorSpacingError(
-        work.group.corridorIndex,
+      throw new CorridorRouteError(
         work.group.members.map((member) => member.routeIndex),
-        message,
+        `corridor ${work.group.corridorIndex}: ${message}`,
         { cause: error },
       );
     }
@@ -951,6 +944,14 @@ function solveIndependentCorridor(
   return solved.metrics;
 }
 
+/**
+ * Pinned visits have a collapsed feasible track (adopted incumbents, authored ports, point
+ * terminals); they anchor a congested turn and are never relaxed.
+ */
+function isPinnedVisit(visit: CorridorVisit): boolean {
+  return visit.feasibleTrack[1] - visit.feasibleTrack[0] <= COMPONENT_SOLVER_TOLERANCE;
+}
+
 function congestedTurnVisits(
   world: CorridorWorld,
   routes: readonly Route[],
@@ -969,8 +970,7 @@ function congestedTurnVisits(
       visitCount += unit.members.length;
       if (requirePinnedVisit) {
         for (const member of unit.members) {
-          const span = routes[member.ref.routeIndex].visits[member.ref.visitIndex].feasibleTrack;
-          if (span[1] - span[0] <= COMPONENT_SOLVER_TOLERANCE) {
+          if (isPinnedVisit(routes[member.ref.routeIndex].visits[member.ref.visitIndex])) {
             pinnedVisitCount += 1;
           }
         }
@@ -997,15 +997,15 @@ function congestedTurnVisits(
       for (const member of unit.members) {
         const route = routes[member.ref.routeIndex];
         const visit = route.visits[member.ref.visitIndex];
-        const corridor = world.indexer.corridors[visit.corridorIndex];
-        const corridorCross = corridorCrossSpan(corridor);
+        const spans = world.indexer.spans;
         const hasTurn =
           (visit.entry.kind === 'portal' && visit.entry.mode === 'turn') ||
           (visit.exit.kind === 'portal' && visit.exit.mode === 'turn');
         if (
           hasTurn &&
-          (visit.feasibleTrack[0] > corridorCross[0] + EPSILON ||
-            visit.feasibleTrack[1] < corridorCross[1] - EPSILON)
+          !isPinnedVisit(visit) &&
+          (visit.feasibleTrack[0] > spans.crossStarts[visit.corridorIndex] + EPSILON ||
+            visit.feasibleTrack[1] < spans.crossEnds[visit.corridorIndex] - EPSILON)
         ) {
           result.add(visitKey(member.ref.routeIndex, member.ref.visitIndex));
         }
@@ -1310,10 +1310,9 @@ function solveContinuedConfiguration(
       ),
     );
     const failedWorks = works.filter((work) => corridorIndexes.has(work.group.corridorIndex));
-    throw new CorridorSpacingError(
-      failedWorks.map((work) => work.group.corridorIndex),
+    throw new CorridorRouteError(
       failedWorks.flatMap((work) => work.group.members.map((member) => member.routeIndex)),
-      error.message,
+      `corridors ${failedWorks.map((work) => work.group.corridorIndex).join(',')}: ${error.message}`,
       { cause: error },
     );
   }
@@ -1586,8 +1585,8 @@ function buildRouteTurnBoundaryRealizations(
     const afterCorridor = world.indexer.corridors[route.visits[afterVisitIndex].corridorIndex];
     const beforeTrack = tracksByRoute[routeIndex][beforeVisitIndex];
     const afterTrack = tracksByRoute[routeIndex][afterVisitIndex];
-    const beforeSpan = turnPortalCrossSpan(portal, beforeCorridor.axis);
-    const afterSpan = turnPortalCrossSpan(portal, afterCorridor.axis);
+    const beforeSpan = crossSpanOf(beforeCorridor.axis, portal.rect);
+    const afterSpan = crossSpanOf(afterCorridor.axis, portal.rect);
     const beforePortalTrack = clamp(beforeTrack, beforeSpan[0], beforeSpan[1]);
     const afterPortalTrack = clamp(afterTrack, afterSpan[0], afterSpan[1]);
     const shifts = [] as Array<{
@@ -1996,6 +1995,18 @@ export function collectMissingRealizedSpacingQualityEvents(
       if (sharedTravelLength <= EPSILON) {
         continue;
       }
+      if (
+        beforeSegment &&
+        afterSegment &&
+        shareTerminalPortGroup(
+          routes[before.routeIndex],
+          beforeSegment.segmentIndex,
+          routes[after.routeIndex],
+          afterSegment.segmentIndex,
+        )
+      ) {
+        continue;
+      }
       const alreadyReported = provisionalEvents.some(
         (event) =>
           event.kind === 'spacing-deficit' &&
@@ -2166,7 +2177,7 @@ function buildDesiredTracks(
             TERMINAL_LEAD_PX,
           );
           corridorIdealSeeds[routeIndex][1] = seed;
-        } else {
+        } else if (!isPointEndpoint(route.from)) {
           const sourceRunEnd = continuedSourceTerminalLeadRunEnd(
             world,
             route,
@@ -2213,7 +2224,7 @@ function buildDesiredTracks(
             TERMINAL_LEAD_PX,
           );
           corridorIdealSeeds[routeIndex][beforeLast] = seed;
-        } else {
+        } else if (!isPointEndpoint(route.to)) {
           const targetRunStart = continuedTargetTerminalLeadRunStart(
             world,
             route,
@@ -2233,19 +2244,28 @@ function buildDesiredTracks(
         }
       }
     }
-    for (let visitIndex = 1; visitIndex + 1 < route.visits.length; visitIndex += 1) {
-      const desired = uTurnCoordinate(world, route, visitIndex);
-      if (desired === undefined) {
-        continue;
+    // Discover each straight run once: corridor subdivision must not erase its
+    // U-turn preference or make finding it quadratic in the run's visit count.
+    for (let first = 0; first < route.visits.length;) {
+      let last = first;
+      while (
+        last + 1 < route.visits.length &&
+        isStraightContinuationBoundary(route.visits[last].exit)
+      ) {
+        last += 1;
       }
-      corridorIdealSeeds[routeIndex][visitIndex] = {
-        track: desired,
-        weight: U_TURN_CORRIDOR_IDEAL_WEIGHT,
-        policy: {
-          kind: 'u-turn',
-          desiredTrack: desired,
-        },
-      };
+      const desired = uTurnCoordinate(world, route, first, last);
+      if (desired !== undefined) {
+        const seed: CorridorIdealSeed = {
+          track: desired,
+          weight: U_TURN_CORRIDOR_IDEAL_WEIGHT,
+          policy: { kind: 'u-turn', desiredTrack: desired },
+        };
+        for (let visitIndex = first; visitIndex <= last; visitIndex += 1) {
+          corridorIdealSeeds[routeIndex][visitIndex] = seed;
+        }
+      }
+      first = last + 1;
     }
   }
 
@@ -2269,7 +2289,7 @@ function buildDesiredTracks(
   const provisionalValues = collapseVisitValues(
     (routeIndex, visitIndex) =>
       corridorIdealSeeds[routeIndex][visitIndex]?.track ??
-      corridorCenter(world.indexer.corridors[routes[routeIndex].visits[visitIndex].corridorIndex]),
+      world.indexer.spans.crossCenter(routes[routeIndex].visits[visitIndex].corridorIndex),
   );
 
   for (let routeIndex = 0; routeIndex < routes.length; routeIndex += 1) {
@@ -2290,9 +2310,16 @@ function buildDesiredTracks(
       const seed = corridorIdealSeeds[routeIndex][visitIndex];
       visitDesires.push({
         kind: seed?.policy?.kind ?? 'corridor-ideal',
-        track: seed?.policy
-          ? corridorIdealTrack(corridor, travelInterval, seed.policy)
-          : (seed?.track ?? corridorIdealTrack(corridor, travelInterval)),
+        track:
+          seed?.track !== undefined && !seed.policy
+            ? seed.track
+            : corridorIdealTrack(
+                world.indexer.spans.crossStarts[corridor.index],
+                world.indexer.spans.crossEnds[corridor.index],
+                world.indexer.corridorBorderProfile(corridor.index),
+                travelInterval,
+                seed?.policy,
+              ),
         weight: seed?.weight ?? CORRIDOR_IDEAL_DESIRE_WEIGHT,
       });
     }
@@ -2315,6 +2342,9 @@ function harmonizeSoloDirectTerminalDesires(
       continue;
     }
     for (const endpoint of [route.from, route.to]) {
+      if (isPointEndpoint(endpoint)) {
+        continue;
+      }
       const key = terminalKey(endpoint);
       terminalCounts.set(key, (terminalCounts.get(key) ?? 0) + 1);
     }
@@ -2322,14 +2352,18 @@ function harmonizeSoloDirectTerminalDesires(
 
   for (let routeIndex = 0; routeIndex < routes.length; routeIndex += 1) {
     const route = routes[routeIndex];
+    const from = route.from;
+    const to = route.to;
     if (
       route.visits.length !== 1 ||
-      spacingPinTrack(route.from) !== undefined ||
-      spacingPinTrack(route.to) !== undefined ||
-      route.from.portGroup !== undefined ||
-      route.to.portGroup !== undefined ||
-      terminalCounts.get(terminalKey(route.from)) !== 1 ||
-      terminalCounts.get(terminalKey(route.to)) !== 1
+      isPointEndpoint(from) ||
+      isPointEndpoint(to) ||
+      spacingPinTrack(from) !== undefined ||
+      spacingPinTrack(to) !== undefined ||
+      from.portGroup !== undefined ||
+      to.portGroup !== undefined ||
+      terminalCounts.get(terminalKey(from)) !== 1 ||
+      terminalCounts.get(terminalKey(to)) !== 1
     ) {
       continue;
     }
@@ -2345,7 +2379,7 @@ function harmonizeSoloDirectTerminalDesires(
   }
 }
 
-function terminalKey(endpoint: RouteEndpoint): string {
+function terminalKey(endpoint: EntityRouteEndpoint): string {
   return `${endpoint.entityIndex}:${endpoint.face}`;
 }
 
@@ -2363,7 +2397,8 @@ type BorderInfluence = 'entity' | 'diagram-border' | 'open';
  */
 function oneSidedIdealTrack(
   entityOnNegative: boolean,
-  cross: AxisSpan,
+  crossStart: number,
+  crossEnd: number,
   center: number,
   farInfluence: BorderInfluence,
 ): number {
@@ -2371,25 +2406,27 @@ function oneSidedIdealTrack(
     return center;
   }
   return entityOnNegative
-    ? cross[1] - CORRIDOR_IDEAL_EDGE_OFFSET_PX
-    : cross[0] + CORRIDOR_IDEAL_EDGE_OFFSET_PX;
+    ? crossEnd - CORRIDOR_IDEAL_EDGE_OFFSET_PX
+    : crossStart + CORRIDOR_IDEAL_EDGE_OFFSET_PX;
 }
 
 export function corridorIdealTrack(
-  corridor: ProfiledCorridor,
+  crossStart: number,
+  crossEnd: number,
+  profile: CorridorBorderProfile,
   travelInterval: AxisSpan,
   policy?: CorridorIdealPolicy,
 ): number {
-  const cross = corridorCrossSpan(corridor);
-  const center = midpoint(cross);
-  const [negative, positive] = corridorBorderInfluences(corridor, travelInterval);
+  const center = (crossStart + crossEnd) / 2;
+  const [negative, positive] = corridorBorderInfluences(profile, travelInterval);
   const ordinary =
     (negative === 'entity') === (positive === 'entity')
       ? center
       : // Mirrored one-sided entity pushes in adjacent open space sit 8px apart.
         oneSidedIdealTrack(
           negative === 'entity',
-          cross,
+          crossStart,
+          crossEnd,
           center,
           negative === 'entity' ? positive : negative,
         );
@@ -2415,40 +2452,33 @@ export function corridorIdealTrack(
 }
 
 function corridorBorderInfluences(
-  corridor: ProfiledCorridor,
+  profile: CorridorBorderProfile,
   travelInterval: AxisSpan,
 ): readonly [negative: BorderInfluence, positive: BorderInfluence] {
-  const isX = corridor.borderProfile.axis === 'x';
-  const negativeSpans = isX ? corridor.borderProfile.top : corridor.borderProfile.left;
-  const positiveSpans = isX ? corridor.borderProfile.bottom : corridor.borderProfile.right;
   return [
-    borderInfluence(negativeSpans, travelInterval),
-    borderInfluence(positiveSpans, travelInterval),
+    borderInfluence(profile.negative, travelInterval, (profile.diagramBorderSides & 1) !== 0),
+    borderInfluence(profile.positive, travelInterval, (profile.diagramBorderSides & 2) !== 0),
   ];
 }
 
 function borderInfluence(
-  spans: readonly CorridorBorderSpan[],
+  spans: readonly number[],
   travelInterval: AxisSpan,
+  diagramBorder: boolean,
 ): BorderInfluence {
-  let diagramBorder = false;
-  for (const border of spans) {
-    if (!borderOverlapsTravel(border.span, travelInterval)) {
-      continue;
+  for (let index = 0; index < spans.length; index += 2) {
+    const start = spans[index];
+    const end = spans[index + 1];
+    if (
+      Math.min(end, travelInterval[1]) - Math.max(start, travelInterval[0]) > EPSILON ||
+      (travelInterval[1] - travelInterval[0] <= EPSILON &&
+        travelInterval[0] >= start - EPSILON &&
+        travelInterval[0] <= end + EPSILON)
+    ) {
+      return diagramBorder ? 'diagram-border' : 'entity';
     }
-    if (border.kind === 'entity') {
-      return 'entity';
-    }
-    diagramBorder = true;
   }
-  return diagramBorder ? 'diagram-border' : 'open';
-}
-
-function borderOverlapsTravel(border: AxisSpan, travel: AxisSpan): boolean {
-  return (
-    Math.min(border[1], travel[1]) - Math.max(border[0], travel[0]) > EPSILON ||
-    (travel[1] - travel[0] <= EPSILON && coordinateInSpan(travel[0], border, EPSILON))
-  );
+  return 'open';
 }
 
 function runHasTopologicalContention(
@@ -2504,6 +2534,11 @@ function addTerminalMember(
   endpoint: RouteEndpoint,
   opposite: RouteEndpoint,
 ): void {
+  // A point terminal is hard-pinned by its visit's collapsed feasible track and
+  // belongs to no entity face; it never joins face port distribution.
+  if (isPointEndpoint(endpoint)) {
+    return;
+  }
   let preference = preferences.find(
     (candidate) =>
       candidate.entityIndex === endpoint.entityIndex && candidate.face === endpoint.face,
@@ -2728,14 +2763,19 @@ function buildVariable(
   const route = routes[ref.routeIndex];
   const visit = route.visits[ref.visitIndex];
   let bounds: AxisSpan = relaxTurns
-    ? corridorCrossSpan(world.indexer.corridors[corridorIndex])
+    ? world.indexer.spans.crossSpan(corridorIndex)
     : visit.feasibleTrack;
   bounds = terminalApproachBounds(world, route, ref.visitIndex, bounds);
   const endpoints = visitEndpoints(route, ref.visitIndex);
   // Authored ports arrive with their feasible track already collapsed by topology; repair pins
-  // reuse incumbent visits, so the collapse to the pinned track happens here instead.
+  // reuse incumbent visits, so the collapse to the pinned track happens here instead. Point
+  // terminals arrive collapsed the same way authored ports do.
   for (const endpoint of endpoints) {
-    if (endpoint.authoredTrack === undefined && endpoint.repairPinTrack !== undefined) {
+    if (
+      !isPointEndpoint(endpoint) &&
+      endpoint.authoredTrack === undefined &&
+      endpoint.repairPinTrack !== undefined
+    ) {
       bounds = [
         Math.max(bounds[0], endpoint.repairPinTrack),
         Math.min(bounds[1], endpoint.repairPinTrack),
@@ -2745,7 +2785,10 @@ function buildVariable(
   let authored = false;
   let endpointGroups: EndpointGroupRef[] | undefined;
   for (const endpoint of endpoints) {
-    authored = authored || spacingPinTrack(endpoint) !== undefined;
+    authored = authored || isPinnedEndpoint(endpoint);
+    if (isPointEndpoint(endpoint)) {
+      continue;
+    }
     if (endpoint.portGroup !== undefined) {
       if (!endpointGroups) {
         endpointGroups = [];
@@ -2757,26 +2800,15 @@ function buildVariable(
       });
     }
   }
-  if (!relaxPadding && !authored) {
-    bounds = applyPadding(
-      'corridor-padding',
-      corridorIndex,
-      ref,
-      bounds,
-      corridorCrossSpan(world.indexer.corridors[corridorIndex]),
-      CORRIDOR_EDGE_PADDING_PX,
-      shortfalls,
-    );
-  }
-  for (const endpoint of endpoints) {
-    if (!relaxPadding && spacingPinTrack(endpoint) === undefined) {
+  if (!relaxPadding) {
+    for (const rule of variablePaddingRules(world, routes, corridorIndex, ref)) {
       bounds = applyPadding(
-        'port-padding',
+        rule.kind,
         corridorIndex,
         ref,
         bounds,
-        faceCrossSpan(world.entities[endpoint.entityIndex], endpoint.face),
-        PORT_EDGE_PADDING_PX,
+        rule.container,
+        rule.padding,
         shortfalls,
       );
     }
@@ -2813,21 +2845,22 @@ function variablePaddingRules(
   const route = routes[ref.routeIndex];
   const endpoints = visitEndpoints(route, ref.visitIndex);
   const rules: PaddingRule[] = [];
-  if (!endpoints.some((endpoint) => spacingPinTrack(endpoint) !== undefined)) {
+  if (!endpoints.some(isPinnedEndpoint)) {
     rules.push({
       kind: 'corridor-padding',
-      container: corridorCrossSpan(world.indexer.corridors[corridorIndex]),
+      container: world.indexer.spans.crossSpan(corridorIndex),
       padding: CORRIDOR_EDGE_PADDING_PX,
     });
   }
   for (const endpoint of endpoints) {
-    if (spacingPinTrack(endpoint) === undefined) {
-      rules.push({
-        kind: 'port-padding',
-        container: faceCrossSpan(world.entities[endpoint.entityIndex], endpoint.face),
-        padding: PORT_EDGE_PADDING_PX,
-      });
+    if (isPointEndpoint(endpoint) || spacingPinTrack(endpoint) !== undefined) {
+      continue;
     }
+    rules.push({
+      kind: 'port-padding',
+      container: faceCrossSpan(world.entities[endpoint.entityIndex], endpoint.face),
+      padding: PORT_EDGE_PADDING_PX,
+    });
   }
   return rules;
 }
@@ -2879,6 +2912,9 @@ function clipToTerminalOutwardSide(
   endpoint: RouteEndpoint,
   bounds: AxisSpan,
 ): AxisSpan {
+  if (isPointEndpoint(endpoint)) {
+    return bounds;
+  }
   const plane = terminalFacePlane(world.entities[endpoint.entityIndex], endpoint.face);
   const outwardPlane = endpoint.face === 'left' || endpoint.face === 'up' ? plane - 1 : plane + 1;
   const lower =
@@ -2897,17 +2933,8 @@ function clipToTerminalOutwardSide(
   return [lower, Math.max(lower, upper)];
 }
 
-function turnPortalCrossSpan(
-  portal: Extract<PortalRef, { readonly kind: 'turn' }>,
-  axis: Corridor['axis'],
-): AxisSpan {
-  return axis === 'x'
-    ? [portal.rect.y, portal.rect.y + portal.rect.height]
-    : [portal.rect.x, portal.rect.x + portal.rect.width];
-}
-
 function applyPadding(
-  kind: 'corridor-padding' | 'port-padding',
+  kind: PaddingRule['kind'],
   corridorIndex: number,
   ref: OrderedVisitRef,
   bounds: AxisSpan,
@@ -3104,7 +3131,7 @@ function visitEndpoints(route: Route, visitIndex: number): readonly RouteEndpoin
 
 function outsideTerminalIdealSeed(
   world: CorridorWorld,
-  endpoint: RouteEndpoint,
+  endpoint: EntityRouteEndpoint,
   adjacentVisit: Route['visits'][number],
   terminalLead: number,
   balanceNarrowEntityGap = false,
@@ -3112,7 +3139,7 @@ function outsideTerminalIdealSeed(
   const entity = world.entities[endpoint.entityIndex];
   const plane = terminalFacePlane(entity, endpoint.face);
   const corridor = world.indexer.corridors[adjacentVisit.corridorIndex];
-  const center = corridorCenter(corridor);
+  const center = world.indexer.spans.crossCenter(corridor.index);
   const direction = endpoint.face === 'left' || endpoint.face === 'up' ? 'negative' : 'positive';
   const desiredTrack =
     direction === 'negative'
@@ -3125,8 +3152,14 @@ function outsideTerminalIdealSeed(
     direction,
   };
   const travelInterval = faceCrossSpan(entity, endpoint.face);
-  const ordinary = corridorIdealTrack(corridor, travelInterval);
-  const [negative, positive] = corridorBorderInfluences(corridor, travelInterval);
+  const profile = world.indexer.corridorBorderProfile(corridor.index);
+  const ordinary = corridorIdealTrack(
+    world.indexer.spans.crossStarts[corridor.index],
+    world.indexer.spans.crossEnds[corridor.index],
+    profile,
+    travelInterval,
+  );
+  const [negative, positive] = corridorBorderInfluences(profile, travelInterval);
   const centeredLead = direction === 'negative' ? plane - ordinary : ordinary - plane;
   const paddedFeasible =
     insetSpan(adjacentVisit.feasibleTrack, CORRIDOR_EDGE_PADDING_PX, EPSILON) ??
@@ -3147,7 +3180,7 @@ function outsideTerminalIdealSeed(
 
 function bridgeTerminalIdealSeed(world: CorridorWorld, route: Route): CorridorIdealSeed {
   const visit = route.visits[1];
-  const center = corridorCenter(world.indexer.corridors[visit.corridorIndex]);
+  const center = world.indexer.spans.crossCenter(visit.corridorIndex);
   let lower = Number.NEGATIVE_INFINITY;
   let upper = Number.POSITIVE_INFINITY;
   let idealLower = Number.NEGATIVE_INFINITY;
@@ -3179,23 +3212,22 @@ function bridgeTerminalIdealSeed(world: CorridorWorld, route: Route): CorridorId
   };
 }
 
-/** Prefer a compact crossbar when the neighboring legs reverse direction. */
+/** Prefer a compact crossbar across a straight run whose outer legs reverse direction. */
 function uTurnCoordinate(
   world: CorridorWorld,
   route: Route,
-  visitIndex: number,
+  first: number,
+  last: number,
 ): number | undefined {
-  const previous = route.visits[visitIndex - 1];
-  const visit = route.visits[visitIndex];
-  const next = route.visits[visitIndex + 1];
+  if (first === 0 || last + 1 === route.visits.length) {
+    return undefined;
+  }
+  const previous = route.visits[first - 1];
+  const next = route.visits[last + 1];
   const previousCorridor = world.indexer.corridors[previous.corridorIndex];
-  const corridor = world.indexer.corridors[visit.corridorIndex];
+  const corridor = world.indexer.corridors[route.visits[first].corridorIndex];
   const nextCorridor = world.indexer.corridors[next.corridorIndex];
-  if (
-    previousCorridor.axis !== nextCorridor.axis ||
-    previousCorridor.axis === corridor.axis ||
-    visitHasContinuationBoundary(visit)
-  ) {
+  if (previousCorridor.axis !== nextCorridor.axis || previousCorridor.axis === corridor.axis) {
     return undefined;
   }
 
@@ -3203,13 +3235,25 @@ function uTurnCoordinate(
   const nextOuter = boundaryTravelCoordinate(world, nextCorridor, next.exit);
   const outerStart = Math.min(previousOuter, nextOuter);
   const outerEnd = Math.max(previousOuter, nextOuter);
-  const cross = corridorCrossSpan(corridor);
-  const center = midpoint(cross);
-  if (cross[1] <= outerStart + EPSILON) {
-    return Math.max(center, cross[1] - U_TURN_DEPTH_PX);
+  let cross = world.indexer.spans.crossSpan(corridor.index);
+  for (let visitIndex = first + 1; visitIndex <= last; visitIndex += 1) {
+    const common = intersectSpans(
+      cross,
+      world.indexer.spans.crossSpan(route.visits[visitIndex].corridorIndex),
+      EPSILON,
+    );
+    if (!common) {
+      return undefined;
+    }
+    cross = common;
   }
-  if (cross[0] >= outerEnd - EPSILON) {
-    return Math.min(center, cross[0] + U_TURN_DEPTH_PX);
+  const [crossStart, crossEnd] = cross;
+  const center = (crossStart + crossEnd) / 2;
+  if (crossEnd <= outerStart + EPSILON) {
+    return Math.max(center, crossEnd - U_TURN_DEPTH_PX);
+  }
+  if (crossStart >= outerEnd - EPSILON) {
+    return Math.min(center, crossStart + U_TURN_DEPTH_PX);
   }
   return undefined;
 }

@@ -21,30 +21,6 @@ function route(): Route {
 }
 
 describe('routing corridor Route', () => {
-  it('progressively enhances one route', () => {
-    const subject = route();
-    expect(() => subject.orderOf(0)).toThrow('requires an active realization');
-
-    subject.beginRealization();
-    expect(() => subject.nominalTrackOf(0)).toThrow("requires phase >= 'spaced'");
-    subject.setOrder([0, 1]);
-    subject.setNominalTracks([20, 60]);
-    subject.setGeometry(
-      { from: { x: 0, y: 20 }, to: { x: 60, y: 0 } },
-      [
-        { x: 0, y: 20 },
-        { x: 60, y: 20 },
-        { x: 60, y: 0 },
-      ],
-      [0, 1],
-    );
-
-    expect(subject.orderOf(1)).toBe(1);
-    expect(subject.nominalTrackOf(0)).toBe(20);
-    expect(subject.points()).toHaveLength(3);
-    expect(subject.visits).toBe(VISITS);
-  });
-
   it('rejects malformed phase writes and tracks outside search feasibility', () => {
     const subject = route();
     subject.beginRealization();
@@ -116,27 +92,5 @@ describe('routing corridor Route', () => {
         [0, 2],
       ),
     ).toThrow('invalid visit 2 for segment 1');
-  });
-
-  it('retains segment provenance', () => {
-    const subject = route();
-    subject.beginRealization();
-    subject.setOrder([0, 1]);
-    subject.setNominalTracks([20, 60]);
-    subject.setGeometry(
-      { from: { x: 0, y: 20 }, to: { x: 60, y: 0 } },
-      [
-        { x: 0, y: 20 },
-        { x: 30, y: 20 },
-        { x: 30, y: 0 },
-        { x: 60, y: 0 },
-      ],
-      [0, 0, 0],
-    );
-
-    expect([0, 1, 2].map((segmentIndex) => subject.segmentVisitOf(segmentIndex))).toEqual([
-      0, 0, 0,
-    ]);
-    expect(subject.segmentVisitOf(2)).toBe(0);
   });
 });

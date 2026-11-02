@@ -2,12 +2,9 @@ import { OPPOSITE_DIRECTION } from '../../directionUtils.js';
 import { midpoint } from '../../rangeUtils.js';
 import type { AxisSpan, Direction, PositionProps, XYPoint } from '../../types.js';
 import { terminalDirectionViolation } from '../measure/terminalDirection.js';
-import {
-  convexPortCenteringCharge,
-  normalizedFaceCenterDeviation,
-  portCornerPressure,
-} from '../measure/portCentering.js';
+import { normalizedFaceCenterDeviation } from '../measure/portCentering.js';
 import type { EndpointSide } from '../types.js';
+import { isPointEndpoint } from './contract.js';
 import { assessFaceSlots } from './faceSlots.js';
 import { faceCrossSpan, segmentPiercesRect } from './geometry.js';
 import {
@@ -24,7 +21,6 @@ import type { CorridorWorld } from './world.js';
 const EPSILON = 1e-6;
 const LARGE_CONTAINER_FACE_PX = 200;
 const LARGE_CONTAINER_SINGLETON_WEIGHT = 0.35;
-const NEITHER_ENDPOINT_CENTERED_WEIGHT = 0.5;
 const MIRROR_FAMILY_TOLERANCE_PX = 2;
 const SYMMETRY_FULL_PENALTY_PX = 24;
 
@@ -38,20 +34,11 @@ interface PortSample {
   readonly corridorIndex: number;
 }
 
-interface SingletonPortPenalty {
-  readonly deviation: number;
-  readonly sample: PortSample;
-}
-
 /** Measure final face-fan centering once emitted terminal coordinates are authoritative. */
 export function collectEndpointQualityEvents(
   world: CorridorWorld,
   routes: readonly Route[],
-  options: { readonly slotEvents?: boolean } = {},
 ): readonly RoutingQualityEvent[] {
-  // Slot events are fan-spread's internal pricing. The production ledger keeps the classic
-  // events so another phase cannot repeatedly chase the same slot defect.
-  const slotEventEnabled = options.slotEvents === true;
   const groups = new Map<string, PortSample[]>();
   const events: RoutingQualityEvent[] = [];
 
@@ -63,6 +50,10 @@ export function collectEndpointQualityEvents(
     const ports = route.ports();
     for (const side of ['from', 'to'] as const) {
       const endpoint = route[side];
+      // A point terminal has no face: no direction to violate, no port to center.
+      if (isPointEndpoint(endpoint)) {
+        continue;
+      }
       const visitIndex = side === 'from' ? 0 : route.visits.length - 1;
       const corridorIndex = route.visits[visitIndex].corridorIndex;
       const violation = terminalDirectionViolation(points, endpoint.face, side);
@@ -102,95 +93,26 @@ export function collectEndpointQualityEvents(
     }
   });
 
-  const singletonPenaltyByRouteSide = new Map<string, SingletonPortPenalty>();
-
   for (const group of groups.values()) {
     const first = group[0];
     const entity = (world.sourceEntities ?? world.entities)[first.entityIndex];
     const faceSpan = faceCrossSpan(entity, first.face);
     const halfSpan = (faceSpan[1] - faceSpan[0]) / 2;
     const center = midpoint(faceSpan);
-    const centroid = group.reduce((sum, sample) => sum + sample.coordinate, 0) / group.length;
-    const deviation = normalizedFaceCenterDeviation(centroid, center, halfSpan);
+    const deviation = normalizedFaceCenterDeviation(first.coordinate, center, halfSpan);
     const singletonWeight =
       entity.isContainer === true && halfSpan * 2 >= LARGE_CONTAINER_FACE_PX
         ? LARGE_CONTAINER_SINGLETON_WEIGHT + (1 - LARGE_CONTAINER_SINGLETON_WEIGHT) * deviation
         : 1;
-    const perPortPenalty =
-      convexPortCenteringCharge(deviation) * (group.length === 1 ? singletonWeight : 1);
-    const contribution = perPortPenalty * group.length;
-    // The slot event subsumes the centroid concept: under the gate the group's
-    // distance-from-center contribution is replaced, never double-priced.
-    if (!slotEventEnabled && contribution > EPSILON) {
-      events.push({
-        kind: 'port-centering',
-        cost: ROUTING_QUALITY_COSTS.portCentering * contribution,
-        routeIndexes: [...new Set(group.map((sample) => sample.routeIndex))],
-        corridorIndexes: [...new Set(group.map((sample) => sample.corridorIndex))],
-        visits: group.map((sample) => sample.visit),
-      });
-    }
-    if (slotEventEnabled) {
-      const fanEvent = faceFanSymmetryEvent(
-        group,
-        faceSpan,
-        group.length === 1 ? singletonWeight : 1,
-      );
-      if (fanEvent) {
-        events.push(fanEvent);
-      }
-    }
-    // Corner pressure and the neither-endpoint-centered pair term are both
-    // distance-from-face-center concepts; in slot mode the slot charge is the sole
-    // authority on where a port should sit (an outer slot center on a full fan lies
-    // beyond the corner-pressure knee by construction).
-    if (slotEventEnabled) {
-      continue;
-    }
-    for (const sample of group) {
-      const individualDeviation = normalizedFaceCenterDeviation(
-        sample.coordinate,
-        center,
-        halfSpan,
-      );
-      const individualCornerPressure = portCornerPressure(individualDeviation);
-      if (individualCornerPressure <= EPSILON) {
-        continue;
-      }
-      events.push({
-        kind: 'port-centering',
-        cost: ROUTING_QUALITY_COSTS.portCentering * individualCornerPressure,
-        routeIndexes: [sample.routeIndex],
-        corridorIndexes: [sample.corridorIndex],
-        visits: [sample.visit],
-      });
-    }
-    if (group.length === 1) {
-      singletonPenaltyByRouteSide.set(routeSideKey(first.routeIndex, first.side), {
-        deviation,
-        sample: first,
-      });
+    const fanEvent = faceFanSymmetryEvent(
+      group,
+      faceSpan,
+      group.length === 1 ? singletonWeight : 1,
+    );
+    if (fanEvent) {
+      events.push(fanEvent);
     }
   }
-
-  routes.forEach((_, routeIndex) => {
-    const from = singletonPenaltyByRouteSide.get(routeSideKey(routeIndex, 'from'));
-    const to = singletonPenaltyByRouteSide.get(routeSideKey(routeIndex, 'to'));
-    if (!from || !to) {
-      return;
-    }
-    const contribution = Math.min(from.deviation, to.deviation) * NEITHER_ENDPOINT_CENTERED_WEIGHT;
-    if (contribution <= EPSILON) {
-      return;
-    }
-    events.push({
-      kind: 'port-centering',
-      cost: ROUTING_QUALITY_COSTS.portCentering * contribution,
-      routeIndexes: [routeIndex],
-      corridorIndexes: [from.sample.corridorIndex, to.sample.corridorIndex],
-      visits: [from.sample.visit, to.sample.visit],
-    });
-  });
 
   events.push(...siblingSymmetryEvents(world, routes, groups));
   return events;
@@ -269,22 +191,11 @@ function siblingSymmetryEvents(
     const sharedSide = group[0].side;
     const sharedFace = group[0].face;
     const expectedOppositeFace = OPPOSITE_DIRECTION[sharedFace];
-    const ranked = group
-      .map((sample) => {
-        const route = routes[sample.routeIndex];
-        const endpoint = route[sharedSide === 'from' ? 'to' : 'from'];
-        const entity = world.entities[endpoint.entityIndex];
-        return {
-          sample,
-          endpoint,
-          coordinate:
-            sharedFace === 'left' || sharedFace === 'right'
-              ? entity.y + entity.height / 2
-              : entity.x + entity.width / 2,
-        };
-      })
-      .sort((left, right) => left.coordinate - right.coordinate);
-    if (ranked.some((record) => record.endpoint.face !== expectedOppositeFace)) {
+    const ranked = rankedOppositeEndpoints(world, routes, group, sharedSide, sharedFace);
+    if (
+      ranked.length !== group.length ||
+      ranked.some((record) => record.endpoint.face !== expectedOppositeFace)
+    ) {
       continue;
     }
     const sharedEntity = (world.sourceEntities ?? world.entities)[group[0].entityIndex];
@@ -336,22 +247,11 @@ function twoRouteSiblingSymmetryEvent(
   const sharedSide = group[0].side;
   const sharedFace = group[0].face;
   const expectedOppositeFace = OPPOSITE_DIRECTION[sharedFace];
-  const ranked = group
-    .map((sample) => {
-      const route = routes[sample.routeIndex];
-      const endpoint = route[sharedSide === 'from' ? 'to' : 'from'];
-      const entity = world.entities[endpoint.entityIndex];
-      return {
-        sample,
-        endpoint,
-        coordinate:
-          sharedFace === 'left' || sharedFace === 'right'
-            ? entity.y + entity.height / 2
-            : entity.x + entity.width / 2,
-      };
-    })
-    .sort((left, right) => left.coordinate - right.coordinate);
-  if (ranked.some((record) => record.endpoint.face !== expectedOppositeFace)) {
+  const ranked = rankedOppositeEndpoints(world, routes, group, sharedSide, sharedFace);
+  if (
+    ranked.length !== group.length ||
+    ranked.some((record) => record.endpoint.face !== expectedOppositeFace)
+  ) {
     return undefined;
   }
   const sharedEntity = (world.sourceEntities ?? world.entities)[group[0].entityIndex];
@@ -388,6 +288,34 @@ function twoRouteSiblingSymmetryEvent(
     corridorIndexes: [firstVisit.corridorIndex],
     visits: [firstVisit.visit, secondVisit.visit],
   };
+}
+
+/** Opposite endpoints ranked on the shared face's cross axis. */
+function rankedOppositeEndpoints(
+  world: CorridorWorld,
+  routes: readonly Route[],
+  group: readonly PortSample[],
+  sharedSide: EndpointSide,
+  sharedFace: Direction,
+) {
+  return group
+    .flatMap((sample) => {
+      const route = routes[sample.routeIndex];
+      const endpoint = route[sharedSide === 'from' ? 'to' : 'from'];
+      if (isPointEndpoint(endpoint)) {
+        return [];
+      }
+      const entity = world.entities[endpoint.entityIndex];
+      return {
+        sample,
+        endpoint,
+        coordinate:
+          sharedFace === 'left' || sharedFace === 'right'
+            ? entity.y + entity.height / 2
+            : entity.x + entity.width / 2,
+      };
+    })
+    .sort((left, right) => left.coordinate - right.coordinate);
 }
 
 function firstTransverseVisit(
@@ -432,8 +360,4 @@ function firstCrossAxisTurn(
     }
   }
   return undefined;
-}
-
-function routeSideKey(routeIndex: number, side: EndpointSide): string {
-  return `${routeIndex}|${side}`;
 }

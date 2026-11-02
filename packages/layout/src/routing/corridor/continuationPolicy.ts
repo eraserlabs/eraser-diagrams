@@ -1,13 +1,7 @@
 import type { AxisSpan } from '../../types.js';
-import {
-  clamp,
-  coordinateInSpan,
-  intersectSpans,
-  midpoint,
-  spanContains,
-  spanLength,
-} from '../../rangeUtils.js';
-import type { RouteEndpoint } from './contract.js';
+import { clamp, coordinateInSpan, intersectSpans, midpoint, spanLength } from '../../rangeUtils.js';
+import { isPointEndpoint } from './contract.js';
+import type { EntityRouteEndpoint, RouteEndpoint } from './contract.js';
 import { continuationBundlePlacement } from './continuationGeometry.js';
 import {
   continuationKey,
@@ -15,7 +9,7 @@ import {
   type ContinuationBoundaryRef,
   type IndependentContinuationBoundary,
 } from './continuations.js';
-import { boundaryTravelCoordinate, corridorCrossSpan, faceCrossSpan } from './geometry.js';
+import { boundaryTravelCoordinate, faceCrossSpan } from './geometry.js';
 import type { Route, VisitBoundary } from './route.js';
 import { canFitOrderedSpacingGap, type SpacingKernelUnit } from './spacingKernel.js';
 import { compileTrackDesires, type TrackDesire } from './spacingObjective.js';
@@ -85,13 +79,13 @@ export function planContinuationPolicies<Member extends ContinuationUnitMember>(
   tuning: ContinuationPolicyTuning,
 ) {
   const forcedIndependentKeys = continuationKeySet(independentContinuations);
-  const continuationKeys = new Set<string>();
+  const continuationByKey = new Map<string, FlexibleContinuationRef>();
   const relaxationReasonByKey = new Map<string, ContinuationPolicyReason>();
   const proposedReasons = new Map<string, ContinuationPolicyReason>();
   const terminalCenterCandidateKeys = new Set<string>();
   for (const continuation of continuations) {
     const key = continuationKey(continuation.routeIndex, continuation.afterVisitIndex);
-    continuationKeys.add(key);
+    continuationByKey.set(key, continuation);
     relaxationReasonByKey.set(
       key,
       continuationRelaxationReason(world, routes[continuation.routeIndex], continuation),
@@ -101,7 +95,7 @@ export function planContinuationPolicies<Member extends ContinuationUnitMember>(
     }
   }
   for (const key of forcedIndependentKeys) {
-    if (!continuationKeys.has(key)) {
+    if (!continuationByKey.has(key)) {
       throw new Error(`corridor spacing: forced continuation ${key} does not exist`);
     }
   }
@@ -119,7 +113,7 @@ export function planContinuationPolicies<Member extends ContinuationUnitMember>(
       world,
       route,
       continuation,
-      beforeUnit,
+      terminalConflictBeforeUnit(route, continuation, continuationByKey, localUnits, tuning),
       afterUnit,
       tuning,
     );
@@ -192,6 +186,46 @@ export function planContinuationPolicies<Member extends ContinuationUnitMember>(
   return { flexibleContinuations, policies };
 }
 
+/**
+ * An intermediate corridor can hide opposing terminal desires from adjacent
+ * pairs. On an all-straight route, the target-side boundary checks for a terminal
+ * conflict against the source visit's unit (one re-track) when their shared span is pinched.
+ */
+function terminalConflictBeforeUnit<Member extends ContinuationUnitMember>(
+  route: Route,
+  continuation: FlexibleContinuationRef,
+  continuationByKey: ReadonlyMap<string, FlexibleContinuationRef>,
+  localUnits: readonly ContinuationPolicyUnit<Member>[],
+  tuning: ContinuationPolicyTuning,
+): ContinuationPolicyUnit<Member> {
+  const beforeUnit = localUnits[continuation.beforeLocalUnit];
+  const afterUnit = localUnits[continuation.afterLocalUnit];
+  if (
+    continuation.afterVisitIndex !== route.visits.length - 1 ||
+    route.visits.length <= 2 ||
+    beforeUnit.members.length !== 1 ||
+    !route.visits.every(
+      (visit, index) => index === 0 || isStraightContinuationBoundary(visit.entry),
+    )
+  ) {
+    return beforeUnit;
+  }
+  const sourceContinuation = continuationByKey.get(continuationKey(continuation.routeIndex, 1));
+  if (!sourceContinuation) {
+    return beforeUnit;
+  }
+  const sourceUnit = localUnits[sourceContinuation.beforeLocalUnit];
+  const shared = intersectSpans(
+    [sourceUnit.lower, sourceUnit.upper],
+    [afterUnit.lower, afterUnit.upper],
+    EPSILON,
+  );
+  if (shared && spanLength(shared) <= tuning.minimumTrackSeparation + EPSILON) {
+    return sourceUnit;
+  }
+  return beforeUnit;
+}
+
 function singletonTerminalCenterConflict<Member extends ContinuationUnitMember>(
   world: CorridorWorld,
   route: Route,
@@ -225,6 +259,7 @@ function singletonTerminalCenterConflict<Member extends ContinuationUnitMember>(
         : undefined;
   if (
     !endpoint ||
+    isPointEndpoint(endpoint) ||
     spanLength(faceCrossSpan(world.entities[endpoint.entityIndex], endpoint.face)) >
       tuning.directFanFaceSpan + EPSILON
   ) {
@@ -246,13 +281,11 @@ function terminalConflictHasContainingHost<Member extends ContinuationUnitMember
   if (!beforeTerminal || !afterTerminal) {
     return false;
   }
-  const beforeCorridor =
-    world.indexer.corridors[route.visits[continuation.afterVisitIndex - 1].corridorIndex];
-  const afterCorridor =
-    world.indexer.corridors[route.visits[continuation.afterVisitIndex].corridorIndex];
+  const beforeCorridor = route.visits[continuation.afterVisitIndex - 1].corridorIndex;
+  const afterCorridor = route.visits[continuation.afterVisitIndex].corridorIndex;
   return (
-    coordinateInSpan(afterTerminal.track, corridorCrossSpan(beforeCorridor), EPSILON) ||
-    coordinateInSpan(beforeTerminal.track, corridorCrossSpan(afterCorridor), EPSILON)
+    world.indexer.spans.crossIncludes(beforeCorridor, afterTerminal.track, EPSILON) ||
+    world.indexer.spans.crossIncludes(afterCorridor, beforeTerminal.track, EPSILON)
   );
 }
 
@@ -330,19 +363,17 @@ function continuationRelaxationReason(
   route: Route,
   continuation: FlexibleContinuationRef,
 ): ContinuationPolicyReason {
-  const before =
-    world.indexer.corridors[route.visits[continuation.afterVisitIndex - 1].corridorIndex];
-  const after = world.indexer.corridors[route.visits[continuation.afterVisitIndex].corridorIndex];
-  const beforeCross = corridorCrossSpan(before);
-  const afterCross = corridorCrossSpan(after);
-  const beforeLength = spanLength(beforeCross);
-  const afterLength = spanLength(afterCross);
+  const before = route.visits[continuation.afterVisitIndex - 1].corridorIndex;
+  const after = route.visits[continuation.afterVisitIndex].corridorIndex;
+  const spans = world.indexer.spans;
+  const beforeLength = spans.crossLength(before);
+  const afterLength = spans.crossLength(after);
   if (Math.abs(beforeLength - afterLength) <= EPSILON) {
     return 'equal-span';
   }
   if (
-    !spanContains(beforeCross, afterCross, EPSILON) &&
-    !spanContains(afterCross, beforeCross, EPSILON)
+    !spans.crossContains(before, after, EPSILON) &&
+    !spans.crossContains(after, before, EPSILON)
   ) {
     return 'partial-overlap';
   }
@@ -361,7 +392,7 @@ function discoverFlexibleContinuations<Member extends ContinuationUnitMember>(
   continuationUnionFind: UnionFind,
 ): FlexibleContinuationRef[] {
   let retained = [...candidates];
-  while (true) {
+  while (retained.length > 0) {
     const retainedKeys = continuationKeySet(retained);
     const strictRootByLocal = continuationRoots(
       localUnits.length,
@@ -381,6 +412,7 @@ function discoverFlexibleContinuations<Member extends ContinuationUnitMember>(
     }
     retained = feasible;
   }
+  return retained;
 }
 
 export function continuationRoots(
@@ -528,9 +560,15 @@ function feasibleBoundaryContinuations<Member extends ContinuationUnitMember>(
     localIndexesByRoot.set(root, indexes);
   });
   const unitByRoot = new Map<number, ContinuationPolicyUnit<Member>>();
-  for (const [root, indexes] of localIndexesByRoot) {
-    unitByRoot.set(root, mergeContinuationComponentUnit(routes, localUnits, indexes).unit);
-  }
+  // Only components touched by a candidate bundle need merged bounds and desires.
+  const unitForRoot = (root: number): ContinuationPolicyUnit<Member> => {
+    let unit = unitByRoot.get(root);
+    if (!unit) {
+      unit = mergeContinuationComponentUnit(routes, localUnits, localIndexesByRoot.get(root)!).unit;
+      unitByRoot.set(root, unit);
+    }
+    return unit;
+  };
   const bundles = new Map<
     string,
     Array<{
@@ -564,12 +602,12 @@ function feasibleBoundaryContinuations<Member extends ContinuationUnitMember>(
     const hostUnits = strictUnits(
       ordered.map((member) => member.hostLocalUnit),
       strictRootByLocal,
-      unitByRoot,
+      unitForRoot,
     );
     const mouthUnits = strictUnits(
       ordered.map((member) => member.mouthLocalUnit),
       strictRootByLocal,
-      unitByRoot,
+      unitForRoot,
     );
     if (
       !nondecreasingDesires(hostUnits) ||
@@ -593,7 +631,7 @@ function feasibleBoundaryContinuations<Member extends ContinuationUnitMember>(
 function strictUnits<Member extends ContinuationUnitMember>(
   indexes: readonly number[],
   strictRootByLocal: Int32Array,
-  unitByRoot: ReadonlyMap<number, ContinuationPolicyUnit<Member>>,
+  unitForRoot: (root: number) => ContinuationPolicyUnit<Member>,
 ): ContinuationPolicyUnit<Member>[] {
   const seen = new Set<number>();
   return indexes.flatMap((index) => {
@@ -602,7 +640,7 @@ function strictUnits<Member extends ContinuationUnitMember>(
       return [];
     }
     seen.add(root);
-    return [unitByRoot.get(root) as ContinuationPolicyUnit<Member>];
+    return [unitForRoot(root)];
   });
 }
 
@@ -640,9 +678,9 @@ export function continuedTargetTerminalLeadRunStart(
   if (!visitHasContinuationBoundary(route.visits[beforeLast])) {
     return undefined;
   }
-  const terminalParallelCorridor = world.indexer.corridors[route.visits[beforeLast].corridorIndex];
+  const terminalParallelCorridor = route.visits[beforeLast].corridorIndex;
   if (
-    spanLength(corridorCrossSpan(terminalParallelCorridor)) >=
+    world.indexer.spans.crossLength(terminalParallelCorridor) >=
     2 * tuning.minimumTrackSeparation
   ) {
     return undefined;
@@ -666,10 +704,10 @@ export function continuedSourceTerminalLeadRunEnd(
   if (!visitHasContinuationBoundary(route.visits[afterFirst])) {
     return undefined;
   }
-  const terminalParallelCorridor = world.indexer.corridors[route.visits[afterFirst].corridorIndex];
+  const terminalParallelCorridor = route.visits[afterFirst].corridorIndex;
   // Source-side continuations need a lead even when they can fit multiple tracks;
   // the topology's existing narrow-span policy bounds how broadly this propagates.
-  if (spanLength(corridorCrossSpan(terminalParallelCorridor)) > tuning.narrowSpan + EPSILON) {
+  if (world.indexer.spans.crossLength(terminalParallelCorridor) > tuning.narrowSpan + EPSILON) {
     return undefined;
   }
   let runEnd = afterFirst;
@@ -700,7 +738,10 @@ function continuationHasTerminalLead(
   );
 }
 
-export function endpointNeedsTerminalLead(endpoint: RouteEndpoint): boolean {
-  // Missing arrowhead metadata defaults to the arrowed endpoint behavior.
-  return endpoint.hasArrowhead !== false;
+export function endpointNeedsTerminalLead(
+  endpoint: RouteEndpoint,
+): endpoint is EntityRouteEndpoint {
+  // Missing arrowhead metadata defaults to the arrowed endpoint behavior. A point
+  // terminal has no face to lead away from.
+  return !isPointEndpoint(endpoint) && endpoint.hasArrowhead !== false;
 }

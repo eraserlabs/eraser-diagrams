@@ -27,7 +27,7 @@ export interface RouteCrossing {
 /**
  * Query-only spatial index over one emitted route batch.
  *
- * Construction is explicit and bulk-loaded so the ordinary route pipeline pays no index cost.
+ * Bulk-loaded during quality collection and reused for segment queries within the batch.
  */
 export class RouteIndexer {
   private readonly segments: readonly IndexedRouteSegment[];

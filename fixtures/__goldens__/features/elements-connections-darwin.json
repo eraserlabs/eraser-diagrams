@@ -137,7 +137,13 @@
           "x": 190,
           "y": 0
         }
-      ]
+      ],
+      "labelPlacement": {
+        "x": 75,
+        "y": -8,
+        "width": 40,
+        "height": 17
+      }
     },
     {
       "tag": "Relationship",

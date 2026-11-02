@@ -141,6 +141,22 @@ module.exports = {
       from: { path: '^packages/render/src' },
       to: { path: '^packages/(resolve|server|playground|templates)/' },
     },
+    {
+      name: 'layout-imports-utils-only',
+      comment:
+        'layout runs on its own in Node and in a browser bundle: its sources import each other and ' +
+        '@eraserlabs/utils, and no other package.',
+      severity: 'error',
+      from: { path: '^packages/layout/src', pathNot: '__tests__|[.]spec[.]ts$|TestUtils[.]ts$' },
+      to: { path: '^(node_modules|packages/(?!(layout|utils)/))' },
+    },
+    {
+      name: 'layout-no-node-builtins',
+      comment: 'layout is bundled into the render browser IIFE; no node:* builtins.',
+      severity: 'error',
+      from: { path: '^packages/layout/src', pathNot: '__tests__|[.]spec[.]ts$|TestUtils[.]ts$' },
+      to: { dependencyTypes: ['core'] },
+    },
   ],
   options: {
     // Workspace `@eraserlabs/*` imports resolve through node_modules symlinks into each package's

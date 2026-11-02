@@ -61,17 +61,6 @@ export function upperBoundInt32(coords: Int32Array, value: number): number {
 }
 
 /**
- * Insert `item` at `index`, shifting the tail right. Avoids `.splice`, which allocates a
- * result array even when nothing is removed. Callers own the search: the sorted inserts
- * here differ in bound and in whether ties are allowed, so only this tail is shared.
- */
-function insertAt<T>(array: T[], index: number, item: T): void {
-  array.push(item);
-  array.copyWithin(index + 1, index);
-  array[index] = item;
-}
-
-/**
  * Insert into a comparator-sorted array after any elements comparing equal.
  */
 export function insertIntoSortedBy<T>(
@@ -89,7 +78,7 @@ export function insertIntoSortedBy<T>(
       high = mid;
     }
   }
-  insertAt(sorted, low, item);
+  sorted.splice(low, 0, item);
 }
 
 /**
@@ -102,7 +91,7 @@ export function addUniqueNumber(sorted: number[], num: number, initialIdx: numbe
     // No duplicates
     return -1;
   }
-  insertAt(sorted, idx, num);
+  sorted.splice(idx, 0, num);
   return idx;
 }
 
