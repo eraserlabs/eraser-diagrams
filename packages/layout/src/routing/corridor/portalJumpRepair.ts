@@ -69,9 +69,7 @@ function offCenterAttachmentIndexes(world: CorridorWorld, route: Route): number[
     if (isPointEndpoint(endpoint) || endpoint.authoredTrack !== undefined) {
       continue;
     }
-    const center =
-      endpoint.preferredTrack ??
-      midpoint(faceCrossSpan(world.entities[endpoint.entityIndex], endpoint.face));
+    const center = midpoint(faceCrossSpan(world.entities[endpoint.entityIndex], endpoint.face));
     const attachments = world.indexer
       .attachmentsForEndpoint(endpoint)
       .map((attachmentIndex) => world.indexer.attachments[attachmentIndex])

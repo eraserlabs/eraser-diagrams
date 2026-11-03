@@ -34,6 +34,7 @@ import {
   type CorridorRoutingRequest,
   type RepairPolicy,
 } from './executeCorridorRouting.js';
+import { resolvePortPins } from './ports.js';
 import { finalizeShiftRoute, getShiftedConnection } from './shiftRouting.js';
 import {
   bindingOf,
@@ -61,7 +62,7 @@ export interface ConnectionRoutingRequest {
   readonly connection: NewConnection;
   /**
    * Exact endpoint overrides. Bound pins retain their face constraint; free pins
-   * may approach from any direction. An empty object disables the pin resolver.
+   * may approach from any direction. An empty object disables port pin resolution.
    */
   readonly endpointPins?: EndpointPins;
 }
@@ -75,10 +76,11 @@ export interface RouteConnectionsArgs {
   readonly updates?: ReadonlyMap<string, LayoutChange>;
   /** Try shifting valid existing geometry before searching; defaults to true. */
   readonly allowShift?: boolean;
-  /** Combine coincident pinned ports on the same entity face into one spacing group. */
+  /**
+   * Combine coincident pinned ports on the same entity face into one spacing group, on every
+   * entity. Entities that declare ports always group theirs.
+   */
   readonly groupedPinnedPorts?: boolean;
-  /** Resolve live attachments once per selected connection; explicit pins take precedence. */
-  readonly resolveEndpointPins?: (connection: NewConnection) => EndpointPins | undefined;
 }
 
 export interface RoutingResult {
@@ -99,7 +101,6 @@ export function routeConnections({
   updates,
   allowShift = true,
   groupedPinnedPorts = false,
-  resolveEndpointPins,
   repair,
 }: RouteConnectionsArgs): RoutingResult {
   const selected = new Map<string, ConnectionRoutingRequest>();
@@ -136,7 +137,6 @@ export function routeConnections({
   for (const { connection: input, endpointPins } of selected.values()) {
     const existing = routingLayout.getConnectionById(input.id);
     const connection = existing ? { ...existing, ...input } : input;
-    const pins = endpointPins ?? resolveEndpointPins?.(connection);
     if (existing) {
       manualLabels.set(existing.id, {
         ...existing,
@@ -145,7 +145,7 @@ export function routeConnections({
       });
     }
     if (isDirectConnection(connection)) {
-      const change = routeDirectConnection(routingLayout, connection, pins);
+      const change = routeDirectConnection(routingLayout, connection, endpointPins);
       if (change && existing) {
         // the caller's fields are staged with the geometry, as on the shift path
         finalizeShiftRoute(routingLayout, connection, change);
@@ -154,6 +154,8 @@ export function routeConnections({
       }
       continue;
     }
+    // ports pin elbow ends only: a straight or arc end keeps following its own binding
+    const pins = endpointPins ?? resolvePortPins(routingLayout, connection);
     const shifted = allowShift ? getShiftedConnection(routingLayout, connection, pins) : undefined;
     if (shifted && existing) {
       finalizeShiftRoute(routingLayout, connection, shifted);
@@ -484,9 +486,14 @@ function buildRouteRequests(
   pending: ReadonlyMap<string, ConnectionRoutingRequest>,
   groupedPinnedPorts: boolean,
 ): (CorridorRoutingRequest | undefined)[] {
-  const portGroups = groupedPinnedPorts ? new Map<string, number>() : undefined;
+  const entities = layoutManager.getEntities();
+  const portGroups = new Map<string, number>();
   const groupEndpoint = (endpoint: RouteEndpoint): RouteEndpoint => {
-    if (!portGroups || isPointEndpoint(endpoint) || endpoint.authoredTrack === undefined) {
+    if (
+      isPointEndpoint(endpoint) ||
+      endpoint.authoredTrack === undefined ||
+      (!groupedPinnedPorts && !entities[endpoint.entityIndex].ports)
+    ) {
       return endpoint;
     }
     const key = `${endpoint.entityIndex}:${endpoint.face}:${endpoint.authoredTrack}`;
@@ -498,9 +505,7 @@ function buildRouteRequests(
     return { ...endpoint, portGroup };
   };
   const entitiesById = layoutManager.getEntitiesMapping();
-  const entityIndexById = new Map(
-    layoutManager.getEntities().map((entity, index) => [entity.id, index]),
-  );
+  const entityIndexById = new Map(entities.map((entity, index) => [entity.id, index]));
   const assignedFaces = assignFaces(
     layoutManager,
     batch

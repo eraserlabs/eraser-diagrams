@@ -63,48 +63,54 @@ describe('routeConnections batch routing', () => {
     vi.restoreAllMocks();
   });
 
-  it('keeps grouped field pins without repairing their shared terminal runs into detours', () => {
-    const layoutManager = new LayoutManager({
-      entities: [
-        { id: 'a', x: 0, y: 0, width: 236, height: 154 },
-        { id: 'b', x: 1143, y: 137, width: 236, height: 192 },
-        { id: 'c', x: 416, y: 415, width: 152, height: 154 },
-        { id: 'd', x: 748.5, y: 198, width: 215, height: 268 },
-        { id: 'e', x: 1171, y: 750, width: 181, height: 192 },
-        { id: 'f', x: 762.5, y: 556, width: 187, height: 230 },
-      ],
-      connections: [],
-      primaryDirection: 'right',
-    });
-    const ports: [string, string, Point, Point][] = [
-      ['b', 'a', [1143, 233], [236, 134]],
-      ['c', 'd', [568, 473], [748.5, 256]],
-      ['f', 'e', [949.5, 766], [1171, 808]],
-      ['c', 'f', [568, 511], [762.5, 728]],
-      ['d', 'b', [963.5, 294], [1143, 195]],
-      ['f', 'b', [949.5, 652], [1143, 195]],
-      ['c', 'e', [568, 549], [1171, 808]],
-      ['a', 'c', [236, 134], [416, 549]],
-      ['a', 'b', [236, 96], [1143, 195]],
-    ];
-    const { fallbacks } = routeConnections({
-      layoutManager,
-      groupedPinnedPorts: true,
-      repair: { timeBudgetMs: Infinity },
-      connectionsToRoute: ports.map(([from, to, start, end], index) => ({
-        connection: { id: String(index), from, to },
-        endpointPins: { from: start, to: end },
-      })),
-    });
-    expect(fallbacks).toEqual(new Set());
-    for (const index of [5, 7]) {
-      const connection = layoutManager.getConnectionById(String(index))!;
-      expect(connection.points).toHaveLength(4);
-      expect([connection.x, connection.y]).toEqual(ports[index][2]);
-      const last = connection.points.at(-1)!;
-      expect([connection.x + last[0], connection.y + last[1]]).toEqual(ports[index][3]);
-    }
-  });
+  it.each([
+    { grouping: 'groupedPinnedPorts', groupedPinnedPorts: true, declared: undefined },
+    { grouping: 'entities that declare ports', groupedPinnedPorts: false, declared: [] },
+  ])(
+    'keeps grouped field pins without repairing their shared terminal runs into detours ($grouping)',
+    ({ groupedPinnedPorts, declared }) => {
+      const layoutManager = new LayoutManager({
+        entities: [
+          { id: 'a', x: 0, y: 0, width: 236, height: 154 },
+          { id: 'b', x: 1143, y: 137, width: 236, height: 192 },
+          { id: 'c', x: 416, y: 415, width: 152, height: 154 },
+          { id: 'd', x: 748.5, y: 198, width: 215, height: 268 },
+          { id: 'e', x: 1171, y: 750, width: 181, height: 192 },
+          { id: 'f', x: 762.5, y: 556, width: 187, height: 230 },
+        ].map((entity) => (declared ? { ...entity, ports: declared } : entity)),
+        connections: [],
+        primaryDirection: 'right',
+      });
+      const ports: [string, string, Point, Point][] = [
+        ['b', 'a', [1143, 233], [236, 134]],
+        ['c', 'd', [568, 473], [748.5, 256]],
+        ['f', 'e', [949.5, 766], [1171, 808]],
+        ['c', 'f', [568, 511], [762.5, 728]],
+        ['d', 'b', [963.5, 294], [1143, 195]],
+        ['f', 'b', [949.5, 652], [1143, 195]],
+        ['c', 'e', [568, 549], [1171, 808]],
+        ['a', 'c', [236, 134], [416, 549]],
+        ['a', 'b', [236, 96], [1143, 195]],
+      ];
+      const { fallbacks } = routeConnections({
+        layoutManager,
+        groupedPinnedPorts,
+        repair: { timeBudgetMs: Infinity },
+        connectionsToRoute: ports.map(([from, to, start, end], index) => ({
+          connection: { id: String(index), from, to },
+          endpointPins: { from: start, to: end },
+        })),
+      });
+      expect(fallbacks).toEqual(new Set());
+      for (const index of [5, 7]) {
+        const connection = layoutManager.getConnectionById(String(index))!;
+        expect(connection.points).toHaveLength(4);
+        expect([connection.x, connection.y]).toEqual(ports[index][2]);
+        const last = connection.points.at(-1)!;
+        expect([connection.x + last[0], connection.y + last[1]]).toEqual(ports[index][3]);
+      }
+    },
+  );
 
   function incumbent(): LayoutConnection {
     return {
@@ -145,14 +151,19 @@ describe('routeConnections batch routing', () => {
     'deduplicates selectors and applies pin precedence for a %s request',
     (mode) => {
       const existing = incumbent();
-      const layoutManager = manager([existing]);
-      const resolved: NewConnection[] = [];
-      const pins = { from: [80, 12.5] as Point };
+      const [a, b] = entities();
+      const layoutManager = new LayoutManager({
+        entities: [{ ...a, ports: [{ id: 'field:x', y: 10, height: 5, allowCrossover: true }] }, b],
+        connections: [existing],
+        primaryDirection: 'right',
+      });
+      const pins = { from: [80, 30] as Point };
       const explicit: NewConnection = {
         id: 'ab',
         from: 'a',
         to: 'b',
         relativeFromPort: [1, 0.25],
+        fromPortId: 'field:x',
         textPlacementSource: LayoutConnectionTextPlacementSource.MEASURE,
       };
       if (mode === 'updates') {
@@ -177,19 +188,12 @@ describe('routeConnections batch routing', () => {
           ['b', {}],
         ]),
         repair: false,
-        resolveEndpointPins: (connection) => {
-          resolved.push(connection);
-          return pins;
-        },
       });
       expect(result.fallbacks).toEqual(new Set());
       expect([...result.updates.keys()]).toEqual(['ab']);
-      expect(resolved).toEqual(
-        mode === 'pinned' || mode === 'empty' ? [] : [expect.objectContaining(explicit)],
-      );
       expect(layoutManager.getConnectionById('ab')).toMatchObject({
         x: 80,
-        y: mode === 'empty' ? 10 : 12.5,
+        y: mode === 'pinned' ? 30 : mode === 'empty' ? 10 : 12.5,
         textPlacementSource: LayoutConnectionTextPlacementSource.MEASURE,
       });
     },

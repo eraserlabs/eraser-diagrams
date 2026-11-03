@@ -46,6 +46,7 @@ export type {
   LayoutConnection,
   LayoutConnectionChange,
   LayoutEntity,
+  LayoutPort,
   LayoutRange,
   NewConnection,
   OutlineDescriptor,

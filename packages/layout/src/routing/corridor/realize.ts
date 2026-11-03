@@ -847,10 +847,7 @@ function isSevereEndpointMisalignment(world: CorridorWorld, route: Route): boole
     const coordinate = endpoint.face === 'left' || endpoint.face === 'right' ? point.y : point.x;
     const halfSpan = (span[1] - span[0]) / 2;
     return {
-      normalizedDeviation:
-        halfSpan > 0
-          ? Math.abs(coordinate - (endpoint.preferredTrack ?? midpoint(span))) / halfSpan
-          : 0,
+      normalizedDeviation: halfSpan > 0 ? Math.abs(coordinate - midpoint(span)) / halfSpan : 0,
       edgeDistance: Math.min(coordinate - span[0], span[1] - coordinate),
     };
   });
