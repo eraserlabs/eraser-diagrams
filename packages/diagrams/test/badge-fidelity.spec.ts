@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { buildPayload, readFixture, runPayload } from './support/payload.js';
+import { scaleColorForTheme } from '@eraserlabs/resolve';
 
 /**
  * The canvas fidelity rules for badges, arrowheads and connection labels, asserted on computed
@@ -21,6 +22,95 @@ async function render(page: Page) {
 }
 
 const badge = (page: Page, id: string) => page.locator(`[data-mdp-id="${id}"] [data-tpl="Badge"]`);
+
+test('badge glyph pixels and ink override independently while omitted values retain inherited defaults', async ({
+  page,
+}) => {
+  for (const theme of ['light', 'dark'] as const) {
+    const sizes = [undefined, 0, 12, 18, 24, 32, 24.5];
+    const { payload, result } = await buildPayload(
+      {
+        elements: sizes.map((iconSize, index) => ({
+          tag: 'Shape',
+          id: `badge-${index}`,
+          x: index * 160,
+          y: 40,
+          width: 120,
+          height: 80,
+          badge: {
+            text: 'Badge',
+            icon: 'lucide-server',
+            fontSize: 21,
+            color: '#654321',
+            ...(iconSize === undefined ? {} : { iconSize, iconColor: '#123456' }),
+          },
+        })),
+      },
+      { theme },
+    );
+    expect(result.errors).toEqual([]);
+    expect(result.warnings).toEqual([]);
+    await runPayload(page, payload);
+    for (const [index, size] of sizes.entries()) {
+      const chip = badge(page, `badge-${index}`);
+      const glyph = chip.locator('.er-badge__icon');
+      await expect(glyph).toHaveCSS('width', `${size ?? 18}px`);
+      await expect(glyph).toHaveCSS('height', `${size ?? 18}px`);
+      await expect(chip).toHaveCSS('font-size', '21px');
+      expect(
+        await glyph.evaluate((el) =>
+          getComputedStyle(el).getPropertyValue('--er-glyph-num').trim(),
+        ),
+      ).toBe(String(size ?? 18));
+      expect(channels(await glyph.evaluate((el) => getComputedStyle(el).color))).toEqual(
+        await computed(page, scaleColorForTheme(size === undefined ? '#654321' : '#123456', theme)),
+      );
+    }
+  }
+});
+
+test('null arrowheads render none while an omitted end keeps the default triangle', async ({
+  page,
+}) => {
+  const { payload, result } = await buildPayload({
+    elements: [
+      { tag: 'Shape', id: 'a', x: 0, y: 0, width: 80, height: 60 },
+      { tag: 'Shape', id: 'b', x: 200, y: 0, width: 80, height: 60 },
+      { tag: 'Relationship', id: 'default', from: 'a', to: 'b' },
+      {
+        tag: 'Relationship',
+        id: 'none',
+        from: 'a',
+        to: 'b',
+        startArrowhead: null,
+        endArrowhead: null,
+      },
+      {
+        tag: 'Relationship',
+        id: 'authored',
+        from: 'a',
+        to: 'b',
+        startArrowhead: 'bar',
+        endArrowhead: 'arrow',
+      },
+    ],
+  });
+  expect(result.errors).toEqual([]);
+  await runPayload(page, payload);
+  for (const [id, start, end] of [
+    ['default', 'none', 'url(#er-ah-triangle)'],
+    ['none', 'none', 'none'],
+    ['authored', 'url(#er-ah-bar)', 'url(#er-ah-arrow)'],
+  ]) {
+    const anchor = page.locator(`[data-mdp-id="${id}"] [data-role="anchor"]`);
+    await expect(anchor).toHaveAttribute('marker-start', start!);
+    await expect(anchor).toHaveAttribute('marker-end', end!);
+  }
+  await expect(page.locator('[data-mdp-id="none"] [data-role="anchor"]')).toHaveCSS(
+    'marker-end',
+    'none',
+  );
+});
 
 /** `rgb(r, g, b)` or `color(srgb r g b)` (what color-mix computes to) as 0–255 channels. */
 function channels(css: string): number[] {

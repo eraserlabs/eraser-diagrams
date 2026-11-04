@@ -61,7 +61,7 @@
   display: block;
   font-family: var(--f, var(--font-clean, sans-serif));
   font-size: var(--er-base);
-  letter-spacing: -0.01em;
+  letter-spacing: var(--er-letter-spacing, -0.01em);
   line-height: 1.25;
   color: var(--er-ink, var(--er-text));
   /* wraps at 1.8 × the glyph, between words, with the lines balanced (about even); a word wider than that breaks.

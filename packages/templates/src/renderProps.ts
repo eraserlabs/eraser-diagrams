@@ -27,4 +27,5 @@ export const stockRenderProps: Record<string, Record<string, JsonSchema>> = {
   Lane: groupPaints,
   Pool: groupPaints,
   DatabaseTable: { ...surfacePaints, ...washPaints, dividerColor: CssColor },
+  Relationship: { startMarker: { type: 'string' }, endMarker: { type: 'string' } },
 };

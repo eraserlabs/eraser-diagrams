@@ -354,6 +354,10 @@ function normalizeConnectionShared(element: Record<string, unknown>): void {
 
 const normalizeRelationship: ElementNormalizer = (element) => {
   normalizeConnectionShared(element);
+  for (const end of ['start', 'end']) {
+    const head = element[`${end}Arrowhead`];
+    element[`${end}Marker`] = typeof head === 'string' ? `url(#er-ah-${head})` : 'none';
+  }
 };
 
 const normalizeDatabaseRelationship: ElementNormalizer = (element) => {

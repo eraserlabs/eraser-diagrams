@@ -464,7 +464,7 @@
   font-family: var(--f, var(--font-clean, sans-serif));
   font-size: var(--er-base);
   font-weight: 400;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--er-letter-spacing, -0.01em);
   line-height: 1.25;
   overflow-wrap: break-word;
   word-break: normal;
@@ -474,7 +474,7 @@
 /* texts[1+] are the muted sub slot (2px gap). */
 .er-shape__text + .er-shape__text {
   margin-top: 2px;
-  opacity: 0.72;
+  opacity: var(--er-secondary-text-opacity, 0.72);
 }
 .er-shape__text:first-child {
   --er-base: 15px;
