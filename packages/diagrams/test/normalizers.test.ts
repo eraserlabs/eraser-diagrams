@@ -64,6 +64,19 @@ describe('x-palette translation — one identity value, template-derived fills',
     expect(props.vAlign).toBe('middle');
   });
 
+  it('Shape: borderWidth remains literal pixels, including zero, and absent stays absent', async () => {
+    for (const borderWidth of [undefined, 0, 2, 3.5]) {
+      const props = await resolveProps({
+        tag: 'Shape',
+        id: 's',
+        x: 0,
+        y: 0,
+        ...(borderWidth !== undefined ? { borderWidth } : {}),
+      });
+      expect(props.borderWidth).toBe(borderWidth);
+    }
+  });
+
   it('Group: final body and title paints derive from the identity before theming', async () => {
     const props = await resolveProps({ tag: 'Group', id: 'g', x: 0, y: 0, color: 'blue' });
     expect(props.color).toBe('#2866c4');

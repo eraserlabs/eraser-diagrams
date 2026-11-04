@@ -11,6 +11,7 @@
      than triggering a var() fallback, so each paint rule is gated on its authored attribute. */
   --er-fill: transparent;
   --er-stroke: var(--er-text);
+  --er-border-width: 0.75px;
   /* Near-white tint published to nested mounts. */
   --er-tint: var(--er-surface);
   /* What a mounted Badge inherits (the canvas badge.ts): background = the body at 98% lightness
@@ -22,8 +23,7 @@
      (getIconBadgePosition): --er-badge-tl-x / -y are its left edge and vertical centre. */
   --er-badge-tint: var(--er-ground, var(--er-surface));
   --er-host-ink: currentColor;
-  /* The hard shadow. */
-  --er-host-border-width: 1.2px;
+  --er-host-border-width: var(--er-border-width);
   --er-host-border-style: solid;
   --er-badge-tl-x: 12px;
   --er-badge-tl-y: 0px;
@@ -42,6 +42,9 @@
   min-height: 0;
   box-sizing: border-box;
   color: var(--er-text);
+}
+.er-shape[data-border-px]:not([data-border-px='']) {
+  --er-border-width: var(--er-authored-border-width);
 }
 /* Identity: pastel body at 85% lightness, the identity colour itself as the hairline. */
 .er-shape[data-color]:not([data-color='']) {
@@ -182,7 +185,7 @@
   display: none;
   fill: var(--er-fill);
   stroke: var(--er-stroke);
-  stroke-width: 1.2;
+  stroke-width: var(--er-border-width);
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
@@ -205,7 +208,7 @@
   height: 100%;
   min-width: 0;
   min-height: 0;
-  border: 1.2px solid var(--er-stroke);
+  border: var(--er-border-width) solid var(--er-stroke);
   /* Corner radius: min(min(w,h) * 0.15, 12). */
   border-radius: min(12px, 15%);
   background: var(--er-fill);
@@ -260,7 +263,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  border-width: 1.2px;
+  border-width: var(--er-border-width);
   border-style: inherit;
   border-color: color-mix(
     in srgb,
