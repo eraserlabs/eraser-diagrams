@@ -8,6 +8,7 @@ import { alphaOf, CANVAS_INK, inkForFill, tintOf } from './canvasColors.js';
 import { washTextureProps } from './watercolorTexture.js';
 import { roundedShapePath } from './roundedPolygon.js';
 import { curvedShapePath } from './curvedShapePaths.js';
+import { rectanglePath, rectangleShadowPaths } from './rectanglePath.js';
 import { shapeOutline } from './shapeOutlines.js';
 
 /**
@@ -242,13 +243,28 @@ const normalizeShape: ElementNormalizer = (element) => {
 
 /**
  * Polygon kinds: rounded-corner path at real size (radii are absolute px). Document/cylinder:
- * curves scaled to real size. Auto-sized and CSS-geometry kinds keep static template geometry.
+ * curves scaled to real size. Sized rectangles share the canvas silhouette; other CSS kinds and
+ * auto-sized shapes keep template geometry.
  */
 function deriveGeo(element: Record<string, unknown>): void {
   const { width, height } = element;
 
   if (typeof width === 'number' && width > 0 && typeof height === 'number' && height > 0) {
     const kind = String(element.shape);
+    if (kind === 'rectangle' && element.styleMode !== 'watercolor') {
+      const body = rectanglePath(width, height, element.cornerRadius === 'sharp');
+      element.geoPath = body;
+      element.geoW = width;
+      element.geoH = height;
+      element.staticGeo = false;
+      if (element.styleMode === 'shadow') {
+        Object.assign(
+          element,
+          rectangleShadowPaths(width, height, element.cornerRadius === 'sharp'),
+        );
+      }
+      return;
+    }
     const path = roundedShapePath(kind, width, height);
 
     if (path !== null) {

@@ -27,6 +27,12 @@
       viewBox="0 0 {{geoW}} {{geoH}}"
       aria-hidden="true"
     >
+      <path
+        data-if="geoShadowPath"
+        class="er-shape__shadow"
+        d="{{geoShadowPath}}"
+        clip-path="path(evenodd, '{{geoShadowClip}}') view-box"
+      ></path>
       <g data-if="washTexGeo">
         <defs>
           <filter

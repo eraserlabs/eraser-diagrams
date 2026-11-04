@@ -1,4 +1,4 @@
-/* CSS-geometry kinds (rectangle/oval/circle/ellipse) paint the inner box with border-radius;
+/* CSS-geometry kinds (auto-sized rectangle/oval/circle/ellipse) paint the inner box with border-radius;
    polygon kinds + cylinder paint an inline 0–100 SVG layer (sharp corners — per-vertex arc
    rounding is an accepted divergence). Default: transparent fill, near-black hairline,
    hard 4px/4px #E8E8E8 shadow. */
@@ -516,4 +516,25 @@
 .er-shape[data-bg='currentColor' i]:not([data-bg='']) {
   --er-tint: var(--er-inherited-tint);
   --er-badge-tint: var(--er-inherited-tint);
+}
+
+/* Sized rectangles use the same outline and outside-only silhouette shadow in every host. */
+.er-shape[data-shape='rectangle']:has(.er-shape__geo--dynamic)
+  .er-shape__geo--dynamic {
+  display: block;
+  filter: none;
+}
+.er-shape[data-shape='rectangle']:has(.er-shape__geo--dynamic)
+  .er-shape__inner {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+.er-shape[data-shape='rectangle']:has(.er-shape__geo--dynamic)
+  .er-shape__inner::after {
+  content: none;
+}
+.er-shape__shadow {
+  fill: var(--er-shadow);
+  stroke: none;
 }

@@ -159,7 +159,7 @@ for (const theme of ['light', 'dark'] as const) {
 
     // Final paints and nested overrides use the same theme pass.
     const paints = [
-      ['s1', '.er-shape__inner', 'background-color', paint('#b3ffff')],
+      ['s1', '.er-shape__path--dynamic', 'fill', paint('#b3ffff')],
       ['g1', '[data-role="body"]', 'background-color', paint('#f5ffff')],
       ['s1', '.er-shape__text', 'color', ink],
       ['s1', '[data-tpl="Badge"]', 'background-color', paint('#f5ffff')],
@@ -175,13 +175,11 @@ for (const theme of ['light', 'dark'] as const) {
     for (const [id, selector, property, value] of paints) {
       await expect(host(id).locator(selector)).toHaveCSS(property, value);
     }
-    await expect
-      .poll(() =>
-        host('s1')
-          .locator('.er-shape__inner')
-          .evaluate((element) => getComputedStyle(element, '::after').boxShadow),
-      )
-      .toBe(`${paint('#00ffff')} 0px 0px 0px 1.2px inset`);
+    await expect(host('s1').locator('.er-shape__path--dynamic')).toHaveCSS(
+      'stroke',
+      paint('#00ffff'),
+    );
+    await expect(host('s1').locator('.er-shape__path--dynamic')).toHaveCSS('stroke-width', '1.2px');
     await expect(host('lg1').locator('.er-legend__swatch').first()).toHaveCSS(
       'background-color',
       paint('#00aa77'),

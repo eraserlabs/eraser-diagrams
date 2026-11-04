@@ -643,16 +643,17 @@ describe('derive stage — rounded polygon geometry', () => {
     expect(auto.geoPath).toBeUndefined();
     expect(auto.staticGeo).toBe(true);
 
-    const rect = await resolveProps({
+    const ellipse = await resolveProps({
       tag: 'Shape',
       id: 'g3',
+      shape: 'ellipse',
       x: 0,
       y: 0,
       width: 100,
       height: 60,
     });
-    expect(rect.geoPath).toBeUndefined();
-    expect(rect.staticGeo).toBe(true);
+    expect(ellipse.geoPath).toBeUndefined();
+    expect(ellipse.staticGeo).toBe(true);
   });
 
   it('the corner radius clamps to what short edges allow', async () => {
