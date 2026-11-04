@@ -11,7 +11,7 @@
      than triggering a var() fallback, so each paint rule is gated on its authored attribute. */
   --er-fill: transparent;
   --er-stroke: var(--er-text);
-  --er-border-width: 0.75px;
+  --er-border-width: 1.2px;
   /* Near-white tint published to nested mounts. */
   --er-tint: var(--er-surface);
   /* What a mounted Badge inherits (the canvas badge.ts): background = the body at 98% lightness
@@ -216,6 +216,49 @@
   padding: 0 var(--er-shape-h-inset);
   box-sizing: border-box;
 }
+/* a box shape's solid outline: a CSS border snaps to whole device pixels (0.8 px and 1.2 px both draw 1 px on a
+   1x screen), so the border stays for layout but is transparent, and an inset box-shadow (not snapped) draws the line */
+.er-shape:not(
+    :is(
+      [data-shape='diamond'],
+      [data-shape='triangle'],
+      [data-shape='hexagon'],
+      [data-shape='star'],
+      [data-shape='parallelogram'],
+      [data-shape='trapezoid'],
+      [data-shape='document'],
+      [data-shape='cylinder'],
+      [data-style='watercolor'],
+      [data-border='dashed'],
+      [data-border='dotted']
+    )
+  )
+  .er-shape__inner {
+  border-color: transparent;
+}
+.er-shape:not(
+    :is(
+      [data-shape='diamond'],
+      [data-shape='triangle'],
+      [data-shape='hexagon'],
+      [data-shape='star'],
+      [data-shape='parallelogram'],
+      [data-shape='trapezoid'],
+      [data-shape='document'],
+      [data-shape='cylinder'],
+      [data-style='watercolor'],
+      [data-border='dashed'],
+      [data-border='dotted']
+    )
+  )
+  .er-shape__inner::after {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--er-border-width));
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 var(--er-border-width) var(--er-stroke);
+  pointer-events: none;
+}
 /* styleMode default is 'shadow' — the hard offset silhouette; plain and watercolor drop it. */
 .er-shape[data-style='shadow'] .er-shape__inner {
   box-shadow: 4px 4px 0 0 var(--er-shadow);
@@ -261,7 +304,7 @@
   .er-shape__inner::after {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: calc(-1 * var(--er-border-width));
   border-radius: inherit;
   border-width: var(--er-border-width);
   border-style: inherit;

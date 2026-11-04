@@ -209,7 +209,7 @@
   .er-grouplike__title::after {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -1px;
   border: 1px solid
     color-mix(
       in srgb,

@@ -38,10 +38,15 @@ test('color derives template-specific tints; explicit paints override them for t
       const body = host.locator(tag === 'Shape' ? '.er-shape__inner' : '[data-role="body"]');
       const explicit = suffix.startsWith('explicit');
       await expect(body).toHaveCSS('background-color', explicit ? 'rgb(0, 255, 255)' : tint);
-      await expect(body).toHaveCSS(
-        'border-top-color',
-        suffix === 'explicit' ? 'rgb(0, 0, 255)' : 'rgb(0, 255, 255)',
-      );
+      const stroke = suffix === 'explicit' ? 'rgb(0, 0, 255)' : 'rgb(0, 255, 255)';
+      if (tag === 'Shape') {
+        // Solid CSS shapes paint a fractional outline with an inset shadow; the layout border is transparent.
+        await expect
+          .poll(() => body.evaluate((element) => getComputedStyle(element, '::after').boxShadow))
+          .toBe(`${stroke} 0px 0px 0px 1.2px inset`);
+      } else {
+        await expect(body).toHaveCSS('border-top-color', stroke);
+      }
     }
   }
 });

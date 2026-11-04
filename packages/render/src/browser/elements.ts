@@ -1,7 +1,7 @@
-import type { ResolvedEntity } from '@eraserlabs/protocol';
+import type { ResolvedElement, ResolvedEntity, Theme } from '@eraserlabs/protocol';
 import { renderIdPrefix } from './domIds.js';
-import { createFillEngine } from './fill.js';
-import { prepareWashMasters } from './masters.js';
+import { createFillEngine, type FillEngineInit, type FillFn } from './fill.js';
+import { prepareWashMasters, type WashElement } from './masters.js';
 import { measureIntrinsics, measureScene, type ElementMeasure } from './measure.js';
 import type { MountedElement } from './mount.js';
 import { resolveTextSizedElements } from './textSizing.js';
@@ -35,31 +35,69 @@ export interface RenderedElements {
  */
 export function createElementRenderer(setup: PageSetup): {
   css: string;
+  /** The exact markup and scoped CSS used by the page runner, also usable in serialized views. */
+  registry: ReturnType<typeof templateRegistry>;
+  /** Copy props and prepare watercolor definitions, without filling or mounting templates. */
+  prepare<T extends WashElement>(
+    elements: readonly T[],
+    options?: { idPrefix?: string },
+  ): Promise<{ elements: T[]; defs: string }>;
+  /** Fill already-prepared props synchronously; useful for measurement and stored views. */
+  fill(request: RunRequest): RenderedElement[];
   render(request: RunRequest, options?: { idPrefix?: string }): Promise<RenderedElements>;
 } {
   const registry = templateRegistry(setup);
+  const init: FillEngineInit = { templates: registry.templates, icons: {} };
+  let engine: FillFn | undefined;
+
+  async function prepare<T extends WashElement>(
+    input: readonly T[],
+    options: { idPrefix?: string } = {},
+  ): Promise<{ elements: T[]; defs: string }> {
+    const prefix = renderIdPrefix(options.idPrefix);
+    const elements = input.map((element, index) => ({
+      ...element,
+      props: {
+        ...element.props,
+        ...(element.props?.['washTexCss'] || element.props?.['washTexGeo']
+          ? { washUid: `${prefix}-${index}` }
+          : {}),
+      },
+    }));
+    const defs = await prepareWashMasters(setup.washMaster, elements, { idPrefix: prefix });
+    return { elements, defs };
+  }
+
+  function fill(
+    elements: readonly ResolvedElement[],
+    icons: RunRequest['icons'],
+    theme?: Theme,
+  ): RenderedElement[] {
+    // Filling is synchronous: each call sees only its own sidecar, even when preparation overlaps.
+    init.icons = icons;
+    engine ??= createFillEngine(init);
+    return elements.map(({ id, tag, props, theme: elementTheme }) => ({
+      id,
+      tag,
+      html: engine!(tag, props, elementTheme ?? theme),
+    }));
+  }
+
   return {
     css: registry.css,
+    registry,
+    prepare,
+    fill(request) {
+      return fill([...request.entities, ...request.connections], request.icons, request.theme);
+    },
     async render(request, options = {}) {
-      const prefix = renderIdPrefix(options.idPrefix);
-      const elements = [...request.entities, ...request.connections].map((element, index) => ({
-        ...element,
-        props: {
-          ...element.props,
-          ...(element.props['washTexCss'] || element.props['washTexGeo']
-            ? { washUid: `${prefix}-${index}` }
-            : {}),
-        },
-      }));
-      const defs = await prepareWashMasters(setup.washMaster, elements, { idPrefix: prefix });
-      const fill = createFillEngine({ templates: registry.templates, icons: request.icons });
+      const { elements, defs } = await prepare(
+        [...request.entities, ...request.connections],
+        options,
+      );
       return {
         defs,
-        elements: elements.map(({ id, tag, props, theme }) => ({
-          id,
-          tag,
-          html: fill(tag, props, theme ?? request.theme),
-        })),
+        elements: fill(elements, request.icons, request.theme),
       };
     },
   };

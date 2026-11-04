@@ -105,7 +105,7 @@ test('badge paint follows the host: tint, ink and stroke; authored paint wins', 
   // token is what the badge follows.)
   expect(
     await dark.evaluate((el) => getComputedStyle(el).getPropertyValue('--er-host-border-width')),
-  ).toMatch(/0\.75px/);
+  ).toMatch(/1\.2px/);
   expect(channels(await dark.evaluate((el) => getComputedStyle(el).borderTopColor))).toEqual([
     143, 179, 255,
   ]);
