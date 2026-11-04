@@ -1,5 +1,6 @@
 import type { LayoutManager } from '../LayoutManager.js';
 import type { NewConnection } from '../types.js';
+import { isDirectConnection } from './directLine.js';
 import { absolutePoint, storedEndpoint } from './points.js';
 import type { EndpointPins } from './routeConnections.js';
 
@@ -13,7 +14,8 @@ export const HEADER_PORT_ID = 'header';
  * and, when its port allows crossover, turns to face the other entity once the two clear
  * horizontally. Stored top/bottom attachments stay exact. A new unnamed end keeps the face it
  * was authored on: a left or right face is its wall, and a top or bottom one is left to the
- * router. Undefined when no side is pinned.
+ * router. A straight or arc line keeps no stored attachment, so each of its ends is placed as a
+ * new one. Undefined when no side is pinned.
  */
 export function resolvePortPins(
   layoutManager: LayoutManager,
@@ -27,7 +29,11 @@ export function resolvePortPins(
     }
     const portId = side === 'from' ? connection.fromPortId : connection.toPortId;
     const port = portId ? entity.ports.find(({ id }) => id === portId) : undefined;
-    const relativePort = side === 'from' ? connection.relativeFromPort : connection.relativeToPort;
+    const relativePort = isDirectConnection(connection)
+      ? undefined
+      : side === 'from'
+        ? connection.relativeFromPort
+        : connection.relativeToPort;
     const authoredFace =
       !port && !relativePort
         ? side === 'from'

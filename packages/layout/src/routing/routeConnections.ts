@@ -42,6 +42,7 @@ import {
   directLabel,
   faceAnchoredSegment,
   followBoxes,
+  isDirectConnection,
   keepManualLabel,
 } from './directLine.js';
 import { hasMeasuredLabel } from './textPlacements.js';
@@ -144,8 +145,9 @@ export function routeConnections({
         textLineOffset: input.textLineOffset ?? existing.textLineOffset,
       });
     }
+    const pins = endpointPins ?? resolvePortPins(routingLayout, connection);
     if (isDirectConnection(connection)) {
-      const change = routeDirectConnection(routingLayout, connection, endpointPins);
+      const change = routeDirectConnection(routingLayout, connection, pins);
       if (change && existing) {
         // the caller's fields are staged with the geometry, as on the shift path
         finalizeShiftRoute(routingLayout, connection, change);
@@ -154,8 +156,6 @@ export function routeConnections({
       }
       continue;
     }
-    // ports pin elbow ends only: a straight or arc end keeps following its own binding
-    const pins = endpointPins ?? resolvePortPins(routingLayout, connection);
     const shifted = allowShift ? getShiftedConnection(routingLayout, connection, pins) : undefined;
     if (shifted && existing) {
       finalizeShiftRoute(routingLayout, connection, shifted);
@@ -677,17 +677,14 @@ function applyEndpointReanchor(
   return true;
 }
 
-/** A straight or arc connection: drawn as one direct segment, never routed through corridors. */
-export function isDirectConnection(connection: Pick<NewConnection, 'connectorStyle'>): boolean {
-  return connection.connectorStyle === 'straight' || connection.connectorStyle === 'arc';
-}
-
 /**
- * Route a straight or arc connection: its bound ends follow their entities from where they were
- * before the staged changes (a straight end by its focus binding, an arc end by its fixed anchor);
- * a connection with no path runs centre to centre. Explicit pins win. An automatic label goes at
- * the apex or the segment's middle; a manual label is moved along the line afterwards, as on every
- * other path.
+ * Route a straight or arc connection. Pinned ends (explicit pins, else the ends' ports) sit at
+ * their pins. A bound end that is not pinned follows its binding from where it was before the
+ * staged changes: a straight end snaps its focus binding against the other end (the pin when that
+ * end is pinned), an arc end keeps its fixed anchor. With no path yet, an unpinned end sits on its
+ * authored face, else where the line from its entity's centre toward the other end (or its pin)
+ * leaves the entity. An automatic label goes at the apex or the segment's middle; a manual label
+ * is moved along the line afterwards, as on every other path.
  */
 function routeDirectConnection(
   layoutManager: LayoutManager,
@@ -706,7 +703,7 @@ function routeDirectConnection(
   let ends: [Point, Point] | undefined;
   if (line.points.length >= 2) {
     const beforeBox = (id: string) => before(id) ?? after(id);
-    ends = followBoxes(line, bindingOf(line, beforeBox), after);
+    ends = followBoxes(line, bindingOf(line, beforeBox), after, pins);
   } else {
     const fromBox = after(connection.from);
     const toBox = after(connection.to);
@@ -718,8 +715,9 @@ function routeDirectConnection(
               toBox,
               connection.authoredFromFace,
               connection.authoredToFace,
+              pins,
             )
-          : centreSegment(fromBox, toBox);
+          : centreSegment(fromBox, toBox, pins);
     }
   }
   const start = pins?.from ?? ends?.[0];

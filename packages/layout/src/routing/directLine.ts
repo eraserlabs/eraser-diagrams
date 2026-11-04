@@ -10,7 +10,9 @@
  * - when a box moves, a straight line's bound end keeps its focus binding: the line through the
  *   other end keeps the same offset from the box's centre, measured in the box's own size, so the
  *   end glides along the outline as the boxes move;
- * - an arc's bound end keeps its fixed anchor: the same fraction across and down its box.
+ * - an arc's bound end keeps its fixed anchor: the same fraction across and down its box;
+ * - a pinned end (the caller's pin, or its row on an entity that declares ports) sits at its pin,
+ *   and the other end attaches as above with the pin standing in for the other end.
  * The bindings are read from where the line's ends are before the boxes move.
  *
  * The outline a line attaches to is the box's drawn shape where it differs from its box (a named
@@ -27,15 +29,27 @@ import {
 import { getFaceCenterPoint } from '../portUtils.js';
 import { clamp } from '../rangeUtils.js';
 import { clipFacePointToOutline } from '../outline.js';
-import type { Direction, LayoutConnection, OutlineDescriptor, PositionProps } from '../types.js';
+import type {
+  Direction,
+  LayoutConnection,
+  NewConnection,
+  OutlineDescriptor,
+  PositionProps,
+} from '../types.js';
 import { anchorFromStored, resolveManualLabel } from './manualLabelAnchor.js';
 import { absoluteConnectionPoints, absolutePoint, relativePoint } from './points.js';
+import type { EndpointPins } from './routeConnections.js';
 import { labelPositionCenteredOnSegment } from './textPlacements.js';
 import type { Point } from './types.js';
 
 /** The connection fields the path and label geometry reads; binding to boxes also reads `from` and `to`. */
 type Line = Pick<LayoutConnection, 'x' | 'y' | 'points' | 'connectorStyle' | 'bend'>;
 type BoundLine = Line & Pick<LayoutConnection, 'from' | 'to'>;
+
+/** A straight or arc connection: drawn as one direct segment, never routed through corridors. */
+export function isDirectConnection(connection: Pick<NewConnection, 'connectorStyle'>): boolean {
+  return connection.connectorStyle === 'straight' || connection.connectorStyle === 'arc';
+}
 
 /** What the geometry reads of a box: its place and size, and its drawn shape. */
 export interface DirectBox extends PositionProps {
@@ -170,9 +184,9 @@ function inside(box: DirectBox, p: Readonly<Point>): boolean {
 /**
  * A line with no path yet, from one box to the other: centre to centre, each end where that line
  * leaves its box (the crossing nearer the other centre); a centre when it never leaves (boxes on
- * top of each other).
+ * top of each other). A pinned end sits at its pin, and the other end leaves its box toward it.
  */
-export function centreSegment(from: DirectBox, to: DirectBox): [Point, Point] {
+export function centreSegment(from: DirectBox, to: DirectBox, pins?: EndpointPins): [Point, Point] {
   const a = centreOf(from);
   const b = centreOf(to);
   const leave = (box: DirectBox, c: Point, toward: Point): Point => {
@@ -183,7 +197,7 @@ export function centreSegment(from: DirectBox, to: DirectBox): [Point, Point] {
     const near = (p: Point) => Math.hypot(p[0] - toward[0], p[1] - toward[1]);
     return hits.reduce((best, p) => (near(p) < near(best) ? p : best));
   };
-  return [leave(from, a, b), leave(to, b, a)];
+  return [pins?.from ?? leave(from, a, pins?.to ?? b), pins?.to ?? leave(to, b, pins?.from ?? a)];
 }
 
 /**
@@ -210,17 +224,19 @@ export function directEnds(
  * A line with no path whose ends name faces: a named face puts that end on the face's midpoint,
  * walked in to the drawn outline; a free end attaches where the line from its box's centre toward
  * the other end leaves the box. The far end aims at the near one already resolved, so one named
- * face tilts the whole segment toward it.
+ * face tilts the whole segment toward it. A pinned end sits at its pin, in place of its face.
  */
 export function faceAnchoredSegment(
   from: DirectBox,
   to: DirectBox,
   fromFace: Direction | undefined,
   toFace: Direction | undefined,
+  pins?: EndpointPins,
 ): [Point, Point] {
-  const towardTarget = toFace ? facePoint(to, toFace) : centreOf(to);
-  const start = fromFace ? facePoint(from, fromFace) : boundaryToward(from, towardTarget);
-  const end = toFace ? towardTarget : boundaryToward(to, start);
+  const towardTarget = pins?.to ?? (toFace ? facePoint(to, toFace) : centreOf(to));
+  const start =
+    pins?.from ?? (fromFace ? facePoint(from, fromFace) : boundaryToward(from, towardTarget));
+  const end = pins?.to ?? (toFace ? towardTarget : boundaryToward(to, start));
   return [start, end];
 }
 
@@ -344,12 +360,14 @@ export function bindingOf(
  * The line's two ends once its boxes have moved: an arc's bound ends at their fixed anchors; a
  * straight line's bound ends snapped from their focus bindings, the start against the end where it
  * was, then the end against the new start; a free end stays where it is. An end that cannot be
- * snapped (the line misses the box) stays where it was.
+ * snapped (the line misses the box) stays where it was. A pinned end sits at its pin; a straight
+ * line's other bound end snaps against the pin.
  */
 export function followBoxes(
   line: BoundLine,
   binding: DirectBinding,
   boxOf: (id: string) => DirectBox | undefined,
+  pins?: EndpointPins,
 ): [Point, Point] {
   const points = absoluteConnectionPoints(line);
   const start = points[0]!;
@@ -360,21 +378,13 @@ export function followBoxes(
   const to = toBox && binding.to ? { box: toBox, ...binding.to } : null;
   if (line.connectorStyle === 'arc') {
     return [
-      from ? absolutePoint(from.box, from.anchor) : start,
-      to ? absolutePoint(to.box, to.anchor) : end,
+      pins?.from ?? (from ? absolutePoint(from.box, from.anchor) : start),
+      pins?.to ?? (to ? absolutePoint(to.box, to.anchor) : end),
     ];
   }
-  if (from && to) {
-    const s = snapToFocus(from.box, from.focus, end) ?? start;
-    return [s, snapToFocus(to.box, to.focus, s) ?? end];
-  }
-  if (from) {
-    return [snapToFocus(from.box, from.focus, end) ?? start, end];
-  }
-  if (to) {
-    return [start, snapToFocus(to.box, to.focus, start) ?? end];
-  }
-  return [start, end];
+  const s =
+    pins?.from ?? (from ? (snapToFocus(from.box, from.focus, pins?.to ?? end) ?? start) : start);
+  return [s, pins?.to ?? (to ? (snapToFocus(to.box, to.focus, s) ?? end) : end)];
 }
 
 /**

@@ -4,7 +4,7 @@
 
 `@eraserlabs/layout` is the layout package used by [`eraser-diagrams`](https://github.com/eraserlabs/eraser-diagrams). It can also be used independently as a connection router for diagrams whose entities have already been sized and positioned, with `@eraserlabs/utils` as its only dependency.
 
-Its main routine is `routeConnections`. Each connection has a style. `elbow` connections (the default) go to the corridor router: it produces orthogonal routes, understands nested containers, avoids obstacles, and can route some or all connections in a diagram, respecting the current coordinates of lines that have already been routed. `straight` and `arc` connections are one direct segment between the entities' drawn boundaries; an arc adds a `bend`, the signed distance from the chord's middle to its apex. When an entity moves, a straight line's bound end glides along the outline and an arc's bound end keeps its place on the entity.
+Its main routine is `routeConnections`. Each connection has a style. `elbow` connections (the default) go to the corridor router: it produces orthogonal routes, understands nested containers, avoids obstacles, and can route some or all connections in a diagram, respecting the current coordinates of lines that have already been routed. `straight` and `arc` connections are one direct segment between the entities' drawn boundaries; an arc adds a `bend`, the signed distance from the chord's middle to its apex. When an entity moves, a straight line's bound end glides along the outline and an arc's bound end keeps its place on the entity, unless the entity declares ports, which pin the end to a row.
 
 ## Why
 

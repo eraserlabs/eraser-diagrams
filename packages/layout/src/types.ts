@@ -65,7 +65,7 @@ export interface LayoutEntity extends PositionProps {
   textPlacement?: RelativePositionProps;
   /** True drawn boundary for endpoint attachment; absent means the bounding box is the boundary. */
   outline?: OutlineDescriptor;
-  /** Declared ports; elbow endpoints on such an entity pin to its left/right walls (routing/ports.ts). */
+  /** Declared ports; connection ends on such an entity pin to its left/right walls (routing/ports.ts). */
   ports?: readonly LayoutPort[];
 }
 

@@ -231,6 +231,21 @@ describe('resolvePortPins', () => {
     expect(pins(tables(), self)).toBeUndefined();
   });
 
+  it.each(['straight', 'arc'] as const)(
+    'reads no stored attachment on %s lines: an unnamed end sits at the header mid-row, not a corner',
+    (connectorStyle) => {
+      // the corners a caller derives from a diagonal line's points
+      const derived = membership({
+        connectorStyle,
+        fromPortId: undefined,
+        toPortId: undefined,
+        relativeFromPort: [1, 1],
+        relativeToPort: [0, 0],
+      });
+      expect(pins(tables(), derived)).toEqual({ from: [130, 35], to: [400, 85] });
+    },
+  );
+
   it('leaves the connection and the layout untouched', () => {
     const layoutManager = layout(tables({ users: { x: 601 } }));
     const connection = membership();
@@ -305,14 +320,47 @@ describe('routeConnections with ports', () => {
   });
 
   it.each(['straight', 'arc'] as const)(
-    'leaves %s lines on their own binding, as on entities without ports',
+    'pins %s lines to their rows, row to row as they move, keeping their style',
+    (connectorStyle) => {
+      const layoutManager = layout(tables());
+      const bend = connectorStyle === 'arc' ? { bend: 40 } : {};
+      routeConnections({
+        layoutManager,
+        repair: false,
+        connectionsToRoute: [membership({ connectorStyle, ...bend })],
+      });
+      const drawn = layoutManager.getConnectionById('membership')!;
+      expect(absoluteConnectionPoints(drawn)).toEqual([
+        [130, 85],
+        [400, 110],
+      ]);
+      expect([drawn.relativeFromPort, drawn.relativeToPort]).toEqual([undefined, undefined]);
+      layoutManager.applyStagedChanges();
+      layoutManager.updateEntity('teams', { deltaY: 150 });
+      routeConnections({
+        layoutManager,
+        repair: false,
+        updates: new Map([['teams', { deltaY: 150 }]]),
+      });
+      const moved = layoutManager.getConnectionById('membership')!;
+      expect(absoluteConnectionPoints(moved)).toEqual([
+        [130, 85],
+        [400, 260],
+      ]);
+      expect(moved).toMatchObject({ connectorStyle, ...bend });
+    },
+  );
+
+  it.each(['straight', 'arc'] as const)(
+    'leaves %s lines on their own binding when their pins are an empty object',
     (connectorStyle) => {
       const route = (entities: LayoutEntity[]) => {
         const layoutManager = layout(entities);
+        const unpinned = (connection: NewConnection) => ({ connection, endpointPins: {} });
         routeConnections({
           layoutManager,
           repair: false,
-          connectionsToRoute: [membership({ connectorStyle })],
+          connectionsToRoute: [unpinned(membership({ connectorStyle }))],
         });
         const drawn = absoluteConnectionPoints(layoutManager.getConnectionById('membership')!);
         layoutManager.applyStagedChanges();
@@ -320,15 +368,55 @@ describe('routeConnections with ports', () => {
         routeConnections({
           layoutManager,
           repair: false,
-          updates: new Map([['teams', { deltaY: 150 }]]),
+          connectionsToRoute: [unpinned(layoutManager.getConnectionById('membership')!)],
         });
         return [drawn, absoluteConnectionPoints(layoutManager.getConnectionById('membership')!)];
       };
-      const [drawn, moved] = route(tables());
-      expect(moved).not.toEqual(drawn);
-      expect([drawn, moved]).toEqual(
+      expect(route(tables())).toEqual(
         route(tables({ users: { ports: undefined }, teams: { ports: undefined } })),
       );
+    },
+  );
+
+  // a face on the table end sends the new line through faceAnchoredSegment; the port still pins it
+  it.each<Pick<NewConnection, 'authoredToFace'>>([{}, { authoredToFace: 'right' }])(
+    "aims a straight line's other end at its pin, drawn and as the table moves: %j",
+    (face) => {
+      const [users] = tables();
+      // centre (350, -120), above and to the right of users
+      const shape: LayoutEntity = { id: 'shape', x: 300, y: -150, width: 100, height: 60 };
+      const layoutManager = layout([users, shape]);
+      routeConnections({
+        layoutManager,
+        repair: false,
+        connectionsToRoute: [
+          {
+            id: 'link',
+            from: 'shape',
+            to: 'users',
+            toPortId: 'id',
+            connectorStyle: 'straight',
+            ...face,
+          },
+        ],
+      });
+      // the shape end is where the line from the shape's centre to the pin leaves the shape's bottom
+      const aimed = () => {
+        const [start, end] = absoluteConnectionPoints(layoutManager.getConnectionById('link')!);
+        expect(start[1]).toBeCloseTo(-90, 6);
+        const across = (start[0] - 350) * (end[1] + 120) - (start[1] + 120) * (end[0] - 350);
+        expect(across).toBeCloseTo(0, 6);
+        return end;
+      };
+      expect(aimed()).toEqual([130, 60]);
+      layoutManager.applyStagedChanges();
+      layoutManager.updateEntity('users', { deltaY: 150 });
+      routeConnections({
+        layoutManager,
+        repair: false,
+        updates: new Map([['users', { deltaY: 150 }]]),
+      });
+      expect(aimed()).toEqual([130, 210]);
     },
   );
 });
