@@ -473,7 +473,7 @@ svg[stroke='currentColor'] {
 .er-grouplike[data-style='watercolor']::after {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: calc(-1 * var(--er-border-width, 1px));
   border: var(--er-border-width, 1px) solid
     color-mix(
       in srgb,

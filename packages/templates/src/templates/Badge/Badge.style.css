@@ -73,6 +73,14 @@
   width: 100%;
   height: 100%;
 }
+.er-badge__icon[data-icon-size]:not([data-icon-size='']) {
+  --er-glyph-num: var(--er-badge-icon-num);
+  width: calc(var(--er-badge-icon-num) * 1px);
+  height: calc(var(--er-badge-icon-num) * 1px);
+}
+.er-badge__icon[data-icon-ink]:not([data-icon-ink='']) {
+  color: var(--er-badge-icon-ink);
+}
 /* No placement is top-left, as the canvas (freeform/badge.ts getBadgePosition: `default` falls to top-left). */
 .er-badge[data-placement=''],
 .er-badge[data-placement='top-left'],

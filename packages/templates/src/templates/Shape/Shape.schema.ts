@@ -17,6 +17,7 @@ export const Shape = entitySchema(
   {
     shape: { type: 'string', enum: [...ALLOWED_SHAPES], default: 'rectangle' },
     ...ShapeStyleProps,
+    cornerRadius: { type: 'string', enum: ['sharp', 'round'] },
     texts: { type: 'array', items: MarkdownTextProperties },
     icon: IconName,
     iconProps: IconProps,
@@ -39,9 +40,9 @@ export const Shape = entitySchema(
     washUseW: { type: 'number' },
     washUseH: { type: 'number' },
     /** Derived: real-size geometry path, or staticGeo for template geometry. */
-    geoPath: { type: 'string', pattern: '^[MLHVCAZ0-9,. \\-]+$' },
-    geoCapPath: { type: 'string', pattern: '^[MLHVCAZ0-9,. \\-]+$' },
-    geoWashFloorPath: { type: 'string', pattern: '^[MLHVCAZ0-9,. \\-]+$' },
+    geoPath: { type: 'string', pattern: '^[MLHVQCAZ0-9,. \\-]+$' },
+    geoCapPath: { type: 'string', pattern: '^[MLHVQCAZ0-9,. \\-]+$' },
+    geoWashFloorPath: { type: 'string', pattern: '^[MLHVQCAZ0-9,. \\-]+$' },
     geoW: { type: 'number' },
     geoH: { type: 'number' },
     staticGeo: { type: 'boolean' },

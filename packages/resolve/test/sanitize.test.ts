@@ -40,6 +40,18 @@ describe('content policies', () => {
     expect(out.stripped).toBe(false);
   });
 
+  it('keeps quoted corpus text without reporting entity normalization as removed content', () => {
+    for (const text of [
+      'message_type: "LtiEulaRequest"',
+      'version: "1.3.0"',
+      "{ subject: 'lti.close' }",
+      '  timestamp: "2022-04-16T18:54:36.736Z" }',
+    ]) {
+      expect(s.markdown(text)).toEqual({ html: `<p>${text}</p>`, stripped: false });
+      expect(s.inlineMarkdown(text)).toEqual({ html: text, stripped: false });
+    }
+  });
+
   it('both markdown policies treat the literal \\n escape as a newline', () => {
     expect(s.markdown('a\\n\\nb').html).toBe('<p>a</p><p>b</p>');
     expect(s.inlineMarkdown('a\\nb').html).toBe('a<br />b');
@@ -207,7 +219,9 @@ describe('canvas text contract', () => {
     expect(image.html).not.toContain('<img');
     expect(image.stripped).toBe(true);
     expect(s.markdown('<u>u</u>').html).toContain('&lt;u&gt;u&lt;/u&gt;');
-    expect(s.markdown('[x](javascript:alert(1))').html).not.toContain('javascript:');
+    const unsafeLink = s.markdown('[x](javascript:alert(1))');
+    expect(unsafeLink.html).not.toContain('javascript:');
+    expect(unsafeLink.stripped).toBe(true);
   });
 });
 
