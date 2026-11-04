@@ -3,10 +3,10 @@
  * hairline, and tints via relative-color formulas over this value, e.g.
  * `hsl(from var(--er-color) h s 85%)`. Author `bgColor` / `borderColor` outrank the formulas.
  *
- * The `white` token is near-black (hairline); for an opaque white body set `bgColor: '#ffffff'`.
+ * Tokens also resolve in explicit paints, so `white` must remain white rather than a default outline ink.
  */
 export const STOCK_PALETTE: Record<string, string> = {
-  white: '#242424',
+  white: '#ffffff',
   yellow: '#d3d61e',
   green: '#30a050',
   blue: '#2866c4',
