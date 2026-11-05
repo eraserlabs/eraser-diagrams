@@ -239,7 +239,7 @@ const diagram = {
 | `Legend` | entity | Key explaining the diagram's visual grammar: `entries` is a flat list of `{ text, color? }` rows, each painting a swatch beside its line. |
 | `Badge` | sub-template | Small badge mounted on other elements via their `badge` property; not a standalone element. |
 | `Relationship` | connection | Line between two entities with optional label, arrowheads, and ports. |
-| `DatabaseRelationship` | connection | Database relation: `relType` (`one-to-one`, `one-to-many`, `many-to-one`, `many-to-many`) picks the crow's-foot arrowhead pair. |
+| `DatabaseRelationship` | connection | Database relation: `relType` (`one-to-one`, `one-to-many`, `many-to-one`, `many-to-many`) picks the crow's-foot arrowhead pair. Like a `Relationship`, it draws as an `elbow`, `straight` or `arc` line (`connectorStyle`, `bend`). |
 
 The authoritative reference for each tag is its schema, in [`packages/templates/src/templates/`](./packages/templates/src/templates/) — for example [`Shape.schema.ts`](./packages/templates/src/templates/Shape/Shape.schema.ts), [`Icon.schema.ts`](./packages/templates/src/templates/Icon/Icon.schema.ts), [`Group.schema.ts`](./packages/templates/src/templates/Group/Group.schema.ts), and [`Relationship.schema.ts`](./packages/templates/src/templates/Relationship/Relationship.schema.ts). The shared enums (shapes, arrowheads, ports, typefaces, and so on) live in [`enums.ts`](./packages/templates/src/schema/enums.ts). Machine-readable JSON Schemas for all three document forms ship with [`@eraserlabs/protocol`](./packages/protocol/), and the Node API exposes every tag's compiled schema at runtime through `tagSchema(tag)` and `registryInfo()`.
 
@@ -274,7 +274,8 @@ Connection (`Relationship`) properties:
 | `label` | string | Inline-markdown line label. |
 | `startArrowhead`, `endArrowhead` | string \| null | `arrow`, `bar`, `dot`, `triangle`, `crowFootSingle`, `crowFootMany`. An absent `startArrowhead` means no arrowhead; an absent `endArrowhead` on a `Relationship` defaults to `triangle`. Pass `null` to opt out of that default. (On a `DatabaseRelationship` an absent pair comes from `relType`.) |
 | `fromPort`, `toPort` | string | Pin an endpoint to a side: `top`, `right`, `bottom`, `left`. |
-| `connectorStyle` | string | How the route travels: `elbow` (orthogonal segments, default) or `straight` (one direct line between the shapes). |
+| `connectorStyle` | string | How the route travels: `elbow` (orthogonal segments, default), `straight` (one direct line between the shapes) or `arc` (one curved line between them). |
+| `bend` | number | An `arc`'s bow: the signed distance in px from the chord's middle to its apex. Absent, the arc takes a default bow for its chord. |
 | `cornerStyle` | string | How route corners are painted: `elbow` (rounded, default) or `straight` (square). |
 | `lineStyle`, `lineWidth`, `color` | string / number / string | `solid`/`dashed`/`dotted`, stroke width, stroke color (a palette token or any CSS color, as above). The label follows `color` too. |
 | `labelColor` | string | Label text colour on its own. Unset, the label follows `color`. |

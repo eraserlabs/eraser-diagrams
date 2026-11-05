@@ -34,6 +34,7 @@ import {
   type CorridorRoutingRequest,
   type RepairPolicy,
 } from './executeCorridorRouting.js';
+import { resolvePortPins } from './ports.js';
 import { finalizeShiftRoute, getShiftedConnection } from './shiftRouting.js';
 import {
   bindingOf,
@@ -41,6 +42,7 @@ import {
   directLabel,
   faceAnchoredSegment,
   followBoxes,
+  isDirectConnection,
   keepManualLabel,
 } from './directLine.js';
 import { hasMeasuredLabel } from './textPlacements.js';
@@ -61,7 +63,7 @@ export interface ConnectionRoutingRequest {
   readonly connection: NewConnection;
   /**
    * Exact endpoint overrides. Bound pins retain their face constraint; free pins
-   * may approach from any direction. An empty object disables the pin resolver.
+   * may approach from any direction. An empty object disables port pin resolution.
    */
   readonly endpointPins?: EndpointPins;
 }
@@ -75,10 +77,11 @@ export interface RouteConnectionsArgs {
   readonly updates?: ReadonlyMap<string, LayoutChange>;
   /** Try shifting valid existing geometry before searching; defaults to true. */
   readonly allowShift?: boolean;
-  /** Combine coincident pinned ports on the same entity face into one spacing group. */
+  /**
+   * Combine coincident pinned ports on the same entity face into one spacing group, on every
+   * entity. Entities that declare ports always group theirs.
+   */
   readonly groupedPinnedPorts?: boolean;
-  /** Resolve live attachments once per selected connection; explicit pins take precedence. */
-  readonly resolveEndpointPins?: (connection: NewConnection) => EndpointPins | undefined;
 }
 
 export interface RoutingResult {
@@ -99,7 +102,6 @@ export function routeConnections({
   updates,
   allowShift = true,
   groupedPinnedPorts = false,
-  resolveEndpointPins,
   repair,
 }: RouteConnectionsArgs): RoutingResult {
   const selected = new Map<string, ConnectionRoutingRequest>();
@@ -136,7 +138,6 @@ export function routeConnections({
   for (const { connection: input, endpointPins } of selected.values()) {
     const existing = routingLayout.getConnectionById(input.id);
     const connection = existing ? { ...existing, ...input } : input;
-    const pins = endpointPins ?? resolveEndpointPins?.(connection);
     if (existing) {
       manualLabels.set(existing.id, {
         ...existing,
@@ -144,6 +145,7 @@ export function routeConnections({
         textLineOffset: input.textLineOffset ?? existing.textLineOffset,
       });
     }
+    const pins = endpointPins ?? resolvePortPins(routingLayout, connection);
     if (isDirectConnection(connection)) {
       const change = routeDirectConnection(routingLayout, connection, pins);
       if (change && existing) {
@@ -484,9 +486,14 @@ function buildRouteRequests(
   pending: ReadonlyMap<string, ConnectionRoutingRequest>,
   groupedPinnedPorts: boolean,
 ): (CorridorRoutingRequest | undefined)[] {
-  const portGroups = groupedPinnedPorts ? new Map<string, number>() : undefined;
+  const entities = layoutManager.getEntities();
+  const portGroups = new Map<string, number>();
   const groupEndpoint = (endpoint: RouteEndpoint): RouteEndpoint => {
-    if (!portGroups || isPointEndpoint(endpoint) || endpoint.authoredTrack === undefined) {
+    if (
+      isPointEndpoint(endpoint) ||
+      endpoint.authoredTrack === undefined ||
+      (!groupedPinnedPorts && !entities[endpoint.entityIndex].ports)
+    ) {
       return endpoint;
     }
     const key = `${endpoint.entityIndex}:${endpoint.face}:${endpoint.authoredTrack}`;
@@ -498,9 +505,7 @@ function buildRouteRequests(
     return { ...endpoint, portGroup };
   };
   const entitiesById = layoutManager.getEntitiesMapping();
-  const entityIndexById = new Map(
-    layoutManager.getEntities().map((entity, index) => [entity.id, index]),
-  );
+  const entityIndexById = new Map(entities.map((entity, index) => [entity.id, index]));
   const assignedFaces = assignFaces(
     layoutManager,
     batch
@@ -672,17 +677,14 @@ function applyEndpointReanchor(
   return true;
 }
 
-/** A straight or arc connection: drawn as one direct segment, never routed through corridors. */
-export function isDirectConnection(connection: Pick<NewConnection, 'connectorStyle'>): boolean {
-  return connection.connectorStyle === 'straight' || connection.connectorStyle === 'arc';
-}
-
 /**
- * Route a straight or arc connection: its bound ends follow their entities from where they were
- * before the staged changes (a straight end by its focus binding, an arc end by its fixed anchor);
- * a connection with no path runs centre to centre. Explicit pins win. An automatic label goes at
- * the apex or the segment's middle; a manual label is moved along the line afterwards, as on every
- * other path.
+ * Route a straight or arc connection. Pinned ends (explicit pins, else the ends' ports) sit at
+ * their pins. A bound end that is not pinned follows its binding from where it was before the
+ * staged changes: a straight end snaps its focus binding against the other end (the pin when that
+ * end is pinned), an arc end keeps its fixed anchor. With no path yet, an unpinned end sits on its
+ * authored face, else where the line from its entity's centre toward the other end (or its pin)
+ * leaves the entity. An automatic label goes at the apex or the segment's middle; a manual label
+ * is moved along the line afterwards, as on every other path.
  */
 function routeDirectConnection(
   layoutManager: LayoutManager,
@@ -701,7 +703,7 @@ function routeDirectConnection(
   let ends: [Point, Point] | undefined;
   if (line.points.length >= 2) {
     const beforeBox = (id: string) => before(id) ?? after(id);
-    ends = followBoxes(line, bindingOf(line, beforeBox), after);
+    ends = followBoxes(line, bindingOf(line, beforeBox), after, pins);
   } else {
     const fromBox = after(connection.from);
     const toBox = after(connection.to);
@@ -713,8 +715,9 @@ function routeDirectConnection(
               toBox,
               connection.authoredFromFace,
               connection.authoredToFace,
+              pins,
             )
-          : centreSegment(fromBox, toBox);
+          : centreSegment(fromBox, toBox, pins);
     }
   }
   const start = pins?.from ?? ends?.[0];

@@ -8,7 +8,8 @@
 export { LayoutManager } from './LayoutManager.js';
 
 // routing
-export { COMMIT_REPAIR, isDirectConnection, routeConnections } from './routing/routeConnections.js';
+export { COMMIT_REPAIR, routeConnections } from './routing/routeConnections.js';
+export { isDirectConnection } from './routing/directLine.js';
 export type {
   ConnectionRoutingRequest,
   EndpointPins,
@@ -46,6 +47,7 @@ export type {
   LayoutConnection,
   LayoutConnectionChange,
   LayoutEntity,
+  LayoutPort,
   LayoutRange,
   NewConnection,
   OutlineDescriptor,
