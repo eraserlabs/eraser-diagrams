@@ -1,9 +1,13 @@
 /* White header band (or authored titleBgColor), 5px corners, 1.8px identity border; key 17px in
    the table face, type/meta 15px mono mid-gray; solid light-scale row separators the outer border
-   paints over. Header 36 / rows 28 px. */
+   paints over. */
+/* Size: a table is 40px of header and 38px per field high, and at least 150px wide. Its text
+   starts 10px from the edge; a field's type is 20px from its name and 10px from its meta. The
+   border is an overlay (::after) and takes no room: a browser snaps a border's width to whole
+   device pixels, so a border in the layout would make the size depend on the screen. */
 /* Text sizing (see CUSTOMIZATION.md): sizes are pixels only. Each slot names its own --er-base;
    an authored `fontSize` arrives as gated data-font-px + --er-font-px and replaces it. */
-/* The table's own type ramp hangs off one base: the 17px field name is --er-base, the 18px title
+/* The table's own type ramp hangs off one base: the 17px field name is --er-base, the 20px title
    and the 15px type/meta columns are fixed ratios of it, so one authored fontSize moves the whole
    ramp instead of flattening it. */
 .er-dbtable {
@@ -19,13 +23,21 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  min-width: 150px;
   height: 100%;
   overflow: hidden;
-  border: 1.8px solid var(--er-stroke);
   border-radius: 5px;
   background: var(--er-tint);
   box-sizing: border-box;
   font-family: var(--f, var(--font-clean, sans-serif));
+}
+.er-dbtable::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1.8px solid var(--er-stroke);
+  border-radius: inherit;
+  pointer-events: none;
 }
 .er-dbtable[data-style='shadow'] {
   box-shadow: 4px 4px 0 0 var(--er-shadow);
@@ -44,15 +56,15 @@
 .er-dbtable[data-border-color]:not([data-border-color='']) {
   --er-stroke: var(--er-border);
 }
-.er-dbtable[data-border='dashed'] {
+.er-dbtable[data-border='dashed']::after {
   border-style: dashed;
 }
-.er-dbtable[data-border='dotted'] {
+.er-dbtable[data-border='dotted']::after {
   border-style: dotted;
 }
 /* Watercolor texture: the card face is the recolored scan master (base.style.css er-washtex).
    The header's opaque paint would hide it, and the hidden overflow would clip the bleed — both
-   relax only in texture mode. The hairline moves to a blurable overlay, same knobs as Shape. */
+   relax only in texture mode. The border overlay fades and blurs, same knobs as Shape. */
 .er-dbtable[data-style='watercolor'][data-washtex-css]:not(
     [data-washtex-css='']
   )
@@ -60,29 +72,22 @@
   background: transparent;
 }
 .er-dbtable[data-style='watercolor'] {
-  border-color: transparent;
   /* Published for nested mounts (Badge): inherited across the mount boundary like --er-tint. */
   --er-wc-ink-alpha: var(--er-wc-border-alpha, 45%);
 }
 .er-dbtable[data-style='watercolor']::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 1.8px solid
-    color-mix(
-      in srgb,
-      var(--er-stroke) var(--er-wc-border-alpha, 45%),
-      transparent
-    );
-  border-radius: inherit;
+  border-color: color-mix(
+    in srgb,
+    var(--er-stroke) var(--er-wc-border-alpha, 45%),
+    transparent
+  );
   filter: blur(var(--er-wc-border-blur, 0.7px));
-  pointer-events: none;
 }
 .er-dbtable__head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 36px;
+  gap: 10px;
+  min-height: 40px;
   padding: 0 10px;
   background: var(--er-surface);
   border-bottom: 1px solid var(--er-divider);
@@ -97,9 +102,8 @@
 .er-dbtable__title {
   flex: 1;
   margin: 0;
-  font-size: calc(var(--er-base) * 18 / 17);
+  font-size: calc(var(--er-base) * 20 / 17);
   font-weight: 400;
-  letter-spacing: -0.01em;
   color: var(--er-text);
   text-align: left;
 }
@@ -129,9 +133,9 @@
 }
 .er-dbtable__row {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
-  min-height: 28px;
+  min-height: 38px;
   padding: 0 10px;
   border-bottom: 1px solid var(--er-divider);
   box-sizing: border-box;
@@ -140,6 +144,7 @@
   border-bottom: none;
 }
 .er-dbtable__f-name {
+  margin-right: 10px;
   font-size: var(--er-base);
   color: var(--er-body-text);
 }
