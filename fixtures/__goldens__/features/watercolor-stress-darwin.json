@@ -1250,7 +1250,7 @@
       "x": 1520,
       "y": 1900,
       "width": 280,
-      "height": 154
+      "height": 156
     },
     {
       "tag": "DatabaseTable",
@@ -1278,7 +1278,7 @@
       "x": 1860,
       "y": 1900,
       "width": 280,
-      "height": 154
+      "height": 156
     }
   ],
   "connections": [],
