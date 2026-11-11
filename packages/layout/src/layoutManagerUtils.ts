@@ -12,6 +12,24 @@ import { isShift } from './typeChecks.js';
 import { LayoutTree } from './LayoutTree.js';
 import type { LayoutManager } from './LayoutManager.js';
 
+/** Ids grouped by nesting depth, deepest first, retaining input order within each level. */
+export function containersByDepth(
+  layout: LayoutManager,
+  containerIds: readonly string[],
+): string[][] {
+  const byDepth = new Map<number, string[]>();
+  for (const id of containerIds) {
+    const depth = layout.getEntityDepth(id);
+    const group = byDepth.get(depth);
+    if (group) {
+      group.push(id);
+    } else {
+      byDepth.set(depth, [id]);
+    }
+  }
+  return [...byDepth.entries()].sort(([left], [right]) => right - left).map(([, ids]) => ids);
+}
+
 export type ContainerDepthOrder = 'outermost-first' | 'innermost-first';
 
 /**
