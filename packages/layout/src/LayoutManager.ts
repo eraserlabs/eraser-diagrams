@@ -5,6 +5,7 @@ import {
   applySizeChanges,
   getDimensions,
   getEntityDimensions,
+  getLayoutChangeBetween,
   removeZeroDeltas,
 } from './sizeUtils.js';
 import { DEFAULT_OPTIONS, OUTPUT_EPSILON } from './constants.js';
@@ -58,13 +59,6 @@ interface MakeGraphArgs<T extends LayoutEntity = LayoutEntity> {
 /** @internal Pre-built state passed by fork() to skip rebuilding mappings */
 type PrebuiltState<T extends LayoutEntity> = Omit<InternalData<T>, 'entities' | 'tree' | 'dims'>;
 
-/** An entity's pending changes, restored alongside its geometry on rollback. */
-interface StagedEntry {
-  added: boolean;
-  update: LayoutChange | undefined;
-  deleted: boolean;
-}
-
 interface RemovedEntity<T extends LayoutEntity> {
   entity: T;
   childIds: ReadonlySet<string> | undefined;
@@ -72,7 +66,6 @@ interface RemovedEntity<T extends LayoutEntity> {
 
 interface GeometryCheckpointEntry<T extends LayoutEntity> {
   box: PositionProps | undefined;
-  staged: StagedEntry;
   removed: RemovedEntity<T> | undefined;
 }
 
@@ -781,7 +774,7 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
     );
     for (const [entityId, entry] of checkpoint.entry) {
       this._restoreEntity(entityId, entry);
-      this._restoreStagedEntry(entityId, entry.staged);
+      this._restoreStagedEntry(entityId);
     }
   }
 
@@ -859,10 +852,9 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
       return;
     }
     const box = { x: entity.x, y: entity.y, width: entity.width, height: entity.height };
-    const staged = this._stagedEntryFor(entityId);
     for (const checkpoint of this._geometryCheckpoints) {
       if (!checkpoint.entry.has(entityId)) {
-        checkpoint.entry.set(entityId, { box, staged, removed: undefined });
+        checkpoint.entry.set(entityId, { box, removed: undefined });
       }
     }
   }
@@ -873,24 +865,14 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
     const entity = data.entitiesById[entityId];
     const box = entity && { x: entity.x, y: entity.y, width: entity.width, height: entity.height };
     const removed = entity && { entity, childIds: data.containerMapping[entityId] };
-    const staged = this._stagedEntryFor(entityId);
     for (const checkpoint of this._geometryCheckpoints) {
       const existing = checkpoint.entry.get(entityId);
       if (!existing) {
-        checkpoint.entry.set(entityId, { box, staged, removed });
+        checkpoint.entry.set(entityId, { box, removed });
       } else if (removed && existing.box && !existing.removed) {
         existing.removed = removed;
       }
     }
-  }
-
-  private _stagedEntryFor(entityId: string): StagedEntry {
-    const changes = this.stagedChanges;
-    return {
-      added: changes?.additions.has(entityId) ?? false,
-      update: changes?.updates.get(entityId),
-      deleted: changes?.deletes.has(entityId) ?? false,
-    };
   }
 
   private _restoreEntity(entityId: string, entry: GeometryCheckpointEntry<T>): void {
@@ -953,26 +935,27 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
     }
   }
 
-  private _restoreStagedEntry(entityId: string, staged: StagedEntry): void {
+  /** Pending geometry is relative to the current base, which may have been committed mid-journal. */
+  private _restoreStagedEntry(entityId: string): void {
     const changes = this.stagedChanges;
     if (!changes) {
       return;
     }
-    const addition = staged.added ? this.getEntityById(entityId) : undefined;
-    if (addition) {
-      changes.additions.set(entityId, addition);
-    } else {
-      changes.additions.delete(entityId);
-    }
-    if (staged.update) {
-      changes.updates.set(entityId, staged.update);
-    } else {
-      changes.updates.delete(entityId);
-    }
-    if (staged.deleted) {
+    const base = this._data.entitiesById[entityId];
+    const entity = this.getEntityById(entityId);
+    const pending = changes.updates.get(entityId);
+    changes.additions.delete(entityId);
+    changes.updates.delete(entityId);
+    changes.deletes.delete(entityId);
+    if (entity && !base) {
+      changes.additions.set(entityId, entity);
+    } else if (base && !entity) {
       changes.deletes.add(entityId);
-    } else {
-      changes.deletes.delete(entityId);
+    } else if (base && entity) {
+      const update = removeZeroDeltas({ ...pending, ...getLayoutChangeBetween(base, entity) });
+      if (Object.keys(update).length > 0) {
+        changes.updates.set(entityId, update);
+      }
     }
   }
 

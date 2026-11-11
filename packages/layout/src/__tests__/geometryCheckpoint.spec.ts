@@ -77,6 +77,47 @@ describe('geometry checkpoints', () => {
     layout.release(gesture);
   });
 
+  it('rebases rollback deltas after a commit while preserving non-geometry edits', () => {
+    const layout = makeLayout();
+    layout.updateEntity('b', { deltaY: 3 });
+    const gesture = layout.geometryCheckpoint();
+    layout.updateEntity('b', { deltaX: 10, deltaHeight: 5 });
+    layout.applyStagedChanges();
+    layout.updateEntity('b', { deltaX: 20, containerId: 'group' });
+    layout.revertTo(gesture);
+    expect(layout.getEntityById('b')).toMatchObject({
+      x: 200,
+      y: 3,
+      height: 80,
+      containerId: 'group',
+    });
+    expect(layout.getEntityById('b', false, false)).toMatchObject({
+      x: 210,
+      y: 3,
+      height: 85,
+    });
+    expect(layout.stagedChanges?.updates).toEqual(
+      new Map([['b', { deltaX: -10, deltaHeight: -5, containerId: 'group' }]]),
+    );
+    expect(layout.stagedChanges?.additions.size).toBe(0);
+    expect(layout.stagedChanges?.deletes.size).toBe(0);
+  });
+
+  it('reports inverse additions and deletions when rolling back committed existence changes', () => {
+    const layout = makeLayout();
+    const original = layout.getEntityById('b');
+    const gesture = layout.geometryCheckpoint();
+    layout.removeEntity('b');
+    layout.addEntity(box('new'));
+    layout.applyStagedChanges();
+    layout.revertTo(gesture);
+    expect(layout.getEntityById('b')).toEqual(original);
+    expect(layout.getEntityById('new')).toBeUndefined();
+    expect(layout.stagedChanges?.additions).toEqual(new Map([['b', original]]));
+    expect(layout.stagedChanges?.deletes).toEqual(new Set(['new']));
+    expect(layout.stagedChanges?.updates.size).toBe(0);
+  });
+
   it('keeps full snapshots and forks independent of geometry journals', () => {
     const layout = makeLayout();
     const snapshot = layout.checkpoint('saved');
