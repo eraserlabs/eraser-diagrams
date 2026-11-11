@@ -24,6 +24,7 @@ import {
   getConnectorLabelRoute,
   isArcBend,
 } from '../arcGeometry.js';
+import { isFiniteBox } from '../layoutGeometry.js';
 import { getFaceCenterPoint } from '../portUtils.js';
 import { clamp } from '../rangeUtils.js';
 import { clipFacePointToOutline } from '../outline.js';
@@ -454,10 +455,7 @@ export function keepManualLabel(
 ): PositionProps | undefined {
   const box = previous.textPlacement;
   const lineOffset = previous.textLineOffset;
-  if (lineOffset === undefined || !box || !size) {
-    return undefined;
-  }
-  if (![box.x, box.y, box.width, box.height].every(Number.isFinite)) {
+  if (lineOffset === undefined || !isFiniteBox(box) || !size) {
     return undefined;
   }
   const center: Point = [box.x + box.width / 2, box.y + box.height / 2];

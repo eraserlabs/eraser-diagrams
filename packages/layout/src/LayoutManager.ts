@@ -74,8 +74,6 @@ interface GeometryCheckpoint<T extends LayoutEntity> {
   entry: Map<string, GeometryCheckpointEntry<T>>;
 }
 
-const overEpsilon = (delta: number): number => (Math.abs(delta) > OUTPUT_EPSILON ? delta : 0);
-
 /**
  * Runs after fork() builds a new manager. Modules outside core that keep their own state per
  * manager (for example the alignment capture in advancedLayout) use it to copy that state to the
@@ -499,7 +497,7 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
     }
 
     if (this._geometryCheckpoints.length > 0) {
-      this._recordStructuralEntry(entity.id);
+      this._recordCheckpointEntry(entity.id, 'structural');
     }
 
     this.stagedChanges!.additions.set(entity.id, entity);
@@ -530,7 +528,7 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
     }
 
     if (this._geometryCheckpoints.length > 0) {
-      this._recordGeometryEntry(entityId);
+      this._recordCheckpointEntry(entityId, 'geometry');
     }
 
     const { additions, updates } = this.stagedChanges!;
@@ -620,7 +618,7 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
     }
 
     if (this._geometryCheckpoints.length > 0) {
-      this._recordStructuralEntry(entityId);
+      this._recordCheckpointEntry(entityId, 'structural');
     }
 
     this.stagedChanges!.deletes.add(entityId);
@@ -825,12 +823,11 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
       if (!entity || !box || removed) {
         continue;
       }
-      const change = removeZeroDeltas({
-        deltaX: overEpsilon(entity.x - box.x),
-        deltaY: overEpsilon(entity.y - box.y),
-        deltaWidth: overEpsilon(entity.width - box.width),
-        deltaHeight: overEpsilon(entity.height - box.height),
-      });
+      const change = Object.fromEntries(
+        Object.entries(getLayoutChangeBetween(box, entity)).filter(
+          ([, delta]) => Math.abs(delta) > OUTPUT_EPSILON,
+        ),
+      );
       if (Object.keys(change).length > 0) {
         changes.set(entityId, change);
       }
@@ -846,25 +843,18 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
     return index;
   }
 
-  private _recordGeometryEntry(entityId: string): void {
-    const entity = this._getData().entitiesById[entityId];
-    if (!entity) {
-      return;
-    }
-    const box = { x: entity.x, y: entity.y, width: entity.width, height: entity.height };
-    for (const checkpoint of this._geometryCheckpoints) {
-      if (!checkpoint.entry.has(entityId)) {
-        checkpoint.entry.set(entityId, { box, removed: undefined });
-      }
-    }
-  }
-
-  /** Removal must retain enough structure to resurrect an entity, not just its box. */
-  private _recordStructuralEntry(entityId: string): void {
+  /** Structural edits also retain enough state to resurrect an entity, not just its box. */
+  private _recordCheckpointEntry(entityId: string, kind: 'geometry' | 'structural'): void {
     const data = this._getData();
     const entity = data.entitiesById[entityId];
+    if (!entity && kind === 'geometry') {
+      return;
+    }
     const box = entity && { x: entity.x, y: entity.y, width: entity.width, height: entity.height };
-    const removed = entity && { entity, childIds: data.containerMapping[entityId] };
+    const removed =
+      kind === 'structural' && entity
+        ? { entity, childIds: data.containerMapping[entityId] }
+        : undefined;
     for (const checkpoint of this._geometryCheckpoints) {
       const existing = checkpoint.entry.get(entityId);
       if (!existing) {
@@ -887,12 +877,7 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
     if (!entity || !entry.box) {
       return;
     }
-    this.updateEntity(entityId, {
-      deltaX: entry.box.x - entity.x,
-      deltaY: entry.box.y - entity.y,
-      deltaWidth: entry.box.width - entity.width,
-      deltaHeight: entry.box.height - entity.height,
-    });
+    this.updateEntity(entityId, getLayoutChangeBetween(entity, entry.box));
     this._landOnBox(entityId, entry.box);
   }
 
