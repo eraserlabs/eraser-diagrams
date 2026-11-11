@@ -1,9 +1,13 @@
 /* White header band (or authored titleBgColor), 5px corners, 1.8px identity border; key 17px in
    the table face, type/meta 15px mono mid-gray; solid light-scale row separators the outer border
-   paints over. Header 36 / rows 28 px. */
+   paints over. */
+/* Size: inside its border a table is 40px of header and 38px per field high, and it is at least
+   150px wide. Its text starts 10px inside the border; a field's type is 20px from its name and
+   10px from its meta. The header and each row above the last carry 1px of top padding against
+   their 1px separator, so their text and the icon are centred on the full 40px or 38px. */
 /* Text sizing (see CUSTOMIZATION.md): sizes are pixels only. Each slot names its own --er-base;
    an authored `fontSize` arrives as gated data-font-px + --er-font-px and replaces it. */
-/* The table's own type ramp hangs off one base: the 17px field name is --er-base, the 18px title
+/* The table's own type ramp hangs off one base: the 17px field name is --er-base, the 20px title
    and the 15px type/meta columns are fixed ratios of it, so one authored fontSize moves the whole
    ramp instead of flattening it. */
 .er-dbtable {
@@ -13,12 +17,15 @@
      the same lightening groups use); an authored bgColor paints the face directly. */
   --er-stroke: var(--er-muted);
   --er-divider: var(--er-separator);
-  --er-tint: var(--er-surface);
+  /* The face with no identity: the surface with a trace of ink (#fafafa on white), the same
+     98% lightness an identity colour is tinted to. */
+  --er-tint: color-mix(in srgb, var(--er-surface), var(--er-text) 2.3%);
   --er-base: 17px;
   position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
+  min-width: 150px;
   height: 100%;
   overflow: hidden;
   border: 1.8px solid var(--er-stroke);
@@ -81,9 +88,9 @@
 .er-dbtable__head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 0 10px;
+  gap: 10px;
+  min-height: 40px;
+  padding: 1px 10px 0;
   background: var(--er-surface);
   border-bottom: 1px solid var(--er-divider);
   box-sizing: border-box;
@@ -97,9 +104,8 @@
 .er-dbtable__title {
   flex: 1;
   margin: 0;
-  font-size: calc(var(--er-base) * 18 / 17);
+  font-size: calc(var(--er-base) * 20 / 17);
   font-weight: 400;
-  letter-spacing: -0.01em;
   color: var(--er-text);
   text-align: left;
 }
@@ -114,7 +120,7 @@
   flex: 0 0 auto;
   width: 25px;
   height: 25px;
-  color: var(--er-secondary);
+  color: var(--er-text);
   line-height: 0;
 }
 .er-dbtable__icon svg {
@@ -129,17 +135,19 @@
 }
 .er-dbtable__row {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
-  min-height: 28px;
-  padding: 0 10px;
+  min-height: 38px;
+  padding: 1px 10px 0;
   border-bottom: 1px solid var(--er-divider);
   box-sizing: border-box;
 }
 .er-dbtable__row:last-child {
+  padding-top: 0;
   border-bottom: none;
 }
 .er-dbtable__f-name {
+  margin-right: 10px;
   font-size: var(--er-base);
   color: var(--er-body-text);
 }
