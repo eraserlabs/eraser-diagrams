@@ -203,6 +203,14 @@ export interface LayoutChange {
 export type LayoutConnectionChange =
   Partial<LayoutConnection> | Pick<LayoutChange, 'deltaX' | 'deltaY'>;
 
+/** A child's edge and signed offset relative to a declared parent's wall. */
+export interface WallAttachment {
+  edge: 'inner' | 'outer';
+  offset: number;
+}
+
+export type WallAttachments = Partial<Record<'start' | 'end', WallAttachment>>;
+
 export interface LayoutOptions {
   /**
    * The default spacing between entities
@@ -246,6 +254,8 @@ export interface LayoutOptions {
    * treated as normal members and containers grow to contain them.
    */
   intentionalStraddle?: true;
+  /** Session-projected geometry relations; core does not infer or apply these attachments. */
+  wallAttachment?: Partial<Record<Axis, WallAttachments>>;
   /**
    * This property is used when we want to enforce consistent spacing for ranks.
    * When used, it will override the dimensions of non-container entities for certain calculations.

@@ -15,6 +15,7 @@ import {
   type OutlineVertex,
   type RepairPolicy,
 } from '@eraserlabs/layout';
+import { isFiniteBox } from '@eraserlabs/layout/layoutGeometry';
 import type { ResolvedConnection, ResolvedEntity } from '@eraserlabs/protocol';
 import type { Box, ConnectionGeometry, SceneLayout } from '@eraserlabs/render';
 import { isFiniteNumber, isRecord } from '@eraserlabs/utils';
@@ -433,7 +434,7 @@ function toSceneLayout(
     polylines.push(drawn);
     // A label layout left unplaced (a kept path whose label had only a size) falls back to the
     // path midpoint, with no authoritative box.
-    const placed = isPlaced(connection.textPlacement) ? connection.textPlacement : undefined;
+    const placed = isFiniteBox(connection.textPlacement) ? connection.textPlacement : undefined;
     connections[connection.id] = {
       d: arc
         ? getArcPathD(arc.start, arc.end, arc.bend)
@@ -465,12 +466,6 @@ function arcOf(
   const end = points[points.length - 1]!;
   const bend = isArcBend(connection.bend) ? connection.bend : defaultBendForChord(start, end);
   return Math.abs(bend) >= ARC_BEND_SNAP_THRESHOLD ? { start, end, bend } : undefined;
-}
-
-function isPlaced(
-  box: LayoutConnection['textPlacement'],
-): box is NonNullable<LayoutConnection['textPlacement']> {
-  return box !== undefined && [box.x, box.y, box.width, box.height].every(Number.isFinite);
 }
 
 function midpoint(points: Point[]): { x: number; y: number } {
