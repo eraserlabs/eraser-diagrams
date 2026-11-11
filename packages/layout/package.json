@@ -1,6 +1,6 @@
 {
   "name": "@eraserlabs/layout",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Eraser's layout geometry and corridor connection router.",
   "type": "module",
   "license": "MIT",
