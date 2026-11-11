@@ -65,6 +65,17 @@ export interface LayoutEntity extends PositionProps {
   textPlacement?: RelativePositionProps;
   /** True drawn boundary for endpoint attachment; absent means the bounding box is the boundary. */
   outline?: OutlineDescriptor;
+  /** Declared ports; connection ends on such an entity pin to its left/right walls (routing/ports.ts). */
+  ports?: readonly LayoutPort[];
+}
+
+/** Named band of an entity's left and right faces, entity-relative. Derived when the layout is built; never persisted. */
+export interface LayoutPort {
+  readonly id: string;
+  readonly y: number;
+  readonly height: number;
+  /** Whether an end on this port faces the other entity once the two clear horizontally. */
+  readonly allowCrossover: boolean;
 }
 
 export interface TextPlacement extends PositionProps {
@@ -99,6 +110,8 @@ export interface NewEntity {
    */
   x?: number;
   y?: number;
+  /** Declared ports; see LayoutEntity.ports. */
+  ports?: readonly LayoutPort[];
 }
 
 export interface MovedEntity {
@@ -148,6 +161,10 @@ export interface LayoutConnection {
   relativeFromPort?: RelativePortPosition;
   /** The port, in relative coordinates of the to entity */
   relativeToPort?: RelativePortPosition;
+  /** Port on the from entity this end attaches to. */
+  fromPortId?: string;
+  /** Port on the to entity this end attaches to. */
+  toPortId?: string;
   /** Authored face hint: prefer this face for the from-endpoint. */
   authoredFromFace?: Direction;
   /** Authored face hint: prefer this face for the to-endpoint. */
