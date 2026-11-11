@@ -5,6 +5,7 @@ import {
   type LayoutEntity,
 } from '../../types.js';
 import { collectFaceProposals } from '../corridor/fanSpreadRepair.js';
+import type { RouteSearchRequest } from '../corridor/contract.js';
 import { repairProductionRoutes } from '../corridor/productionRepair.js';
 import { compareRoutingQualityCosts } from '../corridor/qualityCost.js';
 import type { RepairContext } from '../corridor/repairProposal.js';
@@ -15,6 +16,127 @@ import { MIN_TRACK_SEPARATION_PX } from '../corridor/spacing.js';
 import { searchRoute } from '../corridor/topology.js';
 import { buildCorridorWorld } from '../corridor/worldConstruction.js';
 import { routeConnections } from '../routeConnections.js';
+
+function singletonPair(axis: 'x' | 'y', offset: number, authoredTrack?: number) {
+  const entities: LayoutEntity[] =
+    axis === 'x'
+      ? [
+          { id: 'from', x: 0, y: 0, width: 80, height: 120 },
+          { id: 'to', x: 240, y: offset, width: 80, height: 120 },
+        ]
+      : [
+          { id: 'from', x: 0, y: 0, width: 120, height: 80 },
+          { id: 'to', x: offset, y: 240, width: 120, height: 80 },
+        ];
+  const requests = [
+    {
+      requestIndex: 0,
+      from: {
+        entityIndex: 0,
+        face: axis === 'x' ? ('right' as const) : ('down' as const),
+        hasArrowhead: false,
+        authoredTrack,
+      },
+      to: {
+        entityIndex: 1,
+        face: axis === 'x' ? ('left' as const) : ('up' as const),
+        hasArrowhead: true,
+      },
+    },
+  ];
+  const world = buildCorridorWorld(new LayoutManager({ entities, connections: [] }), requests);
+  const topologies = requests.map((request) => searchRoute(world, request).route);
+  const initial = realizeRoutes(world, topologies);
+  const result = repairProductionRoutes(world, requests, topologies, initial, {
+    timeBudgetMs: Infinity,
+    adoptedRouteIndexes: new Set(),
+  });
+  return { world, initial, result };
+}
+
+it.each(['x', 'y'] as const)(
+  'centers both singleton ports with a better two-bend route along %s',
+  (axis) => {
+    const { world, initial, result } = singletonPair(axis, 50);
+    expect(initial.routes[0].points()).toHaveLength(2);
+    const crossAxis = axis === 'x' ? 'y' : 'x';
+    expect(initial.routes[0].ports().from[crossAxis]).toBe(85);
+    expect(initial.routes[0].ports().to[crossAxis]).toBe(85);
+    expect(result.routes[0].ports().from[crossAxis]).toBe(60);
+    expect(result.routes[0].ports().to[crossAxis]).toBe(110);
+    expect(result.routes[0].points()).toHaveLength(4);
+    expect(compareRoutingQualityCosts(result.quality.cost, initial.quality.cost)).toBeLessThan(0);
+    const replay = realizeRoutes(world, result.topologies, {
+      continuationCutSelection: 'best',
+      ...result.policies,
+    });
+    expect(replay.routes[0].points()).toEqual(result.routes[0].points());
+    expect(replay.quality.cost).toEqual(result.quality.cost);
+  },
+);
+
+it.each(['x', 'y'] as const)('keeps nearly aligned singleton ports straight along %s', (axis) => {
+  const { initial, result } = singletonPair(axis, 30);
+  expect(initial.routes[0].points()).toHaveLength(2);
+  expect(result.routes[0].points()).toEqual(initial.routes[0].points());
+  expect(
+    result.diagnostics.quality.candidates.some(
+      (candidate) =>
+        candidate.key === 'singleton-centers:0' && candidate.status === 'quality-rejection',
+    ),
+  ).toBe(true);
+});
+
+it.each(['x', 'y'] as const)('preserves an authored singleton port along %s', (axis) => {
+  const { initial, result } = singletonPair(axis, 50, 85);
+  const crossAxis = axis === 'x' ? 'y' : 'x';
+  expect(initial.routes[0].ports().from[crossAxis]).toBe(85);
+  expect(result.routes[0].ports().from[crossAxis]).toBe(85);
+  expect(
+    result.diagnostics.quality.candidates.some(
+      (candidate) => candidate.key === 'singleton-centers:0',
+    ),
+  ).toBe(false);
+});
+
+it('does not treat a face shared with an authored endpoint as a singleton', () => {
+  const requests: RouteSearchRequest[] = [
+    {
+      requestIndex: 0,
+      from: { entityIndex: 0, face: 'right' },
+      to: { entityIndex: 1, face: 'left' },
+    },
+    {
+      requestIndex: 1,
+      from: { entityIndex: 0, face: 'right', authoredTrack: 20 },
+      to: { kind: 'point', x: 160, y: 20 },
+    },
+  ];
+  const world = buildCorridorWorld(
+    new LayoutManager({
+      entities: [
+        { id: 'from', x: 0, y: 0, width: 80, height: 120 },
+        { id: 'to', x: 240, y: 50, width: 80, height: 120 },
+      ],
+      connections: [],
+    }),
+    requests,
+  );
+  const topologies = requests.map((request) => searchRoute(world, request).route);
+  const batch = realizeRoutes(world, topologies);
+  const proposals = collectFaceProposals({
+    world,
+    requests,
+    topologies,
+    batch,
+    policies: { independentContinuations: [] },
+    search: createRepairSearch(world),
+    protectedRouteIndexes: new Set(),
+    mode: 'quality',
+  });
+  expect(proposals.some((proposal) => proposal.key === '0:right')).toBe(true);
+  expect(proposals.some((proposal) => proposal.key === 'singleton-centers:0')).toBe(false);
+});
 
 function crowdedFace() {
   const entities: LayoutEntity[] = [

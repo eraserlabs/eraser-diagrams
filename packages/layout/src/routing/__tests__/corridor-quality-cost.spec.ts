@@ -1,5 +1,6 @@
-import type { LayoutEntity } from '../../types.js';
+import type { LayoutEntity, XYPoint } from '../../types.js';
 import { collectEndpointQualityEvents } from '../corridor/endpointQuality.js';
+import { collectGeometryQualityEvents } from '../corridor/geometryQuality.js';
 import {
   compareRoutingQualityCosts,
   ordinaryBendCost,
@@ -71,6 +72,56 @@ describe('routing corridor progressive quality cost', () => {
   it('charges a strong first bend and cheaper later bends', () => {
     expect([0, 1, 2, 3, 4].map(ordinaryBendCost)).toEqual([0, 48, 72, 96, 120]);
   });
+
+  it.each(['x', 'y'] as const)(
+    'charges one complete %s-axis backtrack across emitted visit boundaries',
+    (axis) => {
+      const splitPoints = [
+        { x: 0, y: 100 },
+        { x: 60, y: 100 },
+        { x: 85, y: 100 },
+        { x: 85, y: 84 },
+        { x: 60, y: 84 },
+        { x: 36, y: 84 },
+        { x: 36, y: 0 },
+        { x: 60, y: 0 },
+      ].map(({ x, y }) => (axis === 'x' ? { x, y } : { x: y, y: x }));
+      const unsplitPoints = splitPoints.filter((_, index) => index !== 1 && index !== 4);
+      const backtracks = (points: readonly XYPoint[]) => {
+        const visits = points.slice(1).map((_, index) => ({
+          corridorIndex: index,
+          entry: { kind: 'terminal' as const, attachmentIndex: 0 },
+          exit: { kind: 'terminal' as const, attachmentIndex: 1 },
+          feasibleTrack: [0, 100] as const,
+        }));
+        const from = points[0];
+        const to = points[points.length - 1];
+        const route = new Route(0, { kind: 'point', ...from }, { kind: 'point', ...to }, visits);
+        route.beginRealization();
+        route.setOrder(visits.map(() => 0));
+        route.setNominalTracks(visits.map(() => 0));
+        route.setGeometry(
+          { from, to },
+          points,
+          visits.map((_, index) => index),
+        );
+        return collectGeometryQualityEvents([route]).events.filter(
+          ({ kind }) => kind === 'backtrack',
+        );
+      };
+
+      const split = backtracks(splitPoints);
+      const unsplit = backtracks(unsplitPoints);
+      expect(split).toHaveLength(1);
+      expect(unsplit).toHaveLength(1);
+      expect(split[0].cost).toBeCloseTo((200 * (49 - 24)) / 24);
+      expect(split[0].cost).toBe(unsplit[0].cost);
+      expect(split[0].visits).toEqual(
+        [0, 1, 3, 4].map((visitIndex) => ({ routeIndex: 0, visitIndex })),
+      );
+      expect(split[0].corridorIndexes).toEqual([0, 1, 3, 4]);
+    },
+  );
 
   it('compares invalid, cap, and scalar tiers lexicographically', () => {
     expect(
