@@ -5,7 +5,9 @@
       "tag": "DatabaseTable",
       "id": "users",
       "label": "users",
-      "x": 40,
+      "icon": "users",
+      "color": "blue",
+      "x": 330,
       "y": 40,
       "width": 200,
       "fields": [
@@ -17,8 +19,10 @@
       "tag": "DatabaseTable",
       "id": "profiles",
       "label": "profiles",
+      "icon": "user",
+      "color": "purple",
       "x": 40,
-      "y": 260,
+      "y": 40,
       "width": 200,
       "fields": [
         { "name": "user_id", "type": "int", "meta": "PK, FK" },
@@ -29,7 +33,9 @@
       "tag": "DatabaseTable",
       "id": "orders",
       "label": "orders",
-      "x": 350,
+      "icon": "shopping-cart",
+      "color": "green",
+      "x": 620,
       "y": 40,
       "width": 200,
       "fields": [
