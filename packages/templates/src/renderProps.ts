@@ -18,7 +18,13 @@ const groupPaints: Record<string, JsonSchema> = {
 
 /** Kept separate from tagSchemas so rendering details do not enter the authoring contract. */
 export const stockRenderProps: Record<string, Record<string, JsonSchema>> = {
-  Shape: { ...surfacePaints, ...washPaints, bodyInk: CssColor },
+  Shape: {
+    ...surfacePaints,
+    ...washPaints,
+    bodyInk: CssColor,
+    geoShadowPath: { type: 'string', pattern: '^[MLHVQCAZ0-9,. \\-]+$' },
+    geoShadowClip: { type: 'string', pattern: '^[MLHVQCAZ0-9,. \\-]+$' },
+  },
   Legend: surfacePaints,
   Activity: surfacePaints,
   Event: surfacePaints,
@@ -27,4 +33,5 @@ export const stockRenderProps: Record<string, Record<string, JsonSchema>> = {
   Lane: groupPaints,
   Pool: groupPaints,
   DatabaseTable: { ...surfacePaints, ...washPaints, dividerColor: CssColor },
+  Relationship: { startMarker: { type: 'string' }, endMarker: { type: 'string' } },
 };

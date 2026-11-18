@@ -107,7 +107,7 @@
   font-family: var(--f, var(--font-clean, sans-serif));
   font-size: 16px;
   font-weight: 400;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--er-letter-spacing, -0.01em);
   color: var(--er-text);
   box-sizing: border-box;
 }
@@ -209,7 +209,7 @@
   .er-grouplike__title::after {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -1px;
   border: 1px solid
     color-mix(
       in srgb,

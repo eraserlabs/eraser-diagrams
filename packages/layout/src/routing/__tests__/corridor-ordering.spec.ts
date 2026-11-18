@@ -1,6 +1,10 @@
+import { LayoutManager } from '../../LayoutManager.js';
 import type { Corridor, PortalRef, TerminalAttachment } from '../corridor/contract.js';
 import { orderRoutes } from '../corridor/ordering.js';
 import { Route, type CorridorVisit } from '../corridor/route.js';
+import { realizeRoutes } from '../corridor/realize.js';
+import { searchRoutes } from '../corridor/topology.js';
+import { buildCorridorWorld } from '../corridor/worldConstruction.js';
 import { leaf, manualCorridorWorld } from '../routingTestUtils.js';
 
 const BOUNDS = { x: -100, y: -100, width: 400, height: 400 };
@@ -15,6 +19,55 @@ function route(
 }
 
 describe('routing corridor ordering', () => {
+  it.each([
+    ['x', false],
+    ['x', true],
+    ['y', false],
+    ['y', true],
+  ] as const)(
+    'orders a departure on its exit side of a straight peer through a wide portal (axis=%s, reversed=%s)',
+    (axis, reversed) => {
+      const layoutManager = new LayoutManager({
+        entities: [
+          leaf('source', 0, 200, 40, 40),
+          leaf('above', 120, 80, 40, 40),
+          leaf('ahead', 240, 200, 40, 40),
+          { ...leaf('distant-frame', 400, 0, 500, 500), isContainer: true },
+        ].map((entity) =>
+          axis === 'x'
+            ? entity
+            : {
+                ...entity,
+                x: -entity.y - entity.height,
+                y: entity.x,
+                width: entity.height,
+                height: entity.width,
+              },
+        ),
+        connections: [],
+      });
+      const requests = [1, 2].map((entityIndex, requestIndex) => {
+        const source = {
+          entityIndex: 0,
+          face: axis === 'x' ? ('right' as const) : ('down' as const),
+        };
+        const target = { entityIndex, face: axis === 'x' ? ('left' as const) : ('up' as const) };
+        return { requestIndex, from: reversed ? target : source, to: reversed ? source : target };
+      });
+      const world = buildCorridorWorld(layoutManager, requests);
+      const topologies = searchRoutes(world, requests).map(({ route }) => route);
+      const realized = realizeRoutes(world, topologies);
+      const side = reversed ? 'to' : 'from';
+      const cross = axis === 'x' ? 'y' : 'x';
+      const exitSide = axis === 'x' ? -1 : 1;
+
+      expect(exitSide * realized.routes[0].ports()[side][cross]).toBeGreaterThan(
+        exitSide * realized.routes[1].ports()[side][cross],
+      );
+      expect(realized.geometryQuality.crossings).toEqual([]);
+    },
+  );
+
   it.each(['point', 'entity'] as const)(
     'assigns singleton %s-terminal visits order zero while retaining corridor and route indexes',
     (terminalKind) => {

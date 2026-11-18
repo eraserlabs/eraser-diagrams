@@ -159,8 +159,7 @@ for (const theme of ['light', 'dark'] as const) {
 
     // Final paints and nested overrides use the same theme pass.
     const paints = [
-      ['s1', '.er-shape__inner', 'background-color', paint('#b3ffff')],
-      ['s1', '.er-shape__inner', 'border-top-color', paint('#00ffff')],
+      ['s1', '.er-shape__path--dynamic', 'fill', paint('#b3ffff')],
       ['g1', '[data-role="body"]', 'background-color', paint('#f5ffff')],
       ['s1', '.er-shape__text', 'color', ink],
       ['s1', '[data-tpl="Badge"]', 'background-color', paint('#f5ffff')],
@@ -176,6 +175,11 @@ for (const theme of ['light', 'dark'] as const) {
     for (const [id, selector, property, value] of paints) {
       await expect(host(id).locator(selector)).toHaveCSS(property, value);
     }
+    await expect(host('s1').locator('.er-shape__path--dynamic')).toHaveCSS(
+      'stroke',
+      paint('#00ffff'),
+    );
+    await expect(host('s1').locator('.er-shape__path--dynamic')).toHaveCSS('stroke-width', '1.2px');
     await expect(host('lg1').locator('.er-legend__swatch').first()).toHaveCSS(
       'background-color',
       paint('#00aa77'),
@@ -378,15 +382,26 @@ test('stock CSS preserves legacy light paints and inherited colors in both theme
       const context = canvas.getContext('2d')!;
       const paint = (id: string, selector: string, property: string) => {
         const host = document.querySelector(`[data-mdp-id="${id}"]`)!;
-        const css = getComputedStyle(host.querySelector(selector)!);
+        const css = getComputedStyle(
+          host.querySelector(selector)!,
+          property === 'box-shadow' ? '::after' : null,
+        );
         context.clearRect(0, 0, 1, 1);
-        context.fillStyle = css.getPropertyValue(property);
+        let color = css.getPropertyValue(property);
+        if (property === 'box-shadow') {
+          const outline = /^(.*) 0px 0px 0px ([\d.]+)px inset$/.exec(color);
+          if (!outline || Number(outline[2]) <= 0) {
+            throw new Error(`Expected a visible inset outline: ${color}`);
+          }
+          color = outline[1]!;
+        }
+        context.fillStyle = color;
         context.fillRect(0, 0, 1, 1);
         return [...context.getImageData(0, 0, 1, 1).data];
       };
       return {
         shape: paint('Shape', '.er-shape__inner', 'background-color'),
-        shapeBorder: paint('Shape', '.er-shape__inner', 'border-top-color'),
+        shapeBorder: paint('Shape', '.er-shape__inner', 'box-shadow'),
         group: paint('Group', '[data-role="body"]', 'background-color'),
         lane: paint('Lane', '[data-role="body"]', 'background-color'),
         pool: paint('Pool', '[data-role="body"]', 'background-color'),
@@ -397,7 +412,7 @@ test('stock CSS preserves legacy light paints and inherited colors in both theme
         table: paint('DatabaseTable', '[data-role="body"]', 'background-color'),
         divider: paint('DatabaseTable', '.er-dbtable__head', 'border-bottom-color'),
         explicit: paint('explicit', '.er-shape__inner', 'background-color'),
-        explicitBorder: paint('explicit', '.er-shape__inner', 'border-top-color'),
+        explicitBorder: paint('explicit', '.er-shape__inner', 'box-shadow'),
       };
     });
     const dark = mode === 'inherited-dark';

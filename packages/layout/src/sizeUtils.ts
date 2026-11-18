@@ -82,6 +82,12 @@ export function getLayoutChangeBetween(before: PositionProps, after: PositionPro
   };
 }
 
+/** Sparse delta between two boxes; identical boxes have no change. */
+export function layoutChangeBetween(from: PositionProps, to: PositionProps): LayoutChange | null {
+  const change = removeZeroDeltas(getLayoutChangeBetween(from, to));
+  return Object.keys(change).length > 0 ? change : null;
+}
+
 export function buildChanges<T extends LayoutEntity = LayoutEntity>(
   entity: T,
   changes: LayoutChange | null | undefined,

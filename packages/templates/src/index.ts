@@ -132,3 +132,5 @@ export { buildRenderPageSetup } from './pageSetup.js';
 // grows as its text is typed): the same paths the normalizer stamps at fill (deriveGeo).
 export { roundedShapePath } from './roundedPolygon.js';
 export { curvedShapePath, type CurvedShapePath } from './curvedShapePaths.js';
+
+export { rectanglePath, rectangleShadowPaths } from './rectanglePath.js';

@@ -209,3 +209,43 @@ test('IDs and cleanup are isolated across anchors, including detached SVGs', asy
   expect(result.remaining).toBe(1);
   expect(result.authoredIntact).toBe(true);
 });
+
+test('a supplied arc route cuts its apex without computed-style reads', async ({ page }) => {
+  await page.evaluate(() => {
+    const path = document.querySelector('svg > path')!;
+    path.setAttribute('d', 'M10 50A90 40 0 0 0 190 50');
+  });
+  const uncut = await page.locator('svg').screenshot();
+  const result = await page.evaluate(() => {
+    const svg = document.querySelector('svg')!;
+    const anchor = svg.querySelector('path')!;
+    const original = window.getComputedStyle;
+    window.getComputedStyle = () => {
+      throw new Error('Saved route painting must not read computed styles');
+    };
+    try {
+      const cut = window.labelGapTest.cutLabelGap(
+        svg,
+        anchor,
+        { x: 80, y: 82, width: 40, height: 16 },
+        {
+          connectionId: 'arc',
+          field: { x: 0, y: 0, width: 200, height: 100 },
+          strokeWidth: 4,
+          route: [
+            [10, 50],
+            [36, 78],
+            [100, 90],
+            [164, 78],
+            [190, 50],
+          ],
+        },
+      );
+      return { cut, masks: svg.querySelectorAll('[data-mdp-connection-mask]').length };
+    } finally {
+      window.getComputedStyle = original;
+    }
+  });
+  expect(result).toEqual({ cut: true, masks: 1 });
+  expect((await page.locator('svg').screenshot()).equals(uncut)).toBe(false);
+});

@@ -10,7 +10,14 @@
     data-ink="{{color}}"
     data-pad="{{padding}}"
     style="--er-badge-bg: {{bgColor}}; --er-badge-ink: {{color}}; --er-font-px: {{fontSize}}px; --er-badge-pad: {{padding}}px"
-    ><span class="er-badge__icon" data-slot="icon" data-if="icon"></span
+    ><span
+      class="er-badge__icon"
+      data-slot="icon"
+      data-if="icon"
+      data-icon-size="{{iconSize}}"
+      data-icon-ink="{{iconColor}}"
+      style="--er-badge-icon-num: {{iconSize}}; --er-badge-icon-ink: {{iconColor}}"
+    ></span
     ><span class="er-badge__text er-md" data-if="text">{{text}}</span></span
   >
 </template>

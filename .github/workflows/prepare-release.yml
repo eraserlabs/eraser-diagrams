@@ -39,6 +39,7 @@ jobs:
           BUMP: ${{ inputs.bump }}
         run: |
           RELEASE_VERSION=$(node tools/release.mjs bump "$BUMP")
+          npm pkg set "version=$RELEASE_VERSION"
           echo "version=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
           pnpm install --lockfile-only --ignore-scripts
       - uses: peter-evans/create-pull-request@v8
@@ -48,10 +49,11 @@ jobs:
           title: 'Release v${{ steps.version.outputs.version }}'
           commit-message: 'chore: release v${{ steps.version.outputs.version }}'
           body: |
-            Bump all seven public packages to ${{ steps.version.outputs.version }}.
+            Set the root and public package versions to ${{ steps.version.outputs.version }}.
 
             Merging this PR publishes the packages to npm using trusted publishing.
           add-paths: |
+            package.json
             packages/*/package.json
             pnpm-lock.yaml
       # Dispatch explicitly because GITHUB_TOKEN-created PRs do not automatically run CI.

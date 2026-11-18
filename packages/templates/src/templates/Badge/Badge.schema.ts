@@ -9,6 +9,9 @@ export const Badge: JsonSchema = {
   properties: {
     text: { type: 'string', 'x-content': 'inline-markdown' },
     icon: { type: 'string', 'x-icon-name': true },
+    /** Literal glyph size in pixels, independent of the badge text. */
+    iconSize: { type: 'number', minimum: 0 },
+    iconColor: CssColor,
     color: CssColor,
     bgColor: CssColor,
     fontSize: FontSizePx,

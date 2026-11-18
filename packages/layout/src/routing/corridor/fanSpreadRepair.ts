@@ -1,9 +1,10 @@
 import type { Direction } from '../../types.js';
+import { midpoint } from '../../rangeUtils.js';
 import type { EndpointSide } from '../types.js';
 import { isPointEndpoint } from './contract.js';
 import type { RouteEndpoint, RouteSearchRequest } from './contract.js';
 import { assessFaceSlots, type FaceSlotAssessment } from './faceSlots.js';
-import { faceCrossSpan } from './geometry.js';
+import { faceCrossSpan, faceNormalAxis } from './geometry.js';
 import { ROUTING_QUALITY_COSTS } from './qualityCost.js';
 import {
   replaceRepairRoutes,
@@ -13,7 +14,7 @@ import {
 } from './repairProposal.js';
 import { Route } from './route.js';
 import { PORT_EDGE_PADDING_PX } from './spacing.js';
-import type { CorridorWorld } from './world.js';
+import { terminalFaceRouteCount, type CorridorWorld } from './world.js';
 
 const EPSILON = 1e-6;
 /** Faces below this slot charge are visually fine; repairing them cannot pay for itself. */
@@ -42,23 +43,65 @@ export function collectFaceProposals(context: RepairContext): RepairProposal[] {
   if (context.mode === 'caps') {
     return [];
   }
+  const centeredRoutes = new Set<number>();
   return slotChargedFaces(context.world, context.batch.routes)
     .filter((face) =>
       face.samples.every((sample) => !context.protectedRouteIndexes.has(sample.routeIndex)),
     )
-    .map((face) => {
+    .flatMap((face) => {
       const routeIndexes = [...new Set(face.samples.map((sample) => sample.routeIndex))];
-      return {
+      const proposals: RepairProposal[] = [
+        {
+          kind: 'face',
+          key: `${face.entityIndex}:${face.face}`,
+          routeIndexes,
+          cost: {
+            invalid: 0,
+            cap: 0,
+            scalar: ROUTING_QUALITY_COSTS.portCentering * face.assessment.charge,
+          },
+          build: () => buildFaceProposal(context, face, routeIndexes),
+        },
+      ];
+      const sample = face.samples[0];
+      if (face.samples.length !== 1 || centeredRoutes.has(sample.routeIndex)) {
+        return proposals;
+      }
+      const route = context.batch.routes[sample.routeIndex];
+      const oppositeSide = sample.side === 'from' ? 'to' : 'from';
+      const opposite = route[oppositeSide];
+      if (
+        isPointEndpoint(opposite) ||
+        opposite.authoredTrack !== undefined ||
+        terminalFaceRouteCount(context.world, route[sample.side]) !== 1 ||
+        terminalFaceRouteCount(context.world, opposite) !== 1 ||
+        faceNormalAxis(face.face) !== faceNormalAxis(opposite.face)
+      ) {
+        return proposals;
+      }
+      const farEntity = (context.world.sourceEntities ?? context.world.entities)[
+        opposite.entityIndex
+      ];
+      const farSpan = faceCrossSpan(farEntity, opposite.face);
+      const farPort = route.ports()[oppositeSide];
+      const farCoordinate = faceNormalAxis(opposite.face) === 'x' ? farPort.y : farPort.x;
+      const farAssessment = assessFaceSlots(farSpan, [farCoordinate]);
+      centeredRoutes.add(sample.routeIndex);
+      // A shared straight-track compromise cannot discover two independently centered ports.
+      // Offer both centers together; the realized objective still decides whether bends pay.
+      proposals.push({
         kind: 'face',
-        key: `${face.entityIndex}:${face.face}`,
+        key: `singleton-centers:${sample.routeIndex}`,
         routeIndexes,
         cost: {
           invalid: 0,
           cap: 0,
-          scalar: ROUTING_QUALITY_COSTS.portCentering * face.assessment.charge,
+          scalar:
+            ROUTING_QUALITY_COSTS.portCentering * (face.assessment.charge + farAssessment.charge),
         },
-        build: () => buildFaceProposal(context, face, routeIndexes),
-      };
+        build: () => buildFaceProposal(context, face, routeIndexes, Math.round(midpoint(farSpan))),
+      });
+      return proposals;
     });
 }
 
@@ -66,9 +109,13 @@ function buildFaceProposal(
   context: RepairContext,
   face: FanFace,
   routeIndexes: readonly number[],
+  oppositeTrack?: number,
 ): RepairState | undefined {
   const { world, batch, topologies, requests } = context;
-  const anchors = straightCoupledAnchors(world, batch.routes, face);
+  const anchors =
+    oppositeTrack === undefined
+      ? straightCoupledAnchors(world, batch.routes, face)
+      : new Map<number, number>();
   const targets = anchoredSlotTargets(face, anchors);
   const pins = new Map<string, number>();
   face.samples.forEach((sample, index) => {
@@ -78,16 +125,28 @@ function buildFaceProposal(
     const sample = face.samples[index];
     pins.set(pinKey(sample.routeIndex, sample.side === 'from' ? 'to' : 'from'), anchor);
   }
+  if (oppositeTrack !== undefined) {
+    const sample = face.samples[0];
+    pins.set(pinKey(sample.routeIndex, sample.side === 'from' ? 'to' : 'from'), oppositeTrack);
+  }
   const researched = new Map<number, Route>();
-  for (const [key, target] of pins) {
-    const { routeIndex, side } = parsePinKey(key);
-    const route = researched.get(routeIndex) ?? topologies[routeIndex];
-    const visit = side === 'from' ? route.visits[0] : route.visits[route.visits.length - 1];
-    if (
-      visit !== undefined &&
-      target >= visit.feasibleTrack[0] - EPSILON &&
-      target <= visit.feasibleTrack[1] + EPSILON
-    ) {
+  for (const routeIndex of routeIndexes) {
+    const route = topologies[routeIndex];
+    const needsSearch =
+      oppositeTrack !== undefined ||
+      (['from', 'to'] as const).some((side) => {
+        const target = pins.get(pinKey(routeIndex, side));
+        if (target === undefined) {
+          return false;
+        }
+        const visit = side === 'from' ? route.visits[0] : route.visits[route.visits.length - 1];
+        return (
+          visit === undefined ||
+          target < visit.feasibleTrack[0] - EPSILON ||
+          target > visit.feasibleTrack[1] + EPSILON
+        );
+      });
+    if (!needsSearch) {
       continue;
     }
     const search = context.search.search(
@@ -118,11 +177,6 @@ function buildFaceProposal(
 
 function pinKey(routeIndex: number, side: EndpointSide): string {
   return `${routeIndex}|${side}`;
-}
-
-function parsePinKey(key: string): { routeIndex: number; side: EndpointSide } {
-  const [routeIndex, side] = key.split('|');
-  return { routeIndex: Number(routeIndex), side: side as EndpointSide };
 }
 
 function pinEndpoint(endpoint: RouteEndpoint, pin: number | undefined): RouteEndpoint {

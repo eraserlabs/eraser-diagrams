@@ -1,4 +1,4 @@
-/* CSS-geometry kinds (rectangle/oval/circle/ellipse) paint the inner box with border-radius;
+/* CSS-geometry kinds (auto-sized rectangle/oval/circle/ellipse) paint the inner box with border-radius;
    polygon kinds + cylinder paint an inline 0–100 SVG layer (sharp corners — per-vertex arc
    rounding is an accepted divergence). Default: transparent fill, near-black hairline,
    hard 4px/4px #E8E8E8 shadow. */
@@ -11,6 +11,7 @@
      than triggering a var() fallback, so each paint rule is gated on its authored attribute. */
   --er-fill: transparent;
   --er-stroke: var(--er-text);
+  --er-border-width: 1.2px;
   /* Near-white tint published to nested mounts. */
   --er-tint: var(--er-surface);
   /* What a mounted Badge inherits (the canvas badge.ts): background = the body at 98% lightness
@@ -22,8 +23,7 @@
      (getIconBadgePosition): --er-badge-tl-x / -y are its left edge and vertical centre. */
   --er-badge-tint: var(--er-ground, var(--er-surface));
   --er-host-ink: currentColor;
-  /* The hard shadow. */
-  --er-host-border-width: 1.2px;
+  --er-host-border-width: var(--er-border-width);
   --er-host-border-style: solid;
   --er-badge-tl-x: 12px;
   --er-badge-tl-y: 0px;
@@ -42,6 +42,9 @@
   min-height: 0;
   box-sizing: border-box;
   color: var(--er-text);
+}
+.er-shape[data-border-px]:not([data-border-px='']) {
+  --er-border-width: var(--er-authored-border-width);
 }
 /* Identity: pastel body at 85% lightness, the identity colour itself as the hairline. */
 .er-shape[data-color]:not([data-color='']) {
@@ -182,7 +185,7 @@
   display: none;
   fill: var(--er-fill);
   stroke: var(--er-stroke);
-  stroke-width: 1.2;
+  stroke-width: var(--er-border-width);
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
@@ -205,13 +208,56 @@
   height: 100%;
   min-width: 0;
   min-height: 0;
-  border: 1.2px solid var(--er-stroke);
+  border: var(--er-border-width) solid var(--er-stroke);
   /* Corner radius: min(min(w,h) * 0.15, 12). */
   border-radius: min(12px, 15%);
   background: var(--er-fill);
   /* Horizontal inset = width * 0.15 total. */
   padding: 0 var(--er-shape-h-inset);
   box-sizing: border-box;
+}
+/* a box shape's solid outline: a CSS border snaps to whole device pixels (0.8 px and 1.2 px both draw 1 px on a
+   1x screen), so the border stays for layout but is transparent, and an inset box-shadow (not snapped) draws the line */
+.er-shape:not(
+    :is(
+      [data-shape='diamond'],
+      [data-shape='triangle'],
+      [data-shape='hexagon'],
+      [data-shape='star'],
+      [data-shape='parallelogram'],
+      [data-shape='trapezoid'],
+      [data-shape='document'],
+      [data-shape='cylinder'],
+      [data-style='watercolor'],
+      [data-border='dashed'],
+      [data-border='dotted']
+    )
+  )
+  .er-shape__inner {
+  border-color: transparent;
+}
+.er-shape:not(
+    :is(
+      [data-shape='diamond'],
+      [data-shape='triangle'],
+      [data-shape='hexagon'],
+      [data-shape='star'],
+      [data-shape='parallelogram'],
+      [data-shape='trapezoid'],
+      [data-shape='document'],
+      [data-shape='cylinder'],
+      [data-style='watercolor'],
+      [data-border='dashed'],
+      [data-border='dotted']
+    )
+  )
+  .er-shape__inner::after {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--er-border-width));
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 var(--er-border-width) var(--er-stroke);
+  pointer-events: none;
 }
 /* styleMode default is 'shadow' — the hard offset silhouette; plain and watercolor drop it. */
 .er-shape[data-style='shadow'] .er-shape__inner {
@@ -258,9 +304,9 @@
   .er-shape__inner::after {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: calc(-1 * var(--er-border-width));
   border-radius: inherit;
-  border-width: 1.2px;
+  border-width: var(--er-border-width);
   border-style: inherit;
   border-color: color-mix(
     in srgb,
@@ -418,7 +464,7 @@
   font-family: var(--f, var(--font-clean, sans-serif));
   font-size: var(--er-base);
   font-weight: 400;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--er-letter-spacing, -0.01em);
   line-height: 1.25;
   overflow-wrap: break-word;
   word-break: normal;
@@ -428,7 +474,7 @@
 /* texts[1+] are the muted sub slot (2px gap). */
 .er-shape__text + .er-shape__text {
   margin-top: 2px;
-  opacity: 0.72;
+  opacity: var(--er-secondary-text-opacity, 0.72);
 }
 .er-shape__text:first-child {
   --er-base: 15px;
@@ -470,4 +516,25 @@
 .er-shape[data-bg='currentColor' i]:not([data-bg='']) {
   --er-tint: var(--er-inherited-tint);
   --er-badge-tint: var(--er-inherited-tint);
+}
+
+/* Sized rectangles use the same outline and outside-only silhouette shadow in every host. */
+.er-shape[data-shape='rectangle']:has(.er-shape__geo--dynamic)
+  .er-shape__geo--dynamic {
+  display: block;
+  filter: none;
+}
+.er-shape[data-shape='rectangle']:has(.er-shape__geo--dynamic)
+  .er-shape__inner {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+.er-shape[data-shape='rectangle']:has(.er-shape__geo--dynamic)
+  .er-shape__inner::after {
+  content: none;
+}
+.er-shape__shadow {
+  fill: var(--er-shadow);
+  stroke: none;
 }

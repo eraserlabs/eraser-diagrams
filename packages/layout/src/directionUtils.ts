@@ -5,6 +5,29 @@ import { Point } from './routing/types.js';
 
 type AxisOrDirectionArg = LayoutManager | Direction | Axis;
 
+export const AXES: readonly Axis[] = ['x', 'y'];
+
+/** Positive coordinate direction on each axis. */
+export const AXIS_FORWARD_DIRECTION: Record<Axis, Direction> = { x: 'right', y: 'down' };
+
+/** Nonzero movement directions, in x-then-y order. */
+export function travelDirections(delta: { deltaX: number; deltaY: number }): Direction[] {
+  const directions: Direction[] = [];
+  if (delta.deltaX > 0) {
+    directions.push('right');
+  }
+  if (delta.deltaX < 0) {
+    directions.push('left');
+  }
+  if (delta.deltaY > 0) {
+    directions.push('down');
+  }
+  if (delta.deltaY < 0) {
+    directions.push('up');
+  }
+  return directions;
+}
+
 /**
  * @perf notes:
  * In a lot of cases, reading from the Directions enum is actually pretty expensive

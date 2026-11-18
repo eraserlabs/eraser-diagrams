@@ -1,4 +1,5 @@
-import type { XYPoint } from '../../types.js';
+import { axisStart } from '../../rangeUtils.js';
+import type { AxisSpan, XYPoint } from '../../types.js';
 import {
   backtrackCost,
   ordinaryBendCost,
@@ -105,7 +106,7 @@ export function collectGeometryQualityEvents(
         visits: [{ routeIndex, visitIndex }],
       });
     }
-    events.push(...collectBacktrackEvents(route, routeIndex, points));
+    events.push(...collectBacktrackEvents(route, routeIndex, index.segmentsForRoute(routeIndex)));
   });
 
   return {
@@ -218,12 +219,12 @@ function mergeVisitKey(visits: readonly RoutingQualityVisitRef[]): string {
     .join('|');
 }
 
-interface BacktrackSegment {
+interface BacktrackRun {
   readonly axis: 'x' | 'y';
   readonly lane: number;
-  readonly travel: readonly [number, number];
+  travel: AxisSpan;
   readonly direction: number;
-  readonly segmentIndex: number;
+  readonly segments: IndexedRouteSegment[];
 }
 
 /**
@@ -235,60 +236,66 @@ interface BacktrackSegment {
 function collectBacktrackEvents(
   route: Route,
   routeIndex: number,
-  points: readonly XYPoint[],
+  segments: readonly IndexedRouteSegment[],
 ): BacktrackQualityEvent[] {
-  const segments: BacktrackSegment[] = [];
-  for (let segmentIndex = 0; segmentIndex + 1 < points.length; segmentIndex += 1) {
-    const from = points[segmentIndex];
-    const to = points[segmentIndex + 1];
-    if (from.y === to.y && from.x !== to.x) {
-      segments.push({
-        axis: 'x',
-        lane: from.y,
-        travel: [Math.min(from.x, to.x), Math.max(from.x, to.x)],
-        direction: Math.sign(to.x - from.x),
-        segmentIndex,
-      });
-    } else if (from.x === to.x && from.y !== to.y) {
-      segments.push({
-        axis: 'y',
-        lane: from.x,
-        travel: [Math.min(from.y, to.y), Math.max(from.y, to.y)],
-        direction: Math.sign(to.y - from.y),
-        segmentIndex,
+  const runs: BacktrackRun[] = [];
+  for (const segment of segments) {
+    const direction = Math.sign(
+      axisStart(segment.to, segment.axis) - axisStart(segment.from, segment.axis),
+    );
+    const previous = runs[runs.length - 1];
+    // Emission retains corridor visit boundaries; they must not each earn a fresh overlap floor.
+    if (
+      previous &&
+      previous.axis === segment.axis &&
+      previous.lane === segment.track &&
+      previous.direction === direction &&
+      previous.segments[previous.segments.length - 1].segmentIndex + 1 === segment.segmentIndex
+    ) {
+      previous.travel = [
+        Math.min(previous.travel[0], segment.travel[0]),
+        Math.max(previous.travel[1], segment.travel[1]),
+      ];
+      previous.segments.push(segment);
+    } else {
+      runs.push({
+        axis: segment.axis,
+        lane: segment.track,
+        travel: segment.travel,
+        direction,
+        segments: [segment],
       });
     }
   }
   const events: BacktrackQualityEvent[] = [];
-  for (let first = 0; first < segments.length; first += 1) {
-    for (let second = first + 1; second < segments.length; second += 1) {
-      const a = segments[first];
-      const b = segments[second];
+  for (let first = 0; first < runs.length; first += 1) {
+    for (let second = first + 1; second < runs.length; second += 1) {
+      const a = runs[first];
+      const b = runs[second];
       if (a.axis !== b.axis || a.direction === b.direction) {
         continue;
       }
-      const overlap = Math.min(a.travel[1], b.travel[1]) - Math.max(a.travel[0], b.travel[0]);
+      const overlapStart = Math.max(a.travel[0], b.travel[0]);
+      const overlapEnd = Math.min(a.travel[1], b.travel[1]);
+      const overlap = overlapEnd - overlapStart;
       const separation = Math.abs(a.lane - b.lane);
       const cost = overlap > 0 ? backtrackCost(overlap, separation) : 0;
       if (cost <= 0) {
         continue;
       }
-      const firstVisit = route.segmentVisitOf(a.segmentIndex);
-      const secondVisit = route.segmentVisitOf(b.segmentIndex);
-      const visits: RoutingQualityVisitRef[] = [{ routeIndex, visitIndex: firstVisit }];
-      if (secondVisit !== firstVisit) {
-        visits.push({ routeIndex, visitIndex: secondVisit });
-      }
-      const firstCorridor = route.visits[firstVisit].corridorIndex;
-      const secondCorridor = route.visits[secondVisit].corridorIndex;
+      const visitIndexes = new Set(
+        [...a.segments, ...b.segments]
+          .filter((segment) => segment.travel[0] < overlapEnd && segment.travel[1] > overlapStart)
+          .map((segment) => segment.visitIndex),
+      );
+      const visits = [...visitIndexes].map((visitIndex) => ({ routeIndex, visitIndex }));
       events.push({
         kind: 'backtrack',
         cost,
         routeIndexes: [routeIndex],
-        corridorIndexes:
-          firstCorridor === secondCorridor
-            ? [firstCorridor]
-            : [Math.min(firstCorridor, secondCorridor), Math.max(firstCorridor, secondCorridor)],
+        corridorIndexes: [
+          ...new Set(visits.map(({ visitIndex }) => route.visits[visitIndex].corridorIndex)),
+        ].sort((left, right) => left - right),
         visits,
       });
     }

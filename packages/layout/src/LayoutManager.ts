@@ -1,7 +1,14 @@
 import type { Direction } from './types.js';
 import { LayoutTree } from './LayoutTree.js';
-import { applyConnectionChanges, applySizeChanges, getDimensions } from './sizeUtils.js';
-import { DEFAULT_OPTIONS } from './constants.js';
+import {
+  applyConnectionChanges,
+  applySizeChanges,
+  getDimensions,
+  getEntityDimensions,
+  getLayoutChangeBetween,
+  removeZeroDeltas,
+} from './sizeUtils.js';
+import { DEFAULT_OPTIONS, OUTPUT_EPSILON } from './constants.js';
 import {
   LayoutEntity,
   LayoutConnection,
@@ -13,6 +20,7 @@ import {
   ParentMapping,
   LayoutConnectionChange,
   TextPlacement,
+  PositionProps,
 } from './types.js';
 import {
   makeConnectionMapping,
@@ -51,6 +59,21 @@ interface MakeGraphArgs<T extends LayoutEntity = LayoutEntity> {
 /** @internal Pre-built state passed by fork() to skip rebuilding mappings */
 type PrebuiltState<T extends LayoutEntity> = Omit<InternalData<T>, 'entities' | 'tree' | 'dims'>;
 
+interface RemovedEntity<T extends LayoutEntity> {
+  entity: T;
+  childIds: ReadonlySet<string> | undefined;
+}
+
+interface GeometryCheckpointEntry<T extends LayoutEntity> {
+  box: PositionProps | undefined;
+  removed: RemovedEntity<T> | undefined;
+}
+
+interface GeometryCheckpoint<T extends LayoutEntity> {
+  id: string;
+  entry: Map<string, GeometryCheckpointEntry<T>>;
+}
+
 /**
  * Runs after fork() builds a new manager. Modules outside core that keep their own state per
  * manager (for example the alignment capture in advancedLayout) use it to copy that state to the
@@ -78,6 +101,9 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
 
   public options: LayoutOptions;
 
+  /** Session overrides are separate from authored entity options and staged scene edits. */
+  private _entityOptions = new Map<string, Partial<LayoutOptions>>();
+
   /**
    * Base data state. All persistent mutable data lives here.
    */
@@ -93,6 +119,7 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
    * Checkpoints: snapshots of LayoutManager state that can be restored or forked from.
    */
   private _checkpoints: Map<string, CheckpointState<T>> = new Map();
+  private _geometryCheckpoints: GeometryCheckpoint<T>[] = [];
   private _checkpointCounter = 0;
 
   constructor(args: MakeGraphArgs<T>, _prebuilt?: PrebuiltState<T>) {
@@ -181,7 +208,16 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
     range: Partial<LayoutRange>,
     filterFn?: (t: T) => boolean | undefined,
     includeStaged = true,
+    bounds: 'body' | 'visual' = 'body',
   ): T[] {
+    // Body bounds cannot discover labels extending outside their owner.
+    if (bounds === 'visual') {
+      const fullRange = this._makeFullRange(range);
+      return this.getEntities(includeStaged).filter(
+        (entity) =>
+          (!filterFn || filterFn(entity)) && isOverlapping(fullRange, getEntityDimensions(entity)),
+      );
+    }
     const entities = this.findLeafEntitiesInRange(range, filterFn, includeStaged);
     entities.push(...this.findContainersInRange(range, filterFn, includeStaged));
     return entities;
@@ -330,6 +366,10 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
     return this._getData(includeStaged).containerMapping;
   }
 
+  getContainerIds(includeStaged = true): string[] {
+    return [...this._getData(includeStaged).containerIds];
+  }
+
   getChildIds(id: string, recursive = false, includeStaged = true): Set<string> | undefined {
     const containerMapping = this.getContainerMapping(includeStaged);
     const directChildIds = containerMapping[id];
@@ -416,7 +456,7 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
     return ret;
   }
   /** Direct members of a sibling scope: a container's children, or the root entities. */
-  getEntitiesInScope(scope: string | null, includeStaged = true): T[] {
+  getEntitiesInScope(scope: string | null | undefined, includeStaged = true): T[] {
     return scope
       ? this.getChildEntities(scope, false, includeStaged)
       : this.getEntities(includeStaged).filter((e) => !e.containerId);
@@ -456,6 +496,10 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
       this.initiateChanges();
     }
 
+    if (this._geometryCheckpoints.length > 0) {
+      this._recordCheckpointEntry(entity.id, 'structural');
+    }
+
     this.stagedChanges!.additions.set(entity.id, entity);
     this._add(entity);
   }
@@ -481,6 +525,10 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
   updateEntity(entityId: string, changes: LayoutChange): void {
     if (!this.stagedChanges) {
       this.initiateChanges();
+    }
+
+    if (this._geometryCheckpoints.length > 0) {
+      this._recordCheckpointEntry(entityId, 'geometry');
     }
 
     const { additions, updates } = this.stagedChanges!;
@@ -567,6 +615,10 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
   removeEntity(entityId: string): void {
     if (!this.stagedChanges) {
       this.initiateChanges();
+    }
+
+    if (this._geometryCheckpoints.length > 0) {
+      this._recordCheckpointEntry(entityId, 'structural');
     }
 
     this.stagedChanges!.deletes.add(entityId);
@@ -668,6 +720,7 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
       },
       data,
     );
+    fork._entityOptions = new Map(this._entityOptions);
     for (const hook of forkHooks) {
       hook(this, fork);
     }
@@ -677,6 +730,7 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
   /**
    * Restore staged state from a checkpoint or another manager's current snapshot.
    * This replaces the current staged state (initiating changes if needed).
+   * Whole-state replacements are not recorded by open geometry journals.
    */
   restore(snapshot: string | LayoutManager<T>): void {
     const source = typeof snapshot === 'string' ? this._checkpoints.get(snapshot) : snapshot;
@@ -697,6 +751,197 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
 
   hasCheckpoint(checkpointId: string): boolean {
     return this._checkpoints.has(checkpointId);
+  }
+
+  /**
+   * O(1) rollback point for geometry and existence, journaled on the first edit
+   * to each entity. Unlike checkpoint(), it excludes membership, text placement,
+   * connections and options. Every open journal records independently; release
+   * can close any one.
+   */
+  geometryCheckpoint(): string {
+    const id = `geometry-${this._checkpointCounter++}`;
+    this._geometryCheckpoints.push({ id, entry: new Map() });
+    return id;
+  }
+
+  /** Restore a geometry journal and close it and all journals opened after it. */
+  revertTo(checkpointId: string): void {
+    const [checkpoint] = this._geometryCheckpoints.splice(
+      this._geometryCheckpointIndex(checkpointId),
+    );
+    for (const [entityId, entry] of checkpoint.entry) {
+      this._restoreEntity(entityId, entry);
+      this._restoreStagedEntry(entityId);
+    }
+  }
+
+  /**
+   * Stage the surviving entities' recorded geometry, keeping all journals open.
+   * A preview journal can then report the previous display -> replacement delta.
+   * Existence, membership, options and connections are not restored.
+   */
+  restoreGeometryTo(checkpointId: string): void {
+    const checkpoint = this._geometryCheckpoints[this._geometryCheckpointIndex(checkpointId)];
+    for (const [entityId, entry] of checkpoint.entry) {
+      if (entry.box && !entry.removed && this.getEntityById(entityId)) {
+        this._restoreEntity(entityId, entry);
+      }
+    }
+  }
+
+  /** Close a successful geometry journal without affecting those inside or outside it. */
+  release(checkpointId: string): void {
+    this._geometryCheckpoints.splice(this._geometryCheckpointIndex(checkpointId), 1);
+  }
+
+  /** Keep and report an edit's geometry when true; roll it back on false or a throw. */
+  attempt(edit: () => boolean): ReadonlyMap<string, LayoutChange> | undefined {
+    const checkpoint = this.geometryCheckpoint();
+    let kept: boolean;
+    try {
+      kept = edit();
+    } catch (error) {
+      this.revertTo(checkpoint);
+      throw error;
+    }
+    if (!kept) {
+      this.revertTo(checkpoint);
+      return undefined;
+    }
+    const changes = this.changesSince(checkpoint);
+    this.release(checkpoint);
+    return changes;
+  }
+
+  /** Net geometry changes since a journal, excluding entities added or removed since. */
+  changesSince(checkpointId: string): ReadonlyMap<string, LayoutChange> {
+    const checkpoint = this._geometryCheckpoints[this._geometryCheckpointIndex(checkpointId)];
+    const changes = new Map<string, LayoutChange>();
+    for (const [entityId, { box, removed }] of checkpoint.entry) {
+      const entity = this.getEntityById(entityId);
+      if (!entity || !box || removed) {
+        continue;
+      }
+      const change = Object.fromEntries(
+        Object.entries(getLayoutChangeBetween(box, entity)).filter(
+          ([, delta]) => Math.abs(delta) > OUTPUT_EPSILON,
+        ),
+      );
+      if (Object.keys(change).length > 0) {
+        changes.set(entityId, change);
+      }
+    }
+    return changes;
+  }
+
+  private _geometryCheckpointIndex(checkpointId: string): number {
+    const index = this._geometryCheckpoints.findIndex(({ id }) => id === checkpointId);
+    if (index < 0) {
+      throw new LayoutError(`Geometry checkpoint "${checkpointId}" not found`);
+    }
+    return index;
+  }
+
+  /** Structural edits also retain enough state to resurrect an entity, not just its box. */
+  private _recordCheckpointEntry(entityId: string, kind: 'geometry' | 'structural'): void {
+    const data = this._getData();
+    const entity = data.entitiesById[entityId];
+    if (!entity && kind === 'geometry') {
+      return;
+    }
+    const box = entity && { x: entity.x, y: entity.y, width: entity.width, height: entity.height };
+    const removed =
+      kind === 'structural' && entity
+        ? { entity, childIds: data.containerMapping[entityId] }
+        : undefined;
+    for (const checkpoint of this._geometryCheckpoints) {
+      const existing = checkpoint.entry.get(entityId);
+      if (!existing) {
+        checkpoint.entry.set(entityId, { box, removed });
+      } else if (removed && existing.box && !existing.removed) {
+        existing.removed = removed;
+      }
+    }
+  }
+
+  private _restoreEntity(entityId: string, entry: GeometryCheckpointEntry<T>): void {
+    if (this.getEntityById(entityId) && (!entry.box || entry.removed)) {
+      this.removeEntity(entityId);
+    }
+    if (entry.removed) {
+      this.addEntity({ ...entry.removed.entity });
+      this._restoreContainerMembers(entry.removed);
+    }
+    const entity = this.getEntityById(entityId);
+    if (!entity || !entry.box) {
+      return;
+    }
+    this.updateEntity(entityId, getLayoutChangeBetween(entity, entry.box));
+    this._landOnBox(entityId, entry.box);
+  }
+
+  /** Delta arithmetic can land an ulp off; restore the exact recorded coordinates. */
+  private _landOnBox(entityId: string, box: PositionProps): void {
+    const staged = this._stagedData!;
+    const entity = staged.entitiesById[entityId];
+    if (
+      entity.x === box.x &&
+      entity.y === box.y &&
+      entity.width === box.width &&
+      entity.height === box.height
+    ) {
+      return;
+    }
+    const before = { ...entity };
+    if (staged.tree && !entity.isContainer) {
+      staged.tree.remove(entity);
+    }
+    Object.assign(entity, { x: box.x, y: box.y, width: box.width, height: box.height });
+    if (staged.tree && !entity.isContainer) {
+      staged.tree.insert(entity);
+    }
+    this._updatedDimsForEntityAddition(entity);
+    this._updatedDimsForEntityRemoval(before);
+  }
+
+  /** Removal drops a container's member set; restore only children that still name it. */
+  private _restoreContainerMembers({ entity, childIds }: RemovedEntity<T>): void {
+    if (!childIds) {
+      return;
+    }
+    const data = this._getData();
+    data.containerMapping[entity.id] ??= new Set();
+    const members = data.containerMapping[entity.id];
+    for (const childId of childIds) {
+      if (data.entitiesById[childId]?.containerId === entity.id) {
+        members.add(childId);
+      }
+    }
+  }
+
+  /** Pending geometry is relative to the current base, which may have been committed mid-journal. */
+  private _restoreStagedEntry(entityId: string): void {
+    const changes = this.stagedChanges;
+    if (!changes) {
+      return;
+    }
+    const base = this._data.entitiesById[entityId];
+    const entity = this.getEntityById(entityId);
+    const pending = changes.updates.get(entityId);
+    changes.additions.delete(entityId);
+    changes.updates.delete(entityId);
+    changes.deletes.delete(entityId);
+    if (entity && !base) {
+      changes.additions.set(entityId, entity);
+    } else if (base && !entity) {
+      changes.deletes.add(entityId);
+    } else if (base && entity) {
+      const update = removeZeroDeltas({ ...pending, ...getLayoutChangeBetween(base, entity) });
+      if (Object.keys(update).length > 0) {
+        changes.updates.set(entityId, update);
+      }
+    }
   }
 
   getEntityById(
@@ -755,16 +1000,36 @@ export class LayoutManager<T extends LayoutEntity = LayoutEntity> {
   /**
    * Get options for an entity, using the layout manager options as defaults
    */
-  public getEntityOptions(entity: Pick<LayoutEntity, 'options'>): LayoutOptions {
-    return entity.options
-      ? {
-          ...entity.options,
-          ...this.options,
-        }
-      : this.options;
+  public getEntityOptions(entity: Pick<LayoutEntity, 'options'> & { id?: string }): LayoutOptions {
+    return {
+      ...this.options,
+      ...entity.options,
+      ...(entity.id ? this._entityOptions.get(entity.id) : undefined),
+    };
+  }
+
+  /** Configure session policy outside geometry journals, without creating scene edits. */
+  public setEntityOptions(entityId: string, options: Partial<LayoutOptions>): void {
+    if (this._geometryCheckpoints.length > 0) {
+      throw new LayoutError(
+        'Session options are not journaled: set them outside any geometry checkpoint',
+      );
+    }
+    this._entityOptions.set(entityId, { ...this._entityOptions.get(entityId), ...options });
   }
 
   public getEntityOption<K extends keyof LayoutOptions>(
+    entity: Pick<LayoutEntity, 'options'> & { id?: string },
+    key: K,
+  ): LayoutOptions[K] {
+    return (
+      (entity.id ? this._entityOptions.get(entity.id)?.[key] : undefined) ??
+      this.getConfiguredOption(entity, key)
+    );
+  }
+
+  /** Authored/default policy, before any session capture overrides it. */
+  public getConfiguredOption<K extends keyof LayoutOptions>(
     entity: Pick<LayoutEntity, 'options'>,
     key: K,
   ): LayoutOptions[K] {

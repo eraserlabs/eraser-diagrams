@@ -1,6 +1,8 @@
 import {
   Axis,
   type AxisSpan,
+  type Direction,
+  type LayoutChange,
   LayoutEntity,
   LayoutRange,
   PositionProps,
@@ -76,6 +78,20 @@ export function addBufferToRange(range: LayoutRange, buffer: number): LayoutRang
   };
 }
 
+/** Move only the range's requested edge outward by a signed amount. */
+export function extendRange(range: LayoutRange, direction: Direction, by: number): LayoutRange {
+  switch (direction) {
+    case 'right':
+      return { ...range, maxX: range.maxX + by };
+    case 'down':
+      return { ...range, maxY: range.maxY + by };
+    case 'left':
+      return { ...range, minX: range.minX - by };
+    case 'up':
+      return { ...range, minY: range.minY - by };
+  }
+}
+
 export function addPaddingToRange(
   range: LayoutRange,
   padding: LayoutOptions['containerPadding'],
@@ -119,6 +135,21 @@ export function strictlyOverlaps(rangeA: LayoutRange, rangeB: LayoutRange): bool
     rangeA.minY < rangeB.maxY &&
     rangeA.maxY > rangeB.minY
   );
+}
+
+/** Inclusion with clearance on every edge; edge-flush ranges do not qualify. */
+export function strictlyIncludes(outer: LayoutRange, inner: LayoutRange): boolean {
+  return (
+    outer.minX < inner.minX &&
+    outer.maxX > inner.maxX &&
+    outer.minY < inner.minY &&
+    outer.maxY > inner.maxY
+  );
+}
+
+/** Overlapping or touching, excluding full enclosure either way. */
+export function partialContact(a: LayoutRange, b: LayoutRange): boolean {
+  return isOverlapping(a, b) && !rangeIncludes(a, b) && !rangeIncludes(b, a);
 }
 
 export function containsRange(outer: LayoutRange, inner: LayoutRange, tolerance = 0): boolean {
@@ -229,6 +260,12 @@ export const axisStart = (b: { x: number; y: number }, axis: Axis): number =>
   axis === 'x' ? b.x : b.y;
 export const axisEnd = (b: PositionProps, axis: Axis): number =>
   axis === 'x' ? b.x + b.width : b.y + b.height;
+export const wallEdge = (b: PositionProps, axis: Axis, wall: 'start' | 'end'): number =>
+  wall === 'end' ? axisEnd(b, axis) : axisStart(b, axis);
+export const rangeStart = (range: LayoutRange, axis: Axis): number =>
+  axis === 'x' ? range.minX : range.minY;
+export const rangeEnd = (range: LayoutRange, axis: Axis): number =>
+  axis === 'x' ? range.maxX : range.maxY;
 export const axisOrthMin = (b: { x: number; y: number }, axis: Axis): number =>
   axis === 'x' ? b.y : b.x;
 export const axisOrthMax = (b: PositionProps, axis: Axis): number =>
@@ -244,6 +281,19 @@ export function makePropsFromRange(range: LayoutRange): PositionProps {
     width: range.maxX - range.minX,
     height: range.maxY - range.minY,
   };
+}
+
+/** How far one edge travels under a solved set of changes. */
+export function changeDelta(
+  changes: ReadonlyMap<string, LayoutChange>,
+  id: string,
+  axis: Axis,
+  edge: 'start' | 'end',
+): number {
+  const change = changes.get(id);
+  const translation = (axis === 'x' ? change?.deltaX : change?.deltaY) ?? 0;
+  const growth = (axis === 'x' ? change?.deltaWidth : change?.deltaHeight) ?? 0;
+  return edge === 'end' ? translation + growth : translation;
 }
 
 /**

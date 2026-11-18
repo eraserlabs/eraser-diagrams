@@ -20,6 +20,10 @@ export interface LabelGapOptions {
   readonly connectionId: string;
   /** The user-space box the mask must cover: every point the stroke can paint (the scene box in `applyLayout`). */
   readonly field: Box;
+  /** The painted route in user space, when the SVG path cannot be read as a polyline (for example an arc). */
+  readonly route?: readonly Readonly<Point>[];
+  /** Known stroke width in user-space px, so saved-scene painting needs no computed-style read. */
+  readonly strokeWidth?: number;
 }
 
 interface InstalledGap {
@@ -56,8 +60,9 @@ export function cutLabelGap(
     width: labelBox.width + LABEL_MASK_CLEARANCE * 2,
     height: labelBox.height + LABEL_MASK_CLEARANCE * 2,
   };
-  const route = routeVertices(anchor.getAttribute('d') ?? '');
-  const strokeWidth = Number.parseFloat(getComputedStyle(anchor).strokeWidth) || 0;
+  const route = options.route ?? routeVertices(anchor.getAttribute('d') ?? '');
+  const strokeWidth =
+    options.strokeWidth ?? (Number.parseFloat(getComputedStyle(anchor).strokeWidth) || 0);
 
   // A cutout that never lands on the line has no gap to cut — the router placed the label
   // clear of the route — but the mask would still clip this path's markers. Skip it.
@@ -137,7 +142,7 @@ function routeVertices(d: string): Point[] {
 }
 
 /** Does the cutout land on the painted line anywhere? A mask that cuts no gap is pure damage. */
-function cutsTheRoute(cutout: Box, route: Point[], strokeHalf: number): boolean {
+function cutsTheRoute(cutout: Box, route: readonly Readonly<Point>[], strokeHalf: number): boolean {
   return route.slice(1).some(([bx, by], index) => {
     const [ax, ay] = route[index]!;
 
@@ -159,10 +164,10 @@ function cutsTheRoute(cutout: Box, route: Point[], strokeHalf: number): boolean 
 function markerGuards(
   svg: SVGSVGElement,
   anchor: Element,
-  route: Point[],
+  route: readonly Readonly<Point>[],
   strokeWidth: number,
 ): Box[] {
-  const ends: [string, Point | undefined][] = [
+  const ends: [string, Readonly<Point> | undefined][] = [
     ['marker-start', route[0]],
     ['marker-end', route[route.length - 1]],
   ];

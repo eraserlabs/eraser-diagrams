@@ -19,6 +19,7 @@
 import type { Route } from './route.js';
 import type { CorridorWorld } from './world.js';
 import { boundaryTravelCoordinate, routeEndpointPosition } from './geometry.js';
+import { midpoint } from '../../rangeUtils.js';
 
 const EPSILON = 1e-6;
 
@@ -91,8 +92,22 @@ function occupancies(
       continue;
     }
     const corridor = world.indexer.corridors[visit.corridorIndex];
-    const entry = boundaryTravelCoordinate(world, corridor, visit.entry);
-    const exit = boundaryTravelCoordinate(world, corridor, visit.exit);
+    let entry = boundaryTravelCoordinate(world, corridor, visit.entry);
+    let exit = boundaryTravelCoordinate(world, corridor, visit.exit);
+    if (corridor.axis !== sharedAxis) {
+      // A perpendicular leg starts/ends on its neighbor's track, not the whole portal's center.
+      // A wide portal can otherwise make an upward departure look like a downward ray.
+      if (index > 0 && visit.entry.kind === 'portal' && visit.entry.mode === 'turn') {
+        entry = midpoint(chainFeasibleBand(world, route, index - 1));
+      }
+      if (
+        index + 1 < route.visits.length &&
+        visit.exit.kind === 'portal' &&
+        visit.exit.mode === 'turn'
+      ) {
+        exit = midpoint(chainFeasibleBand(world, route, index + 1));
+      }
+    }
     const runLow = Math.min(entry, exit);
     const runHigh = Math.max(entry, exit);
     // Direction this WALK moves through the corridor (route direction, flipped when stepping

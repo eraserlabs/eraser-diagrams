@@ -69,6 +69,67 @@ test('partial render includes orphan nodes, connections and CSS without global s
   expect(result.editor).toBe('');
 });
 
+test('synchronous fills use request-local icons and the registry isolates nested template styles', async ({
+  page,
+}) => {
+  const result = await page.evaluate(() => {
+    const renderer = window.elementApi.createElementRenderer({
+      baseCss: '',
+      templates: {
+        Parent: {
+          html: '<template name="Parent"><div data-tpl="Parent"><span class="ink" data-slot="icon"></span><div data-use="Child" data-props="child"></div></div></template>',
+          css: '.ink { color: rgb(255, 0, 0); }',
+        },
+        Child: {
+          html: '<template name="Child"><span class="ink">{{text}}</span></template>',
+          css: '.ink { color: rgb(0, 0, 255); }',
+        },
+      },
+    });
+    const style = document.createElement('style');
+    style.textContent =
+      renderer.registry.templateCss.Parent! + renderer.registry.templateCss.Child!;
+    document.head.append(style);
+    const icons = { glyph: '<svg data-icon="first"></svg>' };
+    const request = {
+      entities: [
+        {
+          id: 'p',
+          tag: 'Parent',
+          theme: 'dark' as const,
+          props: { icon: 'glyph', child: { text: 'nested' } },
+        },
+      ],
+      connections: [],
+      theme: 'light' as const,
+      icons,
+    };
+    const mount = (html: string) => {
+      const host = document.createElement('div');
+      host.dataset.mdpTag = 'Parent';
+      host.innerHTML = html;
+      document.body.append(host);
+      return host;
+    };
+    const first = mount(renderer.fill(request)[0]!.html);
+    icons.glyph = '<svg data-icon="updated"></svg>';
+    const updated = mount(renderer.fill(request)[0]!.html);
+    const empty = mount(renderer.fill({ ...request, icons: {} })[0]!.html);
+    return {
+      icons: [first, updated, empty].map(
+        (host) => host.querySelector('svg')?.getAttribute('data-icon') ?? null,
+      ),
+      colors: [...first.querySelectorAll('.ink')].map((node) => getComputedStyle(node).color),
+      themes: [...first.querySelectorAll('[data-er-theme]')].map((node) =>
+        node.getAttribute('data-er-theme'),
+      ),
+    };
+  });
+  expect(result.icons).toEqual(['first', 'updated', null]);
+  expect(result.colors).toEqual(['rgb(255, 0, 0)', 'rgb(0, 0, 255)']);
+  expect(result.themes).toEqual(['dark', 'dark']);
+});
+
 test('measures text policies independently and restores the caller’s host sizing', async ({
   page,
 }) => {
@@ -171,7 +232,16 @@ test('watercolor preparation is reusable, colored, isolated and does not mutate 
       icons: {},
     };
     const before = JSON.stringify(request);
-    const [first, second] = await Promise.all([renderer.render(request), renderer.render(request)]);
+    const [first, prepared] = await Promise.all([
+      renderer.render(request),
+      renderer.prepare(request.entities),
+    ]);
+    // A standalone consumer stores prepared props and fills them later, without preparing assets again.
+    const stored = JSON.parse(JSON.stringify(prepared)) as typeof prepared;
+    const second = {
+      defs: stored.defs,
+      elements: renderer.fill({ ...request, entities: stored.elements }),
+    };
     const host = document.createElement('div');
     host.innerHTML = first.defs + first.elements[0]!.html;
     document.body.appendChild(host);
@@ -183,12 +253,17 @@ test('watercolor preparation is reusable, colored, isolated and does not mutate 
     ctx.clearRect(0, 0, 4, 2);
     ctx.drawImage(image, 0, 0);
     const pixel = [...ctx.getImageData(0, 0, 1, 1).data];
-    return { first, second, pixel, unchanged: JSON.stringify(request) === before };
+    const secondHost = document.createElement('div');
+    secondHost.innerHTML = second.defs + second.elements[0]!.html;
+    document.body.append(secondHost);
+    const ids = [...document.querySelectorAll('[id]')].map((node) => node.id);
+    return { first, second, pixel, ids, unchanged: JSON.stringify(request) === before };
   });
   expect(result.first.defs).toContain('<symbol');
   expect(result.first.elements[0]!.html).not.toContain('href="#"');
   expect(result.first.elements[0]!.html).not.toBe(result.second.elements[0]!.html);
   expect(result.unchanged).toBe(true);
+  expect(new Set(result.ids).size).toBe(result.ids.length);
   expect(result.pixel[1]).toBeGreaterThan(result.pixel[0]! + 100);
   expect(result.pixel[3]).toBeGreaterThan(0);
 });

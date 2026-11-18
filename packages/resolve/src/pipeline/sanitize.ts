@@ -1,5 +1,6 @@
 import sanitizeHtml from 'sanitize-html';
 import { Marked } from 'marked';
+import { parseFragment, serialize } from 'parse5';
 import type { Issue } from '../result-types.js';
 import { WARNING_CODE, SEVERITY } from '../result-types.js';
 import type { CodeHighlighter, PolicyEntry } from '../types.js';
@@ -93,7 +94,9 @@ function codeHtml(text: string, language: string, highlight: CodeHighlighter | u
   }
   return runs
     .map(({ text: run, className }) =>
-      className ? `<span class="${escapePlain(className)}">${escapePlain(run)}</span>` : escapePlain(run),
+      className
+        ? `<span class="${escapePlain(className)}">${escapePlain(run)}</span>`
+        : escapePlain(run),
     )
     .join('');
 }
@@ -133,7 +136,11 @@ export function buildSanitizers(highlightCode?: CodeHighlighter): Sanitizers {
   const sanitizeParsed = (parsed: string): SanitizedMarkdown => {
     const html = sanitizeHtml(parsed, SANITIZE_OPTIONS);
 
-    return { html: withoutLayoutNewlines(html), stripped: html !== parsed };
+    // Entity spelling (e.g. &quot; versus a literal quote) is serialization, not removed content.
+    const stripped =
+      html !== parsed && serialize(parseFragment(html)) !== serialize(parseFragment(parsed));
+
+    return { html: withoutLayoutNewlines(html), stripped };
   };
 
   return {
@@ -157,7 +164,12 @@ function withoutLayoutNewlines(html: string): string {
   return html
     .split(/(<pre[\s>][\s\S]*?<\/pre>)/)
     .map((part, i) =>
-      i % 2 === 1 ? part : part.replace(/>\n+(?=<)/g, '>').replace(/^\n+/, '').replace(/\n+$/, ''),
+      i % 2 === 1
+        ? part
+        : part
+            .replace(/>\n+(?=<)/g, '>')
+            .replace(/^\n+/, '')
+            .replace(/\n+$/, ''),
     )
     .join('');
 }
