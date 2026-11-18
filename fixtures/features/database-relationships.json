@@ -1,0 +1,55 @@
+{
+  "title": "Database tables with one-to-one and one-to-many relationships",
+  "elements": [
+    {
+      "tag": "DatabaseTable",
+      "id": "users",
+      "label": "users",
+      "x": 40,
+      "y": 40,
+      "width": 200,
+      "fields": [
+        { "name": "id", "type": "int", "meta": "PK" },
+        { "name": "email", "type": "text" }
+      ]
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "profiles",
+      "label": "profiles",
+      "x": 40,
+      "y": 260,
+      "width": 200,
+      "fields": [
+        { "name": "user_id", "type": "int", "meta": "PK, FK" },
+        { "name": "bio", "type": "text" }
+      ]
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "orders",
+      "label": "orders",
+      "x": 350,
+      "y": 40,
+      "width": 200,
+      "fields": [
+        { "name": "user_id", "type": "int", "meta": "FK" },
+        { "name": "id", "type": "int", "meta": "PK" }
+      ]
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "user-profile",
+      "from": "users",
+      "to": "profiles",
+      "relType": "one-to-one"
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "user-orders",
+      "from": "users",
+      "to": "orders",
+      "relType": "one-to-many"
+    }
+  ]
+}

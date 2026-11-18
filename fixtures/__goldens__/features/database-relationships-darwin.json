@@ -1,0 +1,112 @@
+{
+  "warnings": [],
+  "entities": [
+    {
+      "tag": "DatabaseTable",
+      "id": "users",
+      "label": "users",
+      "x": 40,
+      "y": 40,
+      "width": 200,
+      "fields": [
+        {
+          "name": "id",
+          "type": "int",
+          "meta": "PK"
+        },
+        {
+          "name": "email",
+          "type": "text"
+        }
+      ],
+      "height": 118
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "profiles",
+      "label": "profiles",
+      "x": 40,
+      "y": 260,
+      "width": 200,
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "meta": "PK, FK"
+        },
+        {
+          "name": "bio",
+          "type": "text"
+        }
+      ],
+      "height": 118
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "orders",
+      "label": "orders",
+      "x": 350,
+      "y": 40,
+      "width": 200,
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "meta": "FK"
+        },
+        {
+          "name": "id",
+          "type": "int",
+          "meta": "PK"
+        }
+      ],
+      "height": 118
+    }
+  ],
+  "connections": [
+    {
+      "tag": "DatabaseRelationship",
+      "id": "user-profile",
+      "from": "users",
+      "to": "profiles",
+      "relType": "one-to-one",
+      "x": 140,
+      "y": 158,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 102
+        }
+      ]
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "user-orders",
+      "from": "users",
+      "to": "orders",
+      "relType": "one-to-many",
+      "x": 240,
+      "y": 99,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 110,
+          "y": 0
+        }
+      ]
+    }
+  ],
+  "scene": {
+    "x": 24,
+    "y": 24,
+    "width": 542,
+    "height": 370
+  }
+}
