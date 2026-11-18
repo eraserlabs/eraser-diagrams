@@ -76,8 +76,6 @@ export interface EntityRouteEndpoint {
   readonly authoredTrack?: number;
   /** Hard track constraint that remains visible to endpoint quality measurement. */
   readonly repairPinTrack?: number;
-  /** Soft attachment ideal derived from entity-owned port geometry after face selection. */
-  readonly preferredTrack?: number;
   /** Endpoints on the same entity face with this group share one track. */
   readonly portGroup?: number;
 }

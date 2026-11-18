@@ -157,6 +157,31 @@ describe('stage 3 — schema matrix', () => {
     expect(r.ok, JSON.stringify(r.errors)).toBe(true);
   });
 
+  it.each(['Relationship', 'DatabaseRelationship'])(
+    'keeps connectorStyle and bend on a %s',
+    async (tag) => {
+      const table = (id: string, x: number) => ({
+        tag: 'DatabaseTable',
+        id,
+        x,
+        y: 0,
+        label: id,
+        fields: [{ name: 'id', type: 'int' }],
+      });
+      const r = await resolver.resolve({
+        elements: [
+          table('users', 0),
+          table('teams', 400),
+          { tag, id: 'membership', from: 'users', to: 'teams', connectorStyle: 'arc', bend: 40 },
+        ],
+      });
+
+      expect(r.ok, JSON.stringify(r.errors)).toBe(true);
+      expect(r.warnings.filter(({ code }) => code === 'W_UNKNOWN_PROP')).toEqual([]);
+      expect(r.connections?.[0]?.props).toMatchObject({ connectorStyle: 'arc', bend: 40 });
+    },
+  );
+
   it('requires at least two strict object points when connection geometry is authored', async () => {
     const entities = [
       { tag: 'Shape', id: 'a', x: 0, y: 0 },

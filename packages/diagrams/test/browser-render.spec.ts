@@ -487,6 +487,43 @@ test('stock connection labels keep transparent horizontal spacing', async ({ pag
   }
 });
 
+test('a DatabaseRelationship keeps its connectorStyle and bend and draws as an arc', async ({
+  page,
+}) => {
+  const table = (id: string, x: number, y: number) => ({
+    tag: 'DatabaseTable',
+    id,
+    x,
+    y,
+    label: id,
+    fields: [{ name: 'id', type: 'int' }],
+  });
+  const { payload, result } = await buildPayload({
+    elements: [
+      table('users', 0, 0),
+      table('teams', 400, 60),
+      {
+        tag: 'DatabaseRelationship',
+        id: 'membership',
+        from: 'users',
+        to: 'teams',
+        relType: 'one-to-many',
+        connectorStyle: 'arc',
+        bend: 40,
+      },
+    ],
+  });
+  expect(result.ok, JSON.stringify(result.errors)).toBe(true);
+  expect(result.warnings.filter(({ code }) => code === 'W_UNKNOWN_PROP')).toEqual([]);
+  expect(result.connections?.[0]?.props).toMatchObject({ connectorStyle: 'arc', bend: 40 });
+  await runPayload(page, payload);
+
+  // an arc, not an elbow's segments
+  const anchor = page.locator('[data-mdp-id="membership"] [data-role="anchor"]');
+  await expect(anchor).toHaveAttribute('d', / A /);
+  await expect(anchor).not.toHaveAttribute('d', /L/);
+});
+
 test('hostile text renders as inert visible text — zero script execution', async ({ page }) => {
   const dialogs: string[] = [];
   page.on('dialog', (dialog) => {
