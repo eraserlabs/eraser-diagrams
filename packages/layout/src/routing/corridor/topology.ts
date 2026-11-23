@@ -1177,7 +1177,7 @@ function alignedTerminalCenters(
 }
 
 function preferredEndpointTrack(endpoint: ResolvedEntityEndpoint): number {
-  return endpoint.endpoint.preferredTrack ?? midpoint(endpoint.crossSpan);
+  return midpoint(endpoint.crossSpan);
 }
 
 function shortTerminalGapWeight(source: ResolvedEndpoint, target: ResolvedEndpoint): number {
