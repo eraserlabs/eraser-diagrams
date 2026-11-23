@@ -1,20 +1,6 @@
 {
-  "title": "Database tables with one-to-one and one-to-many relationships",
+  "title": "Database tables with row-level crow's-foot, optionality, and UML relationships",
   "elements": [
-    {
-      "tag": "DatabaseTable",
-      "id": "users",
-      "label": "users",
-      "icon": "users",
-      "color": "blue",
-      "x": 330,
-      "y": 40,
-      "width": 200,
-      "fields": [
-        { "name": "id", "type": "int", "meta": "PK" },
-        { "name": "email", "type": "text" }
-      ]
-    },
     {
       "tag": "DatabaseTable",
       "id": "profiles",
@@ -23,10 +9,26 @@
       "color": "purple",
       "x": 40,
       "y": 40,
-      "width": 200,
+      "width": 210,
       "fields": [
         { "name": "user_id", "type": "int", "meta": "PK, FK" },
-        { "name": "bio", "type": "text" }
+        { "name": "email", "type": "text" },
+        { "name": "plan_id", "type": "int", "meta": "FK" }
+      ]
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "users",
+      "label": "users",
+      "icon": "users",
+      "color": "blue",
+      "x": 440,
+      "y": 40,
+      "width": 210,
+      "fields": [
+        { "name": "id", "type": "int", "meta": "PK" },
+        { "name": "email", "type": "text" },
+        { "name": "plan_id", "type": "int", "meta": "FK" }
       ]
     },
     {
@@ -35,27 +37,157 @@
       "label": "orders",
       "icon": "shopping-cart",
       "color": "green",
-      "x": 620,
+      "x": 840,
       "y": 40,
-      "width": 200,
+      "width": 210,
       "fields": [
         { "name": "user_id", "type": "int", "meta": "FK" },
-        { "name": "id", "type": "int", "meta": "PK" }
+        { "name": "id", "type": "int", "meta": "PK" },
+        { "name": "total", "type": "decimal" }
+      ]
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "entity",
+      "label": "entity",
+      "icon": "box",
+      "color": "gray",
+      "titleBgColor": "#f1f5f9",
+      "hAlign": "center",
+      "x": 40,
+      "y": 240,
+      "width": 210,
+      "fields": [
+        { "name": "id", "type": "uuid", "meta": "PK" },
+        { "name": "created_at", "type": "text" }
+      ]
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "invoice",
+      "label": "invoice",
+      "icon": "file-text",
+      "color": "orange",
+      "titleBgColor": "#ffedd5",
+      "x": 440,
+      "y": 240,
+      "width": 210,
+      "fields": [
+        { "name": "entity_id", "type": "uuid", "meta": "FK" },
+        { "name": "id", "type": "uuid", "meta": "PK" }
+      ]
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "line_item",
+      "label": "line_item",
+      "icon": "list",
+      "color": "teal",
+      "titleBgColor": "#ccfbf1",
+      "x": 840,
+      "y": 240,
+      "width": 210,
+      "fields": [
+        { "name": "invoice_id", "type": "uuid", "meta": "FK" },
+        { "name": "sku", "type": "text" }
       ]
     },
     {
       "tag": "DatabaseRelationship",
-      "id": "user-profile",
-      "from": "users",
-      "to": "profiles",
-      "relType": "one-to-one"
+      "id": "rel-one-to-one",
+      "from": "profiles",
+      "to": "users",
+      "fromField": "user_id",
+      "toField": "id",
+      "relType": "one-to-one",
+      "label": "1 : 1"
     },
     {
       "tag": "DatabaseRelationship",
-      "id": "user-orders",
+      "id": "rel-zero-or-one-only-one",
+      "from": "profiles",
+      "to": "users",
+      "fromField": "email",
+      "toField": "email",
+      "startArrowhead": "crowFootZeroOrOne",
+      "endArrowhead": "crowFootOnlyOne",
+      "label": "0..1 : 1..1"
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "rel-one-or-many-zero-or-many",
+      "from": "profiles",
+      "to": "users",
+      "fromField": "plan_id",
+      "toField": "plan_id",
+      "startArrowhead": "crowFootOneOrMany",
+      "endArrowhead": "crowFootZeroOrMany",
+      "label": "1..* : 0..*"
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "rel-one-to-many",
       "from": "users",
       "to": "orders",
-      "relType": "one-to-many"
+      "fromField": "id",
+      "toField": "user_id",
+      "relType": "one-to-many",
+      "label": "1 : *"
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "rel-only-one-one-or-many",
+      "from": "users",
+      "to": "orders",
+      "fromField": "plan_id",
+      "toField": "total",
+      "startArrowhead": "crowFootOnlyOne",
+      "endArrowhead": "crowFootOneOrMany",
+      "label": "1..1 : 1..*"
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "rel-hollow-triangle",
+      "from": "invoice",
+      "to": "entity",
+      "fromField": "entity_id",
+      "toField": "id",
+      "startArrowhead": null,
+      "endArrowhead": "hollowTriangle",
+      "label": "hollowTriangle"
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "rel-hollow-diamond",
+      "from": "entity",
+      "to": "invoice",
+      "fromField": "created_at",
+      "toField": "id",
+      "startArrowhead": "hollowDiamond",
+      "endArrowhead": "crowFootZeroOrMany",
+      "label": "hollowDiamond"
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "rel-filled-diamond",
+      "from": "invoice",
+      "to": "line_item",
+      "fromField": "entity_id",
+      "toField": "invoice_id",
+      "startArrowhead": "filledDiamond",
+      "endArrowhead": "crowFootOneOrMany",
+      "label": "filledDiamond"
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "rel-uml-start-end",
+      "from": "invoice",
+      "to": "line_item",
+      "fromField": "id",
+      "toField": "sku",
+      "startArrowhead": "hollowTriangle",
+      "endArrowhead": "filledDiamond",
+      "label": "tri / filledDia"
     }
   ]
 }
