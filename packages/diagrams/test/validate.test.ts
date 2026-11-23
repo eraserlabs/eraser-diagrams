@@ -182,6 +182,39 @@ describe('stage 3 — schema matrix', () => {
     },
   );
 
+  it.each(['Relationship', 'DatabaseRelationship'])(
+    'accepts optionality crow-foot and UML arrowheads on %s',
+    async (tag) => {
+      const heads = [
+        'crowFootOnlyOne',
+        'crowFootZeroOrOne',
+        'crowFootOneOrMany',
+        'crowFootZeroOrMany',
+        'hollowTriangle',
+        'hollowDiamond',
+        'filledDiamond',
+      ] as const;
+      const r = await resolver.resolve({
+        elements: [
+          { tag: 'Shape', id: 'a', x: 0, y: 0 },
+          { tag: 'Shape', id: 'b', x: 300, y: 0 },
+          ...heads.map((head, index) => ({
+            tag,
+            id: `c-${index}`,
+            from: 'a',
+            to: 'b',
+            startArrowhead: head,
+            endArrowhead: head,
+          })),
+        ],
+      });
+
+      expect(r.ok, JSON.stringify(r.errors)).toBe(true);
+      expect(r.warnings.filter(({ code }) => code === 'W_UNKNOWN_PROP')).toEqual([]);
+      expect(r.connections?.map((c) => c.props['endArrowhead'])).toEqual([...heads]);
+    },
+  );
+
   it('requires at least two strict object points when connection geometry is authored', async () => {
     const entities = [
       { tag: 'Shape', id: 'a', x: 0, y: 0 },

@@ -7,8 +7,10 @@ import {
   getArcPolyline,
   isArcBend,
   routeConnections,
+  type ConnectionRoutingRequest,
   type ConnectorStyle,
   type Direction,
+  type EndpointPins,
   type LayoutConnection,
   type LayoutEntity,
   type OutlineDescriptor,
@@ -19,7 +21,7 @@ import { isFiniteBox } from '@eraserlabs/layout/layoutGeometry';
 import type { ResolvedConnection, ResolvedEntity } from '@eraserlabs/protocol';
 import type { Box, ConnectionGeometry, SceneLayout } from '@eraserlabs/render';
 import { isFiniteNumber, isRecord } from '@eraserlabs/utils';
-import type { ElementMeasure } from './measure.js';
+import type { ElementMeasure, MeasuredPort } from './measure.js';
 import { ELBOW_CORNER_RADIUS, toPathData } from './roundedPath.js';
 
 /**
@@ -79,6 +81,22 @@ export function externalTextOf(measures: ElementMeasure[]): Map<string, Box[]> {
 }
 
 /**
+ * Measured `[data-port]` / `[data-port-prefix]` bands per entity, wrapper-relative. Entities that
+ * declare ports pin connection ends to their left/right walls (e.g. DatabaseTable rows).
+ */
+export function portsOf(measures: ElementMeasure[]): Map<string, readonly MeasuredPort[]> {
+  const ports = new Map<string, readonly MeasuredPort[]>();
+
+  for (const measure of measures) {
+    if (measure.ports.length > 0) {
+      ports.set(measure.id, measure.ports);
+    }
+  }
+
+  return ports;
+}
+
+/**
  * Route the scene: resolved wrapper boxes in, drawable geometry out. Callers that do not have a
  * resolved box may omit it and fall back to the element's authored dimensions. The caller has
  * already split the scene by registry kind (`classify.ts`); this stage never re-checks it.
@@ -89,8 +107,9 @@ export function routeScene(
   resolvedBoxes: Map<string, Box>,
   externalText: Map<string, Box[]>,
   repair: RepairPolicy = { timeBudgetMs: REPAIR_TIME_BUDGET_MS },
+  entityPorts: Map<string, readonly MeasuredPort[]> = new Map(),
 ): SceneLayout {
-  const entities = toEntities(sceneEntities, resolvedBoxes, externalText);
+  const entities = toEntities(sceneEntities, resolvedBoxes, externalText, entityPorts);
   const entitiesById = new Map(entities.map((entity) => [entity.id, entity]));
   const connections = toConnections(sceneConnections, entitiesById, externalText);
   const manager = new LayoutManager({ entities, connections });
@@ -99,11 +118,73 @@ export function routeScene(
     routeConnections({
       layoutManager: manager,
       repair,
-      connectionsToRoute: connections,
+      connectionsToRoute: connections.map((connection) =>
+        authoredPortRequest(connection, entitiesById),
+      ),
     });
   }
 
   return toSceneLayout(manager, entities, cornerRadii(sceneConnections));
+}
+
+const PERIMETER_TOLERANCE_PX = 1;
+
+/**
+ * An authored route with no named `fromPortId`/`toPortId` keeps its authored terminal points on
+ * port-declaring entities (e.g. a saved table-level attachment) instead of snapping to the header.
+ * Connections without authored points, with named ports, or whose authored ends miss the entity's
+ * perimeter fall through to `resolvePortPins`.
+ */
+function authoredPortRequest(
+  connection: LayoutConnection,
+  entitiesById: Map<string, LayoutEntity>,
+): ConnectionRoutingRequest {
+  if (connection.points.length < 2 || connection.fromPortId || connection.toPortId) {
+    return { connection };
+  }
+  const from = entitiesById.get(connection.from);
+  const to = entitiesById.get(connection.to);
+  if (!from?.ports?.length && !to?.ports?.length) {
+    return { connection };
+  }
+  const first = connection.points[0]!;
+  const last = connection.points[connection.points.length - 1]!;
+  const start: Point = [connection.x + first[0], connection.y + first[1]];
+  const end: Point = [connection.x + last[0], connection.y + last[1]];
+  const endpointPins: EndpointPins = {};
+
+  if (from?.ports?.length) {
+    if (!isOnPerimeter(from, start)) {
+      return { connection };
+    }
+    endpointPins.from = start;
+  }
+  if (to?.ports?.length) {
+    if (!isOnPerimeter(to, end)) {
+      return { connection };
+    }
+    endpointPins.to = end;
+  }
+
+  return { connection, endpointPins };
+}
+
+function isOnPerimeter(entity: LayoutEntity, [px, py]: Point): boolean {
+  const withinX =
+    px >= entity.x - PERIMETER_TOLERANCE_PX &&
+    px <= entity.x + entity.width + PERIMETER_TOLERANCE_PX;
+  const withinY =
+    py >= entity.y - PERIMETER_TOLERANCE_PX &&
+    py <= entity.y + entity.height + PERIMETER_TOLERANCE_PX;
+  const onVerticalWall =
+    withinY &&
+    (Math.abs(px - entity.x) <= PERIMETER_TOLERANCE_PX ||
+      Math.abs(px - (entity.x + entity.width)) <= PERIMETER_TOLERANCE_PX);
+  const onHorizontalWall =
+    withinX &&
+    (Math.abs(py - entity.y) <= PERIMETER_TOLERANCE_PX ||
+      Math.abs(py - (entity.y + entity.height)) <= PERIMETER_TOLERANCE_PX);
+  return onVerticalWall || onHorizontalWall;
 }
 
 /**
@@ -133,6 +214,7 @@ function toEntities(
   sceneEntities: ResolvedEntity[],
   resolvedBoxes: Map<string, Box>,
   externalText: Map<string, Box[]>,
+  entityPorts: Map<string, readonly MeasuredPort[]>,
 ): LayoutEntity[] {
   const nestedIds = new Set(sceneEntities.map((element) => element.containerId));
 
@@ -140,6 +222,7 @@ function toEntities(
     const resolved = resolvedBoxes.get(element.id);
     const text = textPlacement(externalText.get(element.id));
     const outline = outlineOf(element);
+    const ports = entityPorts.get(element.id);
 
     return {
       id: element.id,
@@ -152,6 +235,9 @@ function toEntities(
       ...(element.isContainer === true || nestedIds.has(element.id) ? { isContainer: true } : {}),
       ...(text ? { textPlacement: text } : {}),
       ...(outline ? { outline } : {}),
+      ...(ports && ports.length > 0
+        ? { ports: ports.map((port) => ({ ...port, allowCrossover: true })) }
+        : {}),
     };
   });
 }
@@ -277,12 +363,16 @@ function toConnections(
       : labelSize(measured);
     const lineOffset = manualLineOffset(element);
     const bend = element.props['bend'];
+    const fromField = decodePlainField(element.props['fromField']);
+    const toField = decodePlainField(element.props['toField']);
 
     connections.push({
       id: element.id,
       from,
       to,
       ...faceHints(element),
+      ...(fromField !== undefined ? { fromPortId: `field:${fromField}` } : {}),
+      ...(toField !== undefined ? { toPortId: `field:${toField}` } : {}),
       connectorStyle: connectorStyleOf(element),
       ...(isFiniteNumber(bend) ? { bend } : {}),
       x: originX,
@@ -294,6 +384,19 @@ function toConnections(
   }
 
   return connections;
+}
+
+/** `fromField`/`toField` are `x-content: plain` (HTML-escaped at resolve); decode to match DOM `.textContent`. */
+function decodePlainField(value: unknown): string | undefined {
+  if (typeof value !== 'string' || value === '') {
+    return undefined;
+  }
+  return value
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#39;', "'")
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&amp;', '&');
 }
 
 /** `straight` and `arc` are exact opt-ins; an absent or unknown value is an elbow line. */

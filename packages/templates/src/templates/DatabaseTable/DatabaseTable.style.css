@@ -1,9 +1,13 @@
 /* White header band (or authored titleBgColor), 5px corners, 1.8px identity border; key 17px in
    the table face, type/meta 15px mono mid-gray; solid light-scale row separators the outer border
-   paints over. Header 36 / rows 28 px. */
+   paints over. */
+/* Layout tokens (--er-table-*) are overridable by host stylesheets. Vertical padding scales with
+   --er-base so changing fontSize grows or shrinks rows naturally; min-heights act as optional
+   floors. The header and each row above the last carry 1px of extra top padding against their 1px
+   bottom separator so their text and icon stay centered on the full row height. */
 /* Text sizing (see CUSTOMIZATION.md): sizes are pixels only. Each slot names its own --er-base;
    an authored `fontSize` arrives as gated data-font-px + --er-font-px and replaces it. */
-/* The table's own type ramp hangs off one base: the 17px field name is --er-base, the 18px title
+/* The table's own type ramp hangs off one base: the 17px field name is --er-base, the 20px title
    and the 15px type/meta columns are fixed ratios of it, so one authored fontSize moves the whole
    ramp instead of flattening it. */
 .er-dbtable {
@@ -13,12 +17,15 @@
      the same lightening groups use); an authored bgColor paints the face directly. */
   --er-stroke: var(--er-muted);
   --er-divider: var(--er-separator);
-  --er-tint: var(--er-surface);
-  --er-base: 17px;
+  /* The face with no identity: the surface with a trace of ink (#fafafa on white), the same
+     98% lightness an identity colour is tinted to. */
+  --er-tint: color-mix(in srgb, var(--er-surface), var(--er-text) 2.3%);
+  --er-base: var(--er-table-font-size, 17px);
   position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
+  min-width: var(--er-table-min-width, 150px);
   height: 100%;
   overflow: hidden;
   border: 1.8px solid var(--er-stroke);
@@ -81,9 +88,11 @@
 .er-dbtable__head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 0 10px;
+  gap: var(--er-table-gap, 10px);
+  min-height: var(--er-table-head-min-height, 0px);
+  padding: calc(var(--er-table-head-pad-y, calc(var(--er-base) * 0.42)) + 1px)
+    var(--er-table-pad-x, 10px)
+    var(--er-table-head-pad-y, calc(var(--er-base) * 0.42));
   background: var(--er-surface);
   border-bottom: 1px solid var(--er-divider);
   box-sizing: border-box;
@@ -97,9 +106,8 @@
 .er-dbtable__title {
   flex: 1;
   margin: 0;
-  font-size: calc(var(--er-base) * 18 / 17);
+  font-size: var(--er-table-title-size, calc(var(--er-base) * 20 / 17));
   font-weight: 400;
-  letter-spacing: -0.01em;
   color: var(--er-text);
   text-align: left;
 }
@@ -112,9 +120,9 @@
 .er-dbtable__icon {
   --er-glyph-num: 25;
   flex: 0 0 auto;
-  width: 25px;
-  height: 25px;
-  color: var(--er-secondary);
+  width: var(--er-table-icon-size, calc(var(--er-base) * 25 / 17));
+  height: var(--er-table-icon-size, calc(var(--er-base) * 25 / 17));
+  color: var(--er-text);
   line-height: 0;
 }
 .er-dbtable__icon svg {
@@ -129,17 +137,21 @@
 }
 .er-dbtable__row {
   display: flex;
-  gap: 8px;
+  gap: var(--er-table-gap, 10px);
   align-items: center;
-  min-height: 28px;
-  padding: 0 10px;
+  min-height: var(--er-table-row-min-height, 0px);
+  padding: calc(var(--er-table-row-pad-y, calc(var(--er-base) * 0.47)) + 1px)
+    var(--er-table-pad-x, 10px)
+    var(--er-table-row-pad-y, calc(var(--er-base) * 0.47));
   border-bottom: 1px solid var(--er-divider);
   box-sizing: border-box;
 }
 .er-dbtable__row:last-child {
+  padding-top: var(--er-table-row-pad-y, calc(var(--er-base) * 0.47));
   border-bottom: none;
 }
 .er-dbtable__f-name {
+  margin-right: var(--er-table-name-gap, 10px);
   font-size: var(--er-base);
   color: var(--er-body-text);
 }
@@ -148,13 +160,13 @@
   text-align: right;
   color: var(--er-muted);
   font-family: var(--font-mono, monospace);
-  font-size: calc(var(--er-base) * 15 / 17);
+  font-size: var(--er-table-type-size, calc(var(--er-base) * 15 / 17));
 }
 .er-dbtable__f-meta {
   text-align: right;
   color: var(--er-muted);
   font-family: var(--font-mono, monospace);
-  font-size: calc(var(--er-base) * 15 / 17);
+  font-size: var(--er-table-type-size, calc(var(--er-base) * 15 / 17));
 }
 /* data-if does not execute inside data-each items — an absent meta substitutes empty. */
 .er-dbtable__f-meta:empty {

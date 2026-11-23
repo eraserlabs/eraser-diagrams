@@ -3,7 +3,7 @@ import { TEXT_SIZE_POLICIES, type TextSizePolicy } from '@eraserlabs/protocol';
 import type { ResolvedConnection, ResolvedEntity } from '@eraserlabs/protocol';
 import type { Box, SceneLayout } from '@eraserlabs/render';
 import { isRecord } from '@eraserlabs/utils';
-import type { MeasuredBox } from './measure.js';
+import { readPorts, type MeasuredBox, type MeasuredPort } from './measure.js';
 import type { MountedElement } from './mount.js';
 
 const POLICY_ATTRIBUTE = 'data-text-grow-policy';
@@ -128,6 +128,8 @@ export interface ElementFit {
   textRegions: TextRegionMeasure[];
   /** Content that still runs past the body at that size, in px per side, and the text's scroll overflow. */
   overflow: Overflow;
+  /** Named port bands (`[data-port]` / `[data-port-prefix]`) at that size, wrapper-relative. */
+  ports: MeasuredPort[];
 }
 
 /**
@@ -165,6 +167,7 @@ export function measureElement(wrapper: HTMLElement): ElementFit {
     body: { width: origin.width, height: origin.height },
     textRegions,
     overflow: internalOverflow(wrapper),
+    ports: readPorts(wrapper),
   };
 }
 

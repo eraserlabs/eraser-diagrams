@@ -4,6 +4,7 @@
  * attached and unzoomed, is measured as laid out, or sized for its text under the host's
  * constraints. Neither installs anything on the page.
  */
+export { readPorts, type MeasuredPort } from './measure.js';
 export {
   type ElementFit,
   type FitConstraints,

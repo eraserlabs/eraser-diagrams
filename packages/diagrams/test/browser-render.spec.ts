@@ -524,6 +524,130 @@ test('a DatabaseRelationship keeps its connectorStyle and bend and draws as an a
   await expect(anchor).not.toHaveAttribute('d', /L/);
 });
 
+test('DatabaseTable row heights scale with fontSize and DatabaseRelationship pins to measured [data-port] rows', async ({
+  page,
+}) => {
+  const { payload, result } = await buildPayload({
+    elements: [
+      {
+        tag: 'DatabaseTable',
+        id: 'users',
+        x: 0,
+        y: 0,
+        fontSize: 14,
+        label: 'users',
+        fields: [
+          { name: 'id', type: 'int', meta: 'PK' },
+          { name: 'email', type: 'text' },
+          { name: 'org_id', type: 'int', meta: 'FK' },
+        ],
+      },
+      {
+        tag: 'DatabaseTable',
+        id: 'orgs',
+        x: 420,
+        y: 0,
+        fontSize: 28,
+        label: 'orgs',
+        fields: [
+          { name: 'id', type: 'int', meta: 'PK' },
+          { name: 'slug', type: 'text' },
+        ],
+      },
+      {
+        tag: 'DatabaseRelationship',
+        id: 'user-org',
+        from: 'users',
+        to: 'orgs',
+        fromField: 'org_id',
+        toField: 'id',
+        startArrowhead: 'crowFootZeroOrMany',
+        endArrowhead: 'crowFootOnlyOne',
+      },
+    ],
+  });
+  expect(result.ok, JSON.stringify(result.errors)).toBe(true);
+  const run = await runPayload(page, payload);
+
+  const usersMeasure = run.measures.find((m) => m.id === 'users')!;
+  const orgsMeasure = run.measures.find((m) => m.id === 'orgs')!;
+  const usersOrgId = usersMeasure.ports.find((p) => p.id === 'field:org_id')!;
+  const orgsId = orgsMeasure.ports.find((p) => p.id === 'field:id')!;
+
+  // Larger fontSize produces genuinely taller rows (no fixed-only row height).
+  expect(orgsId.height).toBeGreaterThan(usersOrgId.height * 1.4);
+
+  // Routed connection endpoints land on each measured row's mid-height.
+  const conn = run.layout.connections['user-org']!;
+  expect(Math.abs(conn.points[0]![1] - (usersOrgId.y + usersOrgId.height / 2))).toBeLessThanOrEqual(
+    1,
+  );
+  expect(Math.abs(conn.points.at(-1)![1] - (orgsId.y + orgsId.height / 2))).toBeLessThanOrEqual(1);
+
+  // Optionality markers exist and are referenced on the path.
+  const path = page.locator('[data-mdp-id="user-org"] [data-role="anchor"]');
+  await expect(path).toHaveAttribute('marker-start', 'url(#er-dbah-crowFootZeroOrMany)');
+  await expect(path).toHaveAttribute('marker-end', 'url(#er-dbah-crowFootOnlyOne)');
+  await expect(
+    page.locator('[data-mdp-id="user-org"] marker#er-dbah-crowFootZeroOrMany circle'),
+  ).toHaveCount(1);
+});
+
+test('DatabaseTable honors host CSS custom properties and measured ports follow the shifted rows', async ({
+  page,
+}) => {
+  const { payload, result } = await buildPayload({
+    elements: [
+      {
+        tag: 'DatabaseTable',
+        id: 'a',
+        x: 0,
+        y: 0,
+        label: 'a',
+        fields: [
+          { name: 'id', type: 'int' },
+          { name: 'b_id', type: 'int' },
+        ],
+      },
+      {
+        tag: 'DatabaseTable',
+        id: 'b',
+        x: 420,
+        y: 0,
+        label: 'b',
+        fields: [{ name: 'id', type: 'int' }],
+      },
+      {
+        tag: 'DatabaseRelationship',
+        id: 'ab',
+        from: 'a',
+        to: 'b',
+        fromField: 'b_id',
+        toField: 'id',
+      },
+    ],
+  });
+  expect(result.ok, JSON.stringify(result.errors)).toBe(true);
+  payload.baseCss += `
+    :root {
+      --er-table-min-width: 260px;
+      --er-table-head-min-height: 60px;
+      --er-table-row-min-height: 54px;
+    }
+  `;
+  const run = await runPayload(page, payload);
+
+  const aMeasure = run.measures.find((m) => m.id === 'a')!;
+  const aHeader = aMeasure.ports.find((p) => p.id === 'header')!;
+  const aBId = aMeasure.ports.find((p) => p.id === 'field:b_id')!;
+  expect(aMeasure.body!.width).toBeGreaterThanOrEqual(260);
+  expect(aHeader.height).toBeGreaterThanOrEqual(60);
+  expect(aBId.height).toBeGreaterThanOrEqual(54);
+
+  const conn = run.layout.connections['ab']!;
+  expect(Math.abs(conn.points[0]![1] - (aBId.y + aBId.height / 2))).toBeLessThanOrEqual(1);
+});
+
 test('hostile text renders as inert visible text — zero script execution', async ({ page }) => {
   const dialogs: string[] = [];
   page.on('dialog', (dialog) => {

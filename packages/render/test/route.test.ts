@@ -502,3 +502,73 @@ describe("routeScene with connectorStyle: 'straight'", () => {
     expect(isOrthogonal(straight)).toBe(false);
   });
 });
+
+describe('routeScene with entityPorts', () => {
+  const ports = new Map([
+    [
+      'users',
+      [
+        { id: 'header', y: 1, height: 40 },
+        { id: 'field:id', y: 41, height: 30 },
+        { id: 'field:org & team', y: 71, height: 50 },
+      ],
+    ],
+    [
+      'orgs',
+      [
+        { id: 'header', y: 1, height: 40 },
+        { id: 'field:id', y: 41, height: 40 },
+      ],
+    ],
+  ]);
+
+  it('pins fromField/toField to measured port midpoints, decoding HTML-escaped plain text', () => {
+    const layout = routeScene(
+      [node('users', 0, 0, 160, 122), node('orgs', 360, 0, 160, 82)],
+      [wire('fk', 'users', 'orgs', { fromField: 'org &amp; team', toField: 'id' })],
+      NO_INTRINSICS,
+      NO_TEXT,
+      undefined,
+      ports,
+    );
+
+    const pts = pointsOf(layout.connections['fk']!.d);
+    expect(pts[0]).toEqual([160, 96]); // 71 + 50 / 2
+    expect(pts.at(-1)).toEqual([360, 61]); // 41 + 40 / 2
+  });
+
+  it('pins a fresh table-level connection (no fields, no authored points) to the header port', () => {
+    const layout = routeScene(
+      [node('users', 0, 0, 160, 122), node('orgs', 360, 0, 160, 82)],
+      [wire('rel', 'users', 'orgs')],
+      NO_INTRINSICS,
+      NO_TEXT,
+      undefined,
+      ports,
+    );
+
+    const pts = pointsOf(layout.connections['rel']!.d);
+    expect(pts[0]).toEqual([160, 21]); // 1 + 40 / 2
+    expect(pts.at(-1)).toEqual([360, 21]);
+  });
+
+  it('preserves authored perimeter points on port-declaring entities when no fields are named', () => {
+    const layout = routeScene(
+      [node('s1', 0, 0, 140, 70), node('orgs', 240, 0, 160, 82)],
+      [
+        wire('r1', 's1', 'orgs', {
+          points: [
+            { x: 140, y: 35 },
+            { x: 240, y: 35 },
+          ],
+        }),
+      ],
+      NO_INTRINSICS,
+      NO_TEXT,
+      undefined,
+      ports,
+    );
+
+    expect(layout.connections['r1']!.d).toBe('M140 35L240 35');
+  });
+});

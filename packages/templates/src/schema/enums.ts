@@ -28,6 +28,13 @@ export const ARROWHEADS = [
   'triangle',
   'crowFootSingle',
   'crowFootMany',
+  'crowFootOnlyOne',
+  'crowFootZeroOrOne',
+  'crowFootOneOrMany',
+  'crowFootZeroOrMany',
+  'hollowTriangle',
+  'hollowDiamond',
+  'filledDiamond',
 ] as const;
 
 export const PORTS = ['top', 'right', 'bottom', 'left'] as const;
