@@ -91,7 +91,17 @@ export function applyLayout(
 
     anchor?.setAttribute('d', connection.d);
 
-    const label = element.wrapper.querySelector('[data-role="external-text"]');
+    const doubleRails = element.wrapper.querySelector('[data-double-rails]');
+
+    if (doubleRails && connection.doubleRailsD) {
+      doubleRails.setAttribute('d', connection.doubleRailsD);
+    }
+
+    const label =
+      element.wrapper.querySelector('[data-role="external-text"][data-part="label"]') ??
+      element.wrapper.querySelector(
+        '[data-role="external-text"]:not([data-part="start-label"]):not([data-part="end-label"])',
+      );
 
     if (label instanceof HTMLElement) {
       // A placed box is authoritative — the routes were kept clear of exactly that rect, so the
@@ -106,13 +116,54 @@ export function applyLayout(
       const labelBox = placed ?? fallbackLabelBox(connection.label, measureById.get(element.id));
 
       if (svg && anchor && labelBox) {
-        cutLabelGap(svg, anchor, labelBox, {
-          connectionId: element.id,
-          field: sceneBox,
-        });
+        if (doubleRails && connection.doubleRailsD) {
+          cutLabelGap(svg, doubleRails, labelBox, {
+            connectionId: element.id,
+            field: sceneBox,
+            route: connection.points,
+          });
+        } else {
+          cutLabelGap(svg, anchor, labelBox, {
+            connectionId: element.id,
+            field: sceneBox,
+          });
+        }
       }
     }
+
+    placeEndpointLabelNode(
+      element.wrapper.querySelector('[data-part="start-label"]'),
+      connection.startLabelBox,
+      originX,
+      originY,
+      labelZIndex,
+    );
+    placeEndpointLabelNode(
+      element.wrapper.querySelector('[data-part="end-label"]'),
+      connection.endLabelBox,
+      originX,
+      originY,
+      labelZIndex,
+    );
   }
+}
+
+function placeEndpointLabelNode(
+  node: Element | null,
+  box: Box | undefined,
+  originX: number,
+  originY: number,
+  zIndex: number,
+): void {
+  if (!(node instanceof HTMLElement) || !box) {
+    return;
+  }
+
+  node.style.position = 'absolute';
+  node.style.left = `${box.x - originX}px`;
+  node.style.top = `${box.y - originY}px`;
+  node.style.transform = '';
+  node.style.zIndex = String(zIndex);
 }
 
 /** The midpoint pin used by apply projected through the label's measured border-box size. */
@@ -120,7 +171,10 @@ function fallbackLabelBox(
   label: { x: number; y: number },
   measure: ElementMeasure | undefined,
 ): Box | undefined {
-  const measured = measure?.roles['external-text']?.[0];
+  const measured =
+    measure?.parts['start-label'] || measure?.parts['end-label']
+      ? measure.parts['label']?.[0]
+      : measure?.roles['external-text']?.[0];
 
   if (!measured) {
     return undefined;
@@ -146,6 +200,13 @@ function inkAwareSceneBox(layout: SceneLayout, measures?: ElementMeasure[]): Box
   let right = layout.scene.x + layout.scene.width;
   let bottom = layout.scene.y + layout.scene.height;
 
+  const includeBox = (box: Box) => {
+    left = Math.min(left, box.x);
+    top = Math.min(top, box.y);
+    right = Math.max(right, box.x + box.width);
+    bottom = Math.max(bottom, box.y + box.height);
+  };
+
   for (const measure of measures ?? []) {
     const box = layout.boxes[measure.id];
 
@@ -158,26 +219,40 @@ function inkAwareSceneBox(layout: SceneLayout, measures?: ElementMeasure[]): Box
     }
 
     // Connections mount as full-scene overlays, so their flow-time ink is meaningless — only the
-    // label paints outside the path.
+    // labels paint outside the path.
     const connection = layout.connections[measure.id];
-    const measured = connection && measure.roles['external-text']?.[0];
 
-    if (!connection || !measured) {
+    if (!connection) {
+      continue;
+    }
+
+    if (connection.startLabelBox) {
+      includeBox(connection.startLabelBox);
+    }
+
+    if (connection.endLabelBox) {
+      includeBox(connection.endLabelBox);
+    }
+
+    const measured =
+      measure.parts['start-label'] || measure.parts['end-label']
+        ? measure.parts['label']?.[0]
+        : measure.roles['external-text']?.[0];
+
+    if (!measured) {
       continue;
     }
 
     // A placed box already sits in scene coordinates; the midpoint fallback projects the measured
     // label around its anchor (the `translate(-50%, -100%)` pin above).
-    const labelBox = connection.labelBox ?? {
-      x: connection.label.x - measured.width / 2,
-      y: connection.label.y - measured.height,
-      width: measured.width,
-      height: measured.height,
-    };
-    left = Math.min(left, labelBox.x);
-    top = Math.min(top, labelBox.y);
-    right = Math.max(right, labelBox.x + labelBox.width);
-    bottom = Math.max(bottom, labelBox.y + labelBox.height);
+    includeBox(
+      connection.labelBox ?? {
+        x: connection.label.x - measured.width / 2,
+        y: connection.label.y - measured.height,
+        width: measured.width,
+        height: measured.height,
+      },
+    );
   }
 
   return { x: left, y: top, width: right - left, height: bottom - top };

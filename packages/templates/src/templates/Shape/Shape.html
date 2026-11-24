@@ -89,6 +89,11 @@
         d="{{geoPath}}"
       ></path>
       <path
+        data-if="geoInnerPath"
+        class="er-shape__inner-border"
+        d="{{geoInnerPath}}"
+      ></path>
+      <path
         data-if="geoCapPath"
         class="er-shape__cap er-shape__cap--dynamic"
         d="{{geoCapPath}}"
@@ -191,6 +196,7 @@
           class="er-shape__text er-md"
           data-h-align="{{t.hAlign}}"
           data-run-px="{{t.fontSize}}"
+          data-underline="{{t.underline}}"
           style="--f: var(--font-{{t.typeface}}, var(--font-clean)); --er-ink: {{t.color}}; --er-run-px: {{t.fontSize}}px"
         >
           {{t.text}}

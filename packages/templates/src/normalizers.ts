@@ -6,9 +6,9 @@ import {
 } from '@eraserlabs/resolve';
 import { alphaOf, CANVAS_INK, inkForFill, tintOf } from './canvasColors.js';
 import { washTextureProps } from './watercolorTexture.js';
-import { roundedShapePath } from './roundedPolygon.js';
-import { curvedShapePath } from './curvedShapePaths.js';
-import { rectanglePath, rectangleShadowPaths } from './rectanglePath.js';
+import { insetRoundedShapePath, roundedShapePath } from './roundedPolygon.js';
+import { curvedShapePath, insetCurvedShapePath } from './curvedShapePaths.js';
+import { insetRectanglePath, rectanglePath, rectangleShadowPaths } from './rectanglePath.js';
 import { shapeOutline } from './shapeOutlines.js';
 
 /**
@@ -241,6 +241,12 @@ const normalizeShape: ElementNormalizer = (element) => {
   deriveOutline(element);
 };
 
+function doubleBorderInset(element: Record<string, unknown>): number {
+  const bw = positivePx(element.borderWidth) ?? 1.2;
+
+  return Math.max(4.5, bw * 2.5);
+}
+
 /**
  * Polygon kinds: rounded-corner path at real size (radii are absolute px). Document/cylinder:
  * curves scaled to real size. Sized rectangles share the canvas silhouette; other CSS kinds and
@@ -248,20 +254,25 @@ const normalizeShape: ElementNormalizer = (element) => {
  */
 function deriveGeo(element: Record<string, unknown>): void {
   const { width, height } = element;
+  const isDouble = element.borderStyle === 'double';
 
   if (typeof width === 'number' && width > 0 && typeof height === 'number' && height > 0) {
     const kind = String(element.shape);
     if (kind === 'rectangle' && element.styleMode !== 'watercolor') {
-      const body = rectanglePath(width, height, element.cornerRadius === 'sharp');
+      const sharp = element.cornerRadius === 'sharp';
+      const body = rectanglePath(width, height, sharp);
       element.geoPath = body;
       element.geoW = width;
       element.geoH = height;
       element.staticGeo = false;
       if (element.styleMode === 'shadow') {
-        Object.assign(
-          element,
-          rectangleShadowPaths(width, height, element.cornerRadius === 'sharp'),
-        );
+        Object.assign(element, rectangleShadowPaths(width, height, sharp));
+      }
+      if (isDouble) {
+        const inner = insetRectanglePath(width, height, sharp, doubleBorderInset(element));
+        if (inner !== null) {
+          element.geoInnerPath = inner;
+        }
       }
       return;
     }
@@ -271,6 +282,13 @@ function deriveGeo(element: Record<string, unknown>): void {
       element.geoPath = path;
       element.geoW = width;
       element.geoH = height;
+
+      if (isDouble) {
+        const inner = insetRoundedShapePath(kind, width, height, doubleBorderInset(element));
+        if (inner !== null) {
+          element.geoInnerPath = inner;
+        }
+      }
 
       return;
     }
@@ -288,6 +306,13 @@ function deriveGeo(element: Record<string, unknown>): void {
 
       if (curved.cap !== undefined) {
         element.geoCapPath = curved.cap;
+      }
+
+      if (isDouble) {
+        const inner = insetCurvedShapePath(kind, width, height, doubleBorderInset(element));
+        if (inner !== null) {
+          element.geoInnerPath = inner;
+        }
       }
 
       return;
@@ -351,6 +376,19 @@ const normalizeDatabaseTable: ElementNormalizer = (element) => {
   deriveBoxWash(element);
 };
 
+const normalizeClassBox: ElementNormalizer = (element) => {
+  deriveStockPaint(element, 0.98, { divider: true });
+  deriveBoxWash(element);
+
+  if (typeof element.stereotype === 'string') {
+    const trimmed = element.stereotype.trim();
+
+    if (trimmed !== '' && !/^(?:«.*»|<<.*>>)$/.test(trimmed)) {
+      element.stereotype = `«${trimmed}»`;
+    }
+  }
+};
+
 const normalizeDivider: ElementNormalizer = (element) => {
   element.color ??= '#1c1c1c';
   deriveLineWidth(element);
@@ -361,6 +399,13 @@ const REL_TYPE_ARROWHEADS: Record<string, [string, string]> = {
   'one-to-many': ['crowFootSingle', 'crowFootMany'],
   'many-to-one': ['crowFootMany', 'crowFootSingle'],
   'many-to-many': ['crowFootMany', 'crowFootMany'],
+};
+
+const REL_TYPE_CHEN_LABELS: Record<string, [string, string]> = {
+  'one-to-one': ['1', '1'],
+  'one-to-many': ['1', '*'],
+  'many-to-one': ['*', '1'],
+  'many-to-many': ['*', '*'],
 };
 
 function normalizeConnectionShared(element: Record<string, unknown>): void {
@@ -380,12 +425,26 @@ const normalizeDatabaseRelationship: ElementNormalizer = (element) => {
   normalizeConnectionShared(element);
 
   if (typeof element.relType === 'string') {
-    const pair = REL_TYPE_ARROWHEADS[element.relType];
+    if (element.notation === 'chen') {
+      const labels = REL_TYPE_CHEN_LABELS[element.relType];
 
-    if (pair !== undefined) {
-      element.startArrowhead ??= pair[0];
-      element.endArrowhead ??= pair[1];
+      if (labels !== undefined) {
+        element.startLabel ??= labels[0];
+        element.endLabel ??= labels[1];
+      }
+    } else {
+      const pair = REL_TYPE_ARROWHEADS[element.relType];
+
+      if (pair !== undefined) {
+        element.startArrowhead ??= pair[0];
+        element.endArrowhead ??= pair[1];
+      }
     }
+  }
+
+  for (const end of ['start', 'end']) {
+    const head = element[`${end}Arrowhead`];
+    element[`${end}Marker`] = typeof head === 'string' ? `url(#er-dbah-${head})` : 'none';
   }
 };
 
@@ -401,6 +460,7 @@ export const stockNormalizers: Record<string, ElementNormalizer> = {
   Lane: normalizeGroupLike,
   Pool: normalizeGroupLike,
   DatabaseTable: normalizeDatabaseTable,
+  ClassBox: normalizeClassBox,
   Divider: normalizeDivider,
   Relationship: normalizeRelationship,
   DatabaseRelationship: normalizeDatabaseRelationship,

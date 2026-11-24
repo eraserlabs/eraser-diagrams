@@ -648,6 +648,161 @@ test('DatabaseTable honors host CSS custom properties and measured ports follow 
   expect(Math.abs(conn.points[0]![1] - (aBId.y + aBId.height / 2))).toBeLessThanOrEqual(1);
 });
 
+test('ClassBox renders named/unnamed sections, stereotype, italic/underline, and pins ports', async ({
+  page,
+}) => {
+  const { payload, result } = await buildPayload({
+    elements: [
+      {
+        tag: 'ClassBox',
+        id: 'gw',
+        label: 'Gateway',
+        stereotype: 'interface',
+        italic: true,
+        x: 0,
+        y: 0,
+        width: 220,
+        badge: { text: 'v2', placement: 'top-right' },
+        sections: [
+          {
+            name: 'attributes',
+            items: [{ name: '+ timeout', type: 'int', underline: true }],
+          },
+          {
+            items: [{ name: '+ charge()', type: 'void', italic: true }],
+          },
+          {
+            name: 'events',
+            items: [{ name: 'Charged' }],
+          },
+        ],
+      },
+      {
+        tag: 'ClassBox',
+        id: 'order',
+        label: 'Order',
+        x: 380,
+        y: 0,
+        width: 200,
+        sections: [{ items: [{ name: '- id', type: 'UUID' }] }],
+      },
+      {
+        tag: 'Relationship',
+        id: 'rel',
+        from: 'gw',
+        to: 'order',
+        fromPort: 'right',
+        toPort: 'left',
+        startArrowhead: 'hollowDiamond',
+        endArrowhead: null,
+        startLabel: '1',
+        endLabel: '0..*',
+      },
+    ],
+  });
+  expect(result.ok, JSON.stringify(result.errors)).toBe(true);
+  const run = await runPayload(page, payload);
+
+  const gw = page.locator('[data-mdp-id="gw"]');
+  await expect(gw.locator('.er-classbox__stereotype')).toHaveText('«interface»');
+  await expect(gw.locator('.er-classbox__title')).toHaveCSS('font-style', 'italic');
+  await expect(gw.locator('.er-classbox__section')).toHaveCount(3);
+  await expect(gw.locator('.er-classbox__section-name')).toHaveText(['attributes', 'events']);
+  await expect(gw.locator('.er-classbox__m-name').first()).toHaveCSS(
+    'text-decoration-line',
+    'underline',
+  );
+  await expect(gw.locator('[data-tpl="ClassBox"]')).toHaveCSS('overflow', 'visible');
+
+  const rel = page.locator('[data-mdp-id="rel"]');
+  await expect(rel.locator('[data-part="start-label"]')).toHaveText('1');
+  await expect(rel.locator('[data-part="end-label"]')).toHaveText('0..*');
+  expect(run.layout.connections['rel']?.startLabelBox).toBeDefined();
+  expect(run.layout.connections['rel']?.endLabelBox).toBeDefined();
+});
+
+test('Chen notation, double borders, double lines, and property-level underline render cleanly', async ({
+  page,
+}) => {
+  const { payload, result } = await buildPayload({
+    elements: [
+      {
+        tag: 'Shape',
+        id: 'weak-ent',
+        shape: 'rectangle',
+        borderStyle: 'double',
+        x: 0,
+        y: 0,
+        width: 130,
+        height: 54,
+        texts: [{ text: 'OrderItem' }],
+      },
+      {
+        tag: 'Shape',
+        id: 'id-rel',
+        shape: 'diamond',
+        borderStyle: 'double',
+        x: 240,
+        y: 0,
+        width: 120,
+        height: 76,
+        texts: [{ text: 'contains' }],
+      },
+      {
+        tag: 'Shape',
+        id: 'pk-attr',
+        shape: 'ellipse',
+        x: 0,
+        y: 120,
+        width: 120,
+        height: 46,
+        texts: [{ text: 'item_id', underline: true }],
+      },
+      {
+        tag: 'Shape',
+        id: 'partial-attr',
+        shape: 'ellipse',
+        borderStyle: 'double',
+        x: 180,
+        y: 120,
+        width: 120,
+        height: 46,
+        texts: [{ text: 'line_no', underline: 'dashed' }],
+      },
+      {
+        tag: 'DatabaseRelationship',
+        id: 'total-part',
+        from: 'weak-ent',
+        to: 'id-rel',
+        relType: 'one-to-many',
+        notation: 'chen',
+        lineStyle: 'double',
+      },
+    ],
+  });
+  expect(result.ok, JSON.stringify(result.errors)).toBe(true);
+  const run = await runPayload(page, payload);
+
+  await expect(page.locator('[data-mdp-id="weak-ent"] .er-shape__inner-border')).toHaveCount(1);
+  await expect(page.locator('[data-mdp-id="id-rel"] .er-shape__inner-border')).toHaveCount(1);
+  await expect(page.locator('[data-mdp-id="pk-attr"] .er-shape__text')).toHaveCSS(
+    'text-decoration-line',
+    'underline',
+  );
+  await expect(page.locator('[data-mdp-id="partial-attr"] .er-shape__text')).toHaveCSS(
+    'text-decoration-style',
+    'dashed',
+  );
+
+  const rel = page.locator('[data-mdp-id="total-part"]');
+  await expect(rel.locator('[data-role="anchor"]')).toHaveAttribute('marker-start', 'none');
+  await expect(rel.locator('[data-role="anchor"]')).toHaveAttribute('marker-end', 'none');
+  await expect(rel.locator('[data-double-rails]')).toHaveCSS('display', 'block');
+  await expect(rel.locator('[data-part="start-label"]')).toHaveText('1');
+  await expect(rel.locator('[data-part="end-label"]')).toHaveText('*');
+  expect(run.layout.connections['total-part']?.doubleRailsD).toBeDefined();
+});
+
 test('hostile text renders as inert visible text — zero script execution', async ({ page }) => {
   const dialogs: string[] = [];
   page.on('dialog', (dialog) => {

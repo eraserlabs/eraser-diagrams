@@ -18,8 +18,8 @@ function numbersOf(args: string): number[] {
   return (args.match(/-?[\d.]+/g) ?? []).map(Number);
 }
 
-/** Scale a 0–100 M/L/H/V/C/A/Z path to w×h. Arc radii scale per axis (all arcs are unrotated). */
-function scalePath(d: string, w: number, h: number): string {
+/** Scale a 0–100 M/L/H/V/C/A/Z path to w×h, shifted by (ox, oy). Arc radii scale per axis. */
+function scalePath(d: string, w: number, h: number, ox = 0, oy = 0): string {
   const sx = w / 100;
   const sy = h / 100;
   const fmt = (value: number): string => String(Math.round(value * 100) / 100);
@@ -33,21 +33,23 @@ function scalePath(d: string, w: number, h: number): string {
       case 'M':
       case 'L':
       case 'C': {
-        const scaled = values.map((value, i) => fmt(i % 2 === 0 ? value * sx : value * sy));
+        const scaled = values.map((value, i) =>
+          fmt(i % 2 === 0 ? ox + value * sx : oy + value * sy),
+        );
         out.push(`${command} ${scaled.join(' ')}`);
         break;
       }
       case 'H':
-        out.push(`H ${fmt(values[0]! * sx)}`);
+        out.push(`H ${fmt(ox + values[0]! * sx)}`);
         break;
       case 'V':
-        out.push(`V ${fmt(values[0]! * sy)}`);
+        out.push(`V ${fmt(oy + values[0]! * sy)}`);
         break;
       case 'A': {
         // rx ry rotation large-arc sweep x y — repeated groups of 7.
         for (let i = 0; i + 6 < values.length; i += 7) {
           out.push(
-            `A ${fmt(values[i]! * sx)} ${fmt(values[i + 1]! * sy)} ${values[i + 2]} ${values[i + 3]} ${values[i + 4]} ${fmt(values[i + 5]! * sx)} ${fmt(values[i + 6]! * sy)}`,
+            `A ${fmt(values[i]! * sx)} ${fmt(values[i + 1]! * sy)} ${values[i + 2]} ${values[i + 3]} ${values[i + 4]} ${fmt(ox + values[i + 5]! * sx)} ${fmt(oy + values[i + 6]! * sy)}`,
           );
         }
 
@@ -67,16 +69,16 @@ function scalePath(d: string, w: number, h: number): string {
  * DocumentShape): each coordinate a share of the width or height, except the top edge, which
  * sits at y = 1px and meets the right side at y = 7px whatever the height.
  */
-function documentBody(w: number, h: number): string {
+function documentBody(w: number, h: number, ox = 0, oy = 0): string {
   const fmt = (value: number): string => String(Math.round(value * 100) / 100);
-  const x = (share: number): string => fmt(w * share);
-  const y = (share: number): string => fmt(h * share);
+  const x = (share: number): string => fmt(ox + w * share);
+  const y = (share: number): string => fmt(oy + h * share);
 
   return [
     `M ${x(0.0087)} ${y(0.0667)}`,
-    `C ${x(0.0087)} ${y(0.0347)} ${x(0.0341)} 1 ${x(0.0653)} 1`,
+    `C ${x(0.0087)} ${y(0.0347)} ${x(0.0341)} ${fmt(oy + 1)} ${x(0.0653)} ${fmt(oy + 1)}`,
     `H ${x(0.933)}`,
-    `C ${x(0.964)} 1 ${x(0.99)} ${y(0.0351)} ${x(0.99)} 7`,
+    `C ${x(0.964)} ${fmt(oy + 1)} ${x(0.99)} ${y(0.0351)} ${x(0.99)} ${fmt(oy + 7)}`,
     `V ${y(0.777)}`,
     `C ${x(0.989)} ${y(0.863)} ${x(0.951)} ${y(0.899)} ${x(0.913)} ${y(0.888)}`,
     `C ${x(0.851)} ${y(0.871)} ${x(0.761)} ${y(0.851)} ${x(0.685)} ${y(0.851)}`,
@@ -107,6 +109,31 @@ export function curvedShapePath(kind: string, w: number, h: number): CurvedShape
       cap: scalePath(CYLINDER_CAP, w, h),
       washFloor: scalePath(CYLINDER_FLOOR, w, h),
     };
+  }
+
+  return null;
+}
+
+/** Inset inner outline for curved shapes (`borderStyle: 'double'`). */
+export function insetCurvedShapePath(
+  kind: string,
+  w: number,
+  h: number,
+  inset: number,
+): string | null {
+  const iw = w - inset * 2;
+  const ih = h - inset * 2;
+
+  if (iw <= 4 || ih <= 4) {
+    return null;
+  }
+
+  if (kind === 'document') {
+    return documentBody(iw, ih, inset, inset);
+  }
+
+  if (kind === 'cylinder') {
+    return scalePath(CYLINDER_BODY, iw, ih, inset, inset);
   }
 
   return null;

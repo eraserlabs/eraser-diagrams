@@ -83,3 +83,12 @@
 .er-icon__caption-line + .er-icon__caption-line {
   margin-top: 2px;
 }
+.er-icon__caption-line[data-underline='true'],
+.er-icon__caption-line[data-underline='solid'] {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.er-icon__caption-line[data-underline='dashed'] {
+  text-decoration: underline dashed;
+  text-underline-offset: 2px;
+}

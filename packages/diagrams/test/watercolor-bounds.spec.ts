@@ -21,11 +21,11 @@ test.afterAll(async () => {
   await renderer?.close();
 });
 
-for (const kind of [...ALLOWED_SHAPES, 'Group', 'Lane', 'Pool', 'DatabaseTable']) {
+for (const kind of [...ALLOWED_SHAPES, 'Group', 'Lane', 'Pool', 'DatabaseTable', 'ClassBox']) {
   test(`${kind}: watercolor PNG bounds stay within normal export padding`, async ({
     page,
   }, testInfo) => {
-    const container = ['Group', 'Lane', 'Pool', 'DatabaseTable'].includes(kind);
+    const container = ['Group', 'Lane', 'Pool', 'DatabaseTable', 'ClassBox'].includes(kind);
     const sizes = [];
     for (const styleMode of ['plain', 'watercolor']) {
       const result = await renderer.render({

@@ -17,6 +17,8 @@ export interface Box {
 export interface ConnectionGeometry {
   /** SVG path data in scene coordinates. */
   d: string;
+  /** Parallel rail path data when `lineStyle === 'double'`, in scene coordinates. */
+  doubleRailsD?: string;
   /** Unrounded routed polyline in scene coordinates; consumers may derive segment constraints. */
   points: [number, number][];
   /** Where the external label is pinned: the placed label's center, else the path midpoint. */
@@ -27,6 +29,10 @@ export interface ConnectionGeometry {
    * label falls back to the path midpoint.
    */
   labelBox?: Box;
+  /** Scene-space box for the optional endpoint label near the connection's start (`from`) end. */
+  startLabelBox?: Box;
+  /** Scene-space box for the optional endpoint label near the connection's end (`to`) end. */
+  endLabelBox?: Box;
 }
 
 export interface SceneLayout {

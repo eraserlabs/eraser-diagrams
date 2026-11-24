@@ -152,6 +152,291 @@
         }
       ],
       "height": 118
+    },
+    {
+      "tag": "ClassBox",
+      "id": "cls-gateway",
+      "label": "PaymentGateway",
+      "stereotype": "interface",
+      "italic": true,
+      "color": "purple",
+      "titleBgColor": "#f3e8ff",
+      "x": 40,
+      "y": 420,
+      "width": 230,
+      "sections": [
+        {
+          "name": "methods",
+          "items": [
+            {
+              "name": "+ charge(amt)",
+              "type": "Receipt",
+              "italic": true
+            },
+            {
+              "name": "+ refund(id)",
+              "type": "void",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "name": "events",
+          "items": [
+            {
+              "name": "ChargeSucceeded"
+            },
+            {
+              "name": "ChargeFailed"
+            }
+          ]
+        }
+      ],
+      "height": 212
+    },
+    {
+      "tag": "ClassBox",
+      "id": "cls-stripe",
+      "label": "StripeGateway",
+      "color": "blue",
+      "titleBgColor": "#dbeafe",
+      "badge": {
+        "text": "v2",
+        "color": "#1d4ed8",
+        "bgColor": "#eff6ff",
+        "placement": "top-left"
+      },
+      "x": 430,
+      "y": 420,
+      "width": 230,
+      "sections": [
+        {
+          "name": "attributes",
+          "items": [
+            {
+              "name": "- apiKey",
+              "type": "string"
+            },
+            {
+              "name": "+ timeout",
+              "type": "int",
+              "underline": true
+            }
+          ]
+        },
+        {
+          "name": "methods",
+          "items": [
+            {
+              "name": "+ charge(amt)",
+              "type": "Receipt"
+            },
+            {
+              "name": "+ refund(id)",
+              "type": "void"
+            }
+          ]
+        },
+        {
+          "name": "events",
+          "items": [
+            {
+              "name": "WebhookReceived"
+            }
+          ]
+        }
+      ],
+      "height": 250
+    },
+    {
+      "tag": "ClassBox",
+      "id": "cls-order",
+      "label": "Order",
+      "color": "green",
+      "x": 840,
+      "y": 420,
+      "width": 210,
+      "sections": [
+        {
+          "items": [
+            {
+              "name": "- id",
+              "type": "UUID"
+            },
+            {
+              "name": "+ nextSeq",
+              "type": "int",
+              "underline": true
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "name": "+ submit()",
+              "type": "void"
+            },
+            {
+              "name": "+ total()",
+              "type": "Money"
+            }
+          ]
+        }
+      ],
+      "height": 164
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "chen-author",
+      "label": "author",
+      "color": "blue",
+      "x": 40,
+      "y": 725,
+      "width": 165,
+      "fields": [
+        {
+          "name": "id",
+          "type": "int",
+          "meta": "PK"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        }
+      ],
+      "height": 117
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "chen-book",
+      "label": "book",
+      "color": "blue",
+      "x": 300,
+      "y": 725,
+      "width": 175,
+      "fields": [
+        {
+          "name": "author_id",
+          "type": "int",
+          "meta": "FK"
+        },
+        {
+          "name": "title",
+          "type": "text"
+        }
+      ],
+      "height": 117
+    },
+    {
+      "tag": "Shape",
+      "id": "chen-cust",
+      "shape": "rectangle",
+      "color": "blue",
+      "x": 525,
+      "y": 740,
+      "width": 120,
+      "height": 54,
+      "texts": [
+        {
+          "text": "Customer"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "chen-places",
+      "shape": "diamond",
+      "borderStyle": "double",
+      "color": "orange",
+      "x": 715,
+      "y": 727,
+      "width": 124,
+      "height": 80,
+      "texts": [
+        {
+          "text": "places"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "chen-item",
+      "shape": "rectangle",
+      "borderStyle": "double",
+      "color": "teal",
+      "x": 920,
+      "y": 740,
+      "width": 130,
+      "height": 54,
+      "texts": [
+        {
+          "text": "OrderItem"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "chen-pk",
+      "shape": "ellipse",
+      "color": "blue",
+      "x": 490,
+      "y": 855,
+      "width": 117,
+      "height": 46,
+      "texts": [
+        {
+          "text": "customer_id",
+          "underline": true
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "chen-mv",
+      "shape": "ellipse",
+      "borderStyle": "double",
+      "color": "purple",
+      "x": 625,
+      "y": 855,
+      "width": 100,
+      "height": 46,
+      "texts": [
+        {
+          "text": "phone"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "chen-der",
+      "shape": "ellipse",
+      "borderStyle": "dashed",
+      "color": "gray",
+      "x": 745,
+      "y": 855,
+      "width": 118,
+      "height": 46,
+      "texts": [
+        {
+          "text": "order_count"
+        }
+      ]
+    },
+    {
+      "tag": "Shape",
+      "id": "chen-partial",
+      "shape": "ellipse",
+      "color": "teal",
+      "x": 925,
+      "y": 855,
+      "width": 120,
+      "height": 46,
+      "texts": [
+        {
+          "text": "line_no",
+          "underline": "dashed"
+        }
+      ]
     }
   ],
   "connections": [
@@ -165,7 +450,7 @@
       "relType": "one-to-one",
       "label": "1 : 1",
       "x": 250,
-      "y": 101.17,
+      "y": 101,
       "points": [
         {
           "x": 0,
@@ -194,7 +479,7 @@
       "endArrowhead": "crowFootOnlyOne",
       "label": "0..1 : 1..1",
       "x": 250,
-      "y": 139.1,
+      "y": 139,
       "points": [
         {
           "x": 0,
@@ -223,7 +508,7 @@
       "endArrowhead": "crowFootZeroOrMany",
       "label": "1..* : 0..*",
       "x": 250,
-      "y": 176.03,
+      "y": 176,
       "points": [
         {
           "x": 0,
@@ -251,7 +536,7 @@
       "relType": "one-to-many",
       "label": "1 : *",
       "x": 650,
-      "y": 101.17,
+      "y": 101,
       "points": [
         {
           "x": 0,
@@ -280,7 +565,7 @@
       "endArrowhead": "crowFootOneOrMany",
       "label": "1..1 : 1..*",
       "x": 650,
-      "y": 176.03,
+      "y": 176,
       "points": [
         {
           "x": 0,
@@ -309,7 +594,7 @@
       "endArrowhead": "hollowTriangle",
       "label": "hollowTriangle",
       "x": 440,
-      "y": 301.14,
+      "y": 301,
       "points": [
         {
           "x": 0,
@@ -338,7 +623,7 @@
       "endArrowhead": "crowFootZeroOrMany",
       "label": "hollowDiamond",
       "x": 250,
-      "y": 338.05,
+      "y": 338,
       "points": [
         {
           "x": 0,
@@ -367,7 +652,7 @@
       "endArrowhead": "crowFootOneOrMany",
       "label": "filledDiamond",
       "x": 650,
-      "y": 301.14,
+      "y": 301,
       "points": [
         {
           "x": 0,
@@ -396,7 +681,7 @@
       "endArrowhead": "filledDiamond",
       "label": "tri / filledDia",
       "x": 650,
-      "y": 338.05,
+      "y": 338,
       "points": [
         {
           "x": 0,
@@ -413,12 +698,234 @@
         "width": 82,
         "height": 17
       }
+    },
+    {
+      "tag": "Relationship",
+      "id": "cls-realize",
+      "from": "cls-stripe",
+      "fromPort": "left",
+      "to": "cls-gateway",
+      "toPort": "right",
+      "lineStyle": "dashed",
+      "endArrowhead": "hollowTriangle",
+      "label": "implements",
+      "x": 430,
+      "y": 439.5,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -80,
+          "y": 0
+        },
+        {
+          "x": -80,
+          "y": 8.5
+        },
+        {
+          "x": -160,
+          "y": 8.5
+        }
+      ],
+      "labelPlacement": {
+        "x": -79,
+        "y": -21,
+        "width": 79,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "id": "cls-bills",
+      "from": "cls-order",
+      "fromPort": "left",
+      "to": "cls-stripe",
+      "toPort": "right",
+      "startArrowhead": "hollowDiamond",
+      "endArrowhead": null,
+      "startLabel": "1",
+      "endLabel": "0..*",
+      "label": "bills via",
+      "x": 840,
+      "y": 439.5,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -180,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": -121,
+        "y": -8,
+        "width": 52,
+        "height": 17
+      }
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "chen-db-rel",
+      "from": "chen-author",
+      "to": "chen-book",
+      "fromField": "id",
+      "toField": "author_id",
+      "relType": "one-to-many",
+      "notation": "chen",
+      "label": "writes",
+      "x": 205,
+      "y": 785,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 95,
+          "y": 0
+        }
+      ],
+      "labelPlacement": {
+        "x": 26,
+        "y": -8,
+        "width": 44,
+        "height": 17
+      }
+    },
+    {
+      "tag": "Relationship",
+      "id": "chen-e1",
+      "from": "chen-cust",
+      "fromPort": "right",
+      "to": "chen-places",
+      "toPort": "left",
+      "endArrowhead": null,
+      "startLabel": "1",
+      "x": 645,
+      "y": 767,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 75.07,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "chen-e2",
+      "from": "chen-places",
+      "fromPort": "right",
+      "to": "chen-item",
+      "toPort": "left",
+      "lineStyle": "double",
+      "endArrowhead": null,
+      "endLabel": "N",
+      "x": 833.93,
+      "y": 767,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 86.07,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "chen-a1",
+      "from": "chen-cust",
+      "to": "chen-pk",
+      "connectorStyle": "straight",
+      "endArrowhead": null,
+      "x": 576.12,
+      "y": 794,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -20.13,
+          "y": 61.21
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "chen-a2",
+      "from": "chen-cust",
+      "to": "chen-mv",
+      "connectorStyle": "straight",
+      "endArrowhead": null,
+      "x": 606.89,
+      "y": 794,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 50.65,
+          "y": 62.47
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "chen-a3",
+      "from": "chen-cust",
+      "to": "chen-der",
+      "connectorStyle": "straight",
+      "endArrowhead": null,
+      "x": 638.27,
+      "y": 794,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 129.8,
+          "y": 65.79
+        }
+      ]
+    },
+    {
+      "tag": "Relationship",
+      "id": "chen-a4",
+      "from": "chen-item",
+      "to": "chen-partial",
+      "connectorStyle": "straight",
+      "endArrowhead": null,
+      "x": 985,
+      "y": 794,
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 61
+        }
+      ]
     }
   ],
   "scene": {
     "x": 24,
     "y": 24,
     "width": 1042,
-    "height": 350
+    "height": 893
   }
 }

@@ -215,6 +215,86 @@ describe('stage 3 — schema matrix', () => {
     },
   );
 
+  it('validates ClassBox sections, Chen notation endpoint labels, double borders/lines, and property-level underline', async () => {
+    const r = await resolver.resolve({
+      elements: [
+        {
+          tag: 'ClassBox',
+          id: 'svc',
+          label: 'PaymentService',
+          stereotype: 'interface',
+          italic: true,
+          x: 0,
+          y: 0,
+          sections: [
+            {
+              name: 'attributes',
+              items: [{ name: '+ timeout', type: 'int', underline: true }],
+            },
+            {
+              name: 'methods',
+              items: [{ name: '+ charge()', type: 'Receipt', italic: true }],
+            },
+            {
+              name: 'events',
+              items: [{ name: 'Charged' }],
+            },
+          ],
+        },
+        {
+          tag: 'Shape',
+          id: 'weak',
+          shape: 'diamond',
+          borderStyle: 'double',
+          x: 300,
+          y: 0,
+          width: 120,
+          height: 80,
+          texts: [{ text: 'places', underline: 'dashed' }],
+        },
+        {
+          tag: 'Textbox',
+          id: 'pk',
+          x: 0,
+          y: 200,
+          text: 'user_id',
+          underline: true,
+        },
+        {
+          tag: 'DatabaseRelationship',
+          id: 'chen-rel',
+          from: 'svc',
+          to: 'weak',
+          relType: 'one-to-many',
+          notation: 'chen',
+          lineStyle: 'double',
+        },
+        {
+          tag: 'Relationship',
+          id: 'uml-rel',
+          from: 'svc',
+          to: 'weak',
+          startLabel: '1',
+          endLabel: '0..*',
+          startArrowhead: 'hollowDiamond',
+          endArrowhead: null,
+        },
+      ],
+    });
+
+    expect(r.ok, JSON.stringify(r.errors)).toBe(true);
+    expect(r.warnings.filter(({ code }) => code === 'W_UNKNOWN_PROP')).toEqual([]);
+    const svc = r.entities?.find((e) => e.id === 'svc');
+    const weak = r.entities?.find((e) => e.id === 'weak');
+    const chenRel = r.connections?.find((c) => c.id === 'chen-rel');
+    expect(svc?.props['stereotype']).toBe('«interface»');
+    expect(typeof weak?.props['geoInnerPath']).toBe('string');
+    expect(chenRel?.props['startLabel']).toBe('1');
+    expect(chenRel?.props['endLabel']).toBe('*');
+    expect(chenRel?.props['startMarker']).toBe('none');
+    expect(chenRel?.props['endMarker']).toBe('none');
+  });
+
   it('requires at least two strict object points when connection geometry is authored', async () => {
     const entities = [
       { tag: 'Shape', id: 'a', x: 0, y: 0 },

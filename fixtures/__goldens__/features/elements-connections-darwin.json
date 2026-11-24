@@ -638,7 +638,7 @@
       "color": "#c0392b",
       "label": "red line, red label",
       "x": 200,
-      "y": 811.07,
+      "y": 811,
       "points": [
         {
           "x": 0,
@@ -665,7 +665,7 @@
       "labelColor": "#1f6feb",
       "label": "red line, blue label",
       "x": 520,
-      "y": 811.07,
+      "y": 811,
       "points": [
         {
           "x": 0,

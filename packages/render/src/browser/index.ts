@@ -1,6 +1,6 @@
 import type { ResolvedElement, ResolvedEntity } from '@eraserlabs/protocol';
 import type { SceneLayout } from '@eraserlabs/render';
-import { externalTextOf, portsOf, routeScene } from './route.js';
+import { endpointLabelsOf, externalTextOf, portsOf, routeScene } from './route.js';
 import { createFillEngine } from './fill.js';
 import { injectStyles, mountScene } from './mount.js';
 import {
@@ -87,6 +87,7 @@ async function run(request: RunRequest): Promise<RunResult> {
   let measures = measureScene(mounted, intrinsics);
   let finalExternalText = externalTextOf(measures);
   const entityPorts = portsOf(measures);
+  let endpointLabels = endpointLabelsOf(measures);
   const provisional = deferConstrainedConnectionLabels(connections, mounted, finalExternalText);
   let layout = routeScene(
     entities,
@@ -95,12 +96,14 @@ async function run(request: RunRequest): Promise<RunResult> {
     provisional.externalText,
     request.repair,
     entityPorts,
+    endpointLabels,
   );
 
   if (provisional.deferred) {
     constrainConnectionLabels(connections, mounted, layout);
     measures = measureScene(mounted, intrinsics);
     finalExternalText = externalTextOf(measures);
+    endpointLabels = endpointLabelsOf(measures);
     layout = routeScene(
       entities,
       connections,
@@ -108,6 +111,7 @@ async function run(request: RunRequest): Promise<RunResult> {
       finalExternalText,
       request.repair,
       portsOf(measures),
+      endpointLabels,
     );
   }
 
@@ -120,6 +124,7 @@ async function run(request: RunRequest): Promise<RunResult> {
 
     measures = measureScene(mounted, intrinsics);
     finalExternalText = externalTextOf(measures);
+    endpointLabels = endpointLabelsOf(measures);
     layout = routeScene(
       entities,
       connections,
@@ -127,6 +132,7 @@ async function run(request: RunRequest): Promise<RunResult> {
       finalExternalText,
       request.repair,
       portsOf(measures),
+      endpointLabels,
     );
   }
   applyLayout(scene, mounted, layout, containmentZIndex(all), measures);

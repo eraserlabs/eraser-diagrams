@@ -52,7 +52,13 @@
       <span class="er-dbtable__icon" data-slot="icon" data-if="icon"></span>
     </header>
     <ul class="er-dbtable__rows" data-each="f of fields" data-key="name">
-      <li class="er-dbtable__row" data-part="field" data-port-prefix="field:">
+      <li
+        class="er-dbtable__row"
+        data-part="field"
+        data-port-prefix="field:"
+        data-italic="{{f.italic}}"
+        data-underline="{{f.underline}}"
+      >
         <span class="er-dbtable__f-name" data-port-name>{{f.name}}</span>
         <span class="er-dbtable__f-type">{{f.type}}</span>
         <span class="er-dbtable__f-meta">{{f.meta}}</span>

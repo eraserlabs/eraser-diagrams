@@ -44,3 +44,12 @@
 .er-textbox[data-h-align='right'] .er-textbox__text {
   text-align: right;
 }
+.er-textbox[data-underline='true'] .er-textbox__text,
+.er-textbox[data-underline='solid'] .er-textbox__text {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.er-textbox[data-underline='dashed'] .er-textbox__text {
+  text-decoration: underline dashed;
+  text-underline-offset: 2px;
+}

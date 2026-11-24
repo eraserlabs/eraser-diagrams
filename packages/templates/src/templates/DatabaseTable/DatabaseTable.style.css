@@ -56,6 +56,10 @@
 .er-dbtable[data-border='dotted'] {
   border-style: dotted;
 }
+.er-dbtable[data-border='double'] {
+  border-style: double;
+  border-width: 4.5px;
+}
 /* Watercolor texture: the card face is the recolored scan master (base.style.css er-washtex).
    The header's opaque paint would hide it, and the hidden overflow would clip the bleed — both
    relax only in texture mode. The hairline moves to a blurable overlay, same knobs as Shape. */
@@ -153,6 +157,18 @@
 .er-dbtable__row:last-child {
   padding-top: var(--er-table-row-pad-y, calc(var(--er-base) * 0.47));
   border-bottom: none;
+}
+.er-dbtable__row[data-italic='true'] {
+  font-style: italic;
+}
+.er-dbtable__row[data-underline='true'] .er-dbtable__f-name,
+.er-dbtable__row[data-underline='solid'] .er-dbtable__f-name {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.er-dbtable__row[data-underline='dashed'] .er-dbtable__f-name {
+  text-decoration: underline dashed;
+  text-underline-offset: 2px;
 }
 .er-dbtable__f-name {
   margin-right: var(--er-table-name-gap, 10px);

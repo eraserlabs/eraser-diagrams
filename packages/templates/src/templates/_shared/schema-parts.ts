@@ -6,6 +6,7 @@ import {
   GroupTitle,
   GroupTitleBand,
   ICON_SIZE_PRESETS,
+  UnderlineStyle,
 } from '../../schema/index.js';
 
 /** Shared prop fragments reused across per-tag schema modules. */
@@ -28,6 +29,8 @@ export const DatabaseField: JsonSchema = {
     name: PlainText,
     type: PlainText,
     meta: PlainText,
+    italic: { type: 'boolean' },
+    underline: UnderlineStyle,
   },
 };
 

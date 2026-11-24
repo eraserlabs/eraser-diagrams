@@ -13,6 +13,7 @@ const SURFACES = [
   ['Event', 0.96],
   ['Gateway', 0.96],
   ['DatabaseTable', 0.98],
+  ['ClassBox', 0.98],
 ] as const;
 
 describe('stock final paint preparation', () => {
@@ -97,6 +98,14 @@ describe('stock final paint preparation', () => {
         {
           tag: 'DatabaseTable',
           id: 'table',
+          x: 0,
+          y: 0,
+          color: '#2866c4',
+          styleMode: 'watercolor',
+        },
+        {
+          tag: 'ClassBox',
+          id: 'cls',
           x: 0,
           y: 0,
           color: '#2866c4',

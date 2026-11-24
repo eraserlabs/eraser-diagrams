@@ -132,6 +132,10 @@ export const ConnectionBase: Record<string, JsonSchema> = {
   typeface: { type: 'string', enum: [...TYPEFACES] },
   fontSize: FontSizePx,
   label: { type: 'string', 'x-content': 'inline-markdown' },
+  /** Endpoint label placed near the `from` terminal (e.g. Chen cardinality, UML multiplicity). */
+  startLabel: { type: 'string', 'x-content': 'inline-markdown' },
+  /** Endpoint label placed near the `to` terminal (e.g. Chen cardinality, UML multiplicity). */
+  endLabel: { type: 'string', 'x-content': 'inline-markdown' },
   /** Label text colour. Absent, the label follows `color` (the line). */
   labelColor: CssColor,
   labelPlacement: LabelPlacement,

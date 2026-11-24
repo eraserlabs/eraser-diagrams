@@ -241,12 +241,13 @@
           ></path>
         </marker>
       </defs>
+      <path class="er-dbrel__rails" data-double-rails="" d=""></path>
       <path
         data-role="anchor"
         class="er-dbrel__line"
         d="{{ }}"
-        marker-start="url(#er-dbah-{{startArrowhead}})"
-        marker-end="url(#er-dbah-{{endArrowhead}})"
+        marker-start="{{startMarker}}"
+        marker-end="{{endMarker}}"
       ></path>
     </svg>
     <span
@@ -257,6 +258,24 @@
       data-if="label"
       style="--f: var(--font-{{typeface}}, var(--font-clean))"
       >{{label}}</span
+    >
+    <span
+      data-role="external-text"
+      data-text-grow-policy="width-only"
+      class="er-dbrel__label er-dbrel__end-label er-md"
+      data-part="start-label"
+      data-if="startLabel"
+      style="--f: var(--font-{{typeface}}, var(--font-clean))"
+      >{{startLabel}}</span
+    >
+    <span
+      data-role="external-text"
+      data-text-grow-policy="width-only"
+      class="er-dbrel__label er-dbrel__end-label er-md"
+      data-part="end-label"
+      data-if="endLabel"
+      style="--f: var(--font-{{typeface}}, var(--font-clean))"
+      >{{endLabel}}</span
     >
   </div>
 </template>

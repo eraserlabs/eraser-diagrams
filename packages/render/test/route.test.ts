@@ -572,3 +572,71 @@ describe('routeScene with entityPorts', () => {
     expect(layout.connections['r1']!.d).toBe('M140 35L240 35');
   });
 });
+
+describe('routeScene with endpointLabels and double lines', () => {
+  it('places startLabelBox and endLabelBox beside horizontal and vertical paths and expands scene bounds', () => {
+    const endpointLabels = new Map([
+      [
+        'h',
+        {
+          start: { x: 0, y: 0, width: 12, height: 16 },
+          end: { x: 0, y: 0, width: 24, height: 16 },
+        },
+      ],
+      [
+        'v',
+        {
+          start: { x: 0, y: 0, width: 12, height: 16 },
+          end: { x: 0, y: 0, width: 12, height: 16 },
+        },
+      ],
+    ]);
+    const layout = routeScene(
+      [node('a', 0, 0, 100, 60), node('b', 300, 0, 100, 60), node('c', 0, 220, 100, 60)],
+      [
+        wire('h', 'a', 'b', { startArrowhead: 'hollowDiamond', endArrowhead: null }),
+        wire('v', 'a', 'c', { startArrowhead: null, endArrowhead: null }),
+      ],
+      NO_INTRINSICS,
+      NO_TEXT,
+      undefined,
+      undefined,
+      endpointLabels,
+    );
+
+    const h = layout.connections['h']!;
+    expect(h.startLabelBox).toBeDefined();
+    expect(h.endLabelBox).toBeDefined();
+    // Horizontal labels sit above the line (y + height < line y = 30), with extra inset past the start diamond.
+    expect(h.startLabelBox!.y + h.startLabelBox!.height).toBeLessThan(30);
+    expect(h.endLabelBox!.y + h.endLabelBox!.height).toBeLessThan(30);
+    expect(h.startLabelBox!.x).toBeGreaterThanOrEqual(100 + 20);
+    expect(h.endLabelBox!.x + h.endLabelBox!.width).toBeLessThanOrEqual(300 - 10);
+
+    const v = layout.connections['v']!;
+    expect(v.startLabelBox).toBeDefined();
+    expect(v.endLabelBox).toBeDefined();
+    // Vertical labels sit to the right of the line (x > line x = 50).
+    expect(v.startLabelBox!.x).toBeGreaterThan(50);
+    expect(v.endLabelBox!.x).toBeGreaterThan(50);
+  });
+
+  it("emits two parallel offset rails in doubleRailsD when lineStyle is 'double'", () => {
+    const layout = routeScene(
+      [node('a', 0, 0, 100, 60), node('b', 300, 0, 100, 60)],
+      [wire('d', 'a', 'b', { lineStyle: 'double' })],
+      NO_INTRINSICS,
+      NO_TEXT,
+    );
+
+    const conn = layout.connections['d']!;
+    expect(conn.doubleRailsD).toBeDefined();
+    const subpaths = conn.doubleRailsD!.split('M').filter(Boolean);
+    expect(subpaths).toHaveLength(2);
+    // Horizontal line at y=30 splits into symmetric rails above and below y=30.
+    const ys = [...conn.doubleRailsD!.matchAll(/M[\d.-]+ ([\d.-]+)/g)].map((m) => Number(m[1]));
+    expect(ys).toHaveLength(2);
+    expect(ys[0]! + ys[1]!).toBeCloseTo(60, 1);
+    expect(Math.abs(ys[0]! - ys[1]!)).toBeGreaterThanOrEqual(4);
+  });
+});

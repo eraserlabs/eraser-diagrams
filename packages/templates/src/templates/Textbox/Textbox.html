@@ -6,6 +6,7 @@
     data-h-align="{{hAlign}}"
     data-wrap-mode="{{wrapMode}}"
     data-font-px="{{fontSize}}"
+    data-underline="{{underline}}"
     style="--f: var(--font-{{typeface}}, var(--font-clean)); --er-ink: {{color}}; --er-font-px: {{fontSize}}px"
   >
     <div
@@ -13,8 +14,9 @@
       data-role="internal-text"
       data-part="text"
       data-text-grow-policy="height-only"
-      >{{text}}</div
     >
+      {{text}}
+    </div>
     <span data-use="Badge" data-props="badge" data-if="badge"></span>
   </div>
 </template>

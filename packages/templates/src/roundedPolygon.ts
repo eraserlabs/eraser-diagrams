@@ -63,3 +63,89 @@ export function roundedShapePath(kind: string, width: number, height: number): s
 
   return roundedPolygonPath(scaled, radius);
 }
+
+/**
+ * Uniformly inset rounded polygon outline (`inset` px perpendicular to every edge) for
+ * `borderStyle: 'double'` (e.g. Chen identifying-relationship double diamonds). Returns null
+ * when the shape is too small to inset without self-intersection.
+ */
+export function insetRoundedShapePath(
+  kind: string,
+  width: number,
+  height: number,
+  inset: number,
+): string | null {
+  const base = POLYGON_VERTICES[kind];
+  const radius = CORNER_RADIUS[kind];
+
+  if (!base || radius === undefined || base.length < 3) {
+    return null;
+  }
+
+  const pts = base.map(([x, y]): Vertex => [(x * width) / 100, (y * height) / 100]);
+  const n = pts.length;
+  let area2 = 0;
+
+  for (let i = 0; i < n; i += 1) {
+    const [ax, ay] = pts[i]!;
+    const [bx, by] = pts[(i + 1) % n]!;
+    area2 += ax * by - bx * ay;
+  }
+
+  // Positive signed area in SVG screen space (y down) is CW, so inward normal is (-dy, dx).
+  const sign = area2 >= 0 ? 1 : -1;
+  const tangents: Vertex[] = [];
+  const normals: Vertex[] = [];
+
+  for (let i = 0; i < n; i += 1) {
+    const [ax, ay] = pts[i]!;
+    const [bx, by] = pts[(i + 1) % n]!;
+    const dx = bx - ax;
+    const dy = by - ay;
+    const len = Math.hypot(dx, dy);
+
+    if (len < 1e-6) {
+      return null;
+    }
+
+    tangents.push([dx / len, dy / len]);
+    normals.push([(-sign * dy) / len, (sign * dx) / len]);
+  }
+
+  const insetPts: Vertex[] = [];
+
+  for (let i = 0; i < n; i += 1) {
+    const prev = (i - 1 + n) % n;
+    const [px, py] = pts[i]!;
+    const [t1x, t1y] = tangents[prev]!;
+    const [t2x, t2y] = tangents[i]!;
+    const [n1x, n1y] = normals[prev]!;
+    const [n2x, n2y] = normals[i]!;
+    const a1x = px + inset * n1x;
+    const a1y = py + inset * n1y;
+    const a2x = px + inset * n2x;
+    const a2y = py + inset * n2y;
+    const cross = t1x * t2y - t1y * t2x;
+
+    if (Math.abs(cross) < 1e-6) {
+      insetPts.push([a2x, a2y]);
+      continue;
+    }
+
+    const s = ((a2x - a1x) * t2y - (a2y - a1y) * t2x) / cross;
+    insetPts.push([a1x + s * t1x, a1y + s * t1y]);
+  }
+
+  // Reject degenerate insets where an edge inverted.
+  for (let i = 0; i < n; i += 1) {
+    const [ax, ay] = insetPts[i]!;
+    const [bx, by] = insetPts[(i + 1) % n]!;
+    const [tx, ty] = tangents[i]!;
+
+    if ((bx - ax) * tx + (by - ay) * ty <= 1) {
+      return null;
+    }
+  }
+
+  return roundedPolygonPath(insetPts, Math.max(0, radius - inset * 0.6));
+}
