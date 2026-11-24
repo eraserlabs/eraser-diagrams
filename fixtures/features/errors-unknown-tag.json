@@ -1,3 +1,5 @@
 {
-  "elements": [{ "tag": "Shpe", "id": "x1", "x": 0, "y": 0 }]
+  "elements": [
+    {"tag":"Shpe","id":"x1","x":0,"y":0}
+  ]
 }

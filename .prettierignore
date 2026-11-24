@@ -10,5 +10,5 @@ test-results/
 packages/diagrams/src/library/templates/**/*.html
 packages/templates/src/templates/**/*.html
 
-# Golden baselines are written by Playwright byte-for-byte; never reformat
-fixtures/__goldens__/
+# Fixture and golden JSON use compact one-element-per-line formatting (goldens.spec.ts / import.ts)
+fixtures/
