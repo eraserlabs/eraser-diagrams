@@ -91,7 +91,7 @@ export function createFillEngine(init: FillEngineInit): FillFn {
     const eachExpr = el.getAttribute('data-each');
 
     if (eachExpr !== null) {
-      expandEach(el, eachExpr, props);
+      expandEach(el, eachExpr, props, depth, theme);
 
       return;
     }
@@ -123,7 +123,13 @@ export function createFillEngine(init: FillEngineInit): FillFn {
     }
   }
 
-  function expandEach(el: Element, expr: string, props: Record<string, unknown>): void {
+  function expandEach(
+    el: Element,
+    expr: string,
+    props: Record<string, unknown>,
+    depth: number,
+    theme: Theme,
+  ): void {
     const m = EACH_RE.exec(expr);
 
     if (!m) {
@@ -136,9 +142,21 @@ export function createFillEngine(init: FillEngineInit): FillFn {
     const items = lookup(props, path!);
     const itemTemplate = el.innerHTML;
     const list = Array.isArray(items) ? items : [];
-    el.innerHTML = list
-      .map((item) => substitute(itemTemplate, { ...props, [varName!]: item }))
-      .join('');
+    const out: string[] = [];
+
+    for (const item of list) {
+      const itemScope = { ...props, [varName!]: item };
+      const frag = document.createElement('template');
+      frag.innerHTML = itemTemplate;
+
+      for (const child of [...frag.content.children]) {
+        processElement(child, itemScope, depth, theme);
+      }
+
+      out.push(substitute(frag.innerHTML, itemScope));
+    }
+
+    el.innerHTML = out.join('');
   }
 
   return (name, props, theme) => fill(name, props, 0, theme);

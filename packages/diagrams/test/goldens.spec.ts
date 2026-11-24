@@ -110,9 +110,28 @@ for (const fixture of listFixtures()) {
     expect.soft(outcome.png).toMatchSnapshot([fixture.group, `${fixture.name}.png`], {
       maxDiffPixelRatio: MAX_DIFF_PIXEL_RATIO,
     });
-    expect(`${JSON.stringify(measured, null, 2)}\n`).toMatchSnapshot([
+    expect(formatCompactFixtureJson(measured)).toMatchSnapshot([
       fixture.group,
       `${fixture.name}.json`,
     ]);
   });
+}
+
+/**
+ * Top-level keys expanded, one compact JSON line per array item — keeps golden diffs focused on
+ * the single entity or connection that moved without inflating fixture line counts.
+ */
+function formatCompactFixtureJson(doc: Record<string, unknown>): string {
+  const entries = Object.entries(doc).map(([key, value]) => {
+    const k = JSON.stringify(key);
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return `  ${k}: []`;
+      }
+      const items = value.map((item) => `    ${JSON.stringify(item)}`).join(',\n');
+      return `  ${k}: [\n${items}\n  ]`;
+    }
+    return `  ${k}: ${JSON.stringify(value)}`;
+  });
+  return `{\n${entries.join(',\n')}\n}\n`;
 }

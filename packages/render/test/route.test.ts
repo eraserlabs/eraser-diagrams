@@ -502,3 +502,216 @@ describe("routeScene with connectorStyle: 'straight'", () => {
     expect(isOrthogonal(straight)).toBe(false);
   });
 });
+
+describe('routeScene with entityPorts', () => {
+  const ports = new Map([
+    [
+      'users',
+      [
+        { id: 'header', y: 1, height: 40 },
+        { id: 'field:id', y: 41, height: 30 },
+        { id: 'field:org & team', y: 71, height: 50 },
+      ],
+    ],
+    [
+      'orgs',
+      [
+        { id: 'header', y: 1, height: 40 },
+        { id: 'field:id', y: 41, height: 40 },
+      ],
+    ],
+  ]);
+
+  it('pins fromField/toField to measured port midpoints, decoding HTML-escaped plain text', () => {
+    const layout = routeScene(
+      [node('users', 0, 0, 160, 122), node('orgs', 360, 0, 160, 82)],
+      [wire('fk', 'users', 'orgs', { fromField: 'org &amp; team', toField: 'id' })],
+      NO_INTRINSICS,
+      NO_TEXT,
+      undefined,
+      ports,
+    );
+
+    const pts = pointsOf(layout.connections['fk']!.d);
+    expect(pts[0]).toEqual([160, 96]); // 71 + 50 / 2
+    expect(pts.at(-1)).toEqual([360, 61]); // 41 + 40 / 2
+  });
+
+  it('pins a fresh table-level connection (no fields, no authored points) to the header port', () => {
+    const layout = routeScene(
+      [node('users', 0, 0, 160, 122), node('orgs', 360, 0, 160, 82)],
+      [wire('rel', 'users', 'orgs')],
+      NO_INTRINSICS,
+      NO_TEXT,
+      undefined,
+      ports,
+    );
+
+    const pts = pointsOf(layout.connections['rel']!.d);
+    expect(pts[0]).toEqual([160, 21]); // 1 + 40 / 2
+    expect(pts.at(-1)).toEqual([360, 21]);
+  });
+
+  it('preserves authored perimeter points on port-declaring entities when no fields are named', () => {
+    const layout = routeScene(
+      [node('s1', 0, 0, 140, 70), node('orgs', 240, 0, 160, 82)],
+      [
+        wire('r1', 's1', 'orgs', {
+          points: [
+            { x: 140, y: 35 },
+            { x: 240, y: 35 },
+          ],
+        }),
+      ],
+      NO_INTRINSICS,
+      NO_TEXT,
+      undefined,
+      ports,
+    );
+
+    expect(layout.connections['r1']!.d).toBe('M140 35L240 35');
+  });
+
+  it('preserves a valid saved perimeter attachment on the unnamed end when only one end names a field', () => {
+    const layout = routeScene(
+      [node('users', 0, 0, 160, 122), node('orgs', 360, 0, 160, 122)],
+      [
+        wire('r1', 'users', 'orgs', {
+          fromField: 'id',
+          points: [
+            { x: 160, y: 10 },
+            { x: 360, y: 100 },
+          ],
+        }),
+      ],
+      NO_INTRINSICS,
+      NO_TEXT,
+      undefined,
+      ports,
+    );
+
+    const pts = pointsOf(layout.connections['r1']!.d);
+    // Named `fromField: 'id'` resolves to its row center (41 + 30/2 = 56); unnamed `to` keeps its authored perimeter y=100.
+    expect(pts[0]).toEqual([160, 56]);
+    expect(pts.at(-1)).toEqual([360, 100]);
+  });
+});
+
+describe('routeScene with endpointLabels and double lines', () => {
+  it('places startLabelBox and endLabelBox beside horizontal and vertical paths and expands scene bounds', () => {
+    const endpointLabels = new Map([
+      [
+        'h',
+        {
+          start: { x: 0, y: 0, width: 12, height: 16 },
+          end: { x: 0, y: 0, width: 24, height: 16 },
+        },
+      ],
+      [
+        'v',
+        {
+          start: { x: 0, y: 0, width: 12, height: 16 },
+          end: { x: 0, y: 0, width: 12, height: 16 },
+        },
+      ],
+    ]);
+    const layout = routeScene(
+      [node('a', 0, 0, 100, 60), node('b', 300, 0, 100, 60), node('c', 0, 220, 100, 60)],
+      [
+        wire('h', 'a', 'b', { startArrowhead: 'hollowDiamond', endArrowhead: null }),
+        wire('v', 'a', 'c', { startArrowhead: null, endArrowhead: null }),
+      ],
+      NO_INTRINSICS,
+      NO_TEXT,
+      undefined,
+      undefined,
+      endpointLabels,
+    );
+
+    const h = layout.connections['h']!;
+    expect(h.startLabelBox).toBeDefined();
+    expect(h.endLabelBox).toBeDefined();
+    // Horizontal labels sit above the line (y + height < line y = 30), with extra inset past the start diamond.
+    expect(h.startLabelBox!.y + h.startLabelBox!.height).toBeLessThan(30);
+    expect(h.endLabelBox!.y + h.endLabelBox!.height).toBeLessThan(30);
+    expect(h.startLabelBox!.x).toBeGreaterThanOrEqual(100 + 20);
+    expect(h.endLabelBox!.x + h.endLabelBox!.width).toBeLessThanOrEqual(300 - 10);
+
+    const v = layout.connections['v']!;
+    expect(v.startLabelBox).toBeDefined();
+    expect(v.endLabelBox).toBeDefined();
+    // Vertical labels sit to the right of the line (x > line x = 50).
+    expect(v.startLabelBox!.x).toBeGreaterThan(50);
+    expect(v.endLabelBox!.x).toBeGreaterThan(50);
+  });
+
+  it("emits two parallel offset rails in doubleRailsD when lineStyle is 'double'", () => {
+    const layout = routeScene(
+      [node('a', 0, 0, 100, 60), node('b', 300, 0, 100, 60)],
+      [wire('d', 'a', 'b', { lineStyle: 'double' })],
+      NO_INTRINSICS,
+      NO_TEXT,
+    );
+
+    const conn = layout.connections['d']!;
+    expect(conn.doubleRailsD).toBeDefined();
+    const subpaths = conn.doubleRailsD!.split('M').filter(Boolean);
+    expect(subpaths).toHaveLength(2);
+    // Horizontal line at y=30 splits into symmetric rails above and below y=30.
+    const ys = [...conn.doubleRailsD!.matchAll(/M[\d.-]+ ([\d.-]+)/g)].map((m) => Number(m[1]));
+    expect(ys).toHaveLength(2);
+    expect(ys[0]! + ys[1]!).toBeCloseTo(60, 1);
+    expect(Math.abs(ys[0]! - ys[1]!)).toBeGreaterThanOrEqual(4);
+  });
+
+  it('flips endLabelBox across the stroke when start and end labels would collide on a compact line', () => {
+    const endpointLabels = new Map([
+      [
+        'short',
+        {
+          start: { x: 0, y: 0, width: 24, height: 16 },
+          end: { x: 0, y: 0, width: 24, height: 16 },
+        },
+      ],
+    ]);
+    const layout = routeScene(
+      [node('a', 0, 0, 100, 60), node('b', 160, 0, 100, 60)],
+      [wire('short', 'a', 'b', { startArrowhead: null, endArrowhead: null })],
+      NO_INTRINSICS,
+      NO_TEXT,
+      undefined,
+      undefined,
+      endpointLabels,
+    );
+
+    const { startLabelBox, endLabelBox } = layout.connections['short']!;
+    expect(startLabelBox).toBeDefined();
+    expect(endLabelBox).toBeDefined();
+    // Start stays above the y=30 stroke; colliding end flips below it so boxes never overlap.
+    expect(startLabelBox!.y + startLabelBox!.height).toBeLessThan(30);
+    expect(endLabelBox!.y).toBeGreaterThan(30);
+  });
+
+  it('expands scene bounds to include thick double-line offset rails and stroke width', () => {
+    const layout = routeScene(
+      [node('a', 0, 100, 100, 60), node('b', 300, 100, 100, 60)],
+      [
+        wire('thick', 'a', 'b', {
+          lineStyle: 'double',
+          lineWidthPx: 14,
+          points: [
+            { x: 50, y: 100 },
+            { x: 50, y: 40 },
+            { x: 350, y: 40 },
+            { x: 350, y: 100 },
+          ],
+        }),
+      ],
+      NO_INTRINSICS,
+      NO_TEXT,
+    );
+
+    // Offset = 14 * 1.15 = 16.1, half-stroke = 7 -> outer rail top = 40 - 23.1 = 16.9; +16 padding -> scene.y <= 0.9
+    expect(layout.scene.y).toBeLessThanOrEqual(40 - (14 * 1.15 + 7) - 15.9);
+  });
+});

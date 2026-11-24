@@ -108,7 +108,146 @@
             stroke-width="1.3"
           ></path>
         </marker>
+        <marker
+          id="er-ah-crowFootOnlyOne"
+          markerUnits="strokeWidth"
+          markerWidth="9.23"
+          markerHeight="7.69"
+          viewBox="0 0 12 10"
+          refX="12"
+          refY="5"
+          orient="auto-start-reverse"
+        >
+          <path
+            d="M 4,0 L 4,10 M 8,0 L 8,10 M 0,5 L 12,5"
+            fill="none"
+            stroke="context-stroke"
+            stroke-width="1.3"
+          ></path>
+        </marker>
+        <marker
+          id="er-ah-crowFootZeroOrOne"
+          markerUnits="strokeWidth"
+          markerWidth="13.85"
+          markerHeight="7.69"
+          viewBox="0 0 18 10"
+          refX="18"
+          refY="5"
+          orient="auto-start-reverse"
+        >
+          <path
+            d="M 13,0 L 13,10 M 8,5 L 18,5"
+            fill="none"
+            stroke="context-stroke"
+            stroke-width="1.3"
+          ></path>
+          <circle
+            cx="4.5"
+            cy="5"
+            r="3.5"
+            fill="var(--er-surface, #ffffff)"
+            stroke="context-stroke"
+            stroke-width="1.3"
+          ></circle>
+        </marker>
+        <marker
+          id="er-ah-crowFootOneOrMany"
+          markerUnits="strokeWidth"
+          markerWidth="10.77"
+          markerHeight="7.69"
+          viewBox="0 0 14 10"
+          refX="14"
+          refY="5"
+          orient="auto-start-reverse"
+        >
+          <path
+            d="M 3,0 L 3,10 M 0,5 L 14,5 M 5,5 L 14,0 M 5,5 L 14,10"
+            fill="none"
+            stroke="context-stroke"
+            stroke-width="1.3"
+          ></path>
+        </marker>
+        <marker
+          id="er-ah-crowFootZeroOrMany"
+          markerUnits="strokeWidth"
+          markerWidth="14.62"
+          markerHeight="7.69"
+          viewBox="0 0 19 10"
+          refX="19"
+          refY="5"
+          orient="auto-start-reverse"
+        >
+          <path
+            d="M 8,5 L 19,5 M 10,5 L 19,0 M 10,5 L 19,10"
+            fill="none"
+            stroke="context-stroke"
+            stroke-width="1.3"
+          ></path>
+          <circle
+            cx="4.5"
+            cy="5"
+            r="3.5"
+            fill="var(--er-surface, #ffffff)"
+            stroke="context-stroke"
+            stroke-width="1.3"
+          ></circle>
+        </marker>
+        <marker
+          id="er-ah-hollowTriangle"
+          markerUnits="strokeWidth"
+          markerWidth="9.23"
+          markerHeight="9.23"
+          viewBox="0 0 12 12"
+          refX="11.5"
+          refY="6"
+          orient="auto-start-reverse"
+        >
+          <path
+            d="M 1,1 L 11,6 L 1,11 Z"
+            fill="var(--er-surface, #ffffff)"
+            stroke="context-stroke"
+            stroke-width="1.3"
+            stroke-linejoin="round"
+          ></path>
+        </marker>
+        <marker
+          id="er-ah-hollowDiamond"
+          markerUnits="strokeWidth"
+          markerWidth="11.54"
+          markerHeight="8.46"
+          viewBox="0 0 15 11"
+          refX="14.5"
+          refY="5.5"
+          orient="auto-start-reverse"
+        >
+          <path
+            d="M 1,5.5 L 7.5,1 L 14,5.5 L 7.5,10 Z"
+            fill="var(--er-surface, #ffffff)"
+            stroke="context-stroke"
+            stroke-width="1.3"
+            stroke-linejoin="round"
+          ></path>
+        </marker>
+        <marker
+          id="er-ah-filledDiamond"
+          markerUnits="strokeWidth"
+          markerWidth="11.54"
+          markerHeight="8.46"
+          viewBox="0 0 15 11"
+          refX="14.5"
+          refY="5.5"
+          orient="auto-start-reverse"
+        >
+          <path
+            d="M 1,5.5 L 7.5,1 L 14,5.5 L 7.5,10 Z"
+            fill="context-stroke"
+            stroke="context-stroke"
+            stroke-width="1.3"
+            stroke-linejoin="round"
+          ></path>
+        </marker>
       </defs>
+      <path class="er-rel__rails" data-double-rails="" d=""></path>
       <path
         data-role="anchor"
         class="er-rel__line"
@@ -125,6 +264,24 @@
       data-if="label"
       style="--f: var(--font-{{typeface}}, var(--font-clean))"
       >{{label}}</span
+    >
+    <span
+      data-role="external-text"
+      data-text-grow-policy="width-only"
+      class="er-rel__label er-rel__end-label er-md"
+      data-part="start-label"
+      data-if="startLabel"
+      style="--f: var(--font-{{typeface}}, var(--font-clean))"
+      >{{startLabel}}</span
+    >
+    <span
+      data-role="external-text"
+      data-text-grow-policy="width-only"
+      class="er-rel__label er-rel__end-label er-md"
+      data-part="end-label"
+      data-if="endLabel"
+      style="--f: var(--font-{{typeface}}, var(--font-clean))"
+      >{{endLabel}}</span
     >
   </div>
 </template>

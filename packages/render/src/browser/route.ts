@@ -7,8 +7,10 @@ import {
   getArcPolyline,
   isArcBend,
   routeConnections,
+  type ConnectionRoutingRequest,
   type ConnectorStyle,
   type Direction,
+  type EndpointPins,
   type LayoutConnection,
   type LayoutEntity,
   type OutlineDescriptor,
@@ -16,10 +18,16 @@ import {
   type RepairPolicy,
 } from '@eraserlabs/layout';
 import { isFiniteBox } from '@eraserlabs/layout/layoutGeometry';
+import {
+  pointAtArcLengthFraction,
+  polylineLength,
+  projectedHalfExtent,
+} from '@eraserlabs/layout/routing/polylineUtils';
+import { resolvePortPins } from '@eraserlabs/layout/routing/ports';
 import type { ResolvedConnection, ResolvedEntity } from '@eraserlabs/protocol';
 import type { Box, ConnectionGeometry, SceneLayout } from '@eraserlabs/render';
 import { isFiniteNumber, isRecord } from '@eraserlabs/utils';
-import type { ElementMeasure } from './measure.js';
+import type { ElementMeasure, MeasuredPort } from './measure.js';
 import { ELBOW_CORNER_RADIUS, toPathData } from './roundedPath.js';
 
 /**
@@ -59,15 +67,32 @@ const FACE_BY_PORT: Record<string, Direction> = {
   right: 'right',
 };
 
+/** Measured boxes for a connection's optional start/end labels (`data-part="start-label" | "end-label"`). */
+export interface EndpointLabelSizes {
+  start?: Box;
+  end?: Box;
+}
+
 /**
- * Measured `external-text` boxes per element, wrapper-relative. A connection's is its label; a
- * node's is text painted outside its body, like an icon caption — the router keeps routes clear of
- * both, but only if it is told they exist.
+ * Measured `external-text` boxes per element, wrapper-relative. A connection's is its midpoint
+ * label; a node's is text painted outside its body, like an icon caption — the router keeps
+ * routes clear of both, but only if it is told they exist. Endpoint labels (`start-label` /
+ * `end-label`) are excluded here and placed separately near path terminals.
  */
 export function externalTextOf(measures: ElementMeasure[]): Map<string, Box[]> {
   const boxes = new Map<string, Box[]>();
 
   for (const measure of measures) {
+    if (measure.parts['start-label'] || measure.parts['end-label']) {
+      const midpoint = measure.parts['label'];
+
+      if (midpoint && midpoint.length > 0) {
+        boxes.set(measure.id, midpoint);
+      }
+
+      continue;
+    }
+
     const text = measure.roles['external-text'];
 
     if (text && text.length > 0) {
@@ -76,6 +101,38 @@ export function externalTextOf(measures: ElementMeasure[]): Map<string, Box[]> {
   }
 
   return boxes;
+}
+
+/** Measured `start-label` / `end-label` boxes per connection, wrapper-relative. */
+export function endpointLabelsOf(measures: ElementMeasure[]): Map<string, EndpointLabelSizes> {
+  const map = new Map<string, EndpointLabelSizes>();
+
+  for (const measure of measures) {
+    const start = measure.parts['start-label']?.[0];
+    const end = measure.parts['end-label']?.[0];
+
+    if (start || end) {
+      map.set(measure.id, { ...(start ? { start } : {}), ...(end ? { end } : {}) });
+    }
+  }
+
+  return map;
+}
+
+/**
+ * Measured `[data-port]` / `[data-port-prefix]` bands per entity, wrapper-relative. Entities that
+ * declare ports pin connection ends to their left/right walls (e.g. DatabaseTable rows).
+ */
+export function portsOf(measures: ElementMeasure[]): Map<string, readonly MeasuredPort[]> {
+  const ports = new Map<string, readonly MeasuredPort[]>();
+
+  for (const measure of measures) {
+    if (measure.ports.length > 0) {
+      ports.set(measure.id, measure.ports);
+    }
+  }
+
+  return ports;
 }
 
 /**
@@ -89,8 +146,10 @@ export function routeScene(
   resolvedBoxes: Map<string, Box>,
   externalText: Map<string, Box[]>,
   repair: RepairPolicy = { timeBudgetMs: REPAIR_TIME_BUDGET_MS },
+  entityPorts: Map<string, readonly MeasuredPort[]> = new Map(),
+  endpointLabels: Map<string, EndpointLabelSizes> = new Map(),
 ): SceneLayout {
-  const entities = toEntities(sceneEntities, resolvedBoxes, externalText);
+  const entities = toEntities(sceneEntities, resolvedBoxes, externalText, entityPorts);
   const entitiesById = new Map(entities.map((entity) => [entity.id, entity]));
   const connections = toConnections(sceneConnections, entitiesById, externalText);
   const manager = new LayoutManager({ entities, connections });
@@ -99,11 +158,83 @@ export function routeScene(
     routeConnections({
       layoutManager: manager,
       repair,
-      connectionsToRoute: connections,
+      connectionsToRoute: connections.map((connection) =>
+        authoredPortRequest(manager, connection, entitiesById),
+      ),
     });
   }
 
-  return toSceneLayout(manager, entities, cornerRadii(sceneConnections));
+  return toSceneLayout(
+    manager,
+    entities,
+    cornerRadii(sceneConnections),
+    sceneConnections,
+    endpointLabels,
+  );
+}
+
+const PERIMETER_TOLERANCE_PX = 1;
+
+/**
+ * Each unnamed end of an authored route on a port-declaring entity keeps its authored perimeter
+ * attachment (e.g. a saved table-level attachment) instead of snapping to the header. Each end is
+ * evaluated independently and merged onto `resolvePortPins`, so naming a field at one end still
+ * preserves a valid saved attachment at the other.
+ */
+function authoredPortRequest(
+  manager: LayoutManager,
+  connection: LayoutConnection,
+  entitiesById: Map<string, LayoutEntity>,
+): ConnectionRoutingRequest {
+  if (connection.points.length < 2) {
+    return { connection };
+  }
+  const from = entitiesById.get(connection.from);
+  const to = entitiesById.get(connection.to);
+  const preserveFrom = !connection.fromPortId && Boolean(from?.ports?.length);
+  const preserveTo = !connection.toPortId && Boolean(to?.ports?.length);
+  if (!preserveFrom && !preserveTo) {
+    return { connection };
+  }
+  const first = connection.points[0]!;
+  const last = connection.points[connection.points.length - 1]!;
+  const start: Point = [connection.x + first[0], connection.y + first[1]];
+  const end: Point = [connection.x + last[0], connection.y + last[1]];
+  const pinnedFrom = preserveFrom && from && isOnPerimeter(from, start) ? start : undefined;
+  const pinnedTo = preserveTo && to && isOnPerimeter(to, end) ? end : undefined;
+
+  if (!pinnedFrom && !pinnedTo) {
+    return { connection };
+  }
+
+  // Merge onto resolvePortPins so a named port (or unpreserved end) still resolves its pin:
+  // routeConnections skips resolvePortPins whenever `endpointPins` is provided.
+  const resolved = resolvePortPins(manager, connection);
+  const endpointPins: EndpointPins = {
+    ...resolved,
+    ...(pinnedFrom ? { from: pinnedFrom } : {}),
+    ...(pinnedTo ? { to: pinnedTo } : {}),
+  };
+
+  return { connection, endpointPins };
+}
+
+function isOnPerimeter(entity: LayoutEntity, [px, py]: Point): boolean {
+  const withinX =
+    px >= entity.x - PERIMETER_TOLERANCE_PX &&
+    px <= entity.x + entity.width + PERIMETER_TOLERANCE_PX;
+  const withinY =
+    py >= entity.y - PERIMETER_TOLERANCE_PX &&
+    py <= entity.y + entity.height + PERIMETER_TOLERANCE_PX;
+  const onVerticalWall =
+    withinY &&
+    (Math.abs(px - entity.x) <= PERIMETER_TOLERANCE_PX ||
+      Math.abs(px - (entity.x + entity.width)) <= PERIMETER_TOLERANCE_PX);
+  const onHorizontalWall =
+    withinX &&
+    (Math.abs(py - entity.y) <= PERIMETER_TOLERANCE_PX ||
+      Math.abs(py - (entity.y + entity.height)) <= PERIMETER_TOLERANCE_PX);
+  return onVerticalWall || onHorizontalWall;
 }
 
 /**
@@ -133,6 +264,7 @@ function toEntities(
   sceneEntities: ResolvedEntity[],
   resolvedBoxes: Map<string, Box>,
   externalText: Map<string, Box[]>,
+  entityPorts: Map<string, readonly MeasuredPort[]>,
 ): LayoutEntity[] {
   const nestedIds = new Set(sceneEntities.map((element) => element.containerId));
 
@@ -140,6 +272,7 @@ function toEntities(
     const resolved = resolvedBoxes.get(element.id);
     const text = textPlacement(externalText.get(element.id));
     const outline = outlineOf(element);
+    const ports = entityPorts.get(element.id);
 
     return {
       id: element.id,
@@ -152,6 +285,16 @@ function toEntities(
       ...(element.isContainer === true || nestedIds.has(element.id) ? { isContainer: true } : {}),
       ...(text ? { textPlacement: text } : {}),
       ...(outline ? { outline } : {}),
+      ...(ports && ports.length > 0
+        ? {
+            ports: ports.map((port) => ({
+              id: port.id,
+              y: Math.round(port.y),
+              height: Math.max(1, Math.round(port.height)),
+              allowCrossover: true,
+            })),
+          }
+        : {}),
     };
   });
 }
@@ -277,12 +420,16 @@ function toConnections(
       : labelSize(measured);
     const lineOffset = manualLineOffset(element);
     const bend = element.props['bend'];
+    const fromField = decodePlainField(element.props['fromField']);
+    const toField = decodePlainField(element.props['toField']);
 
     connections.push({
       id: element.id,
       from,
       to,
       ...faceHints(element),
+      ...(fromField !== undefined ? { fromPortId: `field:${fromField}` } : {}),
+      ...(toField !== undefined ? { toPortId: `field:${toField}` } : {}),
       connectorStyle: connectorStyleOf(element),
       ...(isFiniteNumber(bend) ? { bend } : {}),
       x: originX,
@@ -294,6 +441,19 @@ function toConnections(
   }
 
   return connections;
+}
+
+/** `fromField`/`toField` are `x-content: plain` (HTML-escaped at resolve); decode to match DOM `.textContent`. */
+function decodePlainField(value: unknown): string | undefined {
+  if (typeof value !== 'string' || value === '') {
+    return undefined;
+  }
+  return value
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#39;', "'")
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&amp;', '&');
 }
 
 /** `straight` and `arc` are exact opt-ins; an absent or unknown value is an elbow line. */
@@ -409,6 +569,8 @@ function toSceneLayout(
   manager: LayoutManager,
   entities: LayoutEntity[],
   radii: Map<string, number>,
+  sceneConnections: ResolvedConnection[],
+  endpointLabels: Map<string, EndpointLabelSizes>,
 ): SceneLayout {
   const boxes: Record<string, Box> = {};
 
@@ -416,6 +578,7 @@ function toSceneLayout(
     boxes[id] = { x, y, width, height };
   }
 
+  const elementById = new Map(sceneConnections.map((element) => [element.id, element]));
   const connections: Record<string, ConnectionGeometry> = {};
   const polylines: Point[][] = [];
 
@@ -435,19 +598,227 @@ function toSceneLayout(
     // A label layout left unplaced (a kept path whose label had only a size) falls back to the
     // path midpoint, with no authoritative box.
     const placed = isFiniteBox(connection.textPlacement) ? connection.textPlacement : undefined;
+    const props: Record<string, unknown> = elementById.get(connection.id)?.props ?? {};
+    const cornerRadius = radii.get(connection.id) ?? 0;
+    const isDouble = props['lineStyle'] === 'double';
+    const doubleRails = isDouble
+      ? doubleRailsGeometry(arc ? drawn : points, arc ? 0 : cornerRadius, lineWidthPxOf(props))
+      : undefined;
+    if (doubleRails) {
+      polylines.push(...doubleRails.boundsPolylines);
+    }
+    const ends = endpointLabels.get(connection.id);
+    const startLabelBox = ends?.start
+      ? placeEndpointLabel(drawn, 'start', ends.start, hasVisibleMarker(props, 'start'), isDouble)
+      : undefined;
+    let endLabelBox = ends?.end
+      ? placeEndpointLabel(drawn, 'end', ends.end, hasVisibleMarker(props, 'end'), isDouble)
+      : undefined;
+    if (startLabelBox && endLabelBox && boxesOverlap(startLabelBox, endLabelBox, 2)) {
+      endLabelBox = placeEndpointLabel(
+        drawn,
+        'end',
+        ends!.end!,
+        hasVisibleMarker(props, 'end'),
+        isDouble,
+        -1,
+      );
+    }
+
     connections[connection.id] = {
-      d: arc
-        ? getArcPathD(arc.start, arc.end, arc.bend)
-        : toPathData(points, radii.get(connection.id) ?? 0),
+      d: arc ? getArcPathD(arc.start, arc.end, arc.bend) : toPathData(points, cornerRadius),
+      ...(doubleRails ? { doubleRailsD: doubleRails.d } : {}),
       points: drawn,
       label: placed
         ? { x: placed.x + placed.width / 2, y: placed.y + placed.height / 2 }
         : midpoint(points),
       ...(placed ? { labelBox: { ...placed } } : {}),
+      ...(startLabelBox ? { startLabelBox } : {}),
+      ...(endLabelBox ? { endLabelBox } : {}),
     };
   }
 
   return { boxes, connections, scene: sceneBox(boxes, connections, polylines) };
+}
+
+function hasVisibleMarker(props: Record<string, unknown>, end: 'start' | 'end'): boolean {
+  const marker = props[`${end}Marker`];
+
+  if (typeof marker === 'string') {
+    return marker !== '' && marker !== 'none';
+  }
+
+  const head = props[`${end}Arrowhead`];
+
+  return typeof head === 'string' && head !== '';
+}
+
+function lineWidthPxOf(props: Record<string, unknown>): number {
+  const value = props['lineWidthPx'];
+
+  return isFiniteNumber(value) && value > 0 ? value : 1.3;
+}
+
+function boxesOverlap(a: Box, b: Box, clearance = 0): boolean {
+  return (
+    a.x < b.x + b.width + clearance &&
+    a.x + a.width + clearance > b.x &&
+    a.y < b.y + b.height + clearance &&
+    a.y + a.height + clearance > b.y
+  );
+}
+
+/**
+ * Place a connection endpoint label (`startLabel` / `endLabel`) beside the path near its terminal,
+ * past any arrowhead marker and shifted off the stroke along the upper (or rightward for vertical
+ * segments) perpendicular normal so it never overlaps the node edge, arrowhead, or line. Pass
+ * `normalSign = -1` to mirror across the stroke when the two endpoint labels collide on short lines.
+ */
+function placeEndpointLabel(
+  points: readonly Point[],
+  side: 'start' | 'end',
+  box: Box,
+  hasMarker: boolean,
+  isDoubleLine: boolean,
+  normalSign: 1 | -1 = 1,
+): Box | undefined {
+  if (
+    points.length < 2 ||
+    positiveDimension(box.width) === undefined ||
+    positiveDimension(box.height) === undefined
+  ) {
+    return undefined;
+  }
+
+  const totalLen = polylineLength(points);
+  const inset = hasMarker ? 20 : 10;
+  const atEnd = pointAtArcLengthFraction(points, side === 'start' ? 0 : 1);
+  const halfAlong = projectedHalfExtent(atEnd.tangent, box.width, box.height);
+  const along = Math.min(inset + halfAlong, Math.max(inset * 0.5, totalLen * 0.42));
+  const fraction = totalLen > 0 ? (side === 'start' ? along / totalLen : 1 - along / totalLen) : 0;
+  const { point: anchor, tangent } = pointAtArcLengthFraction(points, fraction);
+
+  // Perpendicular normal: prefer upward (ny < 0); for vertical segments (ny === 0), prefer right.
+  let nx = -tangent[1];
+  let ny = tangent[0];
+
+  if (ny > 1e-6 || (Math.abs(ny) <= 1e-6 && nx < 0)) {
+    nx = -nx;
+    ny = -ny;
+  }
+
+  nx *= normalSign;
+  ny *= normalSign;
+
+  const gap = isDoubleLine ? 7 : 5;
+  const perp = projectedHalfExtent([nx, ny], box.width, box.height) + gap;
+  const cx = anchor[0] + nx * perp;
+  const cy = anchor[1] + ny * perp;
+
+  return {
+    x: cx - box.width / 2,
+    y: cy - box.height / 2,
+    width: box.width,
+    height: box.height,
+  };
+}
+
+/**
+ * Two parallel rails offset ±halfGap perpendicular to the route (Chen total participation). Keeps
+ * a transparent center gap over any background, matches elbow corner rounding, and returns the
+ * outer stroke bounds of both rails so PNG exports never clip thick double lines.
+ */
+function doubleRailsGeometry(
+  rawPoints: readonly Point[],
+  cornerRadius: number,
+  lineWidthPx: number,
+): { d: string; boundsPolylines: Point[][] } | undefined {
+  const pts = dedupePoints(rawPoints);
+
+  if (pts.length < 2) {
+    return undefined;
+  }
+
+  const offset = Math.max(2.2, lineWidthPx * 1.15);
+  const left = offsetPolyline(pts, offset);
+  const right = offsetPolyline(pts, -offset);
+  const halfStroke = lineWidthPx / 2;
+
+  return {
+    d: `${toPathData(left, cornerRadius)} ${toPathData(right, cornerRadius)}`,
+    boundsPolylines: [
+      offsetPolyline(pts, offset + halfStroke),
+      offsetPolyline(pts, -(offset + halfStroke)),
+    ],
+  };
+}
+
+function dedupePoints(points: readonly Point[]): Point[] {
+  const out: Point[] = [];
+
+  for (const pt of points) {
+    const prev = out[out.length - 1];
+
+    if (!prev || Math.hypot(pt[0] - prev[0], pt[1] - prev[1]) > 1e-4) {
+      out.push([pt[0], pt[1]]);
+    }
+  }
+
+  return out;
+}
+
+function offsetPolyline(points: readonly Point[], signedOffset: number): Point[] {
+  const segCount = points.length - 1;
+  const tangents: Point[] = [];
+  const normals: Point[] = [];
+
+  for (let i = 0; i < segCount; i += 1) {
+    const [ax, ay] = points[i]!;
+    const [bx, by] = points[i + 1]!;
+    const len = Math.hypot(bx - ax, by - ay) || 1;
+    const tx = (bx - ax) / len;
+    const ty = (by - ay) / len;
+    tangents.push([tx, ty]);
+    normals.push([-ty, tx]);
+  }
+
+  const out: Point[] = [];
+  const [n0x, n0y] = normals[0]!;
+  out.push([points[0]![0] + signedOffset * n0x, points[0]![1] + signedOffset * n0y]);
+
+  const miterLimit = Math.abs(signedOffset) * 3;
+
+  for (let i = 1; i < segCount; i += 1) {
+    const [px, py] = points[i]!;
+    const [t1x, t1y] = tangents[i - 1]!;
+    const [t2x, t2y] = tangents[i]!;
+    const [n1x, n1y] = normals[i - 1]!;
+    const [n2x, n2y] = normals[i]!;
+    const a1x = px + signedOffset * n1x;
+    const a1y = py + signedOffset * n1y;
+    const a2x = px + signedOffset * n2x;
+    const a2y = py + signedOffset * n2y;
+    const cross = t1x * t2y - t1y * t2x;
+
+    if (Math.abs(cross) < 1e-4) {
+      out.push([a2x, a2y]);
+      continue;
+    }
+
+    const s = ((a2x - a1x) * t2y - (a2y - a1y) * t2x) / cross;
+
+    if (Math.abs(s) > miterLimit) {
+      out.push([a1x, a1y], [a2x, a2y]);
+    } else {
+      out.push([a1x + s * t1x, a1y + s * t1y]);
+    }
+  }
+
+  const [nLastX, nLastY] = normals[segCount - 1]!;
+  const [ex, ey] = points[segCount]!;
+  out.push([ex + signedOffset * nLastX, ey + signedOffset * nLastY]);
+
+  return out;
 }
 
 /**
@@ -506,12 +877,11 @@ function sceneBox(
     corners.push([box.x, box.y], [box.x + box.width, box.y + box.height]);
   }
 
-  for (const { labelBox } of Object.values(connections)) {
-    if (labelBox) {
-      corners.push(
-        [labelBox.x, labelBox.y],
-        [labelBox.x + labelBox.width, labelBox.y + labelBox.height],
-      );
+  for (const { labelBox, startLabelBox, endLabelBox } of Object.values(connections)) {
+    for (const box of [labelBox, startLabelBox, endLabelBox]) {
+      if (box) {
+        corners.push([box.x, box.y], [box.x + box.width, box.y + box.height]);
+      }
     }
   }
 

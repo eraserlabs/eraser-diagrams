@@ -3,7 +3,7 @@ import { TEXT_SIZE_POLICIES, type TextSizePolicy } from '@eraserlabs/protocol';
 import type { ResolvedConnection, ResolvedEntity } from '@eraserlabs/protocol';
 import type { Box, SceneLayout } from '@eraserlabs/render';
 import { isRecord } from '@eraserlabs/utils';
-import type { MeasuredBox } from './measure.js';
+import { readPorts, type MeasuredBox, type MeasuredPort } from './measure.js';
 import type { MountedElement } from './mount.js';
 
 const POLICY_ATTRIBUTE = 'data-text-grow-policy';
@@ -128,6 +128,8 @@ export interface ElementFit {
   textRegions: TextRegionMeasure[];
   /** Content that still runs past the body at that size, in px per side, and the text's scroll overflow. */
   overflow: Overflow;
+  /** Named port bands (`[data-port]` / `[data-port-prefix]`) at that size, wrapper-relative. */
+  ports: MeasuredPort[];
 }
 
 /**
@@ -165,6 +167,7 @@ export function measureElement(wrapper: HTMLElement): ElementFit {
     body: { width: origin.width, height: origin.height },
     textRegions,
     overflow: internalOverflow(wrapper),
+    ports: readPorts(wrapper),
   };
 }
 
@@ -181,13 +184,14 @@ export function fitElement(wrapper: HTMLElement, constraints: FitConstraints): E
   const intrinsicRect = wrapper.getBoundingClientRect();
   const intrinsic = rect(intrinsicRect.width, intrinsicRect.height);
   const policies = internalPolicies(wrapper, constraints.balanced);
+  const templateFloor = templateWidthFloor(wrapper);
   const authoredHeight = constraints.height ?? 0;
   const heightFloor = constraints.heightMode === 'fit' ? 0 : authoredHeight;
   let width: number;
   let height: number;
 
   if (constraints.policy === 'natural') {
-    width = Math.max(constraints.width ?? 0, intrinsic.width);
+    width = Math.max(constraints.width ?? 0, intrinsic.width, templateFloor);
     height = Math.max(heightFloor, intrinsic.height);
   } else if (constraints.policy === 'content') {
     const target = constraints.width ?? 0;
@@ -195,16 +199,20 @@ export function fitElement(wrapper: HTMLElement, constraints: FitConstraints): E
       constraints.content?.slackPx ?? CONTENT_FIT_SLACK_PX,
       target * (constraints.content?.slackRatio ?? CONTENT_FIT_SLACK_RATIO),
     );
-    width = target > 0 && intrinsic.width > target + slack ? target : intrinsic.width;
+    width = Math.max(
+      templateFloor,
+      target > 0 && intrinsic.width > target + slack ? target : intrinsic.width,
+    );
     height = heightFloor;
     setWrapperSize(wrapper, width, height);
     height = Math.max(height, naturalContentHeight(wrapper));
     height = growForVerticalOverflow(wrapper, width, height);
   } else {
-    const templateFloor = templateWidthFloor(wrapper);
-    width =
+    width = Math.max(
+      templateFloor,
       constraints.width ??
-      Math.min(intrinsic.width, Math.max(DEFAULT_UNAUTHORED_TEXT_WIDTH, templateFloor));
+        Math.min(intrinsic.width, Math.max(DEFAULT_UNAUTHORED_TEXT_WIDTH, templateFloor)),
+    );
     height =
       constraints.heightMode === 'fit'
         ? 0

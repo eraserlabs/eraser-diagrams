@@ -26,6 +26,7 @@ const MANIFEST = [
   'Pool',
   'Divider',
   'DatabaseTable',
+  'ClassBox',
   'Legend',
   'Relationship',
   'DatabaseRelationship',

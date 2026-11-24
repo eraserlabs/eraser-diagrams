@@ -251,19 +251,31 @@ function eachVarToProp(t: ParsedTemplate): Map<string, string> {
   return map;
 }
 
-/** Dotted template path → schema pointer, mapping a loop-var head through its array prop. */
-function pathToPointer(path: string, loopVars: Map<string, string>): string {
+/**
+ * Dotted template path → schema pointer, mapping loop-var heads (including nested `data-each`
+ * chains like `s of sections` → `m of s.items`) through their array props.
+ */
+function pathToPointer(
+  path: string,
+  loopVars: Map<string, string>,
+  seen: Set<string> = new Set(),
+): string {
   const segments = path.split('.');
-  const eachProp = loopVars.get(segments[0]!);
+  const head = segments[0]!;
+  const eachProp = loopVars.get(head);
 
-  if (eachProp === undefined) {
+  if (eachProp === undefined || seen.has(head)) {
     return `/${segments.join('/')}`;
   }
 
-  return `/${eachProp.split('.').join('/')}/*${segments
+  seen.add(head);
+  const base = pathToPointer(eachProp, loopVars, seen);
+  const tail = segments
     .slice(1)
     .map((s) => `/${s}`)
-    .join('')}`;
+    .join('');
+
+  return `${base}/*${tail}`;
 }
 
 /** A `--er-name: {{path}}` declaration is sanctioned iff the path resolves to a bindable pointer. */

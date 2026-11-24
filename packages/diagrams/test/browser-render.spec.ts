@@ -524,6 +524,285 @@ test('a DatabaseRelationship keeps its connectorStyle and bend and draws as an a
   await expect(anchor).not.toHaveAttribute('d', /L/);
 });
 
+test('DatabaseTable row heights scale with fontSize and DatabaseRelationship pins to measured [data-port] rows', async ({
+  page,
+}) => {
+  const { payload, result } = await buildPayload({
+    elements: [
+      {
+        tag: 'DatabaseTable',
+        id: 'users',
+        x: 0,
+        y: 0,
+        fontSize: 14,
+        label: 'users',
+        fields: [
+          { name: 'id', type: 'int', meta: 'PK' },
+          { name: 'email', type: 'text' },
+          { name: 'org_id', type: 'int', meta: 'FK' },
+        ],
+      },
+      {
+        tag: 'DatabaseTable',
+        id: 'orgs',
+        x: 420,
+        y: 0,
+        fontSize: 28,
+        label: 'orgs',
+        fields: [
+          { name: 'id', type: 'int', meta: 'PK' },
+          { name: 'slug', type: 'text' },
+        ],
+      },
+      {
+        tag: 'DatabaseRelationship',
+        id: 'user-org',
+        from: 'users',
+        to: 'orgs',
+        fromField: 'org_id',
+        toField: 'id',
+        startArrowhead: 'crowFootZeroOrMany',
+        endArrowhead: 'crowFootOnlyOne',
+      },
+    ],
+  });
+  expect(result.ok, JSON.stringify(result.errors)).toBe(true);
+  const run = await runPayload(page, payload);
+
+  const usersMeasure = run.measures.find((m) => m.id === 'users')!;
+  const orgsMeasure = run.measures.find((m) => m.id === 'orgs')!;
+  const usersOrgId = usersMeasure.ports.find((p) => p.id === 'field:org_id')!;
+  const orgsId = orgsMeasure.ports.find((p) => p.id === 'field:id')!;
+
+  // Larger fontSize produces genuinely taller rows (no fixed-only row height).
+  expect(orgsId.height).toBeGreaterThan(usersOrgId.height * 1.4);
+
+  // Routed connection endpoints land on each measured row's mid-height.
+  const conn = run.layout.connections['user-org']!;
+  expect(Math.abs(conn.points[0]![1] - (usersOrgId.y + usersOrgId.height / 2))).toBeLessThanOrEqual(
+    1,
+  );
+  expect(Math.abs(conn.points.at(-1)![1] - (orgsId.y + orgsId.height / 2))).toBeLessThanOrEqual(1);
+
+  // Optionality markers exist and are referenced on the path.
+  const path = page.locator('[data-mdp-id="user-org"] [data-role="anchor"]');
+  await expect(path).toHaveAttribute('marker-start', 'url(#er-dbah-crowFootZeroOrMany)');
+  await expect(path).toHaveAttribute('marker-end', 'url(#er-dbah-crowFootOnlyOne)');
+  await expect(
+    page.locator('[data-mdp-id="user-org"] marker#er-dbah-crowFootZeroOrMany circle'),
+  ).toHaveCount(1);
+});
+
+test('DatabaseTable honors host CSS custom properties and measured ports follow the shifted rows', async ({
+  page,
+}) => {
+  const { payload, result } = await buildPayload({
+    elements: [
+      {
+        tag: 'DatabaseTable',
+        id: 'a',
+        x: 0,
+        y: 0,
+        label: 'a',
+        fields: [
+          { name: 'id', type: 'int' },
+          { name: 'b_id', type: 'int' },
+        ],
+      },
+      {
+        tag: 'DatabaseTable',
+        id: 'b',
+        x: 420,
+        y: 0,
+        label: 'b',
+        fields: [{ name: 'id', type: 'int' }],
+      },
+      {
+        tag: 'DatabaseRelationship',
+        id: 'ab',
+        from: 'a',
+        to: 'b',
+        fromField: 'b_id',
+        toField: 'id',
+      },
+    ],
+  });
+  expect(result.ok, JSON.stringify(result.errors)).toBe(true);
+  payload.baseCss += `
+    :root {
+      --er-table-min-width: 260px;
+      --er-table-head-min-height: 60px;
+      --er-table-row-min-height: 54px;
+    }
+  `;
+  const run = await runPayload(page, payload);
+
+  const aMeasure = run.measures.find((m) => m.id === 'a')!;
+  const aHeader = aMeasure.ports.find((p) => p.id === 'header')!;
+  const aBId = aMeasure.ports.find((p) => p.id === 'field:b_id')!;
+  expect(aMeasure.body!.width).toBeGreaterThanOrEqual(260);
+  expect(aHeader.height).toBeGreaterThanOrEqual(60);
+  expect(aBId.height).toBeGreaterThanOrEqual(54);
+
+  const conn = run.layout.connections['ab']!;
+  expect(Math.abs(conn.points[0]![1] - (aBId.y + aBId.height / 2))).toBeLessThanOrEqual(1);
+});
+
+test('ClassBox renders named/unnamed sections, stereotype, italic/underline, and pins ports', async ({
+  page,
+}) => {
+  const { payload, result } = await buildPayload({
+    elements: [
+      {
+        tag: 'ClassBox',
+        id: 'gw',
+        label: 'Gateway',
+        stereotype: 'interface',
+        italic: true,
+        x: 0,
+        y: 0,
+        width: 220,
+        badge: { text: 'v2', placement: 'top-right' },
+        sections: [
+          {
+            name: 'attributes',
+            items: [{ name: '+ timeout', type: 'int', underline: true }],
+          },
+          {
+            items: [{ name: '+ charge()', type: 'void', italic: true }],
+          },
+          {
+            name: 'events',
+            items: [{ name: 'Charged' }],
+          },
+        ],
+      },
+      {
+        tag: 'ClassBox',
+        id: 'order',
+        label: 'Order',
+        x: 380,
+        y: 0,
+        width: 200,
+        sections: [{ items: [{ name: '- id', type: 'UUID' }] }],
+      },
+      {
+        tag: 'Relationship',
+        id: 'rel',
+        from: 'gw',
+        to: 'order',
+        fromPort: 'right',
+        toPort: 'left',
+        startArrowhead: 'hollowDiamond',
+        endArrowhead: null,
+        startLabel: '1',
+        endLabel: '0..*',
+      },
+    ],
+  });
+  expect(result.ok, JSON.stringify(result.errors)).toBe(true);
+  const run = await runPayload(page, payload);
+
+  const gw = page.locator('[data-mdp-id="gw"]');
+  await expect(gw.locator('.er-classbox__stereotype')).toHaveText('«interface»');
+  await expect(gw.locator('.er-classbox__title')).toHaveCSS('font-style', 'italic');
+  await expect(gw.locator('.er-classbox__section')).toHaveCount(3);
+  await expect(gw.locator('.er-classbox__section-name')).toHaveText(['attributes', 'events']);
+  await expect(gw.locator('.er-classbox__m-name').first()).toHaveCSS(
+    'text-decoration-line',
+    'underline',
+  );
+  await expect(gw.locator('[data-tpl="ClassBox"]')).toHaveCSS('overflow', 'visible');
+
+  const rel = page.locator('[data-mdp-id="rel"]');
+  await expect(rel.locator('[data-part="start-label"]')).toHaveText('1');
+  await expect(rel.locator('[data-part="end-label"]')).toHaveText('0..*');
+  expect(run.layout.connections['rel']?.startLabelBox).toBeDefined();
+  expect(run.layout.connections['rel']?.endLabelBox).toBeDefined();
+});
+
+test('Chen notation, double borders, double lines, and property-level underline render cleanly', async ({
+  page,
+}) => {
+  const { payload, result } = await buildPayload({
+    elements: [
+      {
+        tag: 'Shape',
+        id: 'weak-ent',
+        shape: 'rectangle',
+        borderStyle: 'double',
+        x: 0,
+        y: 0,
+        width: 130,
+        height: 54,
+        texts: [{ text: 'OrderItem' }],
+      },
+      {
+        tag: 'Shape',
+        id: 'id-rel',
+        shape: 'diamond',
+        borderStyle: 'double',
+        x: 240,
+        y: 0,
+        width: 120,
+        height: 76,
+        texts: [{ text: 'contains' }],
+      },
+      {
+        tag: 'Shape',
+        id: 'pk-attr',
+        shape: 'ellipse',
+        x: 0,
+        y: 120,
+        width: 120,
+        height: 46,
+        texts: [{ text: 'item_id', underline: true }],
+      },
+      {
+        tag: 'Shape',
+        id: 'partial-attr',
+        shape: 'ellipse',
+        borderStyle: 'double',
+        x: 180,
+        y: 120,
+        width: 120,
+        height: 46,
+        texts: [{ text: 'line_no', underline: 'dashed' }],
+      },
+      {
+        tag: 'DatabaseRelationship',
+        id: 'total-part',
+        from: 'weak-ent',
+        to: 'id-rel',
+        relType: 'one-to-many',
+        notation: 'chen',
+        lineStyle: 'double',
+      },
+    ],
+  });
+  expect(result.ok, JSON.stringify(result.errors)).toBe(true);
+  const run = await runPayload(page, payload);
+
+  await expect(page.locator('[data-mdp-id="weak-ent"] .er-shape__inner-border')).toHaveCount(1);
+  await expect(page.locator('[data-mdp-id="id-rel"] .er-shape__inner-border')).toHaveCount(1);
+  await expect(page.locator('[data-mdp-id="pk-attr"] .er-shape__text')).toHaveCSS(
+    'text-decoration-line',
+    'underline',
+  );
+  await expect(page.locator('[data-mdp-id="partial-attr"] .er-shape__text')).toHaveCSS(
+    'text-decoration-style',
+    'dashed',
+  );
+
+  const rel = page.locator('[data-mdp-id="total-part"]');
+  await expect(rel.locator('[data-role="anchor"]')).toHaveAttribute('marker-start', 'none');
+  await expect(rel.locator('[data-role="anchor"]')).toHaveAttribute('marker-end', 'none');
+  await expect(rel.locator('[data-double-rails]')).toHaveCSS('display', 'block');
+  await expect(rel.locator('[data-part="start-label"]')).toHaveText('1');
+  await expect(rel.locator('[data-part="end-label"]')).toHaveText('*');
+  expect(run.layout.connections['total-part']?.doubleRailsD).toBeDefined();
+});
+
 test('hostile text renders as inert visible text — zero script execution', async ({ page }) => {
   const dialogs: string[] = [];
   page.on('dialog', (dialog) => {
@@ -869,4 +1148,85 @@ test('isolation: nested templates are walled off from their host template CSS �
   // And Badge's stock CSS does not leak out onto Shape's identically-classed span.
   await expect(badge).toHaveCSS('border-top-left-radius', '5px');
   await expect(shapeOwned).toHaveCSS('border-top-left-radius', '0px');
+});
+
+test('explicit narrow widths on DatabaseTable and ClassBox respect CSS min-width in routing', async ({
+  page,
+}) => {
+  const { payload, result } = await buildPayload({
+    elements: [
+      {
+        tag: 'DatabaseTable',
+        id: 't',
+        x: 0,
+        y: 0,
+        width: 80,
+        label: 't',
+        fields: [{ name: 'id', type: 'int', meta: 'pk' }],
+      },
+      {
+        tag: 'ClassBox',
+        id: 'c',
+        x: 340,
+        y: 0,
+        width: 95,
+        label: 'Foo',
+        sections: [{ items: [{ name: 'id', type: 'int' }] }],
+      },
+      {
+        tag: 'Relationship',
+        id: 'r',
+        from: 't',
+        to: 'c',
+        fromField: 'id',
+        toField: 'id',
+      },
+    ],
+  });
+  expect(result.ok, JSON.stringify(result.errors)).toBe(true);
+  // Relationship accepts fromField/toField without unknown-prop warnings.
+  expect(result.warnings.filter((w) => w.code === 'W_UNKNOWN_PROP')).toEqual([]);
+
+  const run = await runPayload(page, payload);
+  const tableBox = run.layout.boxes['t']!;
+  const classBox = run.layout.boxes['c']!;
+  const tablePainted = (await page.locator('[data-mdp-id="t"] [data-role="body"]').boundingBox())!;
+  const classPainted = (await page.locator('[data-mdp-id="c"] [data-role="body"]').boundingBox())!;
+
+  expect(tableBox.width).toBeGreaterThanOrEqual(150);
+  expect(Math.abs(tableBox.width - tablePainted.width)).toBeLessThan(1.5);
+  expect(classBox.width).toBeGreaterThanOrEqual(160);
+  expect(Math.abs(classBox.width - classPainted.width)).toBeLessThan(1.5);
+
+  // Connection starts cleanly on the table's right edge and ends on the ClassBox's left edge.
+  const conn = run.layout.connections['r']!;
+  expect(conn.points[0]![0]).toBeCloseTo(tableBox.x + tableBox.width, 0);
+  expect(conn.points.at(-1)![0]).toBeCloseTo(classBox.x, 0);
+});
+
+test('auto-sized Chen diamond with borderStyle double renders a visible inner border path', async ({
+  page,
+}) => {
+  const { payload, result } = await buildPayload({
+    elements: [
+      {
+        tag: 'Shape',
+        id: 'rel',
+        shape: 'diamond',
+        borderStyle: 'double',
+        x: 0,
+        y: 0,
+        texts: [{ text: 'has' }],
+      },
+    ],
+  });
+  expect(result.ok, JSON.stringify(result.errors)).toBe(true);
+  await runPayload(page, payload);
+
+  const inner = page.locator('[data-mdp-id="rel"] .er-shape__inner-border--diamond');
+  await expect(inner).toHaveCSS('display', 'block');
+  const box = await inner.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.width).toBeGreaterThan(10);
+  expect(box!.height).toBeGreaterThan(10);
 });

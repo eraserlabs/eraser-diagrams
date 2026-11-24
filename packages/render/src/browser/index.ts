@@ -1,6 +1,6 @@
 import type { ResolvedElement, ResolvedEntity } from '@eraserlabs/protocol';
 import type { SceneLayout } from '@eraserlabs/render';
-import { externalTextOf, routeScene } from './route.js';
+import { endpointLabelsOf, externalTextOf, portsOf, routeScene } from './route.js';
 import { createFillEngine } from './fill.js';
 import { injectStyles, mountScene } from './mount.js';
 import {
@@ -19,7 +19,7 @@ import {
 } from './textSizing.js';
 
 export type { WireFontFace, UrlFontFace, RegisterFontsRequest } from './fonts.js';
-export type { ElementMeasure, MeasuredBox } from './measure.js';
+export { readPorts, type ElementMeasure, type MeasuredBox, type MeasuredPort } from './measure.js';
 export type {
   ElementFit,
   FitConstraints,
@@ -86,6 +86,8 @@ async function run(request: RunRequest): Promise<RunResult> {
   const resolvedSizes = resolveTextSizedElements(entities, mounted);
   let measures = measureScene(mounted, intrinsics);
   let finalExternalText = externalTextOf(measures);
+  const entityPorts = portsOf(measures);
+  let endpointLabels = endpointLabelsOf(measures);
   const provisional = deferConstrainedConnectionLabels(connections, mounted, finalExternalText);
   let layout = routeScene(
     entities,
@@ -93,13 +95,24 @@ async function run(request: RunRequest): Promise<RunResult> {
     resolvedSizes,
     provisional.externalText,
     request.repair,
+    entityPorts,
+    endpointLabels,
   );
 
   if (provisional.deferred) {
     constrainConnectionLabels(connections, mounted, layout);
     measures = measureScene(mounted, intrinsics);
     finalExternalText = externalTextOf(measures);
-    layout = routeScene(entities, connections, resolvedSizes, finalExternalText, request.repair);
+    endpointLabels = endpointLabelsOf(measures);
+    layout = routeScene(
+      entities,
+      connections,
+      resolvedSizes,
+      finalExternalText,
+      request.repair,
+      portsOf(measures),
+      endpointLabels,
+    );
   }
 
   // A changed final route can change its longest run. Stabilize that cap without an unbounded
@@ -111,7 +124,16 @@ async function run(request: RunRequest): Promise<RunResult> {
 
     measures = measureScene(mounted, intrinsics);
     finalExternalText = externalTextOf(measures);
-    layout = routeScene(entities, connections, resolvedSizes, finalExternalText, request.repair);
+    endpointLabels = endpointLabelsOf(measures);
+    layout = routeScene(
+      entities,
+      connections,
+      resolvedSizes,
+      finalExternalText,
+      request.repair,
+      portsOf(measures),
+      endpointLabels,
+    );
   }
   applyLayout(scene, mounted, layout, containmentZIndex(all), measures);
   attachContainerContent(all, measures, layout);

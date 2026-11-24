@@ -28,6 +28,13 @@ export const ARROWHEADS = [
   'triangle',
   'crowFootSingle',
   'crowFootMany',
+  'crowFootOnlyOne',
+  'crowFootZeroOrOne',
+  'crowFootOneOrMany',
+  'crowFootZeroOrMany',
+  'hollowTriangle',
+  'hollowDiamond',
+  'filledDiamond',
 ] as const;
 
 export const PORTS = ['top', 'right', 'bottom', 'left'] as const;
@@ -42,7 +49,9 @@ export const REL_TYPES = ['one-to-one', 'one-to-many', 'many-to-one', 'many-to-m
  */
 export const ICON_SIZE_PRESETS = ['sm', 'md', 'lg', 'xl'] as const;
 
-export const BORDER_STYLES = ['solid', 'dashed', 'dotted'] as const;
+export const BORDER_STYLES = ['solid', 'dashed', 'dotted', 'double'] as const;
+
+export const UNDERLINE_STYLES = ['solid', 'dashed'] as const;
 
 export const H_ALIGNS = ['left', 'center', 'right'] as const;
 

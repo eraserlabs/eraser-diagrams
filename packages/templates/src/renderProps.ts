@@ -24,6 +24,7 @@ export const stockRenderProps: Record<string, Record<string, JsonSchema>> = {
     bodyInk: CssColor,
     geoShadowPath: { type: 'string', pattern: '^[MLHVQCAZ0-9,. \\-]+$' },
     geoShadowClip: { type: 'string', pattern: '^[MLHVQCAZ0-9,. \\-]+$' },
+    geoInnerPath: { type: 'string', pattern: '^[MLHVQCAZ0-9,. \\-]+$' },
   },
   Legend: surfacePaints,
   Activity: surfacePaints,
@@ -33,5 +34,7 @@ export const stockRenderProps: Record<string, Record<string, JsonSchema>> = {
   Lane: groupPaints,
   Pool: groupPaints,
   DatabaseTable: { ...surfacePaints, ...washPaints, dividerColor: CssColor },
+  ClassBox: { ...surfacePaints, ...washPaints, dividerColor: CssColor },
   Relationship: { startMarker: { type: 'string' }, endMarker: { type: 'string' } },
+  DatabaseRelationship: { startMarker: { type: 'string' }, endMarker: { type: 'string' } },
 };

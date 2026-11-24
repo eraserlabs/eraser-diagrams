@@ -8,6 +8,7 @@ test-results/
 *.png
 # Template markup is whitespace-significant (pre-wrap text nodes); AUTHORING.md requires tight text
 packages/diagrams/src/library/templates/**/*.html
+packages/templates/src/templates/**/*.html
 
-# Golden baselines are written by Playwright byte-for-byte; never reformat
-fixtures/__goldens__/
+# Fixture and golden JSON use compact one-element-per-line formatting (goldens.spec.ts / import.ts)
+fixtures/

@@ -12,11 +12,24 @@
   stroke: var(--er-stroke, var(--er-line));
   stroke-width: var(--er-line-w, 1.3px);
 }
+.er-rel__rails {
+  display: none;
+  fill: none;
+  stroke: var(--er-stroke, var(--er-line));
+  stroke-width: var(--er-line-w, 1.3px);
+}
 .er-rel[data-line-style='dashed'] .er-rel__line {
   stroke-dasharray: 8 8.75;
 }
 .er-rel[data-line-style='dotted'] .er-rel__line {
   stroke-dasharray: 1.5 6.75;
+}
+.er-rel[data-line-style='double'] .er-rel__rails {
+  display: block;
+}
+.er-rel[data-line-style='double'] .er-rel__line {
+  stroke-dasharray: 0 1000000;
+  stroke-linecap: butt;
 }
 .er-rel__label {
   position: relative;
@@ -44,4 +57,7 @@
 }
 .er-rel[data-font-px]:not([data-font-px='']) .er-rel__label {
   font-size: var(--er-font-px);
+}
+.er-rel__end-label {
+  white-space: nowrap;
 }

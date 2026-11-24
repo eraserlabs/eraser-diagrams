@@ -1,11 +1,20 @@
 import { CssColor, type JsonSchema } from '@eraserlabs/resolve/schema';
-import { TYPEFACES, H_ALIGNS } from './enums.js';
+import { TYPEFACES, H_ALIGNS, UNDERLINE_STYLES } from './enums.js';
 
 /**
  * Explicit text size in px. Bound through gated attributes (`data-font-px` / `--er-font-px`) so
  * an absent value cannot void a declaration. Slot defaults live in CSS (`--er-base`).
  */
 export const FontSizePx: JsonSchema = { type: 'number' };
+
+/**
+ * Property-level underline styling (keeps stored Markdown pure GFM): `true` or `'solid'` draws a
+ * solid underline (Chen primary keys, UML static members); `'dashed'` draws a dashed underline
+ * (Chen weak-entity partial keys).
+ */
+export const UnderlineStyle: JsonSchema = {
+  anyOf: [{ type: 'boolean' }, { type: 'string', enum: [...UNDERLINE_STYLES] }],
+};
 
 /** A styled text run in an entity `texts` array (`x-content: markdown`). */
 export const MarkdownTextProperties: JsonSchema = {
@@ -18,5 +27,6 @@ export const MarkdownTextProperties: JsonSchema = {
     fontSize: FontSizePx,
     hAlign: { type: 'string', enum: [...H_ALIGNS] },
     typeface: { type: 'string', enum: [...TYPEFACES] },
+    underline: UnderlineStyle,
   },
 };

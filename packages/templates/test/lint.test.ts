@@ -213,4 +213,19 @@ describe('template linter (each rule proven by a broken fixture)', () => {
     );
     expect(rules).toContain(LINT_RULE.UNQUOTED_ATTRIBUTE);
   });
+
+  it('content-in-attribute — catches content props through nested data-each chains', () => {
+    const templates: TemplateFile[] = stockLibrary.templates.map((t) =>
+      t.name === 'ClassBox'
+        ? {
+            name: 'ClassBox',
+            html: '<template name="ClassBox"><div data-tpl="ClassBox" data-role="body"><div data-each="s of sections" data-key="name"><ul data-each="m of s.items" data-key="name"><li title="{{m.name}}">{{m.name}}</li></ul></div></div></template>',
+            css: '.x{}',
+          }
+        : t,
+    );
+    expect(rulesFor(() => prepareLibrary({ ...stockLibrary, templates }))).toContain(
+      LINT_RULE.CONTENT_IN_ATTRIBUTE,
+    );
+  });
 });

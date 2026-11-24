@@ -49,7 +49,15 @@ describe('elements-connections proving ground', () => {
     const masks = [
       ...outcome.html.matchAll(/<mask id="([^"]+)"[^>]*data-mdp-connection-mask="([^"]+)"/g),
     ].map(([, maskId, connectionId]) => ({ maskId, connectionId }));
-    const labeled = ['rel-elbow-label', 'rel-straight-label', 'rel-bidirectional'];
+    const labeled = [
+      'rel-elbow-label',
+      'rel-straight-label',
+      'rel-bidirectional',
+      'lab-inherit',
+      'lab-own',
+      'erd-inherit',
+      'erd-own',
+    ];
 
     expect(masks.map(({ connectionId }) => connectionId).sort()).toEqual([...labeled].sort());
     expect(new Set(masks.map(({ maskId }) => maskId)).size).toBe(masks.length);

@@ -250,3 +250,35 @@ test('measureElement: every text region at the proposed size, a caption by its p
   );
   expect(measured).toEqual(result);
 });
+
+test('readPorts & measureElement: locates static [data-port] and prefixed [data-port-prefix] rows, ignoring nested elements', async ({
+  page,
+}) => {
+  const result = await page.evaluate(() => {
+    document.querySelector('[data-mdp-tag]')?.remove();
+    const wrapper = document.createElement('div');
+    wrapper.setAttribute('data-mdp-tag', 'Table');
+    wrapper.style.position = 'absolute';
+    wrapper.style.left = '20px';
+    wrapper.style.top = '30px';
+    wrapper.innerHTML = `<div data-role="body" style="border: 2px solid black; box-sizing: border-box;">
+      <header data-port="header" style="height: 44px;"></header>
+      <div data-port-prefix="field:" style="height: 36px;"><span data-port-name>id</span></div>
+      <div data-port-prefix="field:" style="height: 52px;"><span data-port-name>a &amp; b</span></div>
+      <div data-port-prefix="field:" style="height: 20px;"><span data-port-name>   </span></div>
+      <div data-mdp-tag="Nested"><div data-port="nested" style="height: 10px;"></div></div>
+    </div>`;
+    document.body.appendChild(wrapper);
+    return {
+      ports: window.fitTest.readPorts(wrapper),
+      measured: window.fitTest.measureElement(wrapper).ports,
+    };
+  });
+
+  expect(result.ports).toEqual([
+    { id: 'header', y: 2, height: 44 },
+    { id: 'field:id', y: 46, height: 36 },
+    { id: 'field:a & b', y: 82, height: 52 },
+  ]);
+  expect(result.measured).toEqual(result.ports);
+});

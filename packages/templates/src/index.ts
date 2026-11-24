@@ -16,6 +16,7 @@ import {
   name as DatabaseTableName,
   schema as DatabaseTable,
 } from './templates/DatabaseTable/index.js';
+import { name as ClassBoxName, schema as ClassBox } from './templates/ClassBox/index.js';
 import { name as LegendName, schema as Legend } from './templates/Legend/index.js';
 import {
   name as RelationshipName,
@@ -48,6 +49,7 @@ export const MANIFEST: readonly string[] = [
   PoolName,
   DividerName,
   DatabaseTableName,
+  ClassBoxName,
   LegendName,
   RelationshipName,
   DatabaseRelationshipName,
@@ -77,6 +79,7 @@ export const tagSchemas: Record<string, JsonSchema> = {
   Event,
   Gateway,
   DatabaseTable,
+  ClassBox,
   Textbox,
   Group,
   Lane,

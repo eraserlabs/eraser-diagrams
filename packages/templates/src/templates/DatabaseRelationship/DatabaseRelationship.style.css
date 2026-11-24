@@ -6,11 +6,24 @@
   stroke: var(--er-stroke, var(--er-line));
   stroke-width: var(--er-line-w, 1.3px);
 }
+.er-dbrel__rails {
+  display: none;
+  fill: none;
+  stroke: var(--er-stroke, var(--er-line));
+  stroke-width: var(--er-line-w, 1.3px);
+}
 .er-dbrel[data-line-style='dashed'] .er-dbrel__line {
   stroke-dasharray: 8 8.75;
 }
 .er-dbrel[data-line-style='dotted'] .er-dbrel__line {
   stroke-dasharray: 1.5 6.75;
+}
+.er-dbrel[data-line-style='double'] .er-dbrel__rails {
+  display: block;
+}
+.er-dbrel[data-line-style='double'] .er-dbrel__line {
+  stroke-dasharray: 0 1000000;
+  stroke-linecap: butt;
 }
 .er-dbrel__label {
   position: relative;
@@ -35,4 +48,7 @@
 }
 .er-dbrel[data-label-color]:not([data-label-color='']) .er-dbrel__label {
   color: var(--er-label-ink);
+}
+.er-dbrel__end-label {
+  white-space: nowrap;
 }

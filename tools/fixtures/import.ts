@@ -255,7 +255,7 @@ async function importOne(
   }
 
   const out = join(outDir, `${name}.json`);
-  writeFileSync(out, `${JSON.stringify({ title, elements }, null, 2)}\n`);
+  writeFileSync(out, formatCompactFixtureJson({ title, elements }));
   console.info(
     `ok    ${out}  ${elements.length} elements` +
       `  stripped ${geometryStripped} connection geometry, ${unknownStripped} unknown props, rounded ${geometryRounded} coordinates` +
@@ -263,6 +263,21 @@ async function importOne(
   );
 
   return true;
+}
+
+function formatCompactFixtureJson(doc: Record<string, unknown>): string {
+  const entries = Object.entries(doc).map(([key, value]) => {
+    const k = JSON.stringify(key);
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return `  ${k}: []`;
+      }
+      const items = value.map((item) => `    ${JSON.stringify(item)}`).join(',\n');
+      return `  ${k}: [\n${items}\n  ]`;
+    }
+    return `  ${k}: ${JSON.stringify(value)}`;
+  });
+  return `{\n${entries.join(',\n')}\n}\n`;
 }
 
 async function main(): Promise<void> {

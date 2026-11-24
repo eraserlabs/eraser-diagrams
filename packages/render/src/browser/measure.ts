@@ -13,6 +13,13 @@ import type { MountedElement } from './mount.js';
 /** Same shape as the scene's `Box`; aliased so measurement and layout output cannot drift apart. */
 export type MeasuredBox = Box;
 
+/** A named port band declared inside a template, wrapper-relative in layout px. */
+export interface MeasuredPort {
+  readonly id: string;
+  readonly y: number;
+  readonly height: number;
+}
+
 export interface ElementMeasure {
   id: string;
   tag: string;
@@ -32,8 +39,61 @@ export interface ElementMeasure {
   roles: Record<string, MeasuredBox[]>;
   /** Bounding boxes of every `[data-part]` node, wrapper-relative, grouped by part name. */
   parts: Record<string, MeasuredBox[]>;
+  /** Named port bands (`[data-port]` / `[data-port-prefix]`), wrapper-relative. */
+  ports: MeasuredPort[];
   /** Containers only: union of member body boxes (fit diagnostics). Filled by the caller. */
   content?: MeasuredBox;
+}
+
+/**
+ * Locate and measure every named port band inside `wrapper` (wrapper-relative, in layout px):
+ *  - `[data-port]` supplies a literal port id (e.g. `data-port="header"`).
+ *  - `[data-port-prefix]` combines its prefix with the `.textContent` of its `[data-port-name]`
+ *    descendant (e.g. `data-port-prefix="field:"` + `data-port-name`), keeping user content out of
+ *    HTML attributes.
+ * Nested sub-template mounts (`[data-mdp-tag]`) are excluded. Any ancestor CSS zoom scale is
+ * divided out via `wrapper.offsetHeight`.
+ */
+export function readPorts(wrapper: HTMLElement): MeasuredPort[] {
+  const origin = wrapper.getBoundingClientRect();
+  if (!(origin.height > 0) && !(origin.width > 0)) {
+    return [];
+  }
+  const scaleY =
+    wrapper.offsetHeight > 0 && origin.height > 0 ? origin.height / wrapper.offsetHeight : 1;
+  const scope = wrapper.matches('[data-mdp-tag]') ? wrapper : null;
+  const ports: MeasuredPort[] = [];
+
+  for (const node of wrapper.querySelectorAll<HTMLElement>('[data-port], [data-port-prefix]')) {
+    const owner = node.closest('[data-mdp-tag]');
+    if (scope !== null ? owner !== scope : owner !== null && wrapper.contains(owner)) {
+      continue;
+    }
+    let id = node.getAttribute('data-port');
+    if (id === null) {
+      const prefix = node.getAttribute('data-port-prefix');
+      const nameNode = node.querySelector<HTMLElement>('[data-port-name]');
+      const name = nameNode?.textContent?.trim() ?? '';
+      if (prefix !== null && name.length > 0) {
+        id = `${prefix}${name}`;
+      }
+    }
+    if (!id) {
+      continue;
+    }
+    const rect = node.getBoundingClientRect();
+    const height = rect.height / scaleY;
+    if (!(height > 0)) {
+      continue;
+    }
+    ports.push({
+      id,
+      y: (rect.y - origin.y) / scaleY,
+      height,
+    });
+  }
+
+  return ports;
 }
 
 /** Pass 1: the wrappers are max-content sized — their rects are the intrinsic boxes. */
@@ -89,6 +149,7 @@ export function measureScene(
       ink: measureInk(wrapper, origin),
       roles,
       parts,
+      ports: readPorts(wrapper),
     };
   });
 }

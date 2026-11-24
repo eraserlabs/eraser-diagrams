@@ -129,9 +129,17 @@ export const Point: JsonSchema = {
 
 export const ConnectionBase: Record<string, JsonSchema> = {
   points: { type: 'array', items: Point, minItems: 2 },
+  /** Optional named port selector on the `from` entity (e.g. DatabaseTable column or ClassBox member). */
+  fromField: { type: 'string', 'x-content': 'plain' },
+  /** Optional named port selector on the `to` entity (e.g. DatabaseTable column or ClassBox member). */
+  toField: { type: 'string', 'x-content': 'plain' },
   typeface: { type: 'string', enum: [...TYPEFACES] },
   fontSize: FontSizePx,
   label: { type: 'string', 'x-content': 'inline-markdown' },
+  /** Endpoint label placed near the `from` terminal (e.g. Chen cardinality, UML multiplicity). */
+  startLabel: { type: 'string', 'x-content': 'inline-markdown' },
+  /** Endpoint label placed near the `to` terminal (e.g. Chen cardinality, UML multiplicity). */
+  endLabel: { type: 'string', 'x-content': 'inline-markdown' },
   /** Label text colour. Absent, the label follows `color` (the line). */
   labelColor: CssColor,
   labelPlacement: LabelPlacement,
