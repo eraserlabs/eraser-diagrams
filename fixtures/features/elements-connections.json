@@ -121,6 +121,237 @@
       "id": "rel-bidirectional",
       "x": 0,
       "y": 0
+    },
+    {
+      "tag": "Shape",
+      "id": "a0",
+      "x": 40,
+      "y": 340,
+      "width": 120,
+      "height": 60,
+      "texts": [{ "text": "lineWidth 1", "hAlign": "center" }]
+    },
+    {
+      "tag": "Shape",
+      "id": "b0",
+      "x": 360,
+      "y": 340,
+      "width": 120,
+      "height": 60,
+      "texts": [{ "text": "arrow", "hAlign": "center" }]
+    },
+    {
+      "tag": "Shape",
+      "id": "c0",
+      "x": 680,
+      "y": 340,
+      "width": 120,
+      "height": 60,
+      "texts": [{ "text": "triangle", "hAlign": "center" }]
+    },
+    {
+      "tag": "Shape",
+      "id": "a1",
+      "x": 40,
+      "y": 450,
+      "width": 120,
+      "height": 60,
+      "texts": [{ "text": "lineWidth 2", "hAlign": "center" }]
+    },
+    {
+      "tag": "Shape",
+      "id": "b1",
+      "x": 360,
+      "y": 450,
+      "width": 120,
+      "height": 60,
+      "texts": [{ "text": "arrow", "hAlign": "center" }]
+    },
+    {
+      "tag": "Shape",
+      "id": "c1",
+      "x": 680,
+      "y": 450,
+      "width": 120,
+      "height": 60,
+      "texts": [{ "text": "triangle", "hAlign": "center" }]
+    },
+    {
+      "tag": "Shape",
+      "id": "a2",
+      "x": 40,
+      "y": 560,
+      "width": 120,
+      "height": 60,
+      "texts": [{ "text": "lineWidth 4", "hAlign": "center" }]
+    },
+    {
+      "tag": "Shape",
+      "id": "b2",
+      "x": 360,
+      "y": 560,
+      "width": 120,
+      "height": 60,
+      "texts": [{ "text": "arrow", "hAlign": "center" }]
+    },
+    {
+      "tag": "Shape",
+      "id": "c2",
+      "x": 680,
+      "y": 560,
+      "width": 120,
+      "height": 60,
+      "texts": [{ "text": "triangle", "hAlign": "center" }]
+    },
+    {
+      "tag": "Shape",
+      "id": "l0",
+      "x": 40,
+      "y": 680,
+      "width": 120,
+      "height": 60,
+      "texts": [{ "text": "label", "hAlign": "center" }]
+    },
+    {
+      "tag": "Shape",
+      "id": "l1",
+      "x": 380,
+      "y": 680,
+      "width": 120,
+      "height": 60,
+      "texts": [{ "text": "follows line", "hAlign": "center" }]
+    },
+    {
+      "tag": "Shape",
+      "id": "l2",
+      "x": 720,
+      "y": 680,
+      "width": 120,
+      "height": 60,
+      "texts": [{ "text": "own colour", "hAlign": "center" }]
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "erd-a",
+      "label": "users",
+      "x": 40,
+      "y": 790,
+      "width": 160,
+      "fields": [{ "name": "id", "type": "int" }]
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "erd-b",
+      "label": "orders",
+      "x": 360,
+      "y": 790,
+      "width": 160,
+      "fields": [{ "name": "id", "type": "int" }]
+    },
+    {
+      "tag": "DatabaseTable",
+      "id": "erd-c",
+      "label": "items",
+      "x": 680,
+      "y": 790,
+      "width": 160,
+      "fields": [{ "name": "id", "type": "int" }]
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-arrow-1",
+      "from": "a0",
+      "to": "b0",
+      "lineWidth": 1,
+      "endArrowhead": "arrow",
+      "startArrowhead": "arrow",
+      "color": "#1c1c1c"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-tri-1",
+      "from": "b0",
+      "to": "c0",
+      "lineWidth": 1,
+      "endArrowhead": "triangle",
+      "startArrowhead": null,
+      "color": "#1c1c1c"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-arrow-2",
+      "from": "a1",
+      "to": "b1",
+      "lineWidth": 2,
+      "endArrowhead": "arrow",
+      "startArrowhead": "arrow",
+      "color": "#1c1c1c"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-tri-2",
+      "from": "b1",
+      "to": "c1",
+      "lineWidth": 2,
+      "endArrowhead": "triangle",
+      "startArrowhead": null,
+      "color": "#1c1c1c"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-arrow-4",
+      "from": "a2",
+      "to": "b2",
+      "lineWidth": 4,
+      "endArrowhead": "arrow",
+      "startArrowhead": "arrow",
+      "color": "#1c1c1c"
+    },
+    {
+      "tag": "Relationship",
+      "id": "r-tri-4",
+      "from": "b2",
+      "to": "c2",
+      "lineWidth": 4,
+      "endArrowhead": "triangle",
+      "startArrowhead": null,
+      "color": "#1c1c1c"
+    },
+    {
+      "tag": "Relationship",
+      "id": "lab-inherit",
+      "from": "l0",
+      "to": "l1",
+      "color": "#c0392b",
+      "label": "red line, red label",
+      "endArrowhead": "arrow"
+    },
+    {
+      "tag": "Relationship",
+      "id": "lab-own",
+      "from": "l1",
+      "to": "l2",
+      "color": "#c0392b",
+      "labelColor": "#1f6feb",
+      "label": "red line, blue label",
+      "endArrowhead": "arrow"
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "erd-inherit",
+      "from": "erd-a",
+      "to": "erd-b",
+      "color": "#c0392b",
+      "label": "red line, red label"
+    },
+    {
+      "tag": "DatabaseRelationship",
+      "id": "erd-own",
+      "from": "erd-b",
+      "to": "erd-c",
+      "color": "#c0392b",
+      "labelColor": "#1f6feb",
+      "label": "red line, blue label"
     }
   ]
 }

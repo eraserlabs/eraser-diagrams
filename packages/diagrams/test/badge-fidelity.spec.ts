@@ -4,7 +4,8 @@ import { scaleColorForTheme } from '@eraserlabs/resolve';
 
 /**
  * The canvas fidelity rules for badges, arrowheads and connection labels, asserted on computed
- * styles and boxes (the picture itself is the `badge-fidelity` golden):
+ * styles and boxes (badges live in the `badge-fidelity` golden; line width and label colors live
+ * in `elements-connections`):
  *
  * - a badge paints from its host: background = the body at 98% lightness (the page ground when
  *   the body is transparent), text = the host's text colour, border = the host's stroke (colour,
@@ -15,8 +16,8 @@ import { scaleColorForTheme } from '@eraserlabs/resolve';
  * - a label follows the line colour unless `labelColor` is authored.
  */
 
-async function render(page: Page) {
-  const { payload, result } = await buildPayload(readFixture('badge-fidelity'));
+async function render(page: Page, fixture = 'badge-fidelity') {
+  const { payload, result } = await buildPayload(readFixture(fixture));
   expect(result.ok, JSON.stringify(result.errors)).toBe(true);
   await runPayload(page, payload);
 }
@@ -209,6 +210,16 @@ test('badge paint follows the host: tint, ink and stroke; authored paint wins', 
 
   // A group publishes the same tokens: its badge takes the title's colour as ink.
   await expect(badge(page, 'paint-group')).toHaveCSS('color', 'rgb(122, 31, 31)');
+
+  // A DatabaseTable leaves overflow visible so its straddling badge is never clipped.
+  await expect(page.locator('[data-mdp-id="paint-table"] [data-tpl="DatabaseTable"]')).toHaveCSS(
+    'overflow',
+    'visible',
+  );
+  const tableBadge = await badgeOffset(page, 'paint-table');
+  expect(tableBadge.top).toBeLessThan(0);
+  // Centered on the table's top border (1.8px CSS border shifts padding-box origin by ~1px).
+  expect(Math.abs(tableBadge.cy)).toBeLessThanOrEqual(2);
 });
 
 test('the top-left badge sits on the outline per shape', async ({ page }) => {
@@ -265,7 +276,7 @@ test('top, right, bottom and left badges sit on the middle of their edge', async
 test('arrow heads stay 12px at every line width; triangle heads scale with it', async ({
   page,
 }) => {
-  await render(page);
+  await render(page, 'elements-connections');
 
   const marker = (id: string, name: string) =>
     page.locator(`[data-mdp-id="${id}"] marker#er-ah-${name}`);
@@ -289,7 +300,7 @@ test('arrow heads stay 12px at every line width; triangle heads scale with it', 
 });
 
 test('a label follows the line colour unless labelColor is authored', async ({ page }) => {
-  await render(page);
+  await render(page, 'elements-connections');
 
   const label = (id: string) => page.locator(`[data-mdp-id="${id}"] .er-rel__label`);
 
@@ -303,7 +314,7 @@ test('a label follows the line colour unless labelColor is authored', async ({ p
 });
 
 test('an arrow head is not clipped by its marker at a thick line width', async ({ page }) => {
-  await render(page);
+  await render(page, 'elements-connections');
 
   // The chevron overflows its 12 x 11 viewport by half the stroke on every side.
   await expect(page.locator('[data-mdp-id="r-arrow-4"] marker#er-ah-arrow')).toHaveAttribute(
