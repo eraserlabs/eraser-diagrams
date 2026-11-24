@@ -27,7 +27,6 @@
   width: 100%;
   min-width: var(--er-table-min-width, 150px);
   height: 100%;
-  overflow: hidden;
   border: 1.8px solid var(--er-stroke);
   border-radius: 5px;
   background: var(--er-tint);
@@ -94,8 +93,13 @@
     var(--er-table-pad-x, 10px)
     var(--er-table-head-pad-y, calc(var(--er-base) * 0.42));
   background: var(--er-surface);
+  border-radius: 3.2px 3.2px 0 0;
   border-bottom: 1px solid var(--er-divider);
   box-sizing: border-box;
+}
+.er-dbtable__head:has(+ .er-dbtable__rows:empty) {
+  border-radius: 3.2px;
+  border-bottom: none;
 }
 /* A painted band gets the identity color as its underline; the plain white band keeps the
    subtle divider so uncolored tables stay quiet. */

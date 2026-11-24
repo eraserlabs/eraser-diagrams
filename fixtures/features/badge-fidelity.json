@@ -770,6 +770,10 @@
       "x": 460,
       "y": 1000,
       "width": 160,
+      "badge": {
+        "text": "tbl",
+        "placement": "top-right"
+      },
       "fields": [
         {
           "name": "id",
