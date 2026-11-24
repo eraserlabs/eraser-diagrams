@@ -22,16 +22,28 @@
   --er-tint: color-mix(in srgb, var(--er-surface), var(--er-text) 2.3%);
   --er-base: var(--er-table-font-size, 17px);
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: block;
   width: 100%;
   min-width: var(--er-table-min-width, 150px);
   height: 100%;
-  border: 1.8px solid var(--er-stroke);
   border-radius: 5px;
   background: var(--er-tint);
   box-sizing: border-box;
   font-family: var(--f, var(--font-clean, sans-serif));
+}
+/* Inner frame clips header/row fills cleanly to the rounded border at every DPI while the root
+   keeps overflow visible so straddling Badges are never clipped. */
+.er-dbtable__frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  border: 1.8px solid var(--er-stroke);
+  border-radius: inherit;
+  background: var(--er-tint);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 .er-dbtable[data-style='shadow'] {
   box-shadow: 4px 4px 0 0 var(--er-shadow);
@@ -50,13 +62,13 @@
 .er-dbtable[data-border-color]:not([data-border-color='']) {
   --er-stroke: var(--er-border);
 }
-.er-dbtable[data-border='dashed'] {
+.er-dbtable[data-border='dashed'] .er-dbtable__frame {
   border-style: dashed;
 }
-.er-dbtable[data-border='dotted'] {
+.er-dbtable[data-border='dotted'] .er-dbtable__frame {
   border-style: dotted;
 }
-.er-dbtable[data-border='double'] {
+.er-dbtable[data-border='double'] .er-dbtable__frame {
   border-style: double;
   border-width: 4.5px;
 }
@@ -70,9 +82,12 @@
   background: transparent;
 }
 .er-dbtable[data-style='watercolor'] {
-  border-color: transparent;
   /* Published for nested mounts (Badge): inherited across the mount boundary like --er-tint. */
   --er-wc-ink-alpha: var(--er-wc-border-alpha, 45%);
+}
+.er-dbtable[data-style='watercolor'] .er-dbtable__frame {
+  border-color: transparent;
+  overflow: visible;
 }
 .er-dbtable[data-style='watercolor']::after {
   content: '';
@@ -97,12 +112,10 @@
     var(--er-table-pad-x, 10px)
     var(--er-table-head-pad-y, calc(var(--er-base) * 0.42));
   background: var(--er-surface);
-  border-radius: 3.2px 3.2px 0 0;
   border-bottom: 1px solid var(--er-divider);
   box-sizing: border-box;
 }
 .er-dbtable__head:has(+ .er-dbtable__rows:empty) {
-  border-radius: 3.2px;
   border-bottom: none;
 }
 /* A painted band gets the identity color as its underline; the plain white band keeps the

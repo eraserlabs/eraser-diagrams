@@ -8,16 +8,26 @@
   --er-tint: color-mix(in srgb, var(--er-surface), var(--er-text) 2.3%);
   --er-base: var(--er-class-font-size, 15px);
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: block;
   width: 100%;
   min-width: var(--er-class-min-width, 160px);
   height: 100%;
-  border: 1.8px solid var(--er-stroke);
   border-radius: 5px;
   background: var(--er-tint);
   box-sizing: border-box;
   font-family: var(--f, var(--font-clean, sans-serif));
+}
+.er-classbox__frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  border: 1.8px solid var(--er-stroke);
+  border-radius: inherit;
+  background: var(--er-tint);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 .er-classbox[data-style='shadow'] {
   box-shadow: 4px 4px 0 0 var(--er-shadow);
@@ -36,13 +46,13 @@
 .er-classbox[data-border-color]:not([data-border-color='']) {
   --er-stroke: var(--er-border);
 }
-.er-classbox[data-border='dashed'] {
+.er-classbox[data-border='dashed'] .er-classbox__frame {
   border-style: dashed;
 }
-.er-classbox[data-border='dotted'] {
+.er-classbox[data-border='dotted'] .er-classbox__frame {
   border-style: dotted;
 }
-.er-classbox[data-border='double'] {
+.er-classbox[data-border='double'] .er-classbox__frame {
   border-style: double;
   border-width: 4.5px;
 }
@@ -53,8 +63,11 @@
   background: transparent;
 }
 .er-classbox[data-style='watercolor'] {
-  border-color: transparent;
   --er-wc-ink-alpha: var(--er-wc-border-alpha, 45%);
+}
+.er-classbox[data-style='watercolor'] .er-classbox__frame {
+  border-color: transparent;
+  overflow: visible;
 }
 .er-classbox[data-style='watercolor']::after {
   content: '';
@@ -77,12 +90,10 @@
   padding: var(--er-class-head-pad-y, calc(var(--er-base) * 0.5))
     var(--er-class-pad-x, 12px);
   background: var(--er-surface);
-  border-radius: 3.2px 3.2px 0 0;
   border-bottom: 1.2px solid var(--er-stroke);
   box-sizing: border-box;
 }
 .er-classbox__head:has(+ .er-classbox__sections:empty) {
-  border-radius: 3.2px;
   border-bottom: none;
 }
 .er-classbox[data-title-bg]:not([data-title-bg='']) .er-classbox__head {
