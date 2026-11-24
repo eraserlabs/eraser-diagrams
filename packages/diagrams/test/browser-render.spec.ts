@@ -1149,3 +1149,84 @@ test('isolation: nested templates are walled off from their host template CSS â€
   await expect(badge).toHaveCSS('border-top-left-radius', '5px');
   await expect(shapeOwned).toHaveCSS('border-top-left-radius', '0px');
 });
+
+test('explicit narrow widths on DatabaseTable and ClassBox respect CSS min-width in routing', async ({
+  page,
+}) => {
+  const { payload, result } = await buildPayload({
+    elements: [
+      {
+        tag: 'DatabaseTable',
+        id: 't',
+        x: 0,
+        y: 0,
+        width: 80,
+        label: 't',
+        fields: [{ name: 'id', type: 'int', meta: 'pk' }],
+      },
+      {
+        tag: 'ClassBox',
+        id: 'c',
+        x: 340,
+        y: 0,
+        width: 95,
+        label: 'Foo',
+        sections: [{ items: [{ name: 'id', type: 'int' }] }],
+      },
+      {
+        tag: 'Relationship',
+        id: 'r',
+        from: 't',
+        to: 'c',
+        fromField: 'id',
+        toField: 'id',
+      },
+    ],
+  });
+  expect(result.ok, JSON.stringify(result.errors)).toBe(true);
+  // Relationship accepts fromField/toField without unknown-prop warnings.
+  expect(result.warnings.filter((w) => w.code === 'W_UNKNOWN_PROP')).toEqual([]);
+
+  const run = await runPayload(page, payload);
+  const tableBox = run.layout.boxes['t']!;
+  const classBox = run.layout.boxes['c']!;
+  const tablePainted = (await page.locator('[data-mdp-id="t"] [data-role="body"]').boundingBox())!;
+  const classPainted = (await page.locator('[data-mdp-id="c"] [data-role="body"]').boundingBox())!;
+
+  expect(tableBox.width).toBeGreaterThanOrEqual(150);
+  expect(Math.abs(tableBox.width - tablePainted.width)).toBeLessThan(1.5);
+  expect(classBox.width).toBeGreaterThanOrEqual(160);
+  expect(Math.abs(classBox.width - classPainted.width)).toBeLessThan(1.5);
+
+  // Connection starts cleanly on the table's right edge and ends on the ClassBox's left edge.
+  const conn = run.layout.connections['r']!;
+  expect(conn.points[0]![0]).toBeCloseTo(tableBox.x + tableBox.width, 0);
+  expect(conn.points.at(-1)![0]).toBeCloseTo(classBox.x, 0);
+});
+
+test('auto-sized Chen diamond with borderStyle double renders a visible inner border path', async ({
+  page,
+}) => {
+  const { payload, result } = await buildPayload({
+    elements: [
+      {
+        tag: 'Shape',
+        id: 'rel',
+        shape: 'diamond',
+        borderStyle: 'double',
+        x: 0,
+        y: 0,
+        texts: [{ text: 'has' }],
+      },
+    ],
+  });
+  expect(result.ok, JSON.stringify(result.errors)).toBe(true);
+  await runPayload(page, payload);
+
+  const inner = page.locator('[data-mdp-id="rel"] .er-shape__inner-border--diamond');
+  await expect(inner).toHaveCSS('display', 'block');
+  const box = await inner.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.width).toBeGreaterThan(10);
+  expect(box!.height).toBeGreaterThan(10);
+});

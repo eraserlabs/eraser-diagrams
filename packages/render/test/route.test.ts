@@ -571,6 +571,30 @@ describe('routeScene with entityPorts', () => {
 
     expect(layout.connections['r1']!.d).toBe('M140 35L240 35');
   });
+
+  it('preserves a valid saved perimeter attachment on the unnamed end when only one end names a field', () => {
+    const layout = routeScene(
+      [node('users', 0, 0, 160, 122), node('orgs', 360, 0, 160, 122)],
+      [
+        wire('r1', 'users', 'orgs', {
+          fromField: 'id',
+          points: [
+            { x: 160, y: 10 },
+            { x: 360, y: 100 },
+          ],
+        }),
+      ],
+      NO_INTRINSICS,
+      NO_TEXT,
+      undefined,
+      ports,
+    );
+
+    const pts = pointsOf(layout.connections['r1']!.d);
+    // Named `fromField: 'id'` resolves to its row center (41 + 30/2 = 56); unnamed `to` keeps its authored perimeter y=100.
+    expect(pts[0]).toEqual([160, 56]);
+    expect(pts.at(-1)).toEqual([360, 100]);
+  });
 });
 
 describe('routeScene with endpointLabels and double lines', () => {
@@ -638,5 +662,56 @@ describe('routeScene with endpointLabels and double lines', () => {
     expect(ys).toHaveLength(2);
     expect(ys[0]! + ys[1]!).toBeCloseTo(60, 1);
     expect(Math.abs(ys[0]! - ys[1]!)).toBeGreaterThanOrEqual(4);
+  });
+
+  it('flips endLabelBox across the stroke when start and end labels would collide on a compact line', () => {
+    const endpointLabels = new Map([
+      [
+        'short',
+        {
+          start: { x: 0, y: 0, width: 24, height: 16 },
+          end: { x: 0, y: 0, width: 24, height: 16 },
+        },
+      ],
+    ]);
+    const layout = routeScene(
+      [node('a', 0, 0, 100, 60), node('b', 160, 0, 100, 60)],
+      [wire('short', 'a', 'b', { startArrowhead: null, endArrowhead: null })],
+      NO_INTRINSICS,
+      NO_TEXT,
+      undefined,
+      undefined,
+      endpointLabels,
+    );
+
+    const { startLabelBox, endLabelBox } = layout.connections['short']!;
+    expect(startLabelBox).toBeDefined();
+    expect(endLabelBox).toBeDefined();
+    // Start stays above the y=30 stroke; colliding end flips below it so boxes never overlap.
+    expect(startLabelBox!.y + startLabelBox!.height).toBeLessThan(30);
+    expect(endLabelBox!.y).toBeGreaterThan(30);
+  });
+
+  it('expands scene bounds to include thick double-line offset rails and stroke width', () => {
+    const layout = routeScene(
+      [node('a', 0, 100, 100, 60), node('b', 300, 100, 100, 60)],
+      [
+        wire('thick', 'a', 'b', {
+          lineStyle: 'double',
+          lineWidthPx: 14,
+          points: [
+            { x: 50, y: 100 },
+            { x: 50, y: 40 },
+            { x: 350, y: 40 },
+            { x: 350, y: 100 },
+          ],
+        }),
+      ],
+      NO_INTRINSICS,
+      NO_TEXT,
+    );
+
+    // Offset = 14 * 1.15 = 16.1, half-stroke = 7 -> outer rail top = 40 - 23.1 = 16.9; +16 padding -> scene.y <= 0.9
+    expect(layout.scene.y).toBeLessThanOrEqual(40 - (14 * 1.15 + 7) - 15.9);
   });
 });

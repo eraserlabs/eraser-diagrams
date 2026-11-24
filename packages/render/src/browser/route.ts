@@ -18,6 +18,12 @@ import {
   type RepairPolicy,
 } from '@eraserlabs/layout';
 import { isFiniteBox } from '@eraserlabs/layout/layoutGeometry';
+import {
+  pointAtArcLengthFraction,
+  polylineLength,
+  projectedHalfExtent,
+} from '@eraserlabs/layout/routing/polylineUtils';
+import { resolvePortPins } from '@eraserlabs/layout/routing/ports';
 import type { ResolvedConnection, ResolvedEntity } from '@eraserlabs/protocol';
 import type { Box, ConnectionGeometry, SceneLayout } from '@eraserlabs/render';
 import { isFiniteNumber, isRecord } from '@eraserlabs/utils';
@@ -153,7 +159,7 @@ export function routeScene(
       layoutManager: manager,
       repair,
       connectionsToRoute: connections.map((connection) =>
-        authoredPortRequest(connection, entitiesById),
+        authoredPortRequest(manager, connection, entitiesById),
       ),
     });
   }
@@ -170,41 +176,45 @@ export function routeScene(
 const PERIMETER_TOLERANCE_PX = 1;
 
 /**
- * An authored route with no named `fromPortId`/`toPortId` keeps its authored terminal points on
- * port-declaring entities (e.g. a saved table-level attachment) instead of snapping to the header.
- * Connections without authored points, with named ports, or whose authored ends miss the entity's
- * perimeter fall through to `resolvePortPins`.
+ * Each unnamed end of an authored route on a port-declaring entity keeps its authored perimeter
+ * attachment (e.g. a saved table-level attachment) instead of snapping to the header. Each end is
+ * evaluated independently and merged onto `resolvePortPins`, so naming a field at one end still
+ * preserves a valid saved attachment at the other.
  */
 function authoredPortRequest(
+  manager: LayoutManager,
   connection: LayoutConnection,
   entitiesById: Map<string, LayoutEntity>,
 ): ConnectionRoutingRequest {
-  if (connection.points.length < 2 || connection.fromPortId || connection.toPortId) {
+  if (connection.points.length < 2) {
     return { connection };
   }
   const from = entitiesById.get(connection.from);
   const to = entitiesById.get(connection.to);
-  if (!from?.ports?.length && !to?.ports?.length) {
+  const preserveFrom = !connection.fromPortId && Boolean(from?.ports?.length);
+  const preserveTo = !connection.toPortId && Boolean(to?.ports?.length);
+  if (!preserveFrom && !preserveTo) {
     return { connection };
   }
   const first = connection.points[0]!;
   const last = connection.points[connection.points.length - 1]!;
   const start: Point = [connection.x + first[0], connection.y + first[1]];
   const end: Point = [connection.x + last[0], connection.y + last[1]];
-  const endpointPins: EndpointPins = {};
+  const pinnedFrom = preserveFrom && from && isOnPerimeter(from, start) ? start : undefined;
+  const pinnedTo = preserveTo && to && isOnPerimeter(to, end) ? end : undefined;
 
-  if (from?.ports?.length) {
-    if (!isOnPerimeter(from, start)) {
-      return { connection };
-    }
-    endpointPins.from = start;
+  if (!pinnedFrom && !pinnedTo) {
+    return { connection };
   }
-  if (to?.ports?.length) {
-    if (!isOnPerimeter(to, end)) {
-      return { connection };
-    }
-    endpointPins.to = end;
-  }
+
+  // Merge onto resolvePortPins so a named port (or unpreserved end) still resolves its pin:
+  // routeConnections skips resolvePortPins whenever `endpointPins` is provided.
+  const resolved = resolvePortPins(manager, connection);
+  const endpointPins: EndpointPins = {
+    ...resolved,
+    ...(pinnedFrom ? { from: pinnedFrom } : {}),
+    ...(pinnedTo ? { to: pinnedTo } : {}),
+  };
 
   return { connection, endpointPins };
 }
@@ -591,20 +601,33 @@ function toSceneLayout(
     const props: Record<string, unknown> = elementById.get(connection.id)?.props ?? {};
     const cornerRadius = radii.get(connection.id) ?? 0;
     const isDouble = props['lineStyle'] === 'double';
-    const doubleRailsD = isDouble
-      ? doubleRailsPath(arc ? drawn : points, arc ? 0 : cornerRadius, lineWidthPxOf(props))
+    const doubleRails = isDouble
+      ? doubleRailsGeometry(arc ? drawn : points, arc ? 0 : cornerRadius, lineWidthPxOf(props))
       : undefined;
+    if (doubleRails) {
+      polylines.push(...doubleRails.boundsPolylines);
+    }
     const ends = endpointLabels.get(connection.id);
     const startLabelBox = ends?.start
       ? placeEndpointLabel(drawn, 'start', ends.start, hasVisibleMarker(props, 'start'), isDouble)
       : undefined;
-    const endLabelBox = ends?.end
+    let endLabelBox = ends?.end
       ? placeEndpointLabel(drawn, 'end', ends.end, hasVisibleMarker(props, 'end'), isDouble)
       : undefined;
+    if (startLabelBox && endLabelBox && boxesOverlap(startLabelBox, endLabelBox, 2)) {
+      endLabelBox = placeEndpointLabel(
+        drawn,
+        'end',
+        ends!.end!,
+        hasVisibleMarker(props, 'end'),
+        isDouble,
+        -1,
+      );
+    }
 
     connections[connection.id] = {
       d: arc ? getArcPathD(arc.start, arc.end, arc.bend) : toPathData(points, cornerRadius),
-      ...(doubleRailsD ? { doubleRailsD } : {}),
+      ...(doubleRails ? { doubleRailsD: doubleRails.d } : {}),
       points: drawn,
       label: placed
         ? { x: placed.x + placed.width / 2, y: placed.y + placed.height / 2 }
@@ -636,10 +659,20 @@ function lineWidthPxOf(props: Record<string, unknown>): number {
   return isFiniteNumber(value) && value > 0 ? value : 1.3;
 }
 
+function boxesOverlap(a: Box, b: Box, clearance = 0): boolean {
+  return (
+    a.x < b.x + b.width + clearance &&
+    a.x + a.width + clearance > b.x &&
+    a.y < b.y + b.height + clearance &&
+    a.y + a.height + clearance > b.y
+  );
+}
+
 /**
  * Place a connection endpoint label (`startLabel` / `endLabel`) beside the path near its terminal,
  * past any arrowhead marker and shifted off the stroke along the upper (or rightward for vertical
- * segments) perpendicular normal so it never overlaps the node edge, arrowhead, or line.
+ * segments) perpendicular normal so it never overlaps the node edge, arrowhead, or line. Pass
+ * `normalSign = -1` to mirror across the stroke when the two endpoint labels collide on short lines.
  */
 function placeEndpointLabel(
   points: readonly Point[],
@@ -647,6 +680,7 @@ function placeEndpointLabel(
   box: Box,
   hasMarker: boolean,
   isDoubleLine: boolean,
+  normalSign: 1 | -1 = 1,
 ): Box | undefined {
   if (
     points.length < 2 ||
@@ -658,24 +692,28 @@ function placeEndpointLabel(
 
   const totalLen = polylineLength(points);
   const inset = hasMarker ? 20 : 10;
-  const atEnd = sampleFromEndpoint(points, side, 0);
-  const halfAlong = (Math.abs(atEnd.tx) * box.width + Math.abs(atEnd.ty) * box.height) / 2;
+  const atEnd = pointAtArcLengthFraction(points, side === 'start' ? 0 : 1);
+  const halfAlong = projectedHalfExtent(atEnd.tangent, box.width, box.height);
   const along = Math.min(inset + halfAlong, Math.max(inset * 0.5, totalLen * 0.42));
-  const anchor = sampleFromEndpoint(points, side, along);
+  const fraction = totalLen > 0 ? (side === 'start' ? along / totalLen : 1 - along / totalLen) : 0;
+  const { point: anchor, tangent } = pointAtArcLengthFraction(points, fraction);
 
   // Perpendicular normal: prefer upward (ny < 0); for vertical segments (ny === 0), prefer right.
-  let nx = -anchor.ty;
-  let ny = anchor.tx;
+  let nx = -tangent[1];
+  let ny = tangent[0];
 
   if (ny > 1e-6 || (Math.abs(ny) <= 1e-6 && nx < 0)) {
     nx = -nx;
     ny = -ny;
   }
 
+  nx *= normalSign;
+  ny *= normalSign;
+
   const gap = isDoubleLine ? 7 : 5;
-  const perp = (Math.abs(nx) * box.width + Math.abs(ny) * box.height) / 2 + gap;
-  const cx = anchor.x + nx * perp;
-  const cy = anchor.y + ny * perp;
+  const perp = projectedHalfExtent([nx, ny], box.width, box.height) + gap;
+  const cx = anchor[0] + nx * perp;
+  const cy = anchor[1] + ny * perp;
 
   return {
     x: cx - box.width / 2,
@@ -685,63 +723,16 @@ function placeEndpointLabel(
   };
 }
 
-function polylineLength(points: readonly Point[]): number {
-  let total = 0;
-
-  for (let i = 1; i < points.length; i += 1) {
-    const [ax, ay] = points[i - 1]!;
-    const [bx, by] = points[i]!;
-    total += Math.hypot(bx - ax, by - ay);
-  }
-
-  return total;
-}
-
-function sampleFromEndpoint(
-  points: readonly Point[],
-  side: 'start' | 'end',
-  distance: number,
-): { x: number; y: number; tx: number; ty: number } {
-  const ordered = side === 'start' ? points : [...points].reverse();
-  let remaining = distance;
-
-  for (let i = 0; i < ordered.length - 1; i += 1) {
-    const [ax, ay] = ordered[i]!;
-    const [bx, by] = ordered[i + 1]!;
-    const dx = bx - ax;
-    const dy = by - ay;
-    const len = Math.hypot(dx, dy);
-
-    if (len < 1e-6) {
-      continue;
-    }
-
-    const tx = dx / len;
-    const ty = dy / len;
-
-    if (remaining <= len || i === ordered.length - 2) {
-      const clamped = Math.min(remaining, len);
-
-      return { x: ax + tx * clamped, y: ay + ty * clamped, tx, ty };
-    }
-
-    remaining -= len;
-  }
-
-  const [x, y] = ordered[0]!;
-
-  return { x, y, tx: 1, ty: 0 };
-}
-
 /**
  * Two parallel rails offset ±halfGap perpendicular to the route (Chen total participation). Keeps
- * a transparent center gap over any background and matches elbow corner rounding.
+ * a transparent center gap over any background, matches elbow corner rounding, and returns the
+ * outer stroke bounds of both rails so PNG exports never clip thick double lines.
  */
-function doubleRailsPath(
+function doubleRailsGeometry(
   rawPoints: readonly Point[],
   cornerRadius: number,
   lineWidthPx: number,
-): string | undefined {
+): { d: string; boundsPolylines: Point[][] } | undefined {
   const pts = dedupePoints(rawPoints);
 
   if (pts.length < 2) {
@@ -751,8 +742,15 @@ function doubleRailsPath(
   const offset = Math.max(2.2, lineWidthPx * 1.15);
   const left = offsetPolyline(pts, offset);
   const right = offsetPolyline(pts, -offset);
+  const halfStroke = lineWidthPx / 2;
 
-  return `${toPathData(left, cornerRadius)} ${toPathData(right, cornerRadius)}`;
+  return {
+    d: `${toPathData(left, cornerRadius)} ${toPathData(right, cornerRadius)}`,
+    boundsPolylines: [
+      offsetPolyline(pts, offset + halfStroke),
+      offsetPolyline(pts, -(offset + halfStroke)),
+    ],
+  };
 }
 
 function dedupePoints(points: readonly Point[]): Point[] {
