@@ -21,6 +21,8 @@
      98% lightness an identity colour is tinted to. */
   --er-tint: color-mix(in srgb, var(--er-surface), var(--er-text) 2.3%);
   --er-base: var(--er-table-font-size, 17px);
+  --er-table-border-w: 1.8px;
+  --er-table-border-style: solid;
   position: relative;
   display: block;
   width: 100%;
@@ -31,19 +33,28 @@
   box-sizing: border-box;
   font-family: var(--f, var(--font-clean, sans-serif));
 }
-/* Inner frame clips header/row fills cleanly to the rounded border at every DPI while the root
-   keeps overflow visible so straddling Badges are never clipped. */
+/* Inner frame keeps exact border-box layout and clips header/row fills to the rounded box while
+   ::after paints the stroke ON TOP of the clipped frame so child header backgrounds can never
+   anti-alias over and wash out the top rounded corners (and badges stay unclipped on the root). */
 .er-dbtable__frame {
   position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
-  border: 1.8px solid var(--er-stroke);
+  border: var(--er-table-border-w) var(--er-table-border-style) transparent;
   border-radius: inherit;
   background: var(--er-tint);
   overflow: hidden;
   box-sizing: border-box;
+}
+.er-dbtable::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: var(--er-table-border-w) var(--er-table-border-style) var(--er-stroke);
+  border-radius: inherit;
+  pointer-events: none;
 }
 .er-dbtable[data-style='shadow'] {
   box-shadow: 4px 4px 0 0 var(--er-shadow);
@@ -62,19 +73,19 @@
 .er-dbtable[data-border-color]:not([data-border-color='']) {
   --er-stroke: var(--er-border);
 }
-.er-dbtable[data-border='dashed'] .er-dbtable__frame {
-  border-style: dashed;
+.er-dbtable[data-border='dashed'] {
+  --er-table-border-style: dashed;
 }
-.er-dbtable[data-border='dotted'] .er-dbtable__frame {
-  border-style: dotted;
+.er-dbtable[data-border='dotted'] {
+  --er-table-border-style: dotted;
 }
-.er-dbtable[data-border='double'] .er-dbtable__frame {
-  border-style: double;
-  border-width: 4.5px;
+.er-dbtable[data-border='double'] {
+  --er-table-border-style: double;
+  --er-table-border-w: 4.5px;
 }
 /* Watercolor texture: the card face is the recolored scan master (base.style.css er-washtex).
    The header's opaque paint would hide it, and the hidden overflow would clip the bleed — both
-   relax only in texture mode. The hairline moves to a blurable overlay, same knobs as Shape. */
+   relax only in texture mode. The hairline rides the same ::after overlay, with watercolor knobs. */
 .er-dbtable[data-style='watercolor'][data-washtex-css]:not(
     [data-washtex-css='']
   )
@@ -86,22 +97,15 @@
   --er-wc-ink-alpha: var(--er-wc-border-alpha, 45%);
 }
 .er-dbtable[data-style='watercolor'] .er-dbtable__frame {
-  border-color: transparent;
   overflow: visible;
 }
 .er-dbtable[data-style='watercolor']::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 1.8px solid
-    color-mix(
-      in srgb,
-      var(--er-stroke) var(--er-wc-border-alpha, 45%),
-      transparent
-    );
-  border-radius: inherit;
+  border-color: color-mix(
+    in srgb,
+    var(--er-stroke) var(--er-wc-border-alpha, 45%),
+    transparent
+  );
   filter: blur(var(--er-wc-border-blur, 0.7px));
-  pointer-events: none;
 }
 .er-dbtable__head {
   display: flex;

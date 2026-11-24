@@ -7,6 +7,8 @@
   --er-divider: var(--er-separator);
   --er-tint: color-mix(in srgb, var(--er-surface), var(--er-text) 2.3%);
   --er-base: var(--er-class-font-size, 15px);
+  --er-class-border-w: 1.8px;
+  --er-class-border-style: solid;
   position: relative;
   display: block;
   width: 100%;
@@ -23,11 +25,19 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-  border: 1.8px solid var(--er-stroke);
+  border: var(--er-class-border-w) var(--er-class-border-style) transparent;
   border-radius: inherit;
   background: var(--er-tint);
   overflow: hidden;
   box-sizing: border-box;
+}
+.er-classbox::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: var(--er-class-border-w) var(--er-class-border-style) var(--er-stroke);
+  border-radius: inherit;
+  pointer-events: none;
 }
 .er-classbox[data-style='shadow'] {
   box-shadow: 4px 4px 0 0 var(--er-shadow);
@@ -46,15 +56,15 @@
 .er-classbox[data-border-color]:not([data-border-color='']) {
   --er-stroke: var(--er-border);
 }
-.er-classbox[data-border='dashed'] .er-classbox__frame {
-  border-style: dashed;
+.er-classbox[data-border='dashed'] {
+  --er-class-border-style: dashed;
 }
-.er-classbox[data-border='dotted'] .er-classbox__frame {
-  border-style: dotted;
+.er-classbox[data-border='dotted'] {
+  --er-class-border-style: dotted;
 }
-.er-classbox[data-border='double'] .er-classbox__frame {
-  border-style: double;
-  border-width: 4.5px;
+.er-classbox[data-border='double'] {
+  --er-class-border-style: double;
+  --er-class-border-w: 4.5px;
 }
 .er-classbox[data-style='watercolor'][data-washtex-css]:not(
     [data-washtex-css='']
@@ -66,22 +76,15 @@
   --er-wc-ink-alpha: var(--er-wc-border-alpha, 45%);
 }
 .er-classbox[data-style='watercolor'] .er-classbox__frame {
-  border-color: transparent;
   overflow: visible;
 }
 .er-classbox[data-style='watercolor']::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 1.8px solid
-    color-mix(
-      in srgb,
-      var(--er-stroke) var(--er-wc-border-alpha, 45%),
-      transparent
-    );
-  border-radius: inherit;
+  border-color: color-mix(
+    in srgb,
+    var(--er-stroke) var(--er-wc-border-alpha, 45%),
+    transparent
+  );
   filter: blur(var(--er-wc-border-blur, 0.7px));
-  pointer-events: none;
 }
 .er-classbox__head {
   display: flex;
