@@ -312,3 +312,60 @@ for (const tag of ['Group', 'Lane', 'Pool']) {
     }
   });
 }
+
+for (const tag of ['Lane', 'Pool'] as const) {
+  test(`${tag}: orientation vertical places the title band horizontally along the top edge`, async ({
+    page,
+  }) => {
+    const { payload, result } = await buildPayload({
+      entities: [
+        {
+          tag,
+          id: 'horiz',
+          x: 0,
+          y: 0,
+          width: 300,
+          height: 180,
+          color: 'blue',
+          title: { text: 'Sales' },
+        },
+        {
+          tag,
+          id: 'vert',
+          x: 340,
+          y: 0,
+          width: 240,
+          height: 300,
+          color: 'blue',
+          orientation: 'vertical',
+          title: { text: 'Sales' },
+        },
+      ],
+      connections: [],
+    });
+    expect(result.ok, JSON.stringify(result.errors)).toBe(true);
+    await runPayload(page, payload);
+    const hBody = (await page.locator('[data-mdp-id="horiz"] .er-grouplike').boundingBox())!;
+    const hHeader = page.locator('[data-mdp-id="horiz"] header');
+    const hTitle = (await hHeader.boundingBox())!;
+
+    // Default (horizontal): left vertical sidebar spanning container height.
+    expect(Math.abs(hTitle.height - (hBody.height - 2))).toBeLessThanOrEqual(2);
+    expect(hTitle.width).toBeLessThan(60);
+    await expect(hHeader).toHaveCSS('writing-mode', 'sideways-lr');
+    await expect(hHeader).toHaveCSS('border-right-width', '1px');
+    await expect(hHeader).toHaveCSS('border-bottom-width', '0px');
+
+    const vBody = (await page.locator('[data-mdp-id="vert"] .er-grouplike').boundingBox())!;
+    const vHeader = page.locator('[data-mdp-id="vert"] header');
+    const vTitle = (await vHeader.boundingBox())!;
+
+    // orientation: 'vertical': top horizontal header band spanning container width.
+    expect(Math.abs(vTitle.width - (vBody.width - 2))).toBeLessThanOrEqual(2);
+    expect(vTitle.height).toBeLessThan(60);
+    await expect(vHeader).toHaveCSS('writing-mode', 'horizontal-tb');
+    await expect(vHeader).toHaveCSS('border-bottom-width', '1px');
+    await expect(vHeader).toHaveCSS('border-right-width', '0px');
+    await expect(vHeader).toHaveCSS('justify-content', 'center');
+  });
+}

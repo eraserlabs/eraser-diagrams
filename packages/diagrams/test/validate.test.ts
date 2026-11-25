@@ -519,4 +519,22 @@ describe('stage 4 — cross-ref (US2)', () => {
     });
     expect(cycle.errors.filter((e) => e.code === 'E_CONTAINER_CYCLE')).toHaveLength(2);
   });
+
+  it('accepts orientation horizontal/vertical on Pool and Lane and rejects invalid values', async () => {
+    const ok = await resolver.validate({
+      elements: [
+        { tag: 'Pool', id: 'p1', x: 0, y: 0, orientation: 'horizontal', title: { text: 'H' } },
+        { tag: 'Pool', id: 'p2', x: 0, y: 200, orientation: 'vertical', title: { text: 'V' } },
+        { tag: 'Lane', id: 'l1', x: 40, y: 240, orientation: 'vertical', title: { text: 'L' } },
+      ],
+    });
+    expect(ok.ok, JSON.stringify(ok.errors)).toBe(true);
+
+    const bad = await resolver.validate({
+      elements: [{ tag: 'Pool', id: 'p3', x: 0, y: 0, orientation: 'diagonal' }],
+    });
+    expect(bad.errors.some((e) => e.code === 'E_SCHEMA' && e.path.endsWith('/orientation'))).toBe(
+      true,
+    );
+  });
 });

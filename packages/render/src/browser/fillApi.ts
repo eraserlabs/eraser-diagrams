@@ -6,3 +6,4 @@
 export { createFillEngine, type FillEngineInit, type FillFn } from './fill.js';
 export { ELBOW_CORNER_RADIUS, toPathData } from './roundedPath.js';
 export { clearLabelGap, cutLabelGap, type LabelGapOptions } from './labelGap.js';
+export { boxesOverlap, doubleRailsGeometry, placeEndpointLabel } from './lineDecoration.js';

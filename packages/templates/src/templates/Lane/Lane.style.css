@@ -247,12 +247,13 @@
   height: 100%;
 }
 
-/* BPMN side title. The band is absolutely positioned, so it never reflows anything: child
-   entities are scene nodes, not DOM children. The chip model survives with its axes rotated —
-   `snug` hugs the text, `full` spans the container's height with its underline moved to the
-   band's right edge — and the default alignment is vertically centered, the BPMN convention.
-   Byte-identical across Lane/Pool. */
-.er-grouplike__title {
+/* BPMN side title (default horizontal swimlane). The band is absolutely positioned, so it never
+   reflows anything: child entities are scene nodes, not DOM children. The chip model survives with
+   its axes rotated — `snug` hugs the text, `full` spans the container's height with its underline
+   moved to the band's right edge — and the default alignment is vertically centered, the BPMN
+   convention. When `orientation: 'vertical'` is set, the top horizontal band rules above apply
+   instead. Byte-identical across Lane/Pool. */
+.er-grouplike:where(:not([data-orientation='vertical'])) .er-grouplike__title {
   position: absolute;
   top: 7.5px;
   bottom: 7.5px;
@@ -264,13 +265,22 @@
   max-height: calc(100% - 15px);
   margin: auto 0;
 }
-.er-grouplike[data-title-align='center'] .er-grouplike__title {
+.er-grouplike:where(
+    :not([data-orientation='vertical'])
+  )[data-title-align='center']
+  .er-grouplike__title {
   margin: auto 0;
 }
-.er-grouplike[data-title-align='right'] .er-grouplike__title {
+.er-grouplike:where(
+    :not([data-orientation='vertical'])
+  )[data-title-align='right']
+  .er-grouplike__title {
   margin: 0 0 auto;
 }
-.er-grouplike[data-title-width='full'] .er-grouplike__title {
+.er-grouplike:where(
+    :not([data-orientation='vertical'])
+  )[data-title-width='full']
+  .er-grouplike__title {
   top: 0;
   bottom: 0;
   left: 0;
@@ -283,12 +293,16 @@
   border-radius: 5px 0 0 5px;
   justify-content: center;
 }
-.er-grouplike[data-title-width='full'][data-title-border='true']
+.er-grouplike:where(
+    :not([data-orientation='vertical'])
+  )[data-title-width='full'][data-title-border='true']
   .er-grouplike__title {
   border-bottom: none;
   border-right: 1px solid var(--er-stroke);
 }
-.er-grouplike[data-style='watercolor'][data-title-width='full'][data-title-border='true']
+.er-grouplike:where(
+    :not([data-orientation='vertical'])
+  )[data-style='watercolor'][data-title-width='full'][data-title-border='true']
   .er-grouplike__title::after {
   top: 0;
   bottom: 0;
@@ -323,17 +337,51 @@
 }
 
 /* In sideways-lr, inline start is at the bottom and inline end is at the top. */
-.er-grouplike[data-title-align='left'] .er-grouplike__title {
+.er-grouplike:where(
+    :not([data-orientation='vertical'])
+  )[data-title-align='left']
+  .er-grouplike__title {
   margin: auto 0 0;
 }
-.er-grouplike[data-title-width='full'][data-title-align='left']
+.er-grouplike:where(
+    :not([data-orientation='vertical'])
+  )[data-title-width='full'][data-title-align='left']
   .er-grouplike__title {
   margin: 0;
   justify-content: flex-start;
 }
 
-.er-grouplike[data-corners]:not([data-corners=''])[data-title-width='full']
+.er-grouplike:where(:not([data-orientation='vertical']))[data-corners]:not(
+    [data-corners='']
+  )[data-title-width='full']
   .er-grouplike__title {
   border-top-left-radius: inherit;
   border-bottom-left-radius: inherit;
+}
+
+/* Vertical swimlane top header (`orientation: 'vertical'`): uses the horizontal top-band layout
+   above, centered by default like BPMN side headers unless hAlign is explicitly authored. */
+.er-grouplike[data-orientation='vertical'][data-style='watercolor'][data-title-border='true']
+  .er-grouplike__title {
+  position: relative;
+}
+.er-grouplike[data-orientation='vertical'][data-title-width='full']:not(
+    [data-title-align='left']
+  ):not([data-title-align='right'])
+  .er-grouplike__title {
+  justify-content: center;
+}
+.er-grouplike[data-orientation='vertical']:not([data-title-width='full']):not(
+    [data-title-align='left']
+  ):not([data-title-align='right'])
+  .er-grouplike__title {
+  margin-left: auto;
+  margin-right: auto;
+}
+.er-grouplike[data-orientation='vertical'][data-corners]:not(
+    [data-corners='']
+  )[data-title-width='full']
+  .er-grouplike__title {
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
 }

@@ -36,6 +36,7 @@ import type {
   NewConnection,
   OutlineDescriptor,
   PositionProps,
+  RelativePositionProps,
 } from '../types.js';
 import { anchorFromStored, resolveManualLabel } from './manualLabelAnchor.js';
 import { absoluteConnectionPoints, absolutePoint, relativePoint } from './points.js';
@@ -52,12 +53,16 @@ export function isDirectConnection(connection: Pick<NewConnection, 'connectorSty
   return connection.connectorStyle === 'straight' || connection.connectorStyle === 'arc';
 }
 
-/** What the geometry reads of a box: its place and size, and its drawn shape. */
+/** What the geometry reads of a box: its place and size, its drawn shape, and any hanging caption. */
 export interface DirectBox extends PositionProps {
   /** A named shape whose outline differs from its box: `ellipse` or `diamond`. */
   readonly shape?: string;
   /** The entity's drawn boundary, used when `shape` names no outline. */
   readonly outline?: OutlineDescriptor;
+  /** Containers keep their title inside the box rather than hanging below it. */
+  readonly isContainer?: boolean;
+  /** Label bounds relative to the box; a non-container caption hanging below is cleared. */
+  readonly textPlacement?: RelativePositionProps;
 }
 
 /**
@@ -180,12 +185,64 @@ function inside(box: DirectBox, p: Readonly<Point>): boolean {
   return true;
 }
 
+/** A node's label hanging below its box, as on an icon; group titles sit inside the group. */
+function captionBelow({
+  x,
+  y,
+  height,
+  isContainer,
+  textPlacement,
+}: DirectBox): DirectBox | undefined {
+  if (
+    isContainer ||
+    !textPlacement ||
+    textPlacement.relativeY < height ||
+    textPlacement.width <= 0 ||
+    textPlacement.height <= 0
+  ) {
+    return undefined;
+  }
+  return {
+    x: x + textPlacement.relativeX,
+    y: y + textPlacement.relativeY,
+    width: textPlacement.width,
+    height: textPlacement.height,
+  };
+}
+
+/** Whether `point` lies strictly on the segment from `start` toward `end`. */
+function liesAhead(start: Readonly<Point>, point: Readonly<Point>, end: Readonly<Point>): boolean {
+  const along =
+    (point[0] - start[0]) * (end[0] - start[0]) + (point[1] - start[1]) * (end[1] - start[1]);
+  const length = (end[0] - start[0]) ** 2 + (end[1] - start[1]) ** 2;
+  return along > 0 && along < length;
+}
+
+/**
+ * When a direct line leaves `box` at `end` heading toward `toward` along the line through `origin`
+ * and would cross a caption hanging below `box`, walk the end past the caption.
+ */
+function clearCaptionBelow(
+  box: DirectBox,
+  end: Point,
+  origin: Readonly<Point>,
+  toward: Readonly<Point>,
+): Point {
+  const caption = captionBelow(box);
+  if (!caption) {
+    return end;
+  }
+  const pastCaption = crossings(caption, toward, origin)[0];
+  return pastCaption && liesAhead(end, pastCaption, toward) ? pastCaption : end;
+}
+
 // ---- where the ends attach
 
 /**
  * A line with no path yet, from one box to the other: centre to centre, each end where that line
- * leaves its box (the crossing nearer the other centre); a centre when it never leaves (boxes on
- * top of each other). A pinned end sits at its pin, and the other end leaves its box toward it.
+ * leaves its box (the crossing nearer the other centre, walked past any hanging caption below the
+ * box); a centre when it never leaves (boxes on top of each other). A pinned end sits at its pin,
+ * and the other end leaves its box toward it.
  */
 export function centreSegment(from: DirectBox, to: DirectBox, pins?: EndpointPins): [Point, Point] {
   const a = centreOf(from);
@@ -196,7 +253,8 @@ export function centreSegment(from: DirectBox, to: DirectBox, pins?: EndpointPin
       return c;
     }
     const near = (p: Point) => Math.hypot(p[0] - toward[0], p[1] - toward[1]);
-    return hits.reduce((best, p) => (near(p) < near(best) ? p : best));
+    const end = hits.reduce((best, p) => (near(p) < near(best) ? p : best));
+    return clearCaptionBelow(box, end, c, toward);
   };
   return [pins?.from ?? leave(from, a, pins?.to ?? b), pins?.to ?? leave(to, b, pins?.from ?? a)];
 }
@@ -241,20 +299,27 @@ export function faceAnchoredSegment(
   return [start, end];
 }
 
-/** A face's midpoint, walked in to the box's drawn outline when it has one. */
+/** A face's midpoint, walked in to the box's drawn outline (or past a hanging bottom caption). */
 function facePoint(box: DirectBox, face: Direction): Point {
   const [x, y] = getFaceCenterPoint(box, face);
   const clipped = clipFacePointToOutline({ id: '', ...box }, face, { x, y });
+  if (face === 'down') {
+    const caption = captionBelow(box);
+    if (caption && clipped.x >= caption.x && clipped.x <= caption.x + caption.width) {
+      return [clipped.x, caption.y + caption.height];
+    }
+  }
   return [clipped.x, clipped.y];
 }
 
-/** Where the ray from the box's centre toward `target` leaves its outline; the centre when it cannot. */
+/** Where the ray from the box's centre toward `target` leaves its outline (and any hanging caption); the centre when it cannot. */
 function boundaryToward(box: DirectBox, target: Readonly<Point>): Point {
   const c = centreOf(box);
   const hits = crossings(box, c, target).filter(
     (h) => (h[0] - c[0]) * (target[0] - c[0]) + (h[1] - c[1]) * (target[1] - c[1]) > 0,
   );
-  return hits[0] ?? c;
+  const end = hits[0];
+  return end ? clearCaptionBelow(box, end, c, target) : c;
 }
 
 /**
@@ -320,7 +385,8 @@ export function snapToFocus(box: DirectBox, focus: Focus, adjacent: Readonly<Poi
   if (hits.length === 0) {
     return null;
   }
-  return focus.far ? (hits[1] ?? hits[0]!) : hits[0]!;
+  const hit = focus.far ? (hits[1] ?? hits[0]!) : hits[0]!;
+  return clearCaptionBelow(box, hit, through, adjacent);
 }
 
 /** How each bound end of a straight or arc line holds to its box. */

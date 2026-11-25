@@ -6,6 +6,7 @@ import {
   GroupTitle,
   GroupTitleBand,
   ICON_SIZE_PRESETS,
+  ORIENTATIONS,
   UnderlineStyle,
 } from '../../schema/index.js';
 
@@ -48,8 +49,12 @@ export const groupLike: Record<string, JsonSchema> = {
   badge: BadgeProperties,
 };
 
-/** Lane/Pool variant: the side title defaults to the full-height BPMN band. */
+/**
+ * Lane/Pool variant: defaults to the left-edge horizontal-swimlane band;
+ * `orientation: 'vertical'` places the band horizontally along the top edge.
+ */
 export const bandGroupLike: Record<string, JsonSchema> = {
   ...groupLike,
   title: GroupTitleBand,
+  orientation: { type: 'string', enum: [...ORIENTATIONS] },
 };
