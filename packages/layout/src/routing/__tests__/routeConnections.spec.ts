@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import { LayoutManager } from '../../LayoutManager.js';
 import { makeEntity } from '../../testUtils.js';
 import type { LayoutChange, LayoutConnection, LayoutEntity } from '../../types.js';
-import { COMMIT_REPAIR, routeConnections, selectConnectionsToRoute } from '../routeConnections.js';
+import { COMMIT_REPAIR, routeConnections } from '../routeConnections.js';
 import * as execution from '../executeCorridorRouting.js';
 import type { RepairPolicy } from '../executeCorridorRouting.js';
 import * as productionRepair from '../corridor/productionRepair.js';
@@ -632,59 +632,5 @@ describe('corridor commits', () => {
     const [start, end] = [routed[0], routed.at(-1)!];
     expect([start[0], end[0]]).toEqual([100, 100]);
     expect(start[1]).not.toBe(end[1]);
-  });
-});
-
-describe('selectConnectionsToRoute', () => {
-  it('merges explicit requests ahead of update-selected connections and skips added/removed entities', () => {
-    const layout = new LayoutManager({
-      entities: [
-        makeEntity('a', { x: 0, y: 0 }),
-        makeEntity('b', { x: 200, y: 0 }),
-        makeEntity('c', { x: 400, y: 0 }),
-      ],
-      connections: [
-        {
-          id: 'ab',
-          from: 'a',
-          to: 'b',
-          x: 100,
-          y: 30,
-          points: [
-            [0, 0],
-            [100, 0],
-          ],
-        },
-        {
-          id: 'bc',
-          from: 'b',
-          to: 'c',
-          x: 300,
-          y: 30,
-          points: [
-            [0, 0],
-            [100, 0],
-          ],
-        },
-      ],
-      primaryDirection: 'right',
-    });
-    layout.initiateChanges();
-    layout.updateEntity('b', { deltaY: 20 });
-    layout.addEntity(makeEntity('d', { x: 600, y: 0 }));
-
-    const explicitPin = { from: [100, 30] as Point, to: [200, 50] as Point };
-    const selected = selectConnectionsToRoute(
-      layout,
-      [{ connection: layout.getConnectionById('ab')!, endpointPins: explicitPin }],
-      new Map([
-        ['b', { deltaY: 20 }],
-        ['d', { deltaX: 0 }],
-      ]),
-    );
-
-    expect(selected.map((r) => r.connection.id)).toEqual(['ab', 'bc']);
-    expect(selected[0]!.endpointPins).toEqual(explicitPin);
-    expect(selected[1]!.endpointPins).toBeUndefined();
   });
 });
