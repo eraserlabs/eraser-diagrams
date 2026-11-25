@@ -9,6 +9,7 @@ import {
   crossings,
   directLabel,
   type DirectBox,
+  faceAnchoredSegment,
   focusOf,
   followBoxes,
   keepManualLabel,
@@ -239,5 +240,78 @@ describe('an outline descriptor', () => {
     const [s] = centreSegment(diamond, box('b', 300, 300, 100, 100));
     close(s, centreSegment(box('a', 0, 0, 100, 100, 'diamond'), box('b', 300, 300, 100, 100))[0]);
     expect(s[0] + s[1]).toBeCloseTo(150, 4);
+  });
+});
+
+describe('hanging captions below non-container boxes', () => {
+  const iconWithCaption: DirectBox = {
+    x: 0,
+    y: 0,
+    width: 60,
+    height: 60,
+    textPlacement: { relativeX: -20, relativeY: 66, width: 100, height: 20 },
+  };
+
+  it('starts a downward centreSegment past the hanging caption, leaving upward and sideways lines on the box', () => {
+    const [downStart, downEnd] = centreSegment(iconWithCaption, box('b', 0, 200, 60, 60));
+    close(downStart, [30, 86]);
+    close(downEnd, [30, 200]);
+
+    const [upStart] = centreSegment(iconWithCaption, box('b', 0, -200, 60, 60));
+    close(upStart, [30, 0]);
+
+    const [rightStart] = centreSegment(iconWithCaption, box('b', 200, 0, 60, 60));
+    close(rightStart, [60, 30]);
+  });
+
+  it('ignores captions on containers and internal labels', () => {
+    const container: DirectBox = { ...iconWithCaption, isContainer: true };
+    const [containerStart] = centreSegment(container, box('b', 0, 200, 60, 60));
+    close(containerStart, [30, 60]);
+
+    const internalLabel: DirectBox = {
+      x: 0,
+      y: 0,
+      width: 60,
+      height: 60,
+      textPlacement: { relativeX: 10, relativeY: 20, width: 40, height: 20 },
+    };
+    const [internalStart] = centreSegment(internalLabel, box('b', 0, 200, 60, 60));
+    close(internalStart, [30, 60]);
+  });
+
+  it('clears the hanging caption on faceAnchoredSegment and while following a moved target', () => {
+    const [faceStart, faceEnd] = faceAnchoredSegment(
+      iconWithCaption,
+      box('b', 0, 200, 60, 60),
+      'down',
+      'up',
+    );
+    close(faceStart, [30, 86]);
+    close(faceEnd, [30, 200]);
+
+    const initial = line([
+      [30, 86],
+      [30, 200],
+    ]);
+    const targetBefore = box('b', 0, 200, 60, 60);
+    const binding = bindingOf(initial, (id) => (id === 'a' ? iconWithCaption : targetBefore));
+
+    // Moving the target slightly sideways below the icon stays below the caption.
+    const [sBelow] = followBoxes(initial, binding, (id) =>
+      id === 'a' ? iconWithCaption : box('b', 20, 200, 60, 60),
+    );
+    expect(sBelow[1]).toBeCloseTo(86, 4);
+
+    // Moving the target beside the icon transitions back onto the icon's right edge.
+    const [sRight] = followBoxes(
+      line([
+        [30, 86],
+        [200, 30],
+      ]),
+      binding,
+      (id) => (id === 'a' ? iconWithCaption : box('b', 200, 0, 60, 60)),
+    );
+    close(sRight, [60, 30]);
   });
 });

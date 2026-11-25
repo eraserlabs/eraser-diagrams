@@ -8,7 +8,11 @@
 export { LayoutManager } from './LayoutManager.js';
 
 // routing
-export { COMMIT_REPAIR, routeConnections } from './routing/routeConnections.js';
+export {
+  COMMIT_REPAIR,
+  routeConnections,
+  selectConnectionsToRoute,
+} from './routing/routeConnections.js';
 export { isDirectConnection } from './routing/directLine.js';
 export type {
   ConnectionRoutingRequest,

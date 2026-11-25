@@ -92,18 +92,15 @@ export interface RoutingResult {
 }
 
 /**
- * Route one explicit/affected batch. Valid shifts commit first and participate as
- * pinned incumbents in the remaining corridor batch. Omitting both selectors is
- * a no-op, never an implicit request to route the whole layout.
+ * Selects the connections `routeConnections` will route for an explicit list and/or entity-update
+ * map. Explicit requests take precedence over update-selected connections, and update selection
+ * only includes entities that existed both before and after staging.
  */
-export function routeConnections({
-  layoutManager,
-  connectionsToRoute = [],
-  updates,
-  allowShift = true,
-  groupedPinnedPorts = false,
-  repair,
-}: RouteConnectionsArgs): RoutingResult {
+export function selectConnectionsToRoute(
+  layoutManager: LayoutManager,
+  connectionsToRoute: readonly (NewConnection | ConnectionRoutingRequest)[] = [],
+  updates?: ReadonlyMap<string, LayoutChange>,
+): ConnectionRoutingRequest[] {
   const selected = new Map<string, ConnectionRoutingRequest>();
   for (const input of connectionsToRoute) {
     const request = 'connection' in input ? input : { connection: input };
@@ -129,6 +126,28 @@ export function routeConnections({
       }
     }
   }
+  return [...selected.values()];
+}
+
+/**
+ * Route one explicit/affected batch. Valid shifts commit first and participate as
+ * pinned incumbents in the remaining corridor batch. Omitting both selectors is
+ * a no-op, never an implicit request to route the whole layout.
+ */
+export function routeConnections({
+  layoutManager,
+  connectionsToRoute = [],
+  updates,
+  allowShift = true,
+  groupedPinnedPorts = false,
+  repair,
+}: RouteConnectionsArgs): RoutingResult {
+  const selected = new Map(
+    selectConnectionsToRoute(layoutManager, connectionsToRoute, updates).map((request) => [
+      request.connection.id,
+      request,
+    ]),
+  );
 
   const routingLayout = selected.size ? makeRoutingLayout(layoutManager) : layoutManager;
   const pending = new Map<string, ConnectionRoutingRequest>();

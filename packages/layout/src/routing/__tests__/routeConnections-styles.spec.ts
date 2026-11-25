@@ -336,4 +336,40 @@ describe('routeConnections style dispatch', () => {
       height: 16,
     });
   });
+
+  it('starts a straight line below a node hanging caption and clips to an entity outline', () => {
+    const icon: LayoutEntity = {
+      id: 'icon',
+      x: 0,
+      y: 0,
+      width: 60,
+      height: 60,
+      textPlacement: { relativeX: -20, relativeY: 66, width: 100, height: 20 },
+    };
+    const diamond: LayoutEntity = {
+      id: 'diamond',
+      x: 0,
+      y: 200,
+      width: 100,
+      height: 100,
+      outline: {
+        kind: 'polygon',
+        vertices: [
+          [50, 0],
+          [100, 50],
+          [50, 100],
+          [0, 50],
+        ],
+      },
+    };
+    const layout = layoutWith([icon, diamond]);
+    const { updates } = routeConnections({
+      layoutManager: layout,
+      repair: COMMIT_REPAIR,
+      connectionsToRoute: [{ id: 's', from: 'icon', to: 'diamond', connectorStyle: 'straight' }],
+    });
+    const [start, end] = absolute(updates.get('s') as LayoutConnection);
+    expect(start[1]).toBeCloseTo(86, 4);
+    expect(Math.abs(end[0] - 50) / 50 + Math.abs(end[1] - 250) / 50).toBeCloseTo(1, 5);
+  });
 });
