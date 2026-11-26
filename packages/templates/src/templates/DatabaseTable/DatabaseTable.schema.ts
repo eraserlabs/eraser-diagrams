@@ -8,14 +8,14 @@ import {
   H_ALIGNS,
   TYPEFACES,
 } from '../../schema/index.js';
-import { IconName, PlainText, DatabaseField } from '../_shared/schema-parts.js';
+import { IconName, PlainText, TableFieldSchema } from '../_shared/schema-parts.js';
 
 export const DatabaseTable = entitySchema(
   'DatabaseTable',
   {
     label: PlainText,
     icon: IconName,
-    fields: { type: 'array', items: DatabaseField },
+    fields: { type: 'array', items: TableFieldSchema },
     fontSize: FontSizePx,
     typeface: { type: 'string', enum: [...TYPEFACES] },
     /** Header band paint; absent keeps the constant white band. */

@@ -12,6 +12,7 @@ export const FontSizePx: JsonSchema = { type: 'number' };
  * solid underline (Chen primary keys, UML static members); `'dashed'` draws a dashed underline
  * (Chen weak-entity partial keys).
  */
+export type UnderlineStyle = boolean | (typeof UNDERLINE_STYLES)[number];
 export const UnderlineStyle: JsonSchema = {
   anyOf: [{ type: 'boolean' }, { type: 'string', enum: [...UNDERLINE_STYLES] }],
 };

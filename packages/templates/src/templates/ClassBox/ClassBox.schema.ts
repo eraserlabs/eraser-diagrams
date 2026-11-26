@@ -5,34 +5,27 @@ import {
   WashTexProps,
   BadgeProperties,
   FontSizePx,
-  UnderlineStyle,
   H_ALIGNS,
   TYPEFACES,
 } from '../../schema/index.js';
-import { IconName, PlainText } from '../_shared/schema-parts.js';
+import { IconName, PlainText, type TableField, TableFieldSchema } from '../_shared/schema-parts.js';
 
-export const ClassMember: JsonSchema = {
-  type: 'object',
-  additionalProperties: false,
-  required: ['name'],
-  properties: {
-    name: PlainText,
-    type: PlainText,
-    meta: PlainText,
-    italic: { type: 'boolean' },
-    underline: UnderlineStyle,
-  },
+export interface ClassSection {
+  /** Optional compartment heading. An unnamed compartment starts with a divider. */
+  name?: string;
+  items: TableField[];
+}
+
+const sectionProperties: Record<keyof ClassSection, JsonSchema> = {
+  name: PlainText,
+  items: { type: 'array', items: TableFieldSchema },
 };
 
-export const ClassSection: JsonSchema = {
+const classSectionSchema: JsonSchema = {
   type: 'object',
   additionalProperties: false,
   required: ['items'],
-  properties: {
-    /** Optional compartment label (e.g. "attributes", "methods", "events"). Omitted = divider-only compartment. */
-    name: PlainText,
-    items: { type: 'array', items: ClassMember },
-  },
+  properties: sectionProperties,
 };
 
 export const ClassBox = entitySchema(
@@ -45,7 +38,7 @@ export const ClassBox = entitySchema(
     italic: { type: 'boolean' },
     icon: IconName,
     /** Ordered compartments (named or unnamed) such as attributes, methods, and events. */
-    sections: { type: 'array', items: ClassSection },
+    sections: { type: 'array', items: classSectionSchema },
     fontSize: FontSizePx,
     typeface: { type: 'string', enum: [...TYPEFACES] },
     /** Header band paint; absent keeps the surface band. */

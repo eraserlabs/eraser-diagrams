@@ -22,17 +22,28 @@ export const IconSize: JsonSchema = { type: 'string', enum: [...ICON_SIZE_PRESET
 export const PlainText: JsonSchema = { type: 'string', 'x-content': 'plain' };
 export const MarkdownText: JsonSchema = { type: 'string', 'x-content': 'markdown' };
 
-export const DatabaseField: JsonSchema = {
+/** A row in a database table or a member of a UML class section. */
+export interface TableField {
+  name: string;
+  type?: string;
+  meta?: string;
+  italic?: boolean;
+  underline?: UnderlineStyle;
+}
+
+const fieldProperties: Record<keyof TableField, JsonSchema> = {
+  name: PlainText,
+  type: PlainText,
+  meta: PlainText,
+  italic: { type: 'boolean' },
+  underline: UnderlineStyle,
+};
+
+export const TableFieldSchema: JsonSchema = {
   type: 'object',
   additionalProperties: false,
   required: ['name'],
-  properties: {
-    name: PlainText,
-    type: PlainText,
-    meta: PlainText,
-    italic: { type: 'boolean' },
-    underline: UnderlineStyle,
-  },
+  properties: fieldProperties,
 };
 
 export const cornerRadiiProps: Record<string, JsonSchema> = {
