@@ -373,3 +373,54 @@ for (const tag of ['Lane', 'Pool'] as const) {
     await expect(vHeader).toHaveCSS('justify-content', 'center');
   });
 }
+
+test('pools divide their own lanes in spatial order and leave the outer edges open', async ({
+  page,
+}) => {
+  const pool = (id: string, x: number, orientation = 'horizontal') => ({
+    tag: 'Pool',
+    id,
+    x,
+    y: 20,
+    width: 280,
+    height: 240,
+    orientation,
+    title: { text: id },
+  });
+  const lane = (
+    id: string,
+    containerId: string,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) => ({
+    tag: 'Lane',
+    id,
+    containerId,
+    x,
+    y,
+    width,
+    height,
+  });
+  const { payload } = await buildPayload({
+    entities: [
+      pool('rows', 20),
+      pool('columns', 340, 'vertical'),
+      pool('single', 660),
+      lane('last', 'rows', 60, 180, 240, 80),
+      lane('right', 'columns', 480, 60, 140, 200),
+      lane('only', 'single', 700, 20, 240, 240),
+      lane('middle', 'rows', 60, 100, 240, 80),
+      lane('left', 'columns', 340, 60, 140, 200),
+      lane('first', 'rows', 60, 20, 240, 80),
+    ],
+    connections: [],
+  });
+  await runPayload(page, payload);
+  const dividers = (id: string) =>
+    page.locator(`[data-mdp-id="${id}"] [data-part="lane-dividers"]`);
+  await expect(dividers('rows')).toHaveAttribute('d', 'M40 80L280 80 M40 160L280 160');
+  await expect(dividers('columns')).toHaveAttribute('d', 'M140 40L140 240');
+  await expect(dividers('single')).toHaveAttribute('d', '');
+});
