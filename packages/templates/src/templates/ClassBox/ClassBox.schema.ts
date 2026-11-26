@@ -16,14 +16,16 @@ export interface ClassSection {
   items: TableField[];
 }
 
+const sectionProperties: Record<keyof ClassSection, JsonSchema> = {
+  name: PlainText,
+  items: { type: 'array', items: TableFieldSchema },
+};
+
 const classSectionSchema: JsonSchema = {
   type: 'object',
   additionalProperties: false,
   required: ['items'],
-  properties: {
-    name: PlainText,
-    items: { type: 'array', items: TableFieldSchema },
-  } satisfies Record<keyof ClassSection, JsonSchema>,
+  properties: sectionProperties,
 };
 
 export const ClassBox = entitySchema(

@@ -31,17 +31,19 @@ export interface TableField {
   underline?: UnderlineStyle;
 }
 
+const fieldProperties: Record<keyof TableField, JsonSchema> = {
+  name: PlainText,
+  type: PlainText,
+  meta: PlainText,
+  italic: { type: 'boolean' },
+  underline: UnderlineStyle,
+};
+
 export const TableFieldSchema: JsonSchema = {
   type: 'object',
   additionalProperties: false,
   required: ['name'],
-  properties: {
-    name: PlainText,
-    type: PlainText,
-    meta: PlainText,
-    italic: { type: 'boolean' },
-    underline: UnderlineStyle,
-  } satisfies Record<keyof TableField, JsonSchema>,
+  properties: fieldProperties,
 };
 
 export const cornerRadiiProps: Record<string, JsonSchema> = {
