@@ -385,3 +385,8 @@
   border-top-left-radius: inherit;
   border-top-right-radius: inherit;
 }
+
+/* A lane title labels a region of its pool. Only an authored title treatment paints a band. */
+.er-lane[data-title-border='false'][data-title-bg=''] .er-grouplike__title {
+  background: transparent;
+}

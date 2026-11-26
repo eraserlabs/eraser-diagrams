@@ -463,7 +463,12 @@ export const stockNormalizers: Record<string, ElementNormalizer> = {
   Gateway: normalizeBpmnNode,
   Textbox: normalizeTextbox,
   Group: normalizeGroupLike,
-  Lane: normalizeGroupLike,
+  Lane: (element) => {
+    if (element.borderColor === undefined && element.borderStyle === undefined) {
+      element.borderWidth ??= 0;
+    }
+    normalizeGroupLike(element);
+  },
   Pool: normalizeGroupLike,
   DatabaseTable: normalizeTableBox,
   ClassBox: normalizeClassBox,
