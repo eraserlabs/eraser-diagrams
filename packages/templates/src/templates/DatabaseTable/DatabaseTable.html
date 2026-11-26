@@ -4,6 +4,8 @@
     data-role="body"
     class="er-dbtable"
     data-border="{{borderStyle}}"
+    data-border-px="{{borderWidth}}"
+    data-corners="{{cornerTL}}"
     data-style="{{styleMode}}"
     data-font-px="{{fontSize}}"
     data-color="{{color}}"
@@ -14,7 +16,7 @@
     data-title-bg="{{titleBgColor}}"
     data-h-align="{{hAlign}}"
     data-washtex-css="{{washTexCss}}"
-    style="--er-resolved-divider: {{dividerColor}}; --er-resolved-tint: {{tintColor}}; --er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-title-bg: {{titleBgColor}}; --er-font-px: {{fontSize}}px; --f: var(--font-{{typeface}}, var(--font-clean))"
+    style="--er-resolved-divider: {{dividerColor}}; --er-resolved-tint: {{tintColor}}; --er-color: {{color}}; --er-bg: {{bgColor}}; --er-border: {{borderColor}}; --er-authored-border-width: {{borderWidth}}px; --er-radius-tl: {{cornerTL}}px; --er-radius-tr: {{cornerTR}}px; --er-radius-br: {{cornerBR}}px; --er-radius-bl: {{cornerBL}}px; --er-title-bg: {{titleBgColor}}; --er-font-px: {{fontSize}}px; --f: var(--font-{{typeface}}, var(--font-clean))"
   >
     <div class="er-dbtable__frame">
       <span class="er-washtex" data-if="washTexCss" aria-hidden="true"
@@ -56,11 +58,12 @@
         <li
           class="er-dbtable__row"
           data-part="field"
+          data-index
           data-port-prefix="field:"
           data-italic="{{f.italic}}"
           data-underline="{{f.underline}}"
         >
-          <span class="er-dbtable__f-name" data-port-name>{{f.name}}</span>
+          <span class="er-dbtable__f-name" data-part="field-name" data-port-name>{{f.name}}</span>
           <span class="er-dbtable__f-type" data-part="field-type">{{f.type}}</span>
           <span class="er-dbtable__f-meta">{{f.meta}}</span>
         </li>

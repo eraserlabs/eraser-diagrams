@@ -356,29 +356,35 @@ const normalizeTextbox: ElementNormalizer = (element) => {
   element.color ??= '#242424';
 };
 
-const normalizeGroupLike: ElementNormalizer = (element) => {
-  deriveStockPaint(element, 0.98, { title: true });
+function deriveCornerRadii(element: Record<string, unknown>, roundRadius: number): void {
   const corners = element.cornerRadius;
   if (corners === 'sharp' || corners === 'round' || Array.isArray(corners)) {
-    const radii = Array.isArray(corners) ? corners : Array(4).fill(corners === 'sharp' ? 0 : 6);
+    const radii = Array.isArray(corners)
+      ? corners
+      : Array(4).fill(corners === 'sharp' ? 0 : roundRadius);
     for (const [index, corner] of ['TL', 'TR', 'BR', 'BL'].entries()) {
       element[`corner${corner}`] = Math.max(0, radii[index]);
     }
   }
-  if (corners !== undefined || element.borderWidth !== undefined) {
+}
+
+const normalizeGroupLike: ElementNormalizer = (element) => {
+  deriveStockPaint(element, 0.98, { title: true });
+  deriveCornerRadii(element, 6);
+  if (element.cornerRadius !== undefined || element.borderWidth !== undefined) {
     element.customBorder = true;
   }
   deriveBoxWash(element);
 };
 
-const normalizeDatabaseTable: ElementNormalizer = (element) => {
+const normalizeTableBox: ElementNormalizer = (element) => {
   deriveStockPaint(element, 0.98, { divider: true });
+  deriveCornerRadii(element, 5);
   deriveBoxWash(element);
 };
 
 const normalizeClassBox: ElementNormalizer = (element) => {
-  deriveStockPaint(element, 0.98, { divider: true });
-  deriveBoxWash(element);
+  normalizeTableBox(element);
 
   if (typeof element.stereotype === 'string') {
     const trimmed = element.stereotype.trim();
@@ -459,7 +465,7 @@ export const stockNormalizers: Record<string, ElementNormalizer> = {
   Group: normalizeGroupLike,
   Lane: normalizeGroupLike,
   Pool: normalizeGroupLike,
-  DatabaseTable: normalizeDatabaseTable,
+  DatabaseTable: normalizeTableBox,
   ClassBox: normalizeClassBox,
   Divider: normalizeDivider,
   Relationship: normalizeRelationship,

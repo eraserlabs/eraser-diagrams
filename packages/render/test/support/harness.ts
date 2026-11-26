@@ -107,7 +107,7 @@ export const TEMPLATES: Record<string, { html: string; css: string; kind?: Eleme
     html: `<template name="Card">
 <div class="card" data-tpl="Card" data-role="body" data-kind="{{kind}}">
 <span class="card-label" data-part="label">{{label}}</span>
-<ul class="card-items" data-if="items" data-each="it of items"><li>{{it.text}}</li></ul>
+<ul class="card-items" data-if="items" data-each="it of items"><li data-if="it.text"><span data-index>{{it.text}}</span></li></ul>
 <span class="card-chip" data-if="chip" data-use="Chip" data-props="chip"></span>
 <span class="card-icon" data-if="icon" data-slot="icon"></span>
 </div>

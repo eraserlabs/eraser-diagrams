@@ -1,4 +1,5 @@
 import { CssColor, type JsonSchema } from '@eraserlabs/resolve/schema';
+import { cornerRadiiProps } from './templates/_shared/schema-parts.js';
 
 /** Normalizer output consumed by stock templates, not properties callers may author. */
 const surfacePaints: Record<string, JsonSchema> = {
@@ -14,6 +15,13 @@ const groupPaints: Record<string, JsonSchema> = {
   ...surfacePaints,
   ...washPaints,
   titleSurfaceColor: CssColor,
+};
+
+const tableRenderProps: Record<string, JsonSchema> = {
+  ...surfacePaints,
+  ...washPaints,
+  ...cornerRadiiProps,
+  dividerColor: CssColor,
 };
 
 /** Kept separate from tagSchemas so rendering details do not enter the authoring contract. */
@@ -33,8 +41,8 @@ export const stockRenderProps: Record<string, Record<string, JsonSchema>> = {
   Group: groupPaints,
   Lane: groupPaints,
   Pool: groupPaints,
-  DatabaseTable: { ...surfacePaints, ...washPaints, dividerColor: CssColor },
-  ClassBox: { ...surfacePaints, ...washPaints, dividerColor: CssColor },
+  DatabaseTable: tableRenderProps,
+  ClassBox: tableRenderProps,
   Relationship: { startMarker: { type: 'string' }, endMarker: { type: 'string' } },
   DatabaseRelationship: { startMarker: { type: 'string' }, endMarker: { type: 'string' } },
 };

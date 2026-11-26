@@ -97,6 +97,8 @@ These are annotations to a generic JSON Schema validator; a consumer must not si
 
 A template file has a name, one HTML `<template name="Name">`, and bare-selector CSS. Its content root carries `data-tpl="Name"`. A conforming engine implements `data-each`, `data-use`, `data-props`, `data-if`, `data-slot`, `data-role`, `data-part`, and `data-text-grow-policy` plus `{{path}}` substitution. It never evaluates template JavaScript.
 
+An empty `data-index` attribute inside a `data-each` item receives its zero-based position in the loop's input array. Nested loops use their own indices, and conditional rendering preserves the indices of subsequent items.
+
 `data-role` values come from `DATA_ROLES`; `data-text-grow-policy` values come from `TEXT_SIZE_POLICIES`; `data-part` values are profile-defined. These names are reserved inside MDP templates.
 
 A portable library carries a `manifest`, per-tag `schemas`, `templates`, `baseCss`, and optionally `subTemplates`, a `palette`, and a `defaultConnectionTag`. `palette` maps token names matching `[A-Za-z][A-Za-z0-9_-]{0,63}` to CSS colors; each token becomes a legal value for every palette-annotated property, and resolution replaces the token with its color. A palette is data, not code — nothing executes it, which is why an implementation may accept one from an untrusted author.
