@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 concurrency:
   group: publish
@@ -19,8 +18,16 @@ jobs:
   publish:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -30,9 +37,36 @@ jobs:
       # Trusted publishing requires npm >= 11.5.1.
       - run: npm install --global npm@11
       - run: pnpm install --frozen-lockfile
-      - run: node tools/release.mjs check
+      - name: Check release version
+        id: version
+        shell: bash
+        run: |
+          version=$(node tools/release.mjs check)
+          previous=$(git show HEAD^:packages/diagrams/package.json | jq -r '.version')
+          # A manifest-only update or a manual run on a later commit must not tag that commit.
+          if [[ "$version" != "$previous" ]]; then
+            echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          fi
       - run: pnpm --filter @eraserlabs/diagrams exec playwright install chromium --with-deps
       - run: pnpm build
       - run: pnpm test
       - name: Publish missing versions in dependency order
         run: node tools/release.mjs publish
+
+  release:
+    needs: publish
+    if: needs.publish.outputs.tag != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag and create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.publish.outputs.tag }}
+        run: |
+          git push origin "$GITHUB_SHA:refs/tags/$TAG"
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes
+          fi
