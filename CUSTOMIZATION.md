@@ -212,6 +212,8 @@ Inside a `data-each` subtree, item values support string substitution. Nested `d
 
 For measurements that need no protocol semantics, use `data-part="name"` — the renderer reports those boxes by part name (the stock components use `title` and `icon`), which is how applications can locate a sub-element of a rendered entity without parsing its HTML.
 
+In `DatabaseTable` and `ClassBox`, each `[data-part="field"]` row exposes its name through `[data-port-name]` and its type through `[data-part="field-type"]`, including when the type is empty.
+
 ## CSS isolation and bindings
 
 Author ordinary, bare CSS selectors. The renderer scopes each stylesheet to hosts carrying `data-mdp-tag="Name"` and stops the scope at nested component hosts. Do not add `@scope`, `:scope`, shadow-DOM selectors, `@import`, `@font-face`, or `url()` yourself.

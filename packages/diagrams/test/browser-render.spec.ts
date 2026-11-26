@@ -571,6 +571,9 @@ test('DatabaseTable row heights scale with fontSize and DatabaseRelationship pin
 
   const usersMeasure = run.measures.find((m) => m.id === 'users')!;
   const orgsMeasure = run.measures.find((m) => m.id === 'orgs')!;
+  await expect(
+    page.locator('[data-mdp-id="users"] [data-part="field"] [data-part="field-type"]'),
+  ).toHaveText(['int', 'text', 'int']);
   const usersOrgId = usersMeasure.ports.find((p) => p.id === 'field:org_id')!;
   const orgsId = orgsMeasure.ports.find((p) => p.id === 'field:id')!;
 
@@ -704,6 +707,11 @@ test('ClassBox renders named/unnamed sections, stereotype, italic/underline, and
   const run = await runPayload(page, payload);
 
   const gw = page.locator('[data-mdp-id="gw"]');
+  await expect(gw.locator('[data-part="field"] [data-part="field-type"]')).toHaveText([
+    'int',
+    'void',
+    '',
+  ]);
   await expect(gw.locator('.er-classbox__stereotype')).toHaveText('«interface»');
   await expect(gw.locator('.er-classbox__title')).toHaveCSS('font-style', 'italic');
   await expect(gw.locator('.er-classbox__section')).toHaveCount(3);
