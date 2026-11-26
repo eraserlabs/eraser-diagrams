@@ -201,8 +201,6 @@ function collectRouteWallHugs(
   seen: Set<string>,
   events: WallHugQualityEvent[],
 ): void {
-  const ownFrom = endpointEntityIndex(route.from);
-  const ownTo = endpointEntityIndex(route.to);
   for (let segmentIndex = 0; segmentIndex + 1 < points.length; segmentIndex += 1) {
     const from = points[segmentIndex];
     const to = points[segmentIndex + 1];
@@ -222,9 +220,6 @@ function collectRouteWallHugs(
         continue;
       }
       const entityIndex = face.entityIndex;
-      if (entityIndex === ownFrom || entityIndex === ownTo) {
-        continue;
-      }
       const overlapStart = Math.max(travelStart, face.span[0]);
       const overlapEnd = Math.min(travelEnd, face.span[1]);
       const overlap = overlapEnd - overlapStart;
