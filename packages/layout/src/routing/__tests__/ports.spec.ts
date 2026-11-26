@@ -256,6 +256,59 @@ describe('resolvePortPins', () => {
 });
 
 describe('routeConnections with ports', () => {
+  it('spreads unnamed ends on a shared wall and keeps parallel pairs in the same order', () => {
+    const [users, teams] = tables();
+    const manager = layout([users, teams, { ...teams, id: 'audit', y: 260 }]);
+    routeConnections({
+      layoutManager: manager,
+      repair: false,
+      connectionsToRoute: [
+        { id: 'seller', from: 'users', to: 'teams' },
+        { id: 'auditLog', from: 'users', to: 'audit' },
+        { id: 'buyer', from: 'users', to: 'teams' },
+      ],
+    });
+    const path = (id: string) => absoluteConnectionPoints(manager.getConnectionById(id)!);
+    const buyer = path('buyer');
+    const seller = path('seller');
+    const audit = path('auditLog');
+    expect(buyer[0][1]).toBeLessThan(seller[0][1]);
+    expect(seller[0][1]).toBeLessThan(audit[0][1]);
+    expect(buyer.at(-1)![1]).toBeLessThan(seller.at(-1)![1]);
+    expect(audit.at(-1)).toEqual([400, 275]); // the only attachment on this wall uses the header
+  });
+
+  it.each([false, true])(
+    'keeps saved and named attachments when adding a link (reroute saved: %s)',
+    (rerouteSaved) => {
+      const manager = layout(tables());
+      const saved = { id: 'saved', from: 'users', to: 'teams' };
+      routeConnections({
+        layoutManager: manager,
+        repair: false,
+        connectionsToRoute: [
+          { connection: saved, endpointPins: { from: [130, 38], to: [400, 88] } },
+        ],
+      });
+      manager.applyStagedChanges();
+      routeConnections({
+        layoutManager: manager,
+        repair: false,
+        connectionsToRoute: [
+          ...(rerouteSaved ? [saved] : []),
+          { id: 'new', from: 'users', to: 'teams', toPortId: 'id' },
+        ],
+      });
+      const added = absoluteConnectionPoints(manager.getConnectionById('new')!);
+      expect(added[0][0]).toBe(130);
+      expect(added[0][1]).toBeGreaterThan(38);
+      expect(added.at(-1)).toEqual([400, 110]);
+      const existing = absoluteConnectionPoints(manager.getConnectionById('saved')!);
+      expect(existing[0]).toEqual([130, 38]);
+      expect(existing.at(-1)).toEqual([400, 88]);
+    },
+  );
+
   it('routes an elbow line from row to row and stores where it attached', () => {
     const layoutManager = layout(tables());
     const { fallbacks } = routeConnections({
