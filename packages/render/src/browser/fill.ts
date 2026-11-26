@@ -1,4 +1,5 @@
 import type { Theme } from '@eraserlabs/protocol';
+import { renderIdPrefix } from './domIds.js';
 
 /**
  * Browser-side fill engine: expands the declarative template dialect into ready-to-mount HTML
@@ -127,6 +128,10 @@ export function createFillEngine(init: FillEngineInit): FillFn {
     for (const child of [...el.children]) {
       processElement(child, props, depth, theme, itemIndex);
     }
+
+    if (el.hasAttribute('data-local-markers')) {
+      scopeMarkerIds(el, props);
+    }
   }
 
   function expandEach(
@@ -166,6 +171,34 @@ export function createFillEngine(init: FillEngineInit): FillFn {
   }
 
   return (name, props, theme) => fill(name, props, 0, theme);
+}
+
+/** Each filled SVG owns its marker definitions, even if two fills of the same element share a page. */
+function scopeMarkerIds(svg: Element, props: Record<string, unknown>): void {
+  const prefix = renderIdPrefix();
+  const refs = new Map<string, string>();
+  for (const marker of svg.querySelectorAll('marker[id]')) {
+    if (marker.closest('svg') !== svg) {
+      continue;
+    }
+    const localId = marker.id;
+    marker.id = `${prefix}-${localId}`;
+    refs.set(`url(#${localId})`, `url(#${marker.id})`);
+  }
+  for (const node of svg.querySelectorAll('[marker-start], [marker-mid], [marker-end]')) {
+    if (node.closest('svg') !== svg) {
+      continue;
+    }
+    for (const attribute of ['marker-start', 'marker-mid', 'marker-end']) {
+      const value = node.getAttribute(attribute);
+      if (value) {
+        const scoped = refs.get(substitute(value, props));
+        if (scoped) {
+          node.setAttribute(attribute, scoped);
+        }
+      }
+    }
+  }
 }
 
 /**

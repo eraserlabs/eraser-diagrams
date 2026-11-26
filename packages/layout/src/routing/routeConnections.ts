@@ -34,7 +34,7 @@ import {
   type CorridorRoutingRequest,
   type RepairPolicy,
 } from './executeCorridorRouting.js';
-import { resolvePortPins } from './ports.js';
+import { resolveBatchPortPins } from './ports.js';
 import { finalizeShiftRoute, getShiftedConnection } from './shiftRouting.js';
 import {
   bindingOf,
@@ -135,17 +135,15 @@ export function routeConnections({
   // every selected line as it was: a manual label keeps its place along the line whichever way the
   // line is routed (shifted, direct or searched), and stays where it is when the path is kept as is
   const manualLabels = new Map<string, LayoutConnection>();
-  for (const { connection: input, endpointPins } of selected.values()) {
-    const existing = routingLayout.getConnectionById(input.id);
-    const connection = existing ? { ...existing, ...input } : input;
+  for (const { connection, endpointPins: pins } of resolveBatchPortPins(routingLayout, selected)) {
+    const existing = routingLayout.getConnectionById(connection.id);
     if (existing) {
       manualLabels.set(existing.id, {
         ...existing,
-        textPlacement: input.textPlacement ?? existing.textPlacement,
-        textLineOffset: input.textLineOffset ?? existing.textLineOffset,
+        textPlacement: connection.textPlacement ?? existing.textPlacement,
+        textLineOffset: connection.textLineOffset ?? existing.textLineOffset,
       });
     }
-    const pins = endpointPins ?? resolvePortPins(routingLayout, connection);
     if (isDirectConnection(connection)) {
       const change = routeDirectConnection(routingLayout, connection, pins);
       if (change && existing) {

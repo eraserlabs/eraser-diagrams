@@ -99,14 +99,26 @@ test('null arrowheads render none while an omitted end keeps the default triangl
   expect(result.errors).toEqual([]);
   await runPayload(page, payload);
   for (const [id, start, end] of [
-    ['default', 'none', 'url(#er-ah-triangle)'],
-    ['none', 'none', 'none'],
-    ['authored', 'url(#er-ah-bar)', 'url(#er-ah-arrow)'],
-  ]) {
-    const anchor = page.locator(`[data-mdp-id="${id}"] [data-role="anchor"]`);
-    await expect(anchor).toHaveAttribute('marker-start', start!);
-    await expect(anchor).toHaveAttribute('marker-end', end!);
+    ['default', null, 'triangle'],
+    ['none', null, null],
+    ['authored', 'bar', 'arrow'],
+  ] as const) {
+    const host = page.locator(`[data-mdp-id="${id}"]`);
+    const anchor = host.locator('[data-role="anchor"]');
+    for (const [endName, head] of [
+      ['start', start],
+      ['end', end],
+    ] as const) {
+      const marker =
+        head && (await host.locator(`marker[data-arrowhead="${head}"]`).getAttribute('id'));
+      await expect(anchor).toHaveAttribute(
+        `marker-${endName}`,
+        marker ? `url(#${marker})` : 'none',
+      );
+    }
   }
+  const ids = await page.locator('marker[id]').evaluateAll((nodes) => nodes.map((node) => node.id));
+  expect(new Set(ids).size).toBe(ids.length);
   await expect(page.locator('[data-mdp-id="none"] [data-role="anchor"]')).toHaveCSS(
     'marker-end',
     'none',
@@ -279,7 +291,7 @@ test('arrow heads stay 12px at every line width; triangle heads scale with it', 
   await render(page, 'elements-connections');
 
   const marker = (id: string, name: string) =>
-    page.locator(`[data-mdp-id="${id}"] marker#er-ah-${name}`);
+    page.locator(`[data-mdp-id="${id}"] marker[data-arrowhead="${name}"]`);
 
   await expect(marker('r-arrow-1', 'arrow')).toHaveAttribute('markerUnits', 'userSpaceOnUse');
   await expect(marker('r-arrow-1', 'arrow')).toHaveAttribute('markerWidth', '12');
@@ -289,7 +301,7 @@ test('arrow heads stay 12px at every line width; triangle heads scale with it', 
     ['r-arrow-4', 7],
   ] as const) {
     const sw = await page
-      .locator(`[data-mdp-id="${id}"] marker#er-ah-arrow path`)
+      .locator(`[data-mdp-id="${id}"] marker[data-arrowhead="arrow"] path`)
       .evaluate((el) => parseFloat(getComputedStyle(el).strokeWidth));
     expect(sw).toBeCloseTo(px, 2);
   }
@@ -317,8 +329,7 @@ test('an arrow head is not clipped by its marker at a thick line width', async (
   await render(page, 'elements-connections');
 
   // The chevron overflows its 12 x 11 viewport by half the stroke on every side.
-  await expect(page.locator('[data-mdp-id="r-arrow-4"] marker#er-ah-arrow')).toHaveAttribute(
-    'overflow',
-    'visible',
-  );
+  await expect(
+    page.locator('[data-mdp-id="r-arrow-4"] marker[data-arrowhead="arrow"]'),
+  ).toHaveAttribute('overflow', 'visible');
 });
