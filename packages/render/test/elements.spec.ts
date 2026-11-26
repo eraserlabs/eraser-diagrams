@@ -69,6 +69,41 @@ test('partial render includes orphan nodes, connections and CSS without global s
   expect(result.editor).toBe('');
 });
 
+test('independent fills of the same connector resolve arrowheads inside their own SVG', async ({
+  page,
+}) => {
+  const local = await page.evaluate(() => {
+    const renderer = window.elementApi.createElementRenderer({
+      baseCss: '',
+      templates: {
+        Wire: {
+          html: '<template name="Wire"><svg data-local-markers><defs><marker id="head"></marker></defs><path marker-end="{{end}}"></path></svg></template>',
+          css: '',
+        },
+      },
+    });
+    const request = {
+      entities: [],
+      connections: [{ tag: 'Wire', id: 'w', props: { from: 'a', to: 'b', end: 'url(#head)' } }],
+      icons: {},
+    };
+    const mount = () => {
+      const host = document.createElement('div');
+      host.innerHTML = renderer.fill(request)[0]!.html;
+      document.body.append(host);
+      return host;
+    };
+    return [mount(), mount()].map((host) => {
+      const marker = host.querySelector('marker')!;
+      const reference = host.querySelector('path')!.getAttribute('marker-end');
+      return (
+        reference === `url(#${marker.id})` && document.querySelector(`#${marker.id}`) === marker
+      );
+    });
+  });
+  expect(local).toEqual([true, true]);
+});
+
 test('synchronous fills use request-local icons and the registry isolates nested template styles', async ({
   page,
 }) => {

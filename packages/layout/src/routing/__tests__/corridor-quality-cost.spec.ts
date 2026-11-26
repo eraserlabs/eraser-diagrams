@@ -1,6 +1,7 @@
 import type { LayoutEntity, XYPoint } from '../../types.js';
 import { collectEndpointQualityEvents } from '../corridor/endpointQuality.js';
 import { collectGeometryQualityEvents } from '../corridor/geometryQuality.js';
+import { collectWallQualityEvents } from '../corridor/wallQuality.js';
 import {
   compareRoutingQualityCosts,
   ordinaryBendCost,
@@ -214,5 +215,64 @@ describe('routing corridor progressive quality cost', () => {
     expect(wallHugCost(12, 24, 12)).toBe(0);
     expect(wallHugCost(6, 24, 12)).toBe(12.5);
     expect(wallHugCost(0, 48, 12)).toBe(100);
+  });
+
+  it('scores parallel wall hugs along a route endpoint entity own wall', () => {
+    const entities: LayoutEntity[] = [
+      { id: 'users', x: 0, y: 0, width: 100, height: 200 },
+      { id: 'carts', x: 300, y: 260, width: 100, height: 80 },
+    ];
+    const world = manualCorridorWorld(
+      entities,
+      [
+        { index: 0, axis: 'x', rect: { x: 100, y: 260, width: 200, height: 80 } },
+        { index: 1, axis: 'y', rect: { x: 100, y: 0, width: 6, height: 340 } },
+        { index: 2, axis: 'x', rect: { x: 100, y: 0, width: 200, height: 200 } },
+      ],
+      [],
+      [],
+      { x: 0, y: 0, width: 400, height: 340 },
+    );
+    const points: XYPoint[] = [
+      { x: 300, y: 300 },
+      { x: 101, y: 300 },
+      { x: 101, y: 40 },
+      { x: 100, y: 40 },
+    ];
+    const route = new Route(
+      0,
+      { entityIndex: 1, face: 'left', authoredTrack: 300 },
+      { entityIndex: 0, face: 'right', authoredTrack: 40 },
+      [
+        {
+          corridorIndex: 0,
+          entry: { kind: 'terminal', attachmentIndex: 0 },
+          exit: { kind: 'portal', portalIndex: 0, mode: 'turn' },
+          feasibleTrack: [300, 300],
+        },
+        {
+          corridorIndex: 1,
+          entry: { kind: 'portal', portalIndex: 0, mode: 'turn' },
+          exit: { kind: 'portal', portalIndex: 1, mode: 'turn' },
+          feasibleTrack: [100, 106],
+        },
+        {
+          corridorIndex: 2,
+          entry: { kind: 'portal', portalIndex: 1, mode: 'turn' },
+          exit: { kind: 'terminal', attachmentIndex: 1 },
+          feasibleTrack: [40, 40],
+        },
+      ],
+    );
+    route.beginRealization();
+    route.setOrder([0, 0, 0]);
+    route.setNominalTracks([300, 101, 40]);
+    route.setGeometry({ from: points[0], to: points[3] }, points, [0, 1, 2]);
+
+    const hugs = collectWallQualityEvents(world, [route]).filter(
+      (event) => event.kind === 'wall-hug',
+    );
+    expect(hugs).toHaveLength(1);
+    expect(hugs[0].cost).toBeCloseTo(wallHugCost(1, 160, 24));
   });
 });

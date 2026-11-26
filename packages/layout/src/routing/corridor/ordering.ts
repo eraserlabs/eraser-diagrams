@@ -354,13 +354,14 @@ function rankGroup(
   const refIndexes: number[] = [];
   while (refIndexes.length < refs.length) {
     let selected = -1;
-    let selectedWins = -1;
+    let selectedWins = Number.NEGATIVE_INFINITY;
     let selectedTiebreakWins = -1;
     for (let index = 0; index < refs.length; index += 1) {
       if (remaining[index] !== 1 || indegree[index] !== 0) {
         continue;
       }
-      // Contending victories select; fabricated orders between never-contending visits only
+      // Contending net wins (Copeland score) select so sparse DAG chains prefer undefeated
+      // sources over middle nodes; fabricated orders between never-contending visits only
       // split ties -- they exist for rank totality and carry no information about tracks.
       let wins = 0;
       let tiebreakWins = 0;
@@ -368,8 +369,11 @@ function rankGroup(
         if (remaining[other] !== 1 || other === index) {
           continue;
         }
-        if (contendingOrders[index * refs.length + other] < 0) {
+        const contending = contendingOrders[index * refs.length + other];
+        if (contending < 0) {
           wins += 1;
+        } else if (contending > 0) {
+          wins -= 1;
         }
         if (pairOrders[index * refs.length + other] < 0) {
           tiebreakWins += 1;

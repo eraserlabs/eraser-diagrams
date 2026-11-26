@@ -558,4 +558,80 @@ describe('routing corridor ordering', () => {
 
     expect(result.groups[0].members.map((member) => member.routeIndex)).toEqual([1, 0]);
   });
+
+  it('orders negative-chirality (up-then-left) departures past a recessed table without crossing', () => {
+    // `users` sits 6px recessed behind `countries`; a route rising through the column gutter and
+    // peeling left into `users` has post-turn chirality -1 and must take the left track inside the
+    // gutter so it does not double-cross a route rising past `users` into `countries`.
+    const layoutManager = new LayoutManager({
+      entities: [
+        leaf('countries', 0, 540, 214, 154),
+        leaf('users', 7, 737, 201, 230),
+        leaf('sellers', 358, 676, 230, 230),
+        leaf('carts', 777, 1106, 201, 154),
+      ],
+      connections: [],
+    });
+    const requests = [
+      {
+        requestIndex: 0,
+        from: { entityIndex: 2, face: 'left' as const, authoredTrack: 811 },
+        to: { entityIndex: 0, face: 'right' as const, authoredTrack: 602 },
+      },
+      {
+        requestIndex: 1,
+        from: { entityIndex: 3, face: 'left' as const, authoredTrack: 1203 },
+        to: { entityIndex: 1, face: 'right' as const, authoredTrack: 796 },
+      },
+    ];
+    const world = buildCorridorWorld(layoutManager, requests);
+    const topologies = searchRoutes(world, requests).map(({ route }) => route);
+    const realized = realizeRoutes(world, topologies);
+
+    expect(realized.geometryQuality.crossings).toEqual([]);
+    const sellersToCountries = realized.routes[0].points();
+    const cartsToUsers = realized.routes[1].points();
+    const sellersX = sellersToCountries[1].x;
+    const cartsX = cartsToUsers[cartsToUsers.length - 2].x;
+    expect(cartsX).toBeGreaterThan(214);
+    expect(cartsX).toBeLessThan(sellersX);
+  });
+
+  it('ranks a sparse contending chain by net wins instead of request-index tiebreak', () => {
+    // Route 2 (late requestIndex) peels left across route 0, route 0 peels left across route 1,
+    // and routes 2 and 1 never overlap in travel. Contending orders form the acyclic chain
+    // 2 < 0 < 1, which net wins must preserve rather than tying 2 and 0 on out-degree 1.
+    const layoutManager = new LayoutManager({
+      entities: [
+        leaf('countries', 0, 540, 214, 154),
+        leaf('users', 7, 737, 201, 230),
+        leaf('sellers', 358, 676, 230, 230),
+        leaf('warehouses', 763, 528, 230, 192),
+        leaf('reviews', 777, 886, 201, 268),
+      ],
+      connections: [],
+    });
+    const requests = [
+      {
+        requestIndex: 0,
+        from: { entityIndex: 2, face: 'left' as const, authoredTrack: 811 },
+        to: { entityIndex: 0, face: 'right' as const, authoredTrack: 602 },
+      },
+      {
+        requestIndex: 1,
+        from: { entityIndex: 3, face: 'left' as const, authoredTrack: 656 },
+        to: { entityIndex: 0, face: 'right' as const, authoredTrack: 602 },
+      },
+      {
+        requestIndex: 2,
+        from: { entityIndex: 4, face: 'left' as const, authoredTrack: 926 },
+        to: { entityIndex: 1, face: 'right' as const, authoredTrack: 796 },
+      },
+    ];
+    const world = buildCorridorWorld(layoutManager, requests);
+    const topologies = searchRoutes(world, requests).map(({ route }) => route);
+    const realized = realizeRoutes(world, topologies);
+
+    expect(realized.geometryQuality.crossings).toEqual([]);
+  });
 });

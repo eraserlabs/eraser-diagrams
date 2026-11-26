@@ -66,6 +66,16 @@
   --er-class-border-style: double;
   --er-class-border-w: 4.5px;
 }
+.er-classbox[data-border-px]:not([data-border-px='']) {
+  --er-class-border-w: max(0px, var(--er-authored-border-width));
+}
+.er-classbox[data-border='double'][data-border-px]:not([data-border-px='']) {
+  --er-class-border-w: max(3px, var(--er-authored-border-width));
+}
+.er-classbox[data-corners]:not([data-corners='']) {
+  border-radius: var(--er-radius-tl) var(--er-radius-tr) var(--er-radius-br)
+    var(--er-radius-bl);
+}
 .er-classbox[data-style='watercolor'][data-washtex-css]:not(
     [data-washtex-css='']
   )

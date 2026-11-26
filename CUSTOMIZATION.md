@@ -190,6 +190,7 @@ The library is validated when `createRenderer` prepares it: schema problems, mal
 | `data-part` | Adds a profile-defined measurement handle such as `title` or `icon`. |
 | `data-text-grow-policy` | Selects `balanced`, `width-only`, or `height-only` text growth. |
 | `data-each="item of items"` | Repeats a child subtree for each array item; a sibling `data-key` is required. |
+| `data-index` | On a node inside a repeated subtree, fills the empty attribute with the item's zero-based array index. |
 | `data-use="Name"` | Mounts a sub-template at this host. |
 | `data-props="property"` | Binds a mounted sub-template to a nested property object. |
 | `data-if="property"` | Removes the element and its subtree when the property is falsy. |
@@ -198,7 +199,7 @@ The library is validated when `createRenderer` prepares it: schema problems, mal
 | `{{item.property}}` | Substitutes a field from the current loop item. |
 | `{{ }}` | Reserves a value for the layout stage, such as a connection path's `d`. |
 
-Inside a `data-each` subtree, item values support string substitution. Nested `data-each`, `data-if`, `data-use`, and `data-slot` directives are not evaluated; flatten more complex presentation data in a [normalizer](#normalizers).
+Inside a `data-each` subtree, directives and substitutions can refer to the current item. A nested loop starts its own index at zero. If `data-if` skips an item, later items keep their original array indices.
 
 ## Roles and measurement
 
@@ -211,6 +212,8 @@ Inside a `data-each` subtree, item values support string substitution. Nested `d
 - **`badge`** — badge-like rendered content, measured as its own box so overlaid badges don't distort the body's sizing.
 
 For measurements that need no protocol semantics, use `data-part="name"` — the renderer reports those boxes by part name (the stock components use `title` and `icon`), which is how applications can locate a sub-element of a rendered entity without parsing its HTML.
+
+In Shape, Activity, Icon, Event, and Gateway, `[data-part="text-run"][data-index]` identifies an entry in `texts[]`. In DatabaseTable and ClassBox, each indexed `field` row contains a `field-name` part (also marked with `data-port-name`) and a `field-type` part, including when the type is empty. In ClassBox, the enclosing indexed `section` identifies the entry in `sections[]`, and the row index identifies the entry in that section’s `items[]`. A named section exposes its heading as `section-name`.
 
 ## CSS isolation and bindings
 

@@ -1,4 +1,5 @@
 import type { Theme } from '@eraserlabs/protocol';
+import { renderIdPrefix } from './domIds.js';
 
 /**
  * Browser-side fill engine: expands the declarative template dialect into ready-to-mount HTML
@@ -18,6 +19,7 @@ import type { Theme } from '@eraserlabs/protocol';
  * - `data-if="prop"`        — falsy prop removes the element and its subtree.
  * - `data-each="v of prop"` — repeats the element's child subtree per array item; `data-key` is a
  *                             lint-enforced authoring concern, ignored at fill time.
+ * - `data-index`            — an empty attribute in a repeated subtree takes the item's zero-based index.
  * - `data-use="Name"` + `data-props="prop"` — fills template Name with the prop object as scope,
  *                             mounted inside the host element.
  * - `data-slot="prop"`      — mounts the sanitized SVG for the icon named by that prop, looked up
@@ -79,6 +81,7 @@ export function createFillEngine(init: FillEngineInit): FillFn {
     props: Record<string, unknown>,
     depth: number,
     theme: Theme,
+    itemIndex?: number,
   ): void {
     const ifExpr = el.getAttribute('data-if');
 
@@ -86,6 +89,10 @@ export function createFillEngine(init: FillEngineInit): FillFn {
       el.remove();
 
       return;
+    }
+
+    if (itemIndex !== undefined && el.getAttribute('data-index') === '') {
+      el.setAttribute('data-index', String(itemIndex));
     }
 
     const eachExpr = el.getAttribute('data-each');
@@ -119,7 +126,11 @@ export function createFillEngine(init: FillEngineInit): FillFn {
     }
 
     for (const child of [...el.children]) {
-      processElement(child, props, depth, theme);
+      processElement(child, props, depth, theme, itemIndex);
+    }
+
+    if (el.hasAttribute('data-local-markers')) {
+      scopeMarkerIds(el, props);
     }
   }
 
@@ -144,13 +155,13 @@ export function createFillEngine(init: FillEngineInit): FillFn {
     const list = Array.isArray(items) ? items : [];
     const out: string[] = [];
 
-    for (const item of list) {
+    for (const [index, item] of list.entries()) {
       const itemScope = { ...props, [varName!]: item };
       const frag = document.createElement('template');
       frag.innerHTML = itemTemplate;
 
       for (const child of [...frag.content.children]) {
-        processElement(child, itemScope, depth, theme);
+        processElement(child, itemScope, depth, theme, index);
       }
 
       out.push(substitute(frag.innerHTML, itemScope));
@@ -160,6 +171,34 @@ export function createFillEngine(init: FillEngineInit): FillFn {
   }
 
   return (name, props, theme) => fill(name, props, 0, theme);
+}
+
+/** Each filled SVG owns its marker definitions, even if two fills of the same element share a page. */
+function scopeMarkerIds(svg: Element, props: Record<string, unknown>): void {
+  const prefix = renderIdPrefix();
+  const refs = new Map<string, string>();
+  for (const marker of svg.querySelectorAll('marker[id]')) {
+    if (marker.closest('svg') !== svg) {
+      continue;
+    }
+    const localId = marker.id;
+    marker.id = `${prefix}-${localId}`;
+    refs.set(`url(#${localId})`, `url(#${marker.id})`);
+  }
+  for (const node of svg.querySelectorAll('[marker-start], [marker-mid], [marker-end]')) {
+    if (node.closest('svg') !== svg) {
+      continue;
+    }
+    for (const attribute of ['marker-start', 'marker-mid', 'marker-end']) {
+      const value = node.getAttribute(attribute);
+      if (value) {
+        const scoped = refs.get(substitute(value, props));
+        if (scoped) {
+          node.setAttribute(attribute, scoped);
+        }
+      }
+    }
+  }
 }
 
 /**

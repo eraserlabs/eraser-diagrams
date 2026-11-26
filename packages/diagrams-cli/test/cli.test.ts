@@ -2,9 +2,10 @@ import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { setImmediate } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CLI = join(HERE, '..', 'dist', 'cli.js');
@@ -90,6 +91,8 @@ function runBuffer(args: string[], options: RunOptions = {}): SpawnSyncReturns<B
 
 // Chromium boots inside several of these; give them room.
 vi.setConfig({ testTimeout: 60_000 });
+// Let the Vitest worker report results between cases that block on synchronous CLI processes.
+afterEach(() => setImmediate());
 
 describe.skipIf(!existsSync(CLI))(
   'cli (runs the built dist/cli.js; build the package first)',

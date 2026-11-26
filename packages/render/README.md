@@ -61,3 +61,7 @@ The same entry exports `measureElements(mounted, entities?)` and `measureText(ro
 `@eraserlabs/render/fit` exports synchronous `measureElement(wrapper)` and `fitElement(wrapper, constraints)`. Fit policies are `natural`, `fixed`, `content`, and `balanced`; fitting leaves the probe at its proposed size. The host decides whether to persist that geometry.
 
 `prepareWashMasters(master, elements, { idPrefix }?)` prepares watercolor definitions before low-level filling and mutates `props.washSym`. `renderer.render(request, { idPrefix }?)` handles cloning and preparation itself. Keep returned definitions mounted; an optional prefix must be unique among mounted fragments, using only letters, digits, underscores and hyphens. Automatic prefixes are isolated across bundles.
+
+Relationship and DatabaseRelationship fills give each SVG its own marker IDs. Fill once per mounted instance. To change an end after mounting, select its `marker[data-arrowhead="…"]` inside that SVG and use `url(#${marker.id})` for the path’s `marker-start` or `marker-end`. Templates can opt into local marker IDs with `data-local-markers` on the SVG; the filler rewrites its literal marker IDs and local `url(#id)` marker attributes together.
+
+`placeEndpointLabels(points, { start, end, startMarker, endMarker, doubleLine })` from `@eraserlabs/render/fill` places two measured labels along the drawn polyline. Pass the sampled curve for arcs. It returns `startLabelBox` and `endLabelBox` in the coordinate space of the points and flips the end label across the stroke when the labels overlap.

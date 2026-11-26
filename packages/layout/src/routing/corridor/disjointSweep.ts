@@ -148,7 +148,7 @@ function occupancies(
       crossLow: runLow,
       crossHigh: runHigh,
       sign,
-      adjacentPerp: out.length === 1,
+      adjacentPerp: out.length > 0 && out.every((occupancy) => occupancy.sharedChain),
     });
   }
   // The route ends here. Pin its terminal port at its true position: cross for band comparisons,
@@ -173,7 +173,8 @@ function occupancies(
  * must sit on the side it exits toward: its crossing ray starts at its own track, so any
  * continuer ordered on the exit side of the departer would be cut by it. The signal is the exit
  * ray leaving the continuer's band on exactly one side. Only the perp adjacent to the shared
- * visit speaks about shared tracks directly, and only in the unturned frame.
+ * chain speaks about shared tracks directly: its cross range is in the unturned shared frame
+ * even though its accumulated `sign` already reflects its own 90° turn chirality.
  */
 function departureOrder(
   a: Occupancy,
@@ -195,7 +196,7 @@ function departureOrder(
     bandList: readonly Occupancy[],
     perpList: readonly Occupancy[],
   ): -1 | 1 | 0 => {
-    if (!perp.adjacentPerp || perp.sign !== 1 || band.sign !== 1 || band.pin || band.adjacentPerp) {
+    if (!perp.adjacentPerp || band.sign !== 1 || band.pin || band.adjacentPerp) {
       return 0;
     }
     const side = raySide(perp, band);
@@ -210,10 +211,10 @@ function departureOrder(
      * peels first: the pairing is a tiebreak artifact and the mutual threat orders nothing.
      */
     const mirrorRay = bandList.find((occupancy) => occupancy.adjacentPerp);
-    const window = perpList[0];
+    const perpIndex = perpList.indexOf(perp);
+    const window = perpIndex > 0 ? perpList[perpIndex - 1] : undefined;
     if (
       mirrorRay &&
-      mirrorRay.sign === 1 &&
       window &&
       Math.abs(mirrorRay.travelStart - perp.travelStart) <= EPSILON &&
       raySide(mirrorRay, window) === side
@@ -379,7 +380,7 @@ function sweepDirection(
       }
       return result;
     }
-    if (coLocated && a.sign === b.sign) {
+    if (coLocated) {
       const departure = departureOrder(a, b, left, right);
       if (departure !== 0) {
         return {

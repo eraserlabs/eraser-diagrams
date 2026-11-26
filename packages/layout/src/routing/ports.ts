@@ -1,8 +1,9 @@
 import type { LayoutManager } from '../LayoutManager.js';
-import type { NewConnection } from '../types.js';
+import type { LayoutEntity, NewConnection } from '../types.js';
 import { isDirectConnection } from './directLine.js';
 import { absolutePoint, storedEndpoint } from './points.js';
-import type { EndpointPins } from './routeConnections.js';
+import type { ConnectionRoutingRequest, EndpointPins } from './routeConnections.js';
+import type { EndpointSide } from './types.js';
 
 /** The port a table-level attachment uses when the connection stores no port. */
 export const HEADER_PORT_ID = 'header';
@@ -96,4 +97,112 @@ export function resolvePortPins(
     return undefined;
   }
   return pins;
+}
+
+interface PortWall {
+  entity: LayoutEntity;
+  x: number;
+  fixed: Set<number>;
+  fresh: { pins: EndpointPins; side: EndpointSide; oppositeY: number; id: string }[];
+}
+
+/** Resolve a batch together so unnamed elbow ends sharing a ported wall can fan out. */
+export function resolveBatchPortPins(
+  layout: LayoutManager,
+  selected: ReadonlyMap<string, ConnectionRoutingRequest>,
+): ConnectionRoutingRequest[] {
+  const requests: ConnectionRoutingRequest[] = [];
+  const walls = new Map<string, PortWall>();
+  for (const request of selected.values()) {
+    const previous = layout.getConnectionById(request.connection.id);
+    const connection = previous ? { ...previous, ...request.connection } : request.connection;
+    const pins = request.endpointPins ?? resolvePortPins(layout, connection);
+    requests.push({ connection, endpointPins: pins });
+    if (!pins) {
+      continue;
+    }
+    for (const side of ['from', 'to'] as const) {
+      const point = pins[side];
+      if (!point || (side === 'from' ? connection.fromPortId : connection.toPortId)) {
+        continue;
+      }
+      const entity = layout.getEntityById(connection[side]);
+      if (
+        !entity?.ports?.length ||
+        (point[0] !== entity.x && point[0] !== entity.x + entity.width)
+      ) {
+        continue;
+      }
+      const key = entity.id + (point[0] === entity.x ? ':left' : ':right');
+      let wall = walls.get(key);
+      if (!wall) {
+        wall = { entity, x: point[0], fixed: new Set(), fresh: [] };
+        walls.set(key, wall);
+      }
+      const relative = side === 'from' ? connection.relativeFromPort : connection.relativeToPort;
+      if (request.endpointPins || relative || isDirectConnection(connection)) {
+        wall.fixed.add(point[1]);
+        continue;
+      }
+      const otherSide = side === 'from' ? 'to' : 'from';
+      const other = layout.getEntityById(connection[otherSide]);
+      const oppositeY = other
+        ? other.y + other.height / 2
+        : (storedEndpoint(connection, otherSide)?.[1] ?? point[1]);
+      wall.fresh.push({ pins, side, oppositeY, id: connection.id });
+    }
+  }
+  for (const wall of walls.values()) {
+    if (!wall.fresh.length) {
+      continue;
+    }
+    for (const { connection } of layout.getConnectedEntities(wall.entity.id)) {
+      if (selected.has(connection.id) || connection.points.length < 2) {
+        continue;
+      }
+      for (const side of ['from', 'to'] as const) {
+        const portId = side === 'from' ? connection.fromPortId : connection.toPortId;
+        if (connection[side] === wall.entity.id && !portId) {
+          const point = storedEndpoint(connection, side);
+          if (point && Math.abs(point[0] - wall.x) <= 2) {
+            wall.fixed.add(point[1]);
+          }
+        }
+      }
+    }
+    spreadWallPins(wall);
+  }
+  return requests;
+}
+
+function spreadWallPins({ entity, x, fixed, fresh }: PortWall): void {
+  const count = fixed.size + fresh.length;
+  if (count < 2) {
+    return; // a lone unnamed attachment stays on the header
+  }
+  const inset = Math.min(
+    entity.height / 4,
+    18,
+    Math.max(8, Math.floor(entity.height / (count + 2))),
+  );
+  const span = Math.min(entity.height - 2 * inset, 32 * (count - 1));
+  const start = entity.y + (fixed.size ? inset : (entity.height - span) / 2);
+  const step = span / (count - 1);
+  const tracks = Array.from({ length: count }, (_, i) => {
+    const y = start + step * i;
+    return step < 1 ? y : Math.round(y);
+  });
+
+  // Reserve the nearest slot for each saved attachment before assigning the rest.
+  for (const y of [...fixed].sort((a, b) => a - b)) {
+    const nearest = tracks.reduce(
+      (best, track, i) => (Math.abs(track - y) < Math.abs(tracks[best]! - y) ? i : best),
+      0,
+    );
+    tracks.splice(nearest, 1);
+  }
+  fresh.sort((a, b) => a.oppositeY - b.oppositeY || a.id.localeCompare(b.id));
+  fresh.forEach(({ pins, side }, i) => {
+    pins[side] = [x, tracks[i]!];
+  });
 }

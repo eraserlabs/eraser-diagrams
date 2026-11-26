@@ -83,6 +83,16 @@
   --er-table-border-style: double;
   --er-table-border-w: 4.5px;
 }
+.er-dbtable[data-border-px]:not([data-border-px='']) {
+  --er-table-border-w: max(0px, var(--er-authored-border-width));
+}
+.er-dbtable[data-border='double'][data-border-px]:not([data-border-px='']) {
+  --er-table-border-w: max(3px, var(--er-authored-border-width));
+}
+.er-dbtable[data-corners]:not([data-corners='']) {
+  border-radius: var(--er-radius-tl) var(--er-radius-tr) var(--er-radius-br)
+    var(--er-radius-bl);
+}
 /* Watercolor texture: the card face is the recolored scan master (base.style.css er-washtex).
    The header's opaque paint would hide it, and the hidden overflow would clip the bleed — both
    relax only in texture mode. The hairline rides the same ::after overlay, with watercolor knobs. */

@@ -8,6 +8,8 @@ import { toPathData } from './roundedPath.js';
 
 type Point = [number, number];
 
+type LabelSize = Pick<Box, 'width' | 'height'>;
+
 export function boxesOverlap(a: Box, b: Box, clearance = 0): boolean {
   return (
     a.x < b.x + b.width + clearance &&
@@ -71,6 +73,30 @@ export function placeEndpointLabel(
     y: cy - size.height / 2,
     width: size.width,
     height: size.height,
+  };
+}
+
+/** Place both measured endpoint labels on the drawn route, flipping the end label when they overlap. */
+export function placeEndpointLabels(
+  points: readonly Readonly<Point>[],
+  options: {
+    start?: LabelSize;
+    end?: LabelSize;
+    startMarker: boolean;
+    endMarker: boolean;
+    doubleLine: boolean;
+  },
+): { startLabelBox?: Box; endLabelBox?: Box } {
+  const { start, end, startMarker, endMarker, doubleLine } = options;
+  const startLabelBox =
+    start && placeEndpointLabel(points, 'start', start, startMarker, doubleLine);
+  let endLabelBox = end && placeEndpointLabel(points, 'end', end, endMarker, doubleLine);
+  if (end && startLabelBox && endLabelBox && boxesOverlap(startLabelBox, endLabelBox, 2)) {
+    endLabelBox = placeEndpointLabel(points, 'end', end, endMarker, doubleLine, -1);
+  }
+  return {
+    ...(startLabelBox && { startLabelBox }),
+    ...(endLabelBox && { endLabelBox }),
   };
 }
 

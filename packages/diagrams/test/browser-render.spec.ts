@@ -241,10 +241,10 @@ test('shape icon and independently aligned text runs use the canvas side-icon la
   const body = await mixed.locator('[data-role="body"]').boundingBox();
   const icon = await mixed.locator('.er-shape__icon').boundingBox();
   const lane = await mixed.locator('.er-shape__texts').boundingBox();
-  const runs = mixed.locator('.er-shape__text');
-  const left = await textInkBox(runs.nth(0));
-  const center = await textInkBox(runs.nth(1));
-  const right = await textInkBox(runs.nth(2));
+  const run = (index: number) => mixed.locator(`[data-part="text-run"][data-index="${index}"]`);
+  const left = await textInkBox(run(0));
+  const center = await textInkBox(run(1));
+  const right = await textInkBox(run(2));
 
   expect(body).not.toBeNull();
   expect(icon).not.toBeNull();
@@ -571,6 +571,14 @@ test('DatabaseTable row heights scale with fontSize and DatabaseRelationship pin
 
   const usersMeasure = run.measures.find((m) => m.id === 'users')!;
   const orgsMeasure = run.measures.find((m) => m.id === 'orgs')!;
+  await expect(
+    page.locator('[data-mdp-id="users"] [data-part="field"] [data-part="field-type"]'),
+  ).toHaveText(['int', 'text', 'int']);
+  await expect(
+    page.locator(
+      '[data-mdp-id="users"] [data-part="field"][data-index="2"] [data-part="field-name"]',
+    ),
+  ).toHaveText('org_id');
   const usersOrgId = usersMeasure.ports.find((p) => p.id === 'field:org_id')!;
   const orgsId = orgsMeasure.ports.find((p) => p.id === 'field:id')!;
 
@@ -586,11 +594,12 @@ test('DatabaseTable row heights scale with fontSize and DatabaseRelationship pin
 
   // Optionality markers exist and are referenced on the path.
   const path = page.locator('[data-mdp-id="user-org"] [data-role="anchor"]');
-  await expect(path).toHaveAttribute('marker-start', 'url(#er-dbah-crowFootZeroOrMany)');
-  await expect(path).toHaveAttribute('marker-end', 'url(#er-dbah-crowFootOnlyOne)');
-  await expect(
-    page.locator('[data-mdp-id="user-org"] marker#er-dbah-crowFootZeroOrMany circle'),
-  ).toHaveCount(1);
+  const line = page.locator('[data-mdp-id="user-org"]');
+  const start = line.locator('marker[data-arrowhead="crowFootZeroOrMany"]');
+  const end = line.locator('marker[data-arrowhead="crowFootOnlyOne"]');
+  await expect(path).toHaveAttribute('marker-start', `url(#${await start.getAttribute('id')})`);
+  await expect(path).toHaveAttribute('marker-end', `url(#${await end.getAttribute('id')})`);
+  await expect(start.locator('circle')).toHaveCount(1);
 });
 
 test('DatabaseTable honors host CSS custom properties and measured ports follow the shifted rows', async ({
@@ -646,6 +655,48 @@ test('DatabaseTable honors host CSS custom properties and measured ports follow 
 
   const conn = run.layout.connections['ab']!;
   expect(Math.abs(conn.points[0]![1] - (aBId.y + aBId.height / 2))).toBeLessThanOrEqual(1);
+});
+
+test('table and class ports sit inside the authored frame', async ({ page }) => {
+  const run = await renderDocument(page, {
+    elements: [
+      {
+        tag: 'DatabaseTable',
+        id: 'table',
+        x: 0,
+        y: 0,
+        label: 'Users',
+        cornerRadius: [0, 4, 8, 12],
+        borderWidth: 7,
+      },
+      {
+        tag: 'ClassBox',
+        id: 'class',
+        x: 300,
+        y: 0,
+        label: 'User',
+        cornerRadius: 'sharp',
+        borderStyle: 'double',
+        borderWidth: 1,
+      },
+    ],
+  });
+
+  for (const [id, width, radius] of [
+    ['table', 7, '0px 4px 8px 12px'],
+    ['class', 3, '0px'],
+  ] as const) {
+    const body = page.locator(`[data-mdp-id="${id}"] [data-role="body"]`);
+    const paint = await body.evaluate((el) => {
+      const border = getComputedStyle(el, '::after');
+      return { width: border.borderTopWidth, radius: border.borderRadius };
+    });
+    expect(paint).toEqual({ width: `${width}px`, radius });
+    const header = run.measures
+      .find((item) => item.id === id)!
+      .ports.find((port) => port.id === 'header')!;
+    expect(Math.abs(header.y - width)).toBeLessThan(0.5);
+  }
 });
 
 test('ClassBox renders named/unnamed sections, stereotype, italic/underline, and pins ports', async ({
@@ -704,11 +755,20 @@ test('ClassBox renders named/unnamed sections, stereotype, italic/underline, and
   const run = await runPayload(page, payload);
 
   const gw = page.locator('[data-mdp-id="gw"]');
+  await expect(gw.locator('[data-part="field"] [data-part="field-type"]')).toHaveText([
+    'int',
+    'void',
+    '',
+  ]);
   await expect(gw.locator('.er-classbox__stereotype')).toHaveText('«interface»');
   await expect(gw.locator('.er-classbox__title')).toHaveCSS('font-style', 'italic');
-  await expect(gw.locator('.er-classbox__section')).toHaveCount(3);
-  await expect(gw.locator('.er-classbox__section-name')).toHaveText(['attributes', 'events']);
-  await expect(gw.locator('.er-classbox__m-name').first()).toHaveCSS(
+  await expect(gw.locator('[data-part="section"]')).toHaveCount(3);
+  await expect(gw.locator('[data-part="section-name"]')).toHaveText(['attributes', 'events']);
+  const methods = gw.locator('[data-part="section"][data-index="1"]');
+  await expect(
+    methods.locator('[data-part="field"][data-index="0"] [data-part="field-name"]'),
+  ).toHaveText('+ charge()');
+  await expect(gw.locator('[data-part="field-name"]').first()).toHaveCSS(
     'text-decoration-line',
     'underline',
   );

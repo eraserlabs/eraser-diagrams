@@ -31,7 +31,7 @@ test('dialect: substitution, data-if, data-each, data-use, data-slot', async ({ 
         props: {
           label: 'Hello',
           kind: 'alpha',
-          items: [{ text: 'A' }, { text: 'B' }],
+          items: [{ text: 'A' }, {}, { text: 'B' }],
           chip: { text: 'hi' },
           icon: 'db',
         },
@@ -47,6 +47,7 @@ test('dialect: substitution, data-if, data-each, data-use, data-slot', async ({ 
   await expect(full.locator('[data-tpl="Card"]')).toHaveAttribute('data-kind', 'alpha');
   await expect(full.locator('[data-part="label"]')).toHaveText('Hello');
   await expect(full.locator('.card-items li')).toHaveText(['A', 'B']);
+  await expect(full.locator('.card-items [data-index="2"]')).toHaveText('B');
 
   // data-use mounts Chip inside the host and stamps the scope-root attribute on it.
   const chipHost = full.locator('[data-mdp-tag="Chip"]');
