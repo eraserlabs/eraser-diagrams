@@ -1,5 +1,4 @@
-import type { JsonSchema } from '@eraserlabs/resolve/schema';
-import { GroupTitleBand, ShapeStyleProps } from '../../schema/components.js';
+import { ShapeStyleProps } from '../../schema/components.js';
 import { entitySchema } from '../../schema/index.js';
 import { bandGroupLike } from '../_shared/schema-parts.js';
 
@@ -8,13 +7,6 @@ export const Lane = entitySchema(
   {
     ...bandGroupLike,
     styleMode: { ...ShapeStyleProps['styleMode'], default: 'plain' },
-    title: {
-      ...GroupTitleBand,
-      properties: {
-        ...(GroupTitleBand['properties'] as Record<string, JsonSchema>),
-        border: { type: 'boolean', default: false },
-      },
-    },
   },
   { required: ['x', 'y'], isContainer: true },
 );

@@ -353,7 +353,11 @@ for (const tag of ['Lane', 'Pool'] as const) {
     expect(Math.abs(hTitle.height - (hBody.height - 2))).toBeLessThanOrEqual(2);
     expect(hTitle.width).toBeLessThan(60);
     await expect(hHeader).toHaveCSS('writing-mode', 'sideways-lr');
-    await expect(hHeader).toHaveCSS('border-right-width', tag === 'Pool' ? '1px' : '0px');
+    await expect(hHeader).toHaveCSS('border-right-width', '0px');
+    await expect(hHeader).toHaveCSS(
+      'background-color',
+      tag === 'Pool' ? 'rgb(40, 102, 196)' : 'rgba(0, 0, 0, 0)',
+    );
     await expect(page.locator('[data-mdp-id="horiz"] .er-grouplike')).toHaveCSS(
       'border-top-width',
       tag === 'Pool' ? '1px' : '0px',
@@ -368,7 +372,7 @@ for (const tag of ['Lane', 'Pool'] as const) {
     expect(Math.abs(vTitle.width - (vBody.width - 2))).toBeLessThanOrEqual(2);
     expect(vTitle.height).toBeLessThan(60);
     await expect(vHeader).toHaveCSS('writing-mode', 'horizontal-tb');
-    await expect(vHeader).toHaveCSS('border-bottom-width', tag === 'Pool' ? '1px' : '0px');
+    await expect(vHeader).toHaveCSS('border-bottom-width', '0px');
     await expect(vHeader).toHaveCSS('border-right-width', '0px');
     await expect(vHeader).toHaveCSS('justify-content', 'center');
   });

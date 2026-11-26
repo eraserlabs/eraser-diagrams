@@ -469,7 +469,22 @@ export const stockNormalizers: Record<string, ElementNormalizer> = {
     }
     normalizeGroupLike(element);
   },
-  Pool: normalizeGroupLike,
+  Pool: (element) => {
+    normalizeGroupLike(element);
+    const title = element.title as Record<string, unknown> | undefined;
+    if (
+      title?.width === 'full' &&
+      !title.border &&
+      title.bgColor === undefined &&
+      element.bgColor === undefined
+    ) {
+      const band = stringOr(element.borderColor) ?? stringOr(element.color);
+      if (isPaint(band)) {
+        title.bgColor = band;
+        title.color ??= inkForFill(band);
+      }
+    }
+  },
   DatabaseTable: normalizeTableBox,
   ClassBox: normalizeClassBox,
   Divider: normalizeDivider,
