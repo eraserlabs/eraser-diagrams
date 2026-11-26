@@ -586,11 +586,12 @@ test('DatabaseTable row heights scale with fontSize and DatabaseRelationship pin
 
   // Optionality markers exist and are referenced on the path.
   const path = page.locator('[data-mdp-id="user-org"] [data-role="anchor"]');
-  await expect(path).toHaveAttribute('marker-start', 'url(#er-dbah-crowFootZeroOrMany)');
-  await expect(path).toHaveAttribute('marker-end', 'url(#er-dbah-crowFootOnlyOne)');
-  await expect(
-    page.locator('[data-mdp-id="user-org"] marker#er-dbah-crowFootZeroOrMany circle'),
-  ).toHaveCount(1);
+  const line = page.locator('[data-mdp-id="user-org"]');
+  const start = line.locator('marker[data-arrowhead="crowFootZeroOrMany"]');
+  const end = line.locator('marker[data-arrowhead="crowFootOnlyOne"]');
+  await expect(path).toHaveAttribute('marker-start', `url(#${await start.getAttribute('id')})`);
+  await expect(path).toHaveAttribute('marker-end', `url(#${await end.getAttribute('id')})`);
+  await expect(start.locator('circle')).toHaveCount(1);
 });
 
 test('DatabaseTable honors host CSS custom properties and measured ports follow the shifted rows', async ({

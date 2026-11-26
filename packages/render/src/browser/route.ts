@@ -22,7 +22,7 @@ import { resolvePortPins } from '@eraserlabs/layout/routing/ports';
 import type { ResolvedConnection, ResolvedEntity } from '@eraserlabs/protocol';
 import type { Box, ConnectionGeometry, SceneLayout } from '@eraserlabs/render';
 import { isFiniteNumber, isRecord } from '@eraserlabs/utils';
-import { boxesOverlap, doubleRailsGeometry, placeEndpointLabel } from './lineDecoration.js';
+import { doubleRailsGeometry, placeEndpointLabels } from './lineDecoration.js';
 import type { ElementMeasure, MeasuredPort } from './measure.js';
 import { ELBOW_CORNER_RADIUS, toPathData } from './roundedPath.js';
 
@@ -603,24 +603,6 @@ function toSceneLayout(
     if (doubleRails) {
       polylines.push(...doubleRails.boundsPolylines);
     }
-    const ends = endpointLabels.get(connection.id);
-    const startLabelBox = ends?.start
-      ? placeEndpointLabel(drawn, 'start', ends.start, hasVisibleMarker(props, 'start'), isDouble)
-      : undefined;
-    let endLabelBox = ends?.end
-      ? placeEndpointLabel(drawn, 'end', ends.end, hasVisibleMarker(props, 'end'), isDouble)
-      : undefined;
-    if (startLabelBox && endLabelBox && boxesOverlap(startLabelBox, endLabelBox, 2)) {
-      endLabelBox = placeEndpointLabel(
-        drawn,
-        'end',
-        ends!.end!,
-        hasVisibleMarker(props, 'end'),
-        isDouble,
-        -1,
-      );
-    }
-
     connections[connection.id] = {
       d: arc ? getArcPathD(arc.start, arc.end, arc.bend) : toPathData(points, cornerRadius),
       ...(doubleRails ? { doubleRailsD: doubleRails.d } : {}),
@@ -629,8 +611,12 @@ function toSceneLayout(
         ? { x: placed.x + placed.width / 2, y: placed.y + placed.height / 2 }
         : midpoint(points),
       ...(placed ? { labelBox: { ...placed } } : {}),
-      ...(startLabelBox ? { startLabelBox } : {}),
-      ...(endLabelBox ? { endLabelBox } : {}),
+      ...placeEndpointLabels(drawn, {
+        ...endpointLabels.get(connection.id),
+        startMarker: hasVisibleMarker(props, 'start'),
+        endMarker: hasVisibleMarker(props, 'end'),
+        doubleLine: isDouble,
+      }),
     };
   }
 

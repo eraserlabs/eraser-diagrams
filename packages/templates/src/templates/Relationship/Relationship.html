@@ -8,12 +8,13 @@
     data-label-color="{{labelColor}}"
     style="--er-stroke: {{color}}; --er-line-w: {{lineWidthPx}}px; --er-font-px: {{fontSize}}px; --er-label-ink: {{labelColor}}"
   >
-    <svg class="er-rel__svg">
+    <svg class="er-rel__svg" data-local-markers>
       <defs>
         <!-- triangle: 10 x lineWidth long, 9 x lineWidth wide (the canvas rule). Stroke px is
              lineWidth x 1.75, so in stroke-width units the head is 10 / 1.75 = 5.71 long. -->
         <marker
           id="er-ah-triangle"
+          data-arrowhead="triangle"
           markerUnits="strokeWidth"
           markerWidth="5.71"
           markerHeight="5.14"
@@ -29,6 +30,7 @@
              the 12 x 11 viewport so a thick stroke is not clipped at the tip and arms. -->
         <marker
           id="er-ah-arrow"
+          data-arrowhead="arrow"
           markerUnits="userSpaceOnUse"
           overflow="visible"
           markerWidth="12"
@@ -47,6 +49,7 @@
         </marker>
         <marker
           id="er-ah-bar"
+          data-arrowhead="bar"
           markerUnits="strokeWidth"
           markerWidth="2.31"
           markerHeight="11.54"
@@ -64,6 +67,7 @@
         </marker>
         <marker
           id="er-ah-dot"
+          data-arrowhead="dot"
           markerUnits="strokeWidth"
           markerWidth="6.15"
           markerHeight="6.15"
@@ -76,6 +80,7 @@
         </marker>
         <marker
           id="er-ah-crowFootSingle"
+          data-arrowhead="crowFootSingle"
           markerUnits="strokeWidth"
           markerWidth="6.15"
           markerHeight="7.69"
@@ -93,6 +98,7 @@
         </marker>
         <marker
           id="er-ah-crowFootMany"
+          data-arrowhead="crowFootMany"
           markerUnits="strokeWidth"
           markerWidth="7.69"
           markerHeight="7.69"
@@ -110,6 +116,7 @@
         </marker>
         <marker
           id="er-ah-crowFootOnlyOne"
+          data-arrowhead="crowFootOnlyOne"
           markerUnits="strokeWidth"
           markerWidth="9.23"
           markerHeight="7.69"
@@ -127,6 +134,7 @@
         </marker>
         <marker
           id="er-ah-crowFootZeroOrOne"
+          data-arrowhead="crowFootZeroOrOne"
           markerUnits="strokeWidth"
           markerWidth="13.85"
           markerHeight="7.69"
@@ -152,6 +160,7 @@
         </marker>
         <marker
           id="er-ah-crowFootOneOrMany"
+          data-arrowhead="crowFootOneOrMany"
           markerUnits="strokeWidth"
           markerWidth="10.77"
           markerHeight="7.69"
@@ -169,6 +178,7 @@
         </marker>
         <marker
           id="er-ah-crowFootZeroOrMany"
+          data-arrowhead="crowFootZeroOrMany"
           markerUnits="strokeWidth"
           markerWidth="14.62"
           markerHeight="7.69"
@@ -194,6 +204,7 @@
         </marker>
         <marker
           id="er-ah-hollowTriangle"
+          data-arrowhead="hollowTriangle"
           markerUnits="strokeWidth"
           markerWidth="9.23"
           markerHeight="9.23"
@@ -212,6 +223,7 @@
         </marker>
         <marker
           id="er-ah-hollowDiamond"
+          data-arrowhead="hollowDiamond"
           markerUnits="strokeWidth"
           markerWidth="11.54"
           markerHeight="8.46"
@@ -230,6 +242,7 @@
         </marker>
         <marker
           id="er-ah-filledDiamond"
+          data-arrowhead="filledDiamond"
           markerUnits="strokeWidth"
           markerWidth="11.54"
           markerHeight="8.46"

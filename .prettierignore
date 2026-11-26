@@ -3,7 +3,7 @@ dist/
 coverage/
 pnpm-lock.yaml
 *.tsbuildinfo
-packages/diagrams/src/library/generated/
+packages/templates/src/generated/
 test-results/
 *.png
 # Template markup is whitespace-significant (pre-wrap text nodes); AUTHORING.md requires tight text
