@@ -463,8 +463,28 @@ export const stockNormalizers: Record<string, ElementNormalizer> = {
   Gateway: normalizeBpmnNode,
   Textbox: normalizeTextbox,
   Group: normalizeGroupLike,
-  Lane: normalizeGroupLike,
-  Pool: normalizeGroupLike,
+  Lane: (element) => {
+    if (element.borderColor === undefined && element.borderStyle === undefined) {
+      element.borderWidth ??= 0;
+    }
+    normalizeGroupLike(element);
+  },
+  Pool: (element) => {
+    normalizeGroupLike(element);
+    const title = element.title as Record<string, unknown> | undefined;
+    if (
+      title?.width === 'full' &&
+      !title.border &&
+      title.bgColor === undefined &&
+      element.bgColor === undefined
+    ) {
+      const band = stringOr(element.borderColor) ?? stringOr(element.color);
+      if (isPaint(band)) {
+        title.bgColor = band;
+        title.color ??= inkForFill(band);
+      }
+    }
+  },
   DatabaseTable: normalizeTableBox,
   ClassBox: normalizeClassBox,
   Divider: normalizeDivider,

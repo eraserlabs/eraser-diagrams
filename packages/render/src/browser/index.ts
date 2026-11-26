@@ -1,3 +1,4 @@
+import { poolLaneDividerPath, poolLaneDividers } from '@eraserlabs/layout/poolLaneDividers';
 import type { ResolvedElement, ResolvedEntity } from '@eraserlabs/protocol';
 import type { SceneLayout } from '@eraserlabs/render';
 import { endpointLabelsOf, externalTextOf, portsOf, routeScene } from './route.js';
@@ -136,6 +137,33 @@ async function run(request: RunRequest): Promise<RunResult> {
     );
   }
   applyLayout(scene, mounted, layout, containmentZIndex(all), measures);
+  const dividers = poolLaneDividers(
+    entities.flatMap((entity) => {
+      const box = layout.boxes[entity.id];
+      return box && (entity.tag === 'Pool' || entity.tag === 'Lane')
+        ? [
+            {
+              ...box,
+              id: entity.id,
+              tag: entity.tag,
+              containerId: entity.containerId ?? null,
+              orientation:
+                entity.props['orientation'] === 'vertical'
+                  ? ('vertical' as const)
+                  : ('horizontal' as const),
+            },
+          ]
+        : [];
+    }),
+  );
+  for (const { id, wrapper } of mounted) {
+    const segments = dividers.get(id);
+    if (segments) {
+      wrapper
+        .querySelector('[data-part="lane-dividers"]')
+        ?.setAttribute('d', poolLaneDividerPath(segments));
+    }
+  }
   attachContainerContent(all, measures, layout);
 
   return { measures, layout };

@@ -353,7 +353,15 @@ for (const tag of ['Lane', 'Pool'] as const) {
     expect(Math.abs(hTitle.height - (hBody.height - 2))).toBeLessThanOrEqual(2);
     expect(hTitle.width).toBeLessThan(60);
     await expect(hHeader).toHaveCSS('writing-mode', 'sideways-lr');
-    await expect(hHeader).toHaveCSS('border-right-width', '1px');
+    await expect(hHeader).toHaveCSS('border-right-width', '0px');
+    await expect(hHeader).toHaveCSS(
+      'background-color',
+      tag === 'Pool' ? 'rgb(40, 102, 196)' : 'rgba(0, 0, 0, 0)',
+    );
+    await expect(page.locator('[data-mdp-id="horiz"] .er-grouplike')).toHaveCSS(
+      'border-top-width',
+      tag === 'Pool' ? '1px' : '0px',
+    );
     await expect(hHeader).toHaveCSS('border-bottom-width', '0px');
 
     const vBody = (await page.locator('[data-mdp-id="vert"] .er-grouplike').boundingBox())!;
@@ -364,8 +372,59 @@ for (const tag of ['Lane', 'Pool'] as const) {
     expect(Math.abs(vTitle.width - (vBody.width - 2))).toBeLessThanOrEqual(2);
     expect(vTitle.height).toBeLessThan(60);
     await expect(vHeader).toHaveCSS('writing-mode', 'horizontal-tb');
-    await expect(vHeader).toHaveCSS('border-bottom-width', '1px');
+    await expect(vHeader).toHaveCSS('border-bottom-width', '0px');
     await expect(vHeader).toHaveCSS('border-right-width', '0px');
     await expect(vHeader).toHaveCSS('justify-content', 'center');
   });
 }
+
+test('pools divide their own lanes in spatial order and leave the outer edges open', async ({
+  page,
+}) => {
+  const pool = (id: string, x: number, orientation = 'horizontal') => ({
+    tag: 'Pool',
+    id,
+    x,
+    y: 20,
+    width: 280,
+    height: 240,
+    orientation,
+    title: { text: id },
+  });
+  const lane = (
+    id: string,
+    containerId: string,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) => ({
+    tag: 'Lane',
+    id,
+    containerId,
+    x,
+    y,
+    width,
+    height,
+  });
+  const { payload } = await buildPayload({
+    entities: [
+      pool('rows', 20),
+      pool('columns', 340, 'vertical'),
+      pool('single', 660),
+      lane('last', 'rows', 60, 180, 240, 80),
+      lane('right', 'columns', 480, 60, 140, 200),
+      lane('only', 'single', 700, 20, 240, 240),
+      lane('middle', 'rows', 60, 100, 240, 80),
+      lane('left', 'columns', 340, 60, 140, 200),
+      lane('first', 'rows', 60, 20, 240, 80),
+    ],
+    connections: [],
+  });
+  await runPayload(page, payload);
+  const dividers = (id: string) =>
+    page.locator(`[data-mdp-id="${id}"] [data-part="lane-dividers"]`);
+  await expect(dividers('rows')).toHaveAttribute('d', 'M40 80L280 80 M40 160L280 160');
+  await expect(dividers('columns')).toHaveAttribute('d', 'M140 40L140 240');
+  await expect(dividers('single')).toHaveAttribute('d', '');
+});

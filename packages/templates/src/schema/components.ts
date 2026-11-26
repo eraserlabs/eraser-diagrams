@@ -96,6 +96,7 @@ export const GroupTitleBand: JsonSchema = {
   properties: {
     ...(GroupTitle['properties'] as Record<string, JsonSchema>),
     width: { type: 'string', enum: [...GROUP_TITLE_WIDTHS], default: 'full' },
+    border: { type: 'boolean', default: false },
   },
 };
 

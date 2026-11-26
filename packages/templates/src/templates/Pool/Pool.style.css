@@ -385,3 +385,10 @@
   border-top-left-radius: inherit;
   border-top-right-radius: inherit;
 }
+
+.er-pool__dividers {
+  position: absolute;
+  inset: 0;
+  color: var(--er-stroke);
+  pointer-events: none;
+}

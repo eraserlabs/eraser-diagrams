@@ -40,7 +40,7 @@ export const stockRenderProps: Record<string, Record<string, JsonSchema>> = {
   Gateway: surfacePaints,
   Group: groupPaints,
   Lane: groupPaints,
-  Pool: groupPaints,
+  Pool: { ...groupPaints, laneDividerPath: { type: 'string' } },
   DatabaseTable: tableRenderProps,
   ClassBox: tableRenderProps,
   Relationship: { startMarker: { type: 'string' }, endMarker: { type: 'string' } },
