@@ -57,6 +57,9 @@ export const MANIFEST: readonly string[] = [
 ] as const;
 
 export { BASE_CSS };
+export type { TableField } from './templates/_shared/schema-parts.js';
+export type { ClassSection } from './templates/ClassBox/ClassBox.schema.js';
+export type { UnderlineStyle } from './schema/text.js';
 
 function getTemplate(name: string): TemplateFile {
   const html = TEMPLATE_HTML[name];
